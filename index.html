@@ -10,6 +10,10 @@
     href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap"
     rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.snow.min.css" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
   <style>
     *,
     *::before,
@@ -1279,6 +1283,19 @@
         height: 200px
       }
     }
+    .news-rich-content h1{font-size:24px;font-weight:800;color:var(--navy);margin:16px 0 8px}
+.news-rich-content h2{font-size:20px;font-weight:700;color:var(--navy);margin:14px 0 6px}
+.news-rich-content h3{font-size:17px;font-weight:700;color:var(--navy);margin:12px 0 6px}
+.news-rich-content p{margin:0 0 10px;line-height:1.8}
+.news-rich-content ul,.news-rich-content ol{padding-left:20px;margin-bottom:10px}
+.news-rich-content li{margin-bottom:4px;line-height:1.7}
+.news-rich-content a{color:var(--blue);text-decoration:underline}
+.news-rich-content strong{font-weight:700}
+.news-rich-content em{font-style:italic}
+
+.news-rich-content img { max-width:100%; height:auto; cursor:pointer; border-radius:8px; }
+#news-editor img { max-width:100%; height:auto; cursor:pointer; border-radius:8px; }
+#news-editor img.selected { outline:2px solid var(--blue); }
   </style>
 </head>
 
@@ -1867,7 +1884,86 @@ const NEWS_CATEGORIES = [
   { id: 'resources',   icon: '📚', label: 'Learning Resources',   color: '#06b6d4' },
 ]
 
+async function insertNewsImage(input){
+  const file = input.files[0]
+  if(!file) return
+  if(file.size > 5*1024*1024){ toast('Image must be under 5MB','err'); return }
+  toast('Uploading image...')
+  const form = new FormData()
+  form.append('file', file)
+  
+  console.log('Token:', getToken()?.slice(0,20))
+  try{
+    const res = await fetch(API_URL + '/news/upload-image', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + getToken() },
+      body: form
+    })
+    
+    const data = await res.json()
+  
+    if(!res.ok) throw new Error(data.detail||'Upload failed')
+   
+    const editor = document.getElementById('news-editor')
+    if(editor){
+      const img = document.createElement('img')
+      img.src = data.url
+      img.style.cssText = 'max-width:100%;height:auto;border-radius:8px;margin:8px 0;display:block'
+      editor.appendChild(img)
+      toast('Image uploaded! ✅')
+    } else {
+      console.log('Editor not found!')
+    }
+  }catch(e){
 
+  
+    toast(e.message,'err')
+  }
+  input.value = ''
+}
+// Make images in editor resizable
+document.addEventListener('click', function(e){
+  if(e.target.tagName === 'IMG' && e.target.closest('#news-editor')){
+    // Remove selected from all images
+    document.querySelectorAll('#news-editor img').forEach(i=>i.classList.remove('selected'))
+    e.target.classList.add('selected')
+    
+    // Show resize controls
+    const existing = document.getElementById('img-resize-toolbar')
+    if(existing) existing.remove()
+    
+    const toolbar = document.createElement('div')
+    toolbar.id = 'img-resize-toolbar'
+    toolbar.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1e3a8a;border-radius:10px;padding:8px 12px;display:flex;gap:8px;z-index:9999;align-items:center'
+    toolbar.innerHTML = `
+      <span style="color:#fff;font-size:12px">Resize:</span>
+      <button onclick="resizeSelectedImg('25%')" style="background:rgba(255,255,255,0.2);color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:12px">25%</button>
+      <button onclick="resizeSelectedImg('50%')" style="background:rgba(255,255,255,0.2);color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:12px">50%</button>
+      <button onclick="resizeSelectedImg('75%')" style="background:rgba(255,255,255,0.2);color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:12px">75%</button>
+      <button onclick="resizeSelectedImg('100%')" style="background:rgba(255,255,255,0.2);color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:12px">100%</button>
+      <button onclick="resizeSelectedImg('auto','left')" style="background:rgba(255,255,255,0.2);color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:12px">⬅ Left</button>
+      <button onclick="resizeSelectedImg('auto','center')" style="background:rgba(255,255,255,0.2);color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:12px">⬛ Center</button>
+      <button onclick="resizeSelectedImg('auto','right')" style="background:rgba(255,255,255,0.2);color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:12px">➡ Right</button>
+      <button onclick="openCropModal()" style="background:rgba(255,255,255,0.2);color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:12px">✂️ Crop</button>
+      <button onclick="document.getElementById('img-resize-toolbar').remove()" style="background:#ef4444;color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:12px">✕</button>
+    `
+    document.body.appendChild(toolbar)
+  }
+})
+
+function resizeSelectedImg(width, align=null){
+  const img = document.querySelector('#news-editor img.selected')
+  if(!img) return
+  img.style.width = width
+  img.style.maxWidth = '100%'
+  if(align){
+    img.style.display = 'block'
+    img.style.marginLeft = align === 'center' ? 'auto' : align === 'right' ? 'auto' : '0'
+    img.style.marginRight = align === 'center' ? 'auto' : align === 'right' ? '0' : 'auto'
+    img.style.float = align === 'left' ? 'left' : align === 'right' ? 'right' : 'none'
+    if(align === 'center') img.style.float = 'none'
+  }
+}
 function newsCard(p, featured){
   const cat = NEWS_CATEGORIES.find(c=>c.id===p.category) || NEWS_CATEGORIES[0]
   return `
@@ -1880,7 +1976,7 @@ function newsCard(p, featured){
         ${featured ? `<span style="background:#fef9c3;color:#854d0e;font-size:11px;padding:3px 10px;border-radius:999px;font-weight:700">⭐ Featured</span>` : ''}
       </div>
       <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:6px;line-height:1.4">${p.title}</div>
-      <div style="font-size:13px;color:var(--g600);line-height:1.6;margin-bottom:12px">${p.content.slice(0,120)}${p.content.length>120?'...':''}</div>
+      <div style="font-size:13px;color:var(--g600);line-height:1.6;margin-bottom:12px">${p.content.replace(/<[^>]*>/g,'').slice(0,120)}${p.content.replace(/<[^>]*>/g,'').length>120?'...':''}</div>
       <div style="display:flex;align-items:center;justify-content:space-between">
         <span style="font-size:11px;color:var(--g400)">${fmtShort(p.created_at)} ${p.source_name?'• '+p.source_name:''}</span>
         ${State.user?.role==='admin' ? `
@@ -1995,7 +2091,7 @@ async function openNewsPost(postId){
             Posted by ${p.profiles?.full_name||'Admin'} • ${fmtShort(p.created_at)}
             ${p.source_name ? `• Source: <strong>${p.source_name}</strong>` : ''}
           </div>
-          <div style="font-size:14px;color:var(--g600);line-height:1.8;white-space:pre-wrap">${p.content}</div>
+          <div style="font-size:14px;color:var(--g600);line-height:1.8" class="news-rich-content">${p.content}</div>
           ${p.source_url ? `
           <div style="margin-top:20px">
             <a href="${p.source_url}" target="_blank" class="btn btn-primary btn-sm">🔗 Read Full Article →</a>
@@ -2006,6 +2102,10 @@ async function openNewsPost(postId){
   }catch(e){
     toast(e.message,'err')
   }
+}
+function insertNewsLink(){
+  const url = prompt('Enter URL:')
+  if(url) document.execCommand('createLink', false, url)
 }
 
 function openNewsModal(postId = null){
@@ -2029,7 +2129,41 @@ function openNewsModal(postId = null){
         </div>
         <div class="form-group">
           <label class="form-label">Content *</label>
-          <textarea class="input" id="news-content" rows="6" placeholder="Write the full post content here..."></textarea>
+          <div style="border:1px solid var(--g200);border-radius:8px;overflow:hidden">
+            <div style="background:#f8fafc;padding:8px;border-bottom:1px solid var(--g200);display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+              <select onchange="document.execCommand('formatBlock',false,this.value);this.value=''" style="border:1px solid var(--g200);background:#fff;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:13px">
+                <option value="">Paragraph</option>
+                <option value="h1">Heading 1</option>
+                <option value="h2">Heading 2</option>
+                <option value="h3">Heading 3</option>
+              </select>
+              <select onchange="document.execCommand('fontName',false,this.value);this.value=''" style="border:1px solid var(--g200);background:#fff;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:13px">
+                <option value="">Font</option>
+                <option value="Arial">Arial</option>
+                <option value="Georgia">Georgia</option>
+                <option value="Times New Roman">Times New Roman</option>
+                <option value="Courier New">Courier New</option>
+                <option value="Verdana">Verdana</option>
+              </select>
+              <select onchange="document.execCommand('fontSize',false,this.value);this.value=''" style="border:1px solid var(--g200);background:#fff;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:13px">
+                <option value="">Size</option>
+                <option value="1">Small</option>
+                <option value="3">Normal</option>
+                <option value="5">Large</option>
+                <option value="7">Huge</option>
+              </select>
+              <button type="button" onclick="document.execCommand('bold')" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;font-weight:700;cursor:pointer">B</button>
+              <button type="button" onclick="document.execCommand('italic')" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;font-style:italic;cursor:pointer">I</button>
+              <button type="button" onclick="document.execCommand('underline')" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;text-decoration:underline;cursor:pointer">U</button>
+              <button type="button" onclick="document.execCommand('insertUnorderedList')" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer">• List</button>
+              <button type="button" onclick="document.execCommand('insertOrderedList')" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer">1. List</button>
+              <button type="button" onclick="insertNewsLink()" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer">🔗 Link</button>
+              <button type="button" onclick="document.getElementById('news-img-upload').click()" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer">🖼️ Image</button>
+              <input type="file" id="news-img-upload" accept="image/*" style="display:none" onchange="insertNewsImage(this)"/>
+              <input type="color" onchange="document.execCommand('foreColor',false,this.value)" title="Text color" style="border:1px solid var(--g200);border-radius:4px;width:32px;height:28px;cursor:pointer;padding:2px"/>
+            </div>
+            <div id="news-editor" contenteditable="true" style="min-height:200px;padding:12px;font-size:14px;outline:none;line-height:1.8" placeholder="Write your post content here..."></div>
+          </div>
         </div>
         <div class="grid-2">
           <div class="form-group">
@@ -2063,7 +2197,7 @@ function openNewsModal(postId = null){
 
 async function submitNews(postId){
   const title      = document.getElementById('news-title')?.value?.trim()
-  const content    = document.getElementById('news-content')?.value?.trim()
+  const content = document.getElementById('news-editor')?.innerHTML?.trim()
   const category   = document.getElementById('news-cat')?.value
   const image_url  = document.getElementById('news-image')?.value?.trim()||null
   const source_name= document.getElementById('news-source-name')?.value?.trim()||null
@@ -2096,7 +2230,88 @@ async function deleteNews(postId){
     toast(e.message,'err')
   }
 }
+function openCropModal(){
+  const img = document.querySelector('#news-editor img.selected')
+  if(!img) return
+  
+  const src = img.src
+  
+  // Create crop modal
+  const modal = document.createElement('div')
+  modal.id = 'crop-modal'
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:99999;display:flex;align-items:center;justify-content:center'
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:16px;padding:24px;max-width:700px;width:90%;max-height:90vh;overflow:auto">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <h3 style="font-size:16px;font-weight:700;color:var(--navy)">✂️ Crop Image</h3>
+        <button onclick="closeCropModal()" style="background:none;border:none;font-size:20px;cursor:pointer">✕</button>
+      </div>
+      <div style="max-height:400px;overflow:hidden">
+        <img id="crop-img" src="${src}" style="max-width:100%"/>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
+        <button onclick="setCropRatio(16/9)" class="btn btn-ghost btn-sm">16:9</button>
+        <button onclick="setCropRatio(4/3)" class="btn btn-ghost btn-sm">4:3</button>
+        <button onclick="setCropRatio(1)" class="btn btn-ghost btn-sm">1:1</button>
+        <button onclick="setCropRatio(NaN)" class="btn btn-ghost btn-sm">Free</button>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end">
+        <button onclick="closeCropModal()" class="btn btn-ghost">Cancel</button>
+        <button onclick="applyCrop()" class="btn btn-primary">Apply Crop ✅</button>
+      </div>
+    </div>
+  `
+  document.body.appendChild(modal)
+  
+  // Initialize cropper
+  const cropImg = document.getElementById('crop-img')
+  window._cropper = new Cropper(cropImg, {
+    viewMode: 1,
+    autoCropArea: 1,
+  })
+}
 
+function setCropRatio(ratio){
+  if(window._cropper) window._cropper.setAspectRatio(ratio)
+}
+
+function applyCrop(){
+  const img = document.querySelector('#news-editor img.selected')
+  if(!img || !window._cropper) return
+  
+  const canvas = window._cropper.getCroppedCanvas()
+  const croppedUrl = canvas.toDataURL('image/jpeg', 0.9)
+  
+  // Upload cropped image to server
+  canvas.toBlob(async (blob)=>{
+    const form = new FormData()
+    form.append('file', blob, 'cropped.jpg')
+    try{
+      const res = await fetch(API_URL + '/news/upload-image', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + getToken() },
+        body: form
+      })
+      const data = await res.json()
+      if(res.ok){
+        img.src = data.url
+        img.style.width = ''
+        toast('Image cropped and uploaded! ✅')
+      } else {
+        // Fallback to base64 if upload fails
+        img.src = croppedUrl
+      }
+    }catch(e){
+      img.src = croppedUrl
+    }
+    closeCropModal()
+  }, 'image/jpeg', 0.9)
+}
+
+function closeCropModal(){
+  if(window._cropper){ window._cropper.destroy(); window._cropper = null }
+  document.getElementById('crop-modal')?.remove()
+}
   async function renderPage() {
       const p = State.page
       if (p === 'landing') return renderLanding()
@@ -4113,6 +4328,7 @@ async function submitProgress(sessionId){
         </div>
       </div>
     </div>`
+  
   }catch(e){
     toast(e.message, 'err')
   }
