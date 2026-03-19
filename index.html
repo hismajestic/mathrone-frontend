@@ -1328,7 +1328,13 @@ const CATEGORY_LEVELS = {
   cv:        { label: 'Target Audience *',          placeholder: 'Fresh Graduate, Mid-level, Senior, Executive', hint: 'Who you can help' },
   global:    { label: 'Experience Level *',         placeholder: 'Beginner, Intermediate, Advanced, Expert', hint: 'Skill levels you can teach' },
 }
-
+const RWANDA_DISTRICTS = [
+  'Bugesera','Burera','Gakenke','Gasabo','Gatsibo','Gicumbi','Gisagara',
+  'Huye','Kamonyi','Karongi','Kayonza','Kicukiro','Kirehe','Muhanga',
+  'Musanze','Ngabo','Ngoma','Ngororero','Nyabihu','Nyagatare','Nyamagabe',
+  'Nyamasheke','Nyanza','Nyarugenge','Nyaruguru','Rubavu','Ruhango',
+  'Rulindo','Rusizi','Rutsiro','Rwamagana'
+]
     // ════════════════════════════════════════════════════════════
     // STATE
     // ════════════════════════════════════════════════════════════
@@ -1358,17 +1364,7 @@ const CATEGORY_LEVELS = {
     // ════════════════════════════════════════════════════════════
     // API CLIENT
     // ════════════════════════════════════════════════════════════
-    async function api(path, opts = {}) {
-      const token = getToken()
-      const h = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }
-      const r = await fetch(API_URL + path, { ...opts, headers: { ...h, ...(opts.headers || {}) } })
-      if (!r.ok) {
-        const e = await r.json().catch(() => ({ detail: r.statusText }))
-        throw new Error(e.detail || 'Request failed')
-      }
-      if (r.status === 204) return null
-      return r.json()
-    }
+ 
     async function api(path, opts = {}) {
       const token = getToken()
       const h = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }
@@ -1376,7 +1372,7 @@ const CATEGORY_LEVELS = {
       if (!r.ok) {
         const e = await r.json().catch(() => ({ detail: r.statusText }))
         const msg = typeof e.detail === 'string' ? e.detail : (e.message || JSON.stringify(e.detail) || 'Request failed')
-    if(msg.toLowerCase().includes('expired') || msg.toLowerCase().includes('invalid') || r.status===401){
+    if(r.status===401 && (msg.toLowerCase().includes('expired') || msg.toLowerCase().includes('invalid token')) && State.user){
           localStorage.removeItem('tc_token')
           localStorage.removeItem('tc_refresh')
           State.user = null
@@ -1412,7 +1408,38 @@ const CATEGORY_LEVELS = {
     // RENDER ENGINE
     // ════════════════════════════════════════════════════════════
     function render(html) { document.getElementById('app').innerHTML = html }
-
+async function renderPage() {
+  const p = State.page
+  if (p === 'landing') return renderLanding()
+  if (p === 'login') return renderLogin()
+  if (p === 'register') return renderRegister()
+  if (p === 'privacy') return renderPrivacyPolicy()
+  if (p === 'about') return renderAboutUs()
+  if (p === 'forgot-password') return renderForgotPassword()
+  if (p === 'news' || p.startsWith('news')) return renderPublicNews()
+  if (p.startsWith('verify/')) return renderVerifyEmail(p.replace('verify/',''))
+  if (p.startsWith('reset/')) return renderResetPassword(p.replace('reset/',''))
+  if (p.startsWith('report/')) return renderParentReport(p.replace('report/',''))
+  if (!State.user) return navigate('login')
+  const role = State.user.role
+  if (p === 'dashboard') {
+    if (role === 'admin') return renderAdminDash()
+    if (role === 'tutor') return renderTutorDash()
+    return renderStudentDash()
+  }
+  if (p === 'forum') return renderForum()
+  if (p === 'sessions') return renderSessions()
+  if (p === 'messages') return renderMessages()
+  if (p === 'profile') return renderProfile()
+  if (p === 'notifications') return renderNotifications()
+  if (p === 'tutors') return renderTutorSearch()
+  if (p === 'admin-tutors') return renderAdminTutors()
+  if (p === 'admin-students') return renderAdminStudents()
+  if (p === 'admin-sessions') return renderAdminSessions()
+  if (p === 'admin-payments') return renderAdminPayments()
+  renderLanding()
+  setTimeout(loadUnreadCount, 200)
+}
     function navigate(page, tab = null) {
       State.page = page
       State.tab = tab
@@ -1614,22 +1641,483 @@ const CATEGORY_LEVELS = {
     </div>`)
   }
 }
+const FORUM_CATEGORIES = [
+  { id: 'general',   icon: '💬', label: 'General Discussion' },
+  { id: 'study',     icon: '📚', label: 'Study Tips' },
+  { id: 'reviews',   icon: '⭐', label: 'Tutor Reviews' },
+  { id: 'career',    icon: '💼', label: 'Career Advice' },
+  { id: 'feedback',  icon: '📣', label: 'Platform Feedback' },
+]
 
-    async function renderPage() {
+async function renderForum(activeCategory = null){
+  render(dashWrap('forum', `<div class="loader-center"><div class="spinner"></div></div>`))
+  try{
+    const url = activeCategory ? `/forum/posts?category=${activeCategory}` : '/forum/posts'
+    const posts = await api(url)
+
+    render(dashWrap('forum', `
+    <div class="page-header">
+      <div><h1 class="page-title">Community Forum 💬</h1><p class="page-subtitle">Share ideas, ask questions, connect with others</p></div>
+      <button class="btn btn-primary" onclick="openNewPostModal()">✍️ New Post</button>
+    </div>
+
+    <!-- Category filters -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px">
+      <button class="btn ${!activeCategory?'btn-primary':'btn-ghost'} btn-sm" onclick="renderForum()">All</button>
+      ${FORUM_CATEGORIES.map(c=>`
+      <button class="btn ${activeCategory===c.id?'btn-primary':'btn-ghost'} btn-sm" onclick="renderForum('${c.id}')">
+        ${c.icon} ${c.label}
+      </button>`).join('')}
+    </div>
+
+    <!-- Posts -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+      ${posts.length ? posts.map(p=>`
+      <div class="card" style="padding:20px;cursor:pointer" onclick="openPost('${p.id}')">
+        <div style="display:flex;align-items:flex-start;gap:12px">
+          ${avi(p.profiles?.full_name||'?', 40, p.profiles?.avatar_url||null)}
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap">
+              ${p.is_pinned ? `<span style="background:#fef9c3;color:#854d0e;font-size:11px;padding:2px 8px;border-radius:999px;font-weight:700">📌 Pinned</span>` : ''}
+              <span style="background:var(--sky);color:var(--blue);font-size:11px;padding:2px 8px;border-radius:999px">${FORUM_CATEGORIES.find(c=>c.id===p.category)?.icon||'💬'} ${FORUM_CATEGORIES.find(c=>c.id===p.category)?.label||p.category}</span>
+              <span style="font-size:11px;color:var(--g400)">${fmtShort(p.created_at)}</span>
+            </div>
+            <div style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:6px">${p.title}</div>
+            <div style="font-size:13px;color:var(--g600);line-height:1.6">${p.content.slice(0,150)}${p.content.length>150?'...':''}</div>
+            <div style="display:flex;align-items:center;gap:16px;margin-top:10px">
+              <span style="font-size:12px;color:var(--g400)">by <strong>${p.profiles?.full_name||'Unknown'}</strong> • ${p.profiles?.role||''}</span>
+          
+              <button onclick="openPost('${p.id}')" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--g400);padding:0">💬 Comment</button>
+              <button data-like="${p.id}" data-count="${p.likes||0}" onclick="event.stopPropagation();likePost('${p.id}')" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--g400);padding:0">❤️ ${p.likes||0}</button>
+              ${State.user.role==='admin'?`<button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="event.stopPropagation();deletePost('${p.id}','${p.title.replace(/'/g,"\\'")}')" >🗑️ Delete</button>`:''}
+            </div>
+          </div>
+        </div>
+      </div>`).join('') : `
+      <div class="empty-state">
+        <div class="empty-icon">💬</div>
+        <div class="empty-title">No posts yet</div>
+        <div class="empty-sub">Be the first to start a discussion!</div>
+      </div>`}
+    </div>
+
+    <div id="modal-root"></div>
+    `))
+
+    
+  }catch(e){
+    toast(e.message,'err')
+  }
+}
+
+function openNewPostModal(){
+  document.getElementById('modal-root').innerHTML = `
+  <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title">✍️ New Post</span>
+        <button class="modal-close" onclick="document.querySelector('.modal-overlay').remove()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select class="input" id="post-cat">
+            ${FORUM_CATEGORIES.map(c=>`<option value="${c.id}">${c.icon} ${c.label}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Title</label>
+          <input class="input" id="post-title" placeholder="What's on your mind?"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Content</label>
+          <textarea class="input" id="post-content" rows="5" placeholder="Share your thoughts, ideas or questions..."></textarea>
+        </div>
+        <div style="font-size:12px;color:var(--g400);margin-top:4px">Your post will be visible to everyone immediately.</div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="document.querySelector('.modal-overlay').remove()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitPost()">Submit Post ✍️</button>
+      </div>
+    </div>
+  </div>`
+}
+
+async function submitPost(){
+  const title   = document.getElementById('post-title')?.value?.trim()
+  const content = document.getElementById('post-content')?.value?.trim()
+  const category= document.getElementById('post-cat')?.value
+  if(!title){ toast('Please add a title','err'); return }
+  if(!content){ toast('Please add content','err'); return }
+  try{
+    await api('/forum/posts', { method:'POST', body: JSON.stringify({ title, content, category }) })
+    document.querySelector('.modal-overlay')?.remove()
+    toast('Post submitted for review! ✅')
+  }catch(e){
+    toast(e.message,'err')
+  }
+}
+
+async function openPost(postId){
+  try{
+    const [posts, comments] = await Promise.all([
+      api('/forum/posts'),
+      api(`/forum/posts/${postId}/comments`)
+    ])
+    const post = posts.find(p=>p.id===postId)
+    if(!post) return
+
+    document.getElementById('modal-root').innerHTML = `
+    <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
+      <div class="modal" style="max-width:680px">
+        <div class="modal-header">
+          <span class="modal-title">${post.title}</span>
+          <button class="modal-close" onclick="document.querySelector('.modal-overlay').remove()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+            ${avi(post.profiles?.full_name||'?', 36, post.profiles?.avatar_url||null)}
+            <div>
+              <div style="font-size:13px;font-weight:700;color:var(--navy)">${post.profiles?.full_name||'?'}</div>
+              <div style="font-size:11px;color:var(--g400)">${post.profiles?.role||''} • ${fmtShort(post.created_at)}</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="likePost('${post.id}')">❤️ ${post.likes||0}</button>
+            ${State.user.role==='admin'?`<button class="btn btn-ghost btn-sm" onclick="pinPost('${post.id}')">📌 ${post.is_pinned?'Unpin':'Pin'}</button>`:''}
+          </div>
+          <p style="font-size:14px;color:var(--g600);line-height:1.8;margin-bottom:20px">${post.content}</p>
+          <div style="border-top:1px solid var(--g100);padding-top:16px">
+            <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:12px">💬 Comments (${comments.length})</div>
+            <div style="display:flex;flex-direction:column;gap:10px;max-height:280px;overflow-y:auto;margin-bottom:16px">
+              ${comments.length ? comments.map(c=>`
+              <div style="display:flex;gap:10px;align-items:flex-start">
+                ${avi(c.profiles?.full_name||'?', 32, c.profiles?.avatar_url||null)}
+                <div style="flex:1;background:var(--sky);border-radius:10px;padding:10px">
+                  <div style="font-size:12px;font-weight:700;color:var(--navy)">${c.profiles?.full_name||'?'} <span style="font-weight:400;color:var(--g400)">• ${fmtShort(c.created_at)}</span></div>
+                  <div style="font-size:13px;color:var(--g600);margin-top:4px">${c.content}</div>
+                </div>
+              </div>`).join('') : `<div style="color:var(--g400);font-size:13px">No comments yet — be the first!</div>`}
+            </div>
+            <div style="display:flex;gap:8px">
+              <input class="input" id="comment-input" placeholder="Write a comment..." style="flex:1" onkeydown="if(event.key==='Enter')addComment('${post.id}')"/>
+              <button class="btn btn-primary btn-sm" onclick="addComment('${post.id}')">Send</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`
+  }catch(e){
+    toast(e.message,'err')
+  }
+}
+
+async function addComment(postId){
+  const content = document.getElementById('comment-input')?.value?.trim()
+  if(!content){ toast('Please write a comment','err'); return }
+  try{
+    await api(`/forum/posts/${postId}/comments`, { method:'POST', body: JSON.stringify({ content }) })
+    toast('Comment added! ✅')
+    openPost(postId)
+  }catch(e){
+    toast(e.message,'err')
+  }
+}
+
+async function likePost(postId){
+  try{
+    const res = await api(`/forum/posts/${postId}/like`, { method:'POST' })
+    const btn = document.querySelector(`button[data-like="${postId}"]`)
+    if(btn){
+      const current = parseInt(btn.getAttribute('data-count')||'0')
+      const newCount = res.liked ? current + 1 : current - 1
+      btn.setAttribute('data-count', newCount)
+      btn.textContent = `❤️ ${newCount}`
+      btn.style.color = res.liked ? 'var(--red)' : 'var(--g400)'
+    }
+  }catch(e){
+    toast(e.message,'err')
+  }
+}
+
+async function deletePost(postId, title){
+  if(!confirm('Delete post "' + title + '"? This cannot be undone.')) return
+  try{
+    await api(`/forum/admin/posts/${postId}`, { method:'DELETE' })
+    toast('Post deleted! ✅')
+    renderForum()
+  }catch(e){
+    toast(e.message,'err')
+  }
+}
+async function pinPost(postId){
+  try{
+    await api(`/forum/admin/posts/${postId}/pin`, { method:'PATCH' })
+    toast('Post pin status updated! ✅')
+    document.querySelector('.modal-overlay')?.remove()
+    renderForum()
+  }catch(e){
+    toast(e.message,'err')
+  }
+}
+const NEWS_CATEGORIES = [
+  { id: 'news',        icon: '📰', label: 'Education News',      color: '#3b82f6' },
+  { id: 'scholarship', icon: '🎓', label: 'Scholarships',         color: '#8b5cf6' },
+  { id: 'government',  icon: '🏛️', label: 'Government Updates',   color: '#059669' },
+  { id: 'career',      icon: '💼', label: 'Career Opportunities', color: '#f59e0b' },
+  { id: 'abroad',      icon: '🌍', label: 'Study Abroad',         color: '#ef4444' },
+  { id: 'resources',   icon: '📚', label: 'Learning Resources',   color: '#06b6d4' },
+]
+
+
+function newsCard(p, featured){
+  const cat = NEWS_CATEGORIES.find(c=>c.id===p.category) || NEWS_CATEGORIES[0]
+  return `
+  <div class="card" style="padding:0;overflow:hidden;cursor:pointer" onclick="openNewsPost('${p.id}')">
+    ${p.image_url ? `<img src="${p.image_url}" style="width:100%;height:180px;object-fit:cover"/>` : `
+    <div style="width:100%;height:120px;background:linear-gradient(135deg,${cat.color}22,${cat.color}44);display:flex;align-items:center;justify-content:center;font-size:48px">${cat.icon}</div>`}
+    <div style="padding:16px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span style="background:${cat.color}22;color:${cat.color};font-size:11px;padding:3px 10px;border-radius:999px;font-weight:700">${cat.icon} ${cat.label}</span>
+        ${featured ? `<span style="background:#fef9c3;color:#854d0e;font-size:11px;padding:3px 10px;border-radius:999px;font-weight:700">⭐ Featured</span>` : ''}
+      </div>
+      <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:6px;line-height:1.4">${p.title}</div>
+      <div style="font-size:13px;color:var(--g600);line-height:1.6;margin-bottom:12px">${p.content.slice(0,120)}${p.content.length>120?'...':''}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:11px;color:var(--g400)">${fmtShort(p.created_at)} ${p.source_name?'• '+p.source_name:''}</span>
+        ${State.user?.role==='admin' ? `
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openNewsModal('${p.id}')">✏️</button>
+          <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="event.stopPropagation();deleteNews('${p.id}')">🗑️</button>
+        </div>` : ''}
+      </div>
+    </div>
+  </div>`
+}
+
+async function renderPublicNews(activeCategory = null){
+  const isLoggedIn = !!State.user
+  render(`
+  <style>
+    .news-nav{display:flex;align-items:center;justify-content:space-between;padding:16px 48px;border-bottom:1px solid rgba(0,0,0,0.08);background:#fff;position:sticky;top:0;z-index:100}
+    .news-hero{background:linear-gradient(135deg,#1e3a8a,#2563eb);padding:56px 48px;text-align:center}
+    .news-body{max-width:1100px;margin:0 auto;padding:48px}
+    @media(max-width:700px){.news-nav{padding:14px 20px}.news-body{padding:24px 16px}}
+  </style>
+  <nav class="news-nav">
+    <button style="font-size:17px;font-weight:700;color:var(--navy);background:none;border:none;cursor:pointer" onclick="navigate('landing')">👑 Mathrone Academy</button>
+    <div style="display:flex;gap:10px">
+      ${isLoggedIn ? `
+      <button class="btn btn-ghost btn-sm" onclick="navigate('dashboard')">Dashboard</button>
+      ` : `
+      <button class="btn btn-ghost btn-sm" onclick="navigate('login')">Sign In</button>
+      <button class="btn btn-primary btn-sm" onclick="navigate('register')">Get Started</button>`}
+    </div>
+  </nav>
+  <div class="news-hero">
+    <div style="font-size:40px;margin-bottom:12px">📰</div>
+    <h1 style="font-size:36px;font-weight:800;color:#fff;margin-bottom:12px;font-family:'Playfair Display',serif">Education News & Resources</h1>
+    <p style="font-size:16px;color:rgba(255,255,255,0.75);max-width:560px;margin:0 auto">Latest scholarships, government updates, career opportunities and education news from Rwanda and beyond</p>
+  </div>
+  <div id="news-content" style="background:var(--sky);min-height:400px;padding:40px 48px">
+    <div class="loader-center"><div class="spinner"></div></div>
+  </div>
+  <div style="background:#0f172a;padding:24px 48px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+    <div style="font-size:13px;color:rgba(255,255,255,0.5)">© 2025 Mathrone Academy. All rights reserved.</div>
+    <button onclick="navigate('landing')" style="font-size:13px;color:rgba(255,255,255,0.5);background:none;border:none;cursor:pointer">← Back to Home</button>
+  </div>
+  `)
+
+  try{
+    const url = activeCategory ? `/news/?category=${activeCategory}` : '/news/'
+    const posts = await fetch(API_URL + url).then(r=>r.json())
+    const featured = posts.filter(p=>p.is_featured)
+    const regular  = posts.filter(p=>!p.is_featured)
+
+    document.getElementById('news-content').innerHTML = `
+    <div style="max-width:1100px;margin:0 auto">
+
+      <!-- Category filters -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:32px">
+        <button class="btn ${!activeCategory?'btn-primary':'btn-ghost'} btn-sm" onclick="renderPublicNews()">🌐 All</button>
+        ${NEWS_CATEGORIES.map(c=>`
+        <button class="btn ${activeCategory===c.id?'btn-primary':'btn-ghost'} btn-sm" onclick="renderPublicNews('${c.id}')">
+          ${c.icon} ${c.label}
+        </button>`).join('')}
+      </div>
+
+      ${State.user?.role==='admin' ? `
+      <div style="margin-bottom:24px">
+        <button class="btn btn-primary" onclick="openNewsModal()">+ Add Post</button>
+      </div>` : ''}
+
+      <!-- Featured -->
+      ${featured.length ? `
+      <div style="margin-bottom:32px">
+        <h3 style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:16px">⭐ Featured</h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px">
+          ${featured.map(p=>newsCard(p, true)).join('')}
+        </div>
+      </div>` : ''}
+
+      <!-- Regular -->
+      ${regular.length ? `
+      <h3 style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:16px">Latest Posts</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px">
+        ${regular.map(p=>newsCard(p, false)).join('')}
+      </div>` : featured.length===0 ? `
+      <div style="text-align:center;padding:48px;color:var(--g400)">
+        <div style="font-size:48px;margin-bottom:12px">📰</div>
+        <div style="font-size:16px;font-weight:700">No posts yet</div>
+        <div style="font-size:13px;margin-top:4px">Check back soon for education news and updates</div>
+      </div>` : ''}
+
+      <div id="modal-root"></div>
+    </div>`
+  }catch(e){
+    document.getElementById('news-content').innerHTML = `<div style="text-align:center;padding:48px;color:var(--g400)">Failed to load news. Please try again.</div>`
+  }
+}
+
+async function openNewsPost(postId){
+  try{
+    const p = await api('/news/' + postId)
+    const cat = NEWS_CATEGORIES.find(c=>c.id===p.category) || NEWS_CATEGORIES[0]
+    document.getElementById('modal-root').innerHTML = `
+    <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
+      <div class="modal" style="max-width:700px">
+        <div class="modal-header">
+          <span class="modal-title">${cat.icon} ${cat.label}</span>
+          <button class="modal-close" onclick="document.querySelector('.modal-overlay').remove()">✕</button>
+        </div>
+        <div class="modal-body" style="max-height:70vh;overflow-y:auto">
+          ${p.image_url ? `<img src="${p.image_url}" style="width:100%;border-radius:12px;margin-bottom:16px;max-height:280px;object-fit:cover"/>` : ''}
+          <h2 style="font-size:20px;font-weight:800;color:var(--navy);margin-bottom:8px">${p.title}</h2>
+          <div style="font-size:12px;color:var(--g400);margin-bottom:16px">
+            Posted by ${p.profiles?.full_name||'Admin'} • ${fmtShort(p.created_at)}
+            ${p.source_name ? `• Source: <strong>${p.source_name}</strong>` : ''}
+          </div>
+          <div style="font-size:14px;color:var(--g600);line-height:1.8;white-space:pre-wrap">${p.content}</div>
+          ${p.source_url ? `
+          <div style="margin-top:20px">
+            <a href="${p.source_url}" target="_blank" class="btn btn-primary btn-sm">🔗 Read Full Article →</a>
+          </div>` : ''}
+        </div>
+      </div>
+    </div>`
+  }catch(e){
+    toast(e.message,'err')
+  }
+}
+
+function openNewsModal(postId = null){
+  document.getElementById('modal-root').innerHTML = `
+  <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
+    <div class="modal" style="max-width:600px">
+      <div class="modal-header">
+        <span class="modal-title">${postId ? '✏️ Edit Post' : '+ New Education Post'}</span>
+        <button class="modal-close" onclick="document.querySelector('.modal-overlay').remove()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select class="input" id="news-cat">
+            ${NEWS_CATEGORIES.map(c=>`<option value="${c.id}">${c.icon} ${c.label}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Title *</label>
+          <input class="input" id="news-title" placeholder="e.g. Rwanda Government Opens 500 University Scholarships"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Content *</label>
+          <textarea class="input" id="news-content" rows="6" placeholder="Write the full post content here..."></textarea>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Image URL (optional)</label>
+            <input class="input" id="news-image" placeholder="https://..."/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Source Name (optional)</label>
+            <input class="input" id="news-source-name" placeholder="e.g. REB, MINEDUC"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Source URL (optional)</label>
+          <input class="input" id="news-source-url" placeholder="https://..."/>
+        </div>
+        <div class="form-group">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px">
+            <input type="checkbox" id="news-featured"/> Feature this post (shows at top)
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="document.querySelector('.modal-overlay').remove()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitNews('${postId||''}')">
+          ${postId ? 'Update Post ✅' : 'Publish Post ✅'}
+        </button>
+      </div>
+    </div>
+  </div>`
+}
+
+async function submitNews(postId){
+  const title      = document.getElementById('news-title')?.value?.trim()
+  const content    = document.getElementById('news-content')?.value?.trim()
+  const category   = document.getElementById('news-cat')?.value
+  const image_url  = document.getElementById('news-image')?.value?.trim()||null
+  const source_name= document.getElementById('news-source-name')?.value?.trim()||null
+  const source_url = document.getElementById('news-source-url')?.value?.trim()||null
+  const is_featured= document.getElementById('news-featured')?.checked||false
+  if(!title){ toast('Please add a title','err'); return }
+  if(!content){ toast('Please add content','err'); return }
+  try{
+    if(postId){
+      await api(`/news/${postId}`, { method:'PATCH', body: JSON.stringify({ title, content, category, image_url, source_name, source_url, is_featured }) })
+      toast('Post updated! ✅')
+    } else {
+      await api('/news/', { method:'POST', body: JSON.stringify({ title, content, category, image_url, source_name, source_url, is_featured }) })
+      toast('Post published! ✅')
+    }
+    document.querySelector('.modal-overlay')?.remove()
+    renderNews()
+  }catch(e){
+    toast(e.message,'err')
+  }
+}
+
+async function deleteNews(postId){
+  if(!confirm('Delete this post?')) return
+  try{
+    await api(`/news/${postId}`, { method:'DELETE' })
+    toast('Post deleted! ✅')
+    renderNews()
+  }catch(e){
+    toast(e.message,'err')
+  }
+}
+
+  async function renderPage() {
       const p = State.page
       if (p === 'landing') return renderLanding()
       if (p === 'login') return renderLogin()
       if (p === 'register') return renderRegister()
-      if(p==='privacy') return renderPrivacyPolicy()
-      if(p==='about') return renderAboutUs()
-      if(p.startsWith('report/')) return renderParentReport(p.replace('report/',''))
+      if (p === 'privacy') return renderPrivacyPolicy()
+      if (p === 'about') return renderAboutUs()
+      if (p === 'forgot-password') return renderForgotPassword()
+      if(p==='news' || p.startsWith('news')) return renderPublicNews()
+      if (p.startsWith('verify/')) return renderVerifyEmail(p.replace('verify/',''))
+      if (p.startsWith('reset/')) return renderResetPassword(p.replace('reset/',''))
+      if (p.startsWith('report/')) return renderParentReport(p.replace('report/',''))
       if (!State.user) return navigate('login')
+      if(p==='news') return renderNews()
       const role = State.user.role
       if (p === 'dashboard') {
         if (role === 'admin') return renderAdminDash()
         if (role === 'tutor') return renderTutorDash()
         return renderStudentDash()
       }
+      if (p === 'forum') return renderForum()
       if (p === 'sessions') return renderSessions()
       if (p === 'messages') return renderMessages()
       if (p === 'profile') return renderProfile()
@@ -1708,7 +2196,9 @@ function fmtShort(dt) { return dt ? new Date(dt).toLocaleDateString('en-US', { m
       <button class="sidebar-item ${active === 'admin-payments' ? 'active' : ''}" onclick="navigate('admin-payments')"><span class="sidebar-ic">💳</span>Payments</button>
       <span class="sidebar-section">Other</span>
       <button class="sidebar-item ${active === 'messages' ? 'active' : ''}" onclick="navigate('messages')"><span class="sidebar-ic">💬</span>Messages</button>
-      <button class="sidebar-item ${active === 'notifications' ? 'active' : ''}" onclick="navigate('notifications')"><span class="sidebar-ic">🔔</span>Notifications</button>`
+      <button class="sidebar-item ${active === 'notifications' ? 'active' : ''}" onclick="navigate('notifications')"><span class="sidebar-ic">🔔</span>Notifications</button>
+      <button class="sidebar-item ${active === 'forum' ? 'active' : ''}" onclick="navigate('forum')"><span class="sidebar-ic">💬</span>Forum</button>
+      <button class="sidebar-item ${active === 'news' ? 'active' : ''}" onclick="navigate('news')"><span class="sidebar-ic">📰</span>Education News</button>`
       } else if (role === 'tutor') {
         links = `
       <span class="sidebar-section">Overview</span>
@@ -1718,7 +2208,9 @@ function fmtShort(dt) { return dt ? new Date(dt).toLocaleDateString('en-US', { m
       <button class="sidebar-item ${active === 'messages' ? 'active' : ''}" onclick="navigate('messages')"><span class="sidebar-ic">💬</span>Messages</button>
       <span class="sidebar-section">Account</span>
       <button class="sidebar-item ${active === 'profile' ? 'active' : ''}" onclick="navigate('profile')"><span class="sidebar-ic">👤</span>Profile</button>
-      <button class="sidebar-item ${active === 'notifications' ? 'active' : ''}" onclick="navigate('notifications')"><span class="sidebar-ic">🔔</span>Notifications</button>`
+      <button class="sidebar-item ${active === 'notifications' ? 'active' : ''}" onclick="navigate('notifications')"><span class="sidebar-ic">🔔</span>Notifications</button>
+      <button class="sidebar-item ${active === 'forum' ? 'active' : ''}" onclick="navigate('forum')"><span class="sidebar-ic">💬</span>Forum</button>
+      <button class="sidebar-item ${active === 'news' ? 'active' : ''}" onclick="navigate('news')"><span class="sidebar-ic">📰</span>Education News</button>`
       } else {
         links = `
       <span class="sidebar-section">Overview</span>
@@ -1729,7 +2221,9 @@ function fmtShort(dt) { return dt ? new Date(dt).toLocaleDateString('en-US', { m
       <button class="sidebar-item ${active === 'messages' ? 'active' : ''}" onclick="navigate('messages')"><span class="sidebar-ic">💬</span>Messages</button>
       <span class="sidebar-section">Account</span>
       <button class="sidebar-item ${active === 'profile' ? 'active' : ''}" onclick="navigate('profile')"><span class="sidebar-ic">👤</span>Profile</button>
-      <button class="sidebar-item ${active === 'notifications' ? 'active' : ''}" onclick="navigate('notifications')"><span class="sidebar-ic">🔔</span>Notifications</button>`
+      <button class="sidebar-item ${active === 'notifications' ? 'active' : ''}" onclick="navigate('notifications')"><span class="sidebar-ic">🔔</span>Notifications</button>
+      <button class="sidebar-item ${active === 'forum' ? 'active' : ''}" onclick="navigate('forum')"><span class="sidebar-ic">💬</span>Forum</button>
+      <button class="sidebar-item ${active === 'news' ? 'active' : ''}" onclick="navigate('news')"><span class="sidebar-ic">📰</span>Education News</button>`
       }
       return `
   <nav class="sidebar" id="sidebar">
@@ -2021,6 +2515,94 @@ function fmtShort(dt) { return dt ? new Date(dt).toLocaleDateString('en-US', { m
   </div>
   `)
 }
+async function renderVerifyEmail(token){
+  render(`
+  <div style="min-height:100vh;background:linear-gradient(135deg,#1e3a8a,#2563eb);display:flex;align-items:center;justify-content:center;padding:20px">
+    <div style="background:#fff;border-radius:20px;padding:48px;text-align:center;max-width:440px;width:100%">
+      <div style="font-size:48px;margin-bottom:16px">⏳</div>
+      <h2 style="color:var(--navy);margin-bottom:8px">Verifying your email...</h2>
+      <p style="color:var(--g400);font-size:14px">Please wait</p>
+    </div>
+  </div>`)
+  try{
+    await fetch(API_URL + '/auth/verify/' + token)
+    localStorage.removeItem('tc_token')
+    localStorage.removeItem('tc_refresh')
+    localStorage.removeItem('tc_page')
+    State.user = null
+    State.data = {}
+   
+    render(`
+    <div style="min-height:100vh;background:linear-gradient(135deg,#1e3a8a,#2563eb);display:flex;align-items:center;justify-content:center;padding:20px">
+      <div style="background:#fff;border-radius:20px;padding:48px;text-align:center;max-width:440px;width:100%">
+        <div style="font-size:48px;margin-bottom:16px">✅</div>
+        <h2 style="color:var(--navy);margin-bottom:8px">Email Verified!</h2>
+        <p style="color:var(--g400);font-size:14px;margin-bottom:24px">Your account is now active. You can sign in.</p>
+        <button class="btn btn-primary" onclick="navigate('login')">Sign In →</button>
+      </div>
+    </div>`)
+  }catch(e){
+    render(`
+    <div style="min-height:100vh;background:linear-gradient(135deg,#1e3a8a,#2563eb);display:flex;align-items:center;justify-content:center;padding:20px">
+      <div style="background:#fff;border-radius:20px;padding:48px;text-align:center;max-width:440px;width:100%">
+        <div style="font-size:48px;margin-bottom:16px">❌</div>
+        <h2 style="color:var(--navy);margin-bottom:8px">Invalid Link</h2>
+        <p style="color:var(--g400);font-size:14px;margin-bottom:24px">This verification link is invalid or has already been used.</p>
+        <button class="btn btn-primary" onclick="navigate('login')">Back to Login</button>
+      </div>
+    </div>`)
+  }
+}
+
+async function renderResetPassword(token){
+  render(`
+  <div style="min-height:100vh;background:linear-gradient(135deg,#1e3a8a,#2563eb);display:flex;align-items:center;justify-content:center;padding:20px">
+    <div style="background:#fff;border-radius:20px;padding:48px;max-width:440px;width:100%">
+      <div style="text-align:center;margin-bottom:32px">
+        <div style="font-size:48px;margin-bottom:12px">🔑</div>
+        <h2 style="color:var(--navy)">Reset Password</h2>
+        <p style="color:var(--g400);font-size:14px">Enter your new password below</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">New Password</label>
+        <input class="input" id="new-pw-1" type="password" placeholder="Min 6 characters"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Confirm Password</label>
+        <input class="input" id="new-pw-2" type="password" placeholder="Repeat password"/>
+      </div>
+      <div id="reset-err" class="form-error" style="display:none;margin-bottom:12px"></div>
+      <button class="btn btn-primary btn-full" onclick="submitResetPassword('${token}')">Reset Password →</button>
+    </div>
+  </div>`)
+}
+
+async function submitResetPassword(token){
+  const pw1 = document.getElementById('new-pw-1')?.value
+  const pw2 = document.getElementById('new-pw-2')?.value
+  const err = document.getElementById('reset-err')
+  if(!pw1 || pw1.length < 6){ err.style.display='block'; err.textContent='Password must be at least 6 characters'; return }
+  if(pw1 !== pw2){ err.style.display='block'; err.textContent='Passwords do not match'; return }
+  try{
+    await fetch(API_URL + '/auth/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, new_password: pw1 })
+    })
+    render(`
+    <div style="min-height:100vh;background:linear-gradient(135deg,#1e3a8a,#2563eb);display:flex;align-items:center;justify-content:center;padding:20px">
+      <div style="background:#fff;border-radius:20px;padding:48px;text-align:center;max-width:440px;width:100%">
+        <div style="font-size:48px;margin-bottom:16px">✅</div>
+        <h2 style="color:var(--navy);margin-bottom:8px">Password Reset!</h2>
+        <p style="color:var(--g400);font-size:14px;margin-bottom:24px">Your password has been updated successfully.</p>
+        <button class="btn btn-primary" onclick="navigate('login')">Sign In →</button>
+      </div>
+    </div>`)
+  }catch(e){
+    err.style.display='block'
+    err.textContent = e.message
+  }
+}
     function renderLanding() {
   render(`
   <style>
@@ -2194,6 +2776,23 @@ function fmtShort(dt) { return dt ? new Date(dt).toLocaleDateString('en-US', { m
       </div>
     </div>
   </div>
+  <!-- NEWS TEASER -->
+  <div style="background:var(--sky);padding:72px 48px">
+    <div style="max-width:1100px;margin:0 auto">
+      <h2 class="stitle">📰 Education News & Resources</h2>
+      <p class="ssub">Stay updated with the latest scholarships, government updates and opportunities</p>
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:32px">
+        ${NEWS_CATEGORIES.map(c=>`
+        <div style="background:#fff;border-radius:16px;padding:20px;border:1px solid var(--g100)">
+          <div style="font-size:32px;margin-bottom:10px">${c.icon}</div>
+          <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:4px">${c.label}</div>
+        </div>`).join('')}
+      </div>
+      <div style="text-align:center">
+        <button class="btn btn-primary btn-lg" onclick="navigate('news')">View All News & Resources →</button>
+      </div>
+    </div>
+  </div>
 
   <!-- CONTACT -->
   <div class="lsection">
@@ -2234,6 +2833,7 @@ function fmtShort(dt) { return dt ? new Date(dt).toLocaleDateString('en-US', { m
     </div>
   </div>
 
+  
   <!-- CTA -->
   <div style="background:var(--navy);padding:72px 48px;text-align:center">
     <h2 style="font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:#fff;margin-bottom:14px">Ready to Start Learning?</h2>
@@ -2255,7 +2855,7 @@ function fmtShort(dt) { return dt ? new Date(dt).toLocaleDateString('en-US', { m
             ${['f','in','tw'].map(s=>`<div style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;cursor:pointer;font-weight:700">${s}</div>`).join('')}
           </div>
         </div>
-        ${[['PLATFORM',['Find a Tutor','Become a Tutor','How It Works','Pricing']],
+        ${[['PLATFORM',['Find a Tutor','Become a Tutor','How It Works','Education News']],
            ['COMPANY',['About Us','Careers','Blog','Press']],
            ['SUPPORT',['Help Centre','Contact Us','Privacy Policy','Terms of Service']]
           ].map(([ht,links])=>`
@@ -2384,7 +2984,7 @@ function fmtShort(dt) { return dt ? new Date(dt).toLocaleDateString('en-US', { m
       btn.disabled = true
       btn.textContent = 'Sending...'
       try {
-        await api('/auth/forgot-password?email=' + encodeURIComponent(email), { method: 'POST' })
+        await api('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) })
         msg.style.display = 'block'
         msg.style.background = '#dcfce7'
         msg.style.color = '#16a34a'
@@ -2411,8 +3011,12 @@ function fmtShort(dt) { return dt ? new Date(dt).toLocaleDateString('en-US', { m
         setAuth(data)
         toast(`Welcome back, ${data.user.full_name}! 👋`)
         navigate('dashboard')
-      } catch (e) {
-        showErr(err, e.message)
+     } catch (e) {
+        let msg = e.message
+        if(msg.includes('valid email') || msg.includes('email') || msg.includes('EmailStr')) msg = 'Please enter a valid email address (e.g. name@example.com)'
+        if(msg.includes('already registered') || msg.includes('duplicate')) msg = 'This email is already registered. Please sign in instead.'
+        if(msg.includes('password')) msg = 'Password must be at least 6 characters'
+        showErr(err, msg)
         btn.disabled = false; btn.textContent = 'Sign In'
       }
     }
@@ -2509,6 +3113,8 @@ const STUDENT_CATEGORY_LEVELS = {
   global:    ['Beginner', 'Intermediate', 'Advanced', 'Expert', 'All Levels'],
 }
 
+
+
 function selectStudentCategory(id){
   CATEGORIES.forEach(c=>{
     const el = document.getElementById('scat-'+c.id)
@@ -2545,6 +3151,9 @@ function selectStudentCategory(id){
     subInput.placeholder = info.placeholder
     subInput.previousElementSibling.textContent = id === 'academic' ? 'Subjects Needed' : 'Skills You Want to Learn'
   }
+
+  // keep location visibility in sync with session mode
+  toggleStudentLocation()
 }
     function renderRegForm(role) {
       const el = document.getElementById('reg-form')
@@ -2587,7 +3196,10 @@ function selectStudentCategory(id){
 
       <div class="form-group" id="location-wrap">
         <label class="form-label">Home Location</label>
-        <input class="input" id="r-location-s" placeholder="e.g. Kicukiro, Gasabo, Nyarugenge..."/>
+        <select class="input" id="r-location-s">
+  <option value="">— Select your district —</option>
+  ${RWANDA_DISTRICTS.map(d=>`<option value="${d}">${d}</option>`).join('')}
+</select>
         <div style="font-size:11px;color:var(--g400);margin-top:4px">Required for home visits so tutor knows where to come</div>
       </div>
       <div class="form-group"><label class="form-label">Subjects Needed (comma separated)</label><input class="input" id="r-subjects" placeholder="Math, Physics, Chemistry"/></div>
@@ -2599,14 +3211,18 @@ function selectStudentCategory(id){
       
     // Build student category grid
       const sCatGrid = document.getElementById('student-cat-grid')
+      console.log('Building cat grid, sCatGrid:', sCatGrid, 'CATEGORIES:', CATEGORIES)
       if(sCatGrid){
         sCatGrid.innerHTML = CATEGORIES.map(c=>`
-          <div onclick="selectStudentCategory('${c.id}')" id="scat-${c.id}" style="border:2px solid ${c.id==='academic'?'var(--blue)':'var(--g100)'};border-radius:10px;padding:10px;cursor:pointer;transition:all 0.2s">
+          <div onclick="selectStudentCategory(this.dataset.id)" data-id="${c.id}" id="scat-${c.id}" style="border:2px solid ${c.id==='academic'?'var(--blue)':'var(--g100)'};border-radius:10px;padding:10px;cursor:pointer;transition:all 0.2s">
             <div style="font-size:18px;margin-bottom:2px">${c.icon}</div>
             <div style="font-size:12px;font-weight:700;color:var(--navy)">${c.label}</div>
             <div style="font-size:11px;color:var(--g400)">${c.desc}</div>
           </div>`).join('')
+          const districtOptions = RWANDA_DISTRICTS.map(d=>`<option value="${d}">${d}</option>`).join('')
       }
+      // Sync location visibility for initial mode (default online)
+      toggleStudentLocation()
     } else {
         el.innerHTML = `
       <div id="reg-err" class="form-error" style="margin-bottom:12px;display:none"></div>
@@ -2620,7 +3236,10 @@ function selectStudentCategory(id){
       </div>
       <div class="grid-2">
         <div class="form-group"><label class="form-label">Qualification *</label><input class="input" id="r-qual" placeholder="BSc Mathematics, MSc Physics..."/></div>
-        <div class="form-group"><label class="form-label">Location</label><input class="input" id="r-location" placeholder="Kicukiro, Gasabo..."/></div>
+        <div class="form-group"><label class="form-label">Location</label><select class="input" id="r-location">
+  <option value="">— Select your district —</option>
+  ${RWANDA_DISTRICTS.map(d=>`<option value="${d}">${d}</option>`).join('')}
+</select></div>
       </div>
       <div class="form-group">
   <label class="form-label">Teaching Category</label>
@@ -2676,7 +3295,9 @@ function selectStudentCategory(id){
       const email = document.getElementById('r-email')?.value?.trim()
       const pw = document.getElementById('r-pw')?.value
       if (!name || !email || !pw) { showErr(err, 'Name, email and password are required'); return }
-      if (pw.length < 6) { showErr(err, 'Password must be at least 6 characters'); return }
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+if (!emailRegex.test(email)) { showErr(err, 'Please enter a valid email address (e.g. name@example.com)'); return }
+if (pw.length < 6) { showErr(err, 'Password must be at least 6 characters'); return }
 
       if (role === 'tutor') {
         const cvFile = document.getElementById('r-cv')?.files[0]
@@ -2689,6 +3310,8 @@ function selectStudentCategory(id){
         if (role === 'student') {
           const level = document.getElementById('r-level')?.value
           if (!level) { showErr(err, 'Please select a school level'); btn.disabled = false; btn.textContent = 'Create Student Account →'; return }
+          const locationS = document.getElementById('r-location-s')?.value
+if (!locationS) { showErr(err, 'Please select your district'); btn.disabled = false; btn.textContent = 'Create Student Account →'; return }
           body = {
             full_name: name, email, password: pw,
             phone: document.getElementById('r-phone')?.value || null,
@@ -2706,7 +3329,9 @@ function selectStudentCategory(id){
           const subs = document.getElementById('r-subjects')?.value?.split(',').map(s => s.trim()).filter(Boolean) || []
           const lvls = document.getElementById('r-levels')?.value?.split(',').map(s => s.trim()).filter(Boolean) || []
           const exp = parseInt(document.getElementById('r-exp')?.value) || 0
-          if (!qual || !subs.length || !lvls.length) { showErr(err, 'Qualification, subjects and levels are required'); btn.disabled = false; btn.textContent = 'Submit Application →'; return }
+          const locationT = document.getElementById('r-location')?.value
+if (!qual || !subs.length || !lvls.length) { showErr(err, 'Qualification, subjects and levels are required'); btn.disabled = false; btn.textContent = 'Submit Application →'; return }
+if (!locationT) { showErr(err, 'Please select your district'); btn.disabled = false; btn.textContent = 'Submit Application →'; return }
           body = {
             full_name: name, email, password: pw,
             phone: document.getElementById('r-phone')?.value || null,
@@ -2720,8 +3345,7 @@ function selectStudentCategory(id){
           path = '/auth/register/tutor'
         }
 
-        const data = await api(path, { method: 'POST', body: JSON.stringify(body) })
-        setAuth(data)
+        await api(path, { method: 'POST', body: JSON.stringify(body) })
 
         // Upload CV after successful tutor registration
         if (role === 'tutor') {
@@ -2745,8 +3369,8 @@ function selectStudentCategory(id){
           }
         }
 
-        toast(role === 'tutor' ? 'Application submitted! ✅' : 'Account created! Welcome 🎉')
-        navigate('dashboard')
+        toast(role === 'tutor' ? 'Application submitted! Check your email to verify your account ✅' : 'Account created! Please check your email to verify your account 🎉')
+        navigate('login')
       } catch (e) {
         showErr(err, e.message)
         btn.disabled = false
@@ -3719,12 +4343,20 @@ async function sendNewMessage(){
       </div>` : role === 'student' && extra ? `
       <div class="card" style="padding:28px">
         <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:20px">Learning Info</h3>
+        <div class="form-group"><label class="form-label">Category</label>
+          <select class="input" id="s-category">
+            ${CATEGORIES.map(c => `<option value="${c.id}" ${extra.category === c.id ? 'selected' : ''}>${c.label}</option>`).join('')}
+          </select>
+        </div>
         <div class="form-group"><label class="form-label">School Level</label>
           <select class="input" id="s-level"><option ${extra.school_level === 'Primary' ? 'selected' : ''}>Primary</option><option ${extra.school_level === 'Secondary' ? 'selected' : ''}>Secondary</option><option ${extra.school_level === 'University' ? 'selected' : ''}>University</option></select></div>
         <div class="form-group"><label class="form-label">Subjects Needed</label><input class="input" id="s-subs" value="${(extra.subjects_needed || []).join(', ')}"/></div>
         <div class="form-group"><label class="form-label">Preferred Mode</label>
           <select class="input" id="s-mode"><option value="online" ${extra.preferred_mode === 'online' ? 'selected' : ''}>Online</option><option value="home" ${extra.preferred_mode === 'home' ? 'selected' : ''}>Home Visit</option></select></div>
-        <div class="form-group"><label class="form-label">Home Location</label><input class="input" id="s-loc" value="${extra.home_location || ''}"/></div>
+        <div class="form-group"><label class="form-label">Home Location</label><select class="input" id="s-loc">
+  <option value="">— Select district —</option>
+  ${RWANDA_DISTRICTS.map(d=>`<option value="${d}" ${extra.home_location===d?'selected':''}>${d}</option>`).join('')}
+</select></div>
         <button class="btn btn-primary" onclick="saveStudentProfile()">Save</button>
       </div>` : '<div></div>'}
     </div>
@@ -3766,6 +4398,7 @@ async function sendNewMessage(){
     async function saveStudentProfile() {
       try {
         const data = {
+          category: document.getElementById('s-category')?.value,
           school_level: document.getElementById('s-level')?.value,
           subjects_needed: document.getElementById('s-subs')?.value?.split(',').map(s => s.trim()).filter(Boolean) || [],
           preferred_mode: document.getElementById('s-mode')?.value,
@@ -3773,6 +4406,7 @@ async function sendNewMessage(){
         }
         await api('/students/me', { method: 'PATCH', body: JSON.stringify(data) })
         toast('Profile updated ✅')
+        renderProfile()
       } catch (e) { toast(e.message, 'err') }
     }
 
@@ -4027,7 +4661,7 @@ async function sendNewMessage(){
   }
 }
 
-    async function renderAdminStudents() {
+  async function renderAdminStudents() {
   render(dashWrap('admin-students', `<div class="loader-center"><div class="spinner"></div></div>`))
   try {
     const [students, tutors, requests] = await Promise.all([
@@ -4037,75 +4671,152 @@ async function sendNewMessage(){
     ])
     const approved = tutors.filter(t => t.status === 'approved')
     const pending = requests.filter(r => r.status === 'pending')
+    const assigned = students.filter(s => (s.assignments || []).find(a => a.is_active))
+    const unassigned = students.filter(s => !(s.assignments || []).find(a => a.is_active))
+
     render(dashWrap('admin-students', `
 
-    ${pending.length ? `
-    <div class="page-header"><div><h1 class="page-title">Tutoring Requests</h1><p class="page-subtitle">${pending.length} pending requests</p></div></div>
-    <div class="table-wrap" style="margin-bottom:32px">
-      <table>
-        <thead><tr><th>Student</th><th>Subject</th><th>Level</th><th>Mode</th><th>Notes</th><th>Actions</th></tr></thead>
-        <tbody>
-          ${pending.map(r => `<tr>
-            <td><div style="font-weight:600">${r.students?.profiles?.full_name || '—'}</div><div style="font-size:11px;color:var(--g400)">${r.students?.profiles?.email || ''}</div></td>
-            <td><span class="badge badge-blue">${r.subject || '—'}</span></td>
-            <td>${r.level || '—'}</td>
-            <td>${r.mode || '—'}</td>
-            <td style="font-size:12px;color:var(--g600)">${r.notes || '—'}</td>
-            <td>
-              <button class="btn btn-primary btn-sm" onclick="openRequestAssignModal('${r.id}','${r.students?.id}','${(r.students?.profiles?.full_name || '').replace(/'/g, "\\'")}',${JSON.stringify(approved).replace(/"/g, '&quot;')})">
-                Assign Tutor
-              </button>
-            </td>
-          </tr>`).join('')}
-        </tbody>
-      </table>
-    </div>` : `
-    <div class="page-header"><div><h1 class="page-title">Tutoring Requests</h1><p class="page-subtitle">No pending requests</p></div></div>
-    <div class="card" style="padding:20px;margin-bottom:32px;text-align:center;color:var(--g400)">No pending tutoring requests</div>
-    `}
+    <!-- Page Header -->
+    <div class="page-header">
+      <div><h1 class="page-title">Students Management</h1>
+      <p class="page-subtitle">${students.length} total • ${assigned.length} assigned • ${unassigned.length} unassigned</p></div>
+    </div>
 
-    <div class="page-header"><div><h1 class="page-title">Students</h1><p class="page-subtitle">${students.length} registered students</p></div></div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Student</th><th>Level</th><th>Subjects</th><th>Mode</th><th>Parent</th><th>Assigned Tutor</th><th>Actions</th></tr></thead>
-        <tbody>
-          ${students.map(s => {
-            const active = (s.assignments || []).find(a => a.is_active)
-            const tutorName = active?.tutors?.profiles?.full_name
-            return `<tr>
+    <!-- Stats -->
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px">
+      <div class="card" style="flex:1;min-width:130px;padding:18px;display:flex;align-items:center;gap:12px">
+        <div class="stat-icon" style="background:#EEF2FF;flex-shrink:0">👥</div>
+        <div><div class="stat-num">${students.length}</div><div class="stat-label">Total Students</div></div>
+      </div>
+      <div class="card" style="flex:1;min-width:130px;padding:18px;display:flex;align-items:center;gap:12px">
+        <div class="stat-icon" style="background:#F0FDF4;flex-shrink:0">✅</div>
+        <div><div class="stat-num">${assigned.length}</div><div class="stat-label">Assigned</div></div>
+      </div>
+      <div class="card" style="flex:1;min-width:130px;padding:18px;display:flex;align-items:center;gap:12px">
+        <div class="stat-icon" style="background:#FFF7ED;flex-shrink:0">⚠️</div>
+        <div><div class="stat-num">${unassigned.length}</div><div class="stat-label">Unassigned</div></div>
+      </div>
+      <div class="card" style="flex:1;min-width:130px;padding:18px;display:flex;align-items:center;gap:12px">
+        <div class="stat-icon" style="background:#FEF2F2;flex-shrink:0">📋</div>
+        <div><div class="stat-num">${pending.length}</div><div class="stat-label">Pending Requests</div></div>
+      </div>
+    </div>
+
+    <!-- Tutoring Requests -->
+    ${pending.length ? `
+    <div style="margin-bottom:32px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <h2 style="font-size:18px;font-weight:700;color:var(--navy)">📋 Tutoring Requests <span style="background:#ef4444;color:#fff;border-radius:999px;font-size:12px;padding:2px 8px;margin-left:6px">${pending.length}</span></h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Student</th><th>Subject</th><th>Level</th><th>Mode</th><th>Notes</th><th>Actions</th></tr></thead>
+          <tbody>
+            ${pending.map(r=>`<tr>
+              <td><div style="font-weight:600">${r.students?.profiles?.full_name||'—'}</div><div style="font-size:11px;color:var(--g400)">${r.students?.profiles?.email||''}</div></td>
+              <td><span class="badge badge-blue">${r.subject||'—'}</span></td>
+              <td>${r.level||'—'}</td>
+              <td>${r.mode||'—'}</td>
+              <td style="font-size:12px;color:var(--g600)">${r.notes||'—'}</td>
+              <td><button class="btn btn-primary btn-sm" onclick="openRequestAssignModal('${r.id}','${r.students?.id}','${(r.students?.profiles?.full_name||'').replace(/'/g,"\\'")}',${JSON.stringify(approved).replace(/"/g,'&quot;')})">Assign Tutor</button></td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>` : ''}
+
+    <!-- Unassigned Students -->
+    <div style="margin-bottom:32px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <h2 style="font-size:18px;font-weight:700;color:var(--navy)">⚠️ Unassigned Students <span style="background:#f59e0b;color:#1a1a1a;border-radius:999px;font-size:12px;padding:2px 8px;margin-left:6px">${unassigned.length}</span></h2>
+      </div>
+      ${unassigned.length ? `
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Student</th><th>Category</th><th>Level</th><th>Subjects</th><th>Mode</th><th>Parent</th><th>Actions</th></tr></thead>
+          <tbody>
+            ${unassigned.map(s=>`<tr>
               <td>
                 <div style="display:flex;align-items:center;gap:10px">
-                  ${avi(s.profiles?.full_name || 'S', 34)}
+                  ${avi(s.profiles?.full_name||'S', 34, s.profiles?.avatar_url||null)}
                   <div>
-                    <div style="font-weight:600">${s.profiles?.full_name || '—'}</div>
-                    <div style="font-size:11px;color:var(--g400)">${s.profiles?.email || ''}</div>
+                    <div style="font-weight:600">${s.profiles?.full_name||'—'}</div>
+                    <div style="font-size:11px;color:var(--g400)">${s.profiles?.email||''}</div>
                   </div>
                 </div>
               </td>
-              <td>${s.school_level || '—'}</td>
-              <td>${(s.subjects_needed || []).slice(0, 2).map(sub => `<span class="badge badge-blue" style="margin-right:3px">${sub}</span>`).join('') || '—'}</td>
-              <td>${s.preferred_mode || '—'}</td>
+              <td><span style="font-size:12px">${CATEGORIES.find(c=>c.id===(s.category||'academic'))?.icon||'📚'} ${CATEGORIES.find(c=>c.id===(s.category||'academic'))?.label||'Academic'}</span></td>
+              <td>${s.school_level||'—'}</td>
+              <td>${(s.subjects_needed||[]).slice(0,2).map(sub=>`<span class="badge badge-blue" style="margin-right:3px">${sub}</span>`).join('')||'—'}</td>
+              <td>${s.preferred_mode||'—'}</td>
               <td>
-                <div style="font-size:13px;font-weight:600">${s.parent_name || '—'}</div>
-                <div style="font-size:11px;color:var(--g400)">${s.parent_phone || 'No phone'}</div>
+                <div style="font-size:13px;font-weight:600">${s.parent_name||'—'}</div>
+                <div style="font-size:11px;color:var(--g400)">${s.parent_phone||'No phone'}</div>
               </td>
-              <td>${tutorName ? `<span style="font-weight:600;color:var(--green)">✅ ${tutorName}</span>` : `<span style="color:var(--orange)">⚠️ Unassigned</span>`}</td>
               <td>
                 <div style="display:flex;gap:6px;flex-wrap:wrap">
-                  <button class="btn ${active ? 'btn-ghost' : 'btn-primary'} btn-sm" onclick="openAssignModal('${s.id}','${(s.profiles?.full_name || '').replace(/'/g, "\\'")}',${JSON.stringify(approved).replace(/"/g, '&quot;')},${JSON.stringify(s).replace(/"/g, '&quot;')})">
-                    ${active ? '🔄 Change Tutor' : 'Assign Tutor'}
-                  </button>
-                  <button class="btn btn-ghost btn-sm" onclick="generateReport('${s.id}','${(s.profiles?.full_name || '').replace(/'/g, "\\'")}')">📊 Report</button>
+                  <button class="btn btn-primary btn-sm" onclick="openAssignModal('${s.id}','${(s.profiles?.full_name||'').replace(/'/g,"\\'")}',${JSON.stringify(approved).replace(/"/g,'&quot;')},${JSON.stringify(s).replace(/"/g,'&quot;')})">Assign Tutor</button>
+                  <button class="btn btn-ghost btn-sm" onclick="generateReport('${s.id}','${(s.profiles?.full_name||'').replace(/'/g,"\\'")}')">📊 Report</button>
                 </div>
               </td>
-            </tr>`
-          }).join('')}
-        </tbody>
-      </table>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>` : `
+      <div class="card" style="padding:24px;text-align:center;color:var(--g400)">
+        <div style="font-size:32px;margin-bottom:8px">🎉</div>
+        <div>All students are assigned!</div>
+      </div>`}
     </div>
+
+    <!-- Assigned Students -->
+    <div style="margin-bottom:32px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <h2 style="font-size:18px;font-weight:700;color:var(--navy)">✅ Assigned Students <span style="background:#22c55e;color:#fff;border-radius:999px;font-size:12px;padding:2px 8px;margin-left:6px">${assigned.length}</span></h2>
+      </div>
+      ${assigned.length ? `
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Student</th><th>Category</th><th>Level</th><th>Subjects</th><th>Mode</th><th>Parent</th><th>Assigned Tutor</th><th>Actions</th></tr></thead>
+          <tbody>
+            ${assigned.map(s=>{
+              const active = (s.assignments||[]).find(a=>a.is_active)
+              const tutorName = active?.tutors?.profiles?.full_name
+              return `<tr>
+              <td>
+                <div style="display:flex;align-items:center;gap:10px">
+                  ${avi(s.profiles?.full_name||'S', 34, s.profiles?.avatar_url||null)}
+                  <div>
+                    <div style="font-weight:600">${s.profiles?.full_name||'—'}</div>
+                    <div style="font-size:11px;color:var(--g400)">${s.profiles?.email||''}</div>
+                  </div>
+                </div>
+              </td>
+              <td><span style="font-size:12px">${CATEGORIES.find(c=>c.id===(s.category||'academic'))?.icon||'📚'} ${CATEGORIES.find(c=>c.id===(s.category||'academic'))?.label||'Academic'}</span></td>
+              <td>${s.school_level||'—'}</td>
+              <td>${(s.subjects_needed||[]).slice(0,2).map(sub=>`<span class="badge badge-blue" style="margin-right:3px">${sub}</span>`).join('')||'—'}</td>
+              <td>${s.preferred_mode||'—'}</td>
+              <td>
+                <div style="font-size:13px;font-weight:600">${s.parent_name||'—'}</div>
+                <div style="font-size:11px;color:var(--g400)">${s.parent_phone||'No phone'}</div>
+              </td>
+              <td><span style="font-weight:600;color:var(--green)">✅ ${tutorName}</span></td>
+              <td>
+                <div style="display:flex;gap:6px;flex-wrap:wrap">
+                  <button class="btn btn-ghost btn-sm" onclick="openAssignModal('${s.id}','${(s.profiles?.full_name||'').replace(/'/g,"\\'")}',${JSON.stringify(approved).replace(/"/g,'&quot;')},${JSON.stringify(s).replace(/"/g,'&quot;')})">🔄 Change</button>
+                  <button class="btn btn-ghost btn-sm" onclick="generateReport('${s.id}','${(s.profiles?.full_name||'').replace(/'/g,"\\'")}')">📊 Report</button>
+                </div>
+              </td>
+            </tr>`}).join('')}
+          </tbody>
+        </table>
+      </div>` : `
+      <div class="card" style="padding:24px;text-align:center;color:var(--g400)">No assigned students yet</div>`}
+    </div>
+
     <div id="modal-root"></div>
     `))
-  } catch (e) { toast(e.message, 'err') }
+  } catch(e){ toast(e.message,'err') }
 }
     async function openRequestAssignModal(requestId, studentId, studentName, approved) {
       const modalHtml = `
@@ -4415,8 +5126,17 @@ async function sendNewMessage(){
 // BOOT
 // ════════════════════════════════════════════════════════════
 try {
-  const validPages = ['dashboard','sessions','messages','profile','notifications','tutors','admin-tutors','admin-students','admin-sessions','admin-payments']
-  if(window.location.hash.startsWith('#report/')){
+  const validPages = ['dashboard','sessions','messages','profile','notifications','tutors','admin-tutors','admin-students','admin-sessions','admin-payments','forum','news']
+  if(window.location.hash.startsWith('#verify/')){
+    const token = window.location.hash.replace('#verify/','')
+    State.page = 'verify/' + token
+    renderPage()
+    
+  } else if(window.location.hash.startsWith('#reset/')){
+    const token = window.location.hash.replace('#reset/','')
+    State.page = 'reset/' + token
+    renderPage()
+  } else if(window.location.hash.startsWith('#report/')){
     const token = window.location.hash.replace('#report/','')
     State.page = 'report/' + token
     renderPage()
@@ -4434,7 +5154,6 @@ try {
   console.error('Boot error:', e)
   navigate('landing')
 }
-
 </script>
 </body>
 </html>
