@@ -3209,6 +3209,18 @@ function animateCount(id, target, duration, suffix, isDecimal){
     // ════════════════════════════════════════════════════════════
     // LOGIN
     // ════════════════════════════════════════════════════════════
+    function togglePwVisibility(inputId, btnId){
+  const input = document.getElementById(inputId)
+  const btn = document.getElementById(btnId)
+  if(!input) return
+  if(input.type === 'password'){
+    input.type = 'text'
+    if(btn) btn.textContent = '🙈'
+  } else {
+    input.type = 'password'
+    if(btn) btn.textContent = '👁️'
+  }
+}
     function renderLogin() {
       render(`
   <div class="auth-wrap">
@@ -3223,7 +3235,11 @@ function animateCount(id, target, duration, suffix, isDecimal){
       </div>
       <div class="form-group">
         <label class="form-label">Password</label>
-        <input class="input" id="l-pw" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/>
+        
+        <div style="position:relative">
+  <input class="input" id="login-pw" type="password" placeholder="••••••••" style="padding-right:44px"/>
+  <button id="login-pw-btn" type="button" onclick="togglePwVisibility('login-pw','login-pw-btn')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px">👁️</button>
+</div>
       </div>
       <div style="text-align:right;margin-top:-8px;margin-bottom:16px">
         <a onclick="renderForgotPassword()" style="font-size:13px;color:var(--blue);cursor:pointer">Forgot password?</a>
@@ -3449,8 +3465,11 @@ function selectStudentCategory(id){
         <div class="form-group"><label class="form-label">Email *</label><input class="input" id="r-email" type="email" placeholder="you@example.com"/></div>
       </div>
       <div class="grid-2">
-        <div class="form-group"><label class="form-label">Password *</label><input class="input" id="r-pw" type="password" placeholder="Min 6 chars"/></div>
-        <div class="form-group"><label class="form-label">Phone</label><input class="input" id="r-phone" placeholder="+1 234 567 8900"/></div>
+        <div style="position:relative">
+  <input class="input" id="login-pw" type="password" placeholder="Password" style="padding-right:44px"/>
+  <button id="login-pw-btn" type="button" onclick="togglePwVisibility('login-pw','login-pw-btn')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px">👁️</button>
+</div>
+        <div class="form-group"><label class="form-label">Phone</label><input class="input" id="r-phone" placeholder="+250 734 567 890"/></div>
       </div>
       
       <div class="form-group">
