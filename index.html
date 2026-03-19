@@ -3169,24 +3169,6 @@ function animateCount(id, target, duration, suffix, isDecimal){
   </div>
 
   `)
-  // Load real tutors into slider
-  setTimeout(async ()=>{
-    try{
-      const tutors = await fetch(API_URL + '/tutors/search').then(r=>r.json())
-      const slider = document.getElementById('tutors-slider')
-      if(slider && tutors.length){
-        const cards = [...tutors, ...tutors].map(t=>`
-        <div style="background:#fff;border:1px solid var(--g100);border-radius:16px;padding:24px;min-width:220px;max-width:220px">
-          ${avi(t.profiles?.full_name||'T', 52, t.profiles?.avatar_url||null)}
-          <div style="font-size:15px;font-weight:700;color:var(--navy);margin-top:10px;margin-bottom:2px">${t.profiles?.full_name||'—'}</div>
-          <div style="font-size:11px;color:var(--g400);margin-bottom:10px">${t.qualification||''}</div>
-          <div>${(t.subjects||[]).slice(0,2).map(s=>`<span style="background:#e0e7ff;color:#1e40af;font-size:11px;padding:3px 8px;border-radius:999px;margin-right:4px">${s}</span>`).join('')}</div>
-          <div style="color:#f59e0b;font-size:13px;margin-top:10px">★★★★★ <span style="color:var(--g400);font-size:11px">${(t.rating||4.8).toFixed(1)}</span></div>
-        </div>`).join('')
-        slider.innerHTML = cards
-      }
-    }catch(e){}
-  }, 400)
 
   // Run after render
   setTimeout(async ()=>{
@@ -3233,14 +3215,11 @@ function animateCount(id, target, duration, suffix, isDecimal){
         <label class="form-label">Email Address</label>
         <input class="input" id="l-email" type="email" placeholder="you@example.com" onkeydown="if(event.key==='Enter')doLogin()"/>
       </div>
-      <div class="form-group">
-        <label class="form-label">Password</label>
-        
-        <div style="position:relative">
-  <input class="input" id="login-pw" type="password" placeholder="••••••••" style="padding-right:44px"/>
-  <button id="login-pw-btn" type="button" onclick="togglePwVisibility('login-pw','login-pw-btn')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px">👁️</button>
+      <div class="form-group" style="position:relative">
+  <label class="form-label">Password</label>
+  <input class="input" id="l-pw" type="password" placeholder="Password" style="padding-right:44px" onkeydown="if(event.key==='Enter')doLogin()"/>
+  <button type="button" onclick="togglePwVisibility('login-pw','l-pw-btn')" id="login-pw-btn" style="position:absolute;right:12px;bottom:10px;background:none;border:none;cursor:pointer;font-size:16px">👁️</button>
 </div>
-      </div>
       <div style="text-align:right;margin-top:-8px;margin-bottom:16px">
         <a onclick="renderForgotPassword()" style="font-size:13px;color:var(--blue);cursor:pointer">Forgot password?</a>
       </div>
@@ -3465,11 +3444,8 @@ function selectStudentCategory(id){
         <div class="form-group"><label class="form-label">Email *</label><input class="input" id="r-email" type="email" placeholder="you@example.com"/></div>
       </div>
       <div class="grid-2">
-        <div style="position:relative">
-  <input class="input" id="login-pw" type="password" placeholder="Password" style="padding-right:44px"/>
-  <button id="login-pw-btn" type="button" onclick="togglePwVisibility('login-pw','login-pw-btn')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px">👁️</button>
-</div>
-        <div class="form-group"><label class="form-label">Phone</label><input class="input" id="r-phone" placeholder="+250 734 567 890"/></div>
+        <div class="form-group"><label class="form-label">Password *</label><input class="input" id="r-pw" type="password" placeholder="Min 6 chars"/></div>
+        <div class="form-group"><label class="form-label">Phone</label><input class="input" id="r-phone" placeholder="+1 234 567 8900"/></div>
       </div>
       
       <div class="form-group">
