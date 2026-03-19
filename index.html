@@ -2036,8 +2036,10 @@ async function renderPublicNews(activeCategory = null){
     <button style="font-size:17px;font-weight:700;color:var(--navy);background:none;border:none;cursor:pointer" onclick="navigate('landing')">👑 Mathrone Academy</button>
     <div style="display:flex;gap:10px">
       ${isLoggedIn ? `
+      <button class="btn btn-ghost btn-sm" onclick="navigate('landing')">← Home</button>
       <button class="btn btn-ghost btn-sm" onclick="navigate('dashboard')">Dashboard</button>
       ` : `
+      <button class="btn btn-ghost btn-sm" onclick="navigate('landing')">← Home</button>
       <button class="btn btn-ghost btn-sm" onclick="navigate('login')">Sign In</button>
       <button class="btn btn-primary btn-sm" onclick="navigate('register')">Get Started</button>`}
     </div>
@@ -2852,6 +2854,16 @@ async function submitResetPassword(token){
     err.textContent = e.message
   }
 }
+function handleFooterLink(l){
+  if(l==='Privacy Policy') navigate('privacy')
+  else if(l==='About Us') navigate('about')
+  else if(l==='Education News') navigate('news')
+  else if(l==='Find a Tutor') navigate('register')
+  else if(l==='Become a Tutor') navigate('register','tutor')
+  else if(l==='Contact Us') document.querySelector('.contact-grid')?.scrollIntoView()
+  else if(l==='How It Works') document.querySelector('.steps-grid')?.scrollIntoView()
+}
+
     function renderLanding() {
   render(`
   <style>
@@ -2913,7 +2925,10 @@ async function submitResetPassword(token){
   <!-- NAV -->
   <nav class="lnav">
     <button class="lbrand" onclick="navigate('landing')">🎓 Mathrone Academy</button>
-    <div class="lnav-links">
+    <div class="lnav-links" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+      <button class="btn-o" style="border:none;background:none;font-size:14px;color:#fff;cursor:pointer;padding:6px 10px" onclick="navigate('news')">📰 News</button>
+      <button class="btn-o" style="border:none;background:none;font-size:14px;color:#fff;cursor:pointer;padding:6px 10px" onclick="navigate('about')">About Us</button>
+      <button class="btn-o" style="border:none;background:none;font-size:14px;color:#fff;cursor:pointer;padding:6px 10px" onclick="navigate('privacy')">Privacy</button>
       <button class="btn-o" onclick="navigate('login')">Sign In</button>
       <button class="btn-p" onclick="navigate('register')">Get Started</button>
     </div>
@@ -3110,7 +3125,7 @@ async function submitResetPassword(token){
           ].map(([ht,links])=>`
         <div>
           <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.9);margin-bottom:14px;letter-spacing:0.08em">${ht}</div>
-          ${links.map(l=>`<button class="footer-link" onclick="${l==='Privacy Policy'?'navigate(\'privacy\')':l==='Contact Us'?'document.querySelector(\'.lsection-inner\').scrollIntoView()':l==='About Us'?'navigate(\'about\')':''}">` + l + `</button>`).join('')}
+          ${links.map(l=>`<button class="footer-link" onclick="handleFooterLink('${l}')">${l}</button>`).join('')}
         </div>`).join('')}
       </div>
       <div style="border-top:1px solid rgba(255,255,255,0.1);margin-top:40px;padding-top:24px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px">
