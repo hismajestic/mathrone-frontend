@@ -20,7 +20,7 @@
   <meta name="twitter:description" content="Connecting ambitious students with hand-picked, vetted tutors for personalised 1-on-1 learning."/>
   <meta name="twitter:image" content="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1200&q=80"/>
   <link rel="canonical" href="https://mathrone-academy.netlify.app"/>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>"/>
+  <link rel="icon" href="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -2033,7 +2033,10 @@ async function renderPublicNews(activeCategory = null){
     @media(max-width:700px){.news-nav{padding:14px 20px}.news-body{padding:24px 16px}}
   </style>
   <nav class="news-nav">
-    <button style="font-size:17px;font-weight:700;color:var(--navy);background:none;border:none;cursor:pointer" onclick="navigate('landing')">👑 Mathrone Academy</button>
+    <button style="display:flex;align-items:center;gap:10px;background:none;border:none;cursor:pointer" onclick="navigate('landing')">
+  <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" style="height:34px;width:auto"/>
+  <span style="font-size:17px;font-weight:700;color:var(--navy)">Mathrone Academy</span>
+</button>
     <div style="display:flex;gap:10px">
       ${isLoggedIn ? `
       <button class="btn btn-ghost btn-sm" onclick="navigate('landing')">← Home</button>
@@ -2478,10 +2481,10 @@ function fmtShort(dt) { return dt ? new Date(dt).toLocaleDateString('en-US', { m
       }
       return `
   <nav class="sidebar" id="sidebar">
-    <button class="sidebar-logo" onclick="navigate('landing')">
-      <div class="logo-icon">🎓</div>
-      Mathrone
-    </button>
+    <button class="sidebar-logo" onclick="navigate('landing')" style="display:flex;align-items:center;gap:10px">
+  <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" style="height:32px;width:auto;filter:brightness(0) invert(1)"/>
+  Mathrone
+</button>
     ${links}
     <div style="margin-top:auto;padding-top:20px;border-top:1px solid rgba(255,255,255,.1);margin-top:24px">
       <div style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:var(--rs);background:rgba(255,255,255,.06);margin-bottom:10px">
@@ -2529,7 +2532,10 @@ function fmtShort(dt) { return dt ? new Date(dt).toLocaleDateString('en-US', { m
   </style>
 
   <nav class="pp-nav">
-    <button class="lbrand" style="font-size:17px;font-weight:700;color:var(--navy);background:none;border:none;cursor:pointer" onclick="navigate('landing')">👑 Mathrone Academy</button>
+    <button style="display:flex;align-items:center;gap:10px;background:none;border:none;cursor:pointer" onclick="navigate('landing')">
+  <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" style="height:34px;width:auto"/>
+  <span style="font-size:17px;font-weight:700;color:var(--navy)">Mathrone Academy</span>
+</button>
     <button class="btn btn-ghost btn-sm" onclick="navigate('landing')">← Back to Home</button>
   </nav>
 
@@ -2638,7 +2644,10 @@ function fmtShort(dt) { return dt ? new Date(dt).toLocaleDateString('en-US', { m
 
   <!-- NAV -->
   <nav class="about-nav">
-    <button style="font-size:17px;font-weight:700;color:var(--navy);background:none;border:none;cursor:pointer" onclick="navigate('landing')">👑 Mathrone Academy</button>
+    <button style="display:flex;align-items:center;gap:10px;background:none;border:none;cursor:pointer" onclick="navigate('landing')">
+  <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" style="height:34px;width:auto"/>
+  <span style="font-size:17px;font-weight:700;color:var(--navy)">Mathrone Academy</span>
+</button>
     <button class="btn btn-ghost btn-sm" onclick="navigate('landing')">← Back to Home</button>
   </nav>
 
@@ -2863,7 +2872,19 @@ function handleFooterLink(l){
   else if(l==='Contact Us') document.querySelector('.contact-grid')?.scrollIntoView()
   else if(l==='How It Works') document.querySelector('.steps-grid')?.scrollIntoView()
 }
-
+function animateCount(id, target, duration, suffix, isDecimal){
+  const el = document.getElementById(id)
+  if(!el) return
+  const start = performance.now()
+  function step(now){
+    const progress = Math.min((now - start) / duration, 1)
+    const ease = 1 - Math.pow(1 - progress, 3)
+    const val = isDecimal ? (ease * target).toFixed(1) : Math.round(ease * target)
+    el.textContent = val + suffix
+    if(progress < 1) requestAnimationFrame(step)
+  }
+  requestAnimationFrame(step)
+}
     function renderLanding() {
   render(`
   <style>
@@ -2920,11 +2941,16 @@ function handleFooterLink(l){
       .lsection{padding:48px 20px}
       .lnav{padding:14px 20px}
     }
+    @keyframes slideLeft { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+    #tutors-slider:hover { animation-play-state:paused }
   </style>
 
   <!-- NAV -->
   <nav class="lnav">
-    <button class="lbrand" onclick="navigate('landing')">🎓 Mathrone Academy</button>
+    <button class="lbrand" onclick="navigate('landing')" style="display:flex;align-items:center;gap:10px;background:none;border:none;cursor:pointer">
+  <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" style="height:38px;width:auto"/>
+  <span style="font-size:18px;font-weight:700;color:#fff">Mathrone Academy</span>
+</button>
     <div class="lnav-links" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
       <button class="btn-o" style="border:none;background:none;font-size:14px;color:#fff;cursor:pointer;padding:6px 10px" onclick="navigate('news')">📰 News</button>
       <button class="btn-o" style="border:none;background:none;font-size:14px;color:#fff;cursor:pointer;padding:6px 10px" onclick="navigate('about')">About Us</button>
@@ -3001,22 +3027,29 @@ function handleFooterLink(l){
   </div>
 
   <!-- TUTORS -->
-  <div class="lsection">
-    <div class="lsection-inner">
+ <!-- TUTORS SLIDER -->
+  <div class="lsection" style="overflow:hidden">
+    <div style="max-width:1100px;margin:0 auto">
       <h2 class="stitle">Meet Our Tutors</h2>
       <p class="ssub">Qualified, passionate educators ready to help your child succeed</p>
-      <div class="tutors-grid">
-        ${[['KM','#1e40af','Kamali Mugisha','BSc Mathematics, University of Rwanda',['Mathematics','Physics'],'4.9','48'],
-           ['AN','#065f46','Amina Nziza','MEd English Language, KIE',['English','French'],'5.0','31'],
-           ['BK','#7c3aed','Bruno Kalisa','BSc Chemistry & Biology, NUR',['Chemistry','Biology'],'4.7','22']
-          ].map(([ini,bg,name,qual,subs,rat,rev])=>`
-        <div class="tcard">
-          <div style="width:52px;height:52px;border-radius:50%;background:${bg};display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;margin-bottom:14px">${ini}</div>
-          <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:2px">${name}</div>
-          <div style="font-size:12px;color:var(--g400);margin-bottom:10px">${qual}</div>
-          <div>${subs.map(s=>`<span class="tbadge">${s}</span>`).join('')}</div>
-          <div style="color:#f59e0b;font-size:13px;margin-top:10px">★★★★★ <span style="color:var(--g400);font-size:12px">${rat} · ${rev} reviews</span></div>
-        </div>`).join('')}
+      <div style="overflow:hidden;position:relative">
+        <div id="tutors-slider" style="display:flex;gap:20px;animation:slideLeft 20s linear infinite;width:max-content">
+          ${[...Array(2)].flatMap(()=>[
+            ['KM','#1e40af','Kamali Mugisha','BSc Mathematics, University of Rwanda',['Mathematics','Physics'],'4.9','48'],
+            ['AN','#065f46','Amina Nziza','MEd English Language, KIE',['English','French'],'5.0','31'],
+            ['BK','#7c3aed','Bruno Kalisa','BSc Chemistry & Biology, NUR',['Chemistry','Biology'],'4.7','22'],
+            ['JM','#b45309','Jean Mutesi','Digital Marketing & Web Design',['Digital Skills','Web Dev'],'4.8','15'],
+            ['RN','#be185d','Rachel Nyiraneza','MBA Business & Entrepreneurship',['Business','Finance'],'4.9','27'],
+            ['DU','#0e7490','David Uwimana','Video Production & Editing',['Video Editing','CapCut'],'4.7','19'],
+          ]).map(([ini,bg,name,qual,subs,rat,rev])=>`
+          <div style="background:#fff;border:1px solid var(--g100);border-radius:16px;padding:24px;min-width:220px;max-width:220px">
+            <div style="width:52px;height:52px;border-radius:50%;background:${bg};display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;margin-bottom:14px">${ini}</div>
+            <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:2px">${name}</div>
+            <div style="font-size:11px;color:var(--g400);margin-bottom:10px">${qual}</div>
+            <div>${subs.map(s=>`<span style="background:#e0e7ff;color:#1e40af;font-size:11px;padding:3px 8px;border-radius:999px;margin-right:4px">${s}</span>`).join('')}</div>
+            <div style="color:#f59e0b;font-size:13px;margin-top:10px">★★★★★ <span style="color:var(--g400);font-size:11px">${rat} · ${rev} reviews</span></div>
+          </div>`).join('')}
+        </div>
       </div>
     </div>
   </div>
@@ -3135,56 +3168,42 @@ function handleFooterLink(l){
     </div>
   </div>
 
-  <script>
-    function animateCount(id, target, duration, suffix, isDecimal){
-      const el = document.getElementById(id)
-      if(!el) return
-      const start = performance.now()
-      function step(now){
-        const progress = Math.min((now - start) / duration, 1)
-        const ease = 1 - Math.pow(1 - progress, 3)
-        const val = isDecimal ? (ease * target).toFixed(1) : Math.round(ease * target)
-        el.textContent = val + suffix
-        if(progress < 1) requestAnimationFrame(step)
-      }
-      requestAnimationFrame(step)
-    }
-    setTimeout(async ()=>{
-    try{
-      const stats = await fetch('https://mathrone-backend.onrender.com/api/v1/auth/stats').then(r=>r.json())
-      animateCount('stat-tutors',   stats.tutors   || 0, 2000, '+', false)
-      animateCount('stat-students', stats.students || 0, 2000, '+', false)
-      animateCount('stat-rating',   stats.rating   || 0, 2000, '★', true)
-      animateCount('stat-sat',      stats.sat       || 98, 2000, '%', false)
-    }catch(e){
-      animateCount('stat-tutors',  0, 2000, '+',  false)
-      animateCount('stat-students',0, 2000, '+',  false)
-      animateCount('stat-rating',  0, 2000, '★',  true)
-      animateCount('stat-sat',     98, 2000, '%',  false)
-    }
-  }, 300)
-  <\/script>
   `)
+  // Load real tutors into slider
+  setTimeout(async ()=>{
+    try{
+      const tutors = await fetch(API_URL + '/tutors/search').then(r=>r.json())
+      const slider = document.getElementById('tutors-slider')
+      if(slider && tutors.length){
+        const cards = [...tutors, ...tutors].map(t=>`
+        <div style="background:#fff;border:1px solid var(--g100);border-radius:16px;padding:24px;min-width:220px;max-width:220px">
+          ${avi(t.profiles?.full_name||'T', 52, t.profiles?.avatar_url||null)}
+          <div style="font-size:15px;font-weight:700;color:var(--navy);margin-top:10px;margin-bottom:2px">${t.profiles?.full_name||'—'}</div>
+          <div style="font-size:11px;color:var(--g400);margin-bottom:10px">${t.qualification||''}</div>
+          <div>${(t.subjects||[]).slice(0,2).map(s=>`<span style="background:#e0e7ff;color:#1e40af;font-size:11px;padding:3px 8px;border-radius:999px;margin-right:4px">${s}</span>`).join('')}</div>
+          <div style="color:#f59e0b;font-size:13px;margin-top:10px">★★★★★ <span style="color:var(--g400);font-size:11px">${(t.rating||4.8).toFixed(1)}</span></div>
+        </div>`).join('')
+        slider.innerHTML = cards
+      }
+    }catch(e){}
+  }, 400)
 
   // Run after render
-  setTimeout(()=>{
-    function animateCount(id, target, duration, suffix, isDecimal){
-      const el = document.getElementById(id)
-      if(!el) return
-      const start = performance.now()
-      function step(now){
-        const progress = Math.min((now - start) / duration, 1)
-        const ease = 1 - Math.pow(1 - progress, 3)
-        const val = isDecimal ? (ease * target).toFixed(1) : Math.round(ease * target)
-        el.textContent = val + suffix
-        if(progress < 1) requestAnimationFrame(step)
-      }
-      requestAnimationFrame(step)
+  setTimeout(async ()=>{
+    try{
+      console.log('Fetching stats from:', API_URL + '/auth/stats')
+      const stats = await fetch(API_URL + '/auth/stats').then(r=>r.json())
+      console.log('Stats:', stats)
+      animateCount('stat-tutors',   stats.tutors   || 22, 2000, '+', false)
+      animateCount('stat-students', stats.students || 102, 2000, '+', false)
+      animateCount('stat-rating',   stats.rating   || 4.8, 2000, '★', true)
+      animateCount('stat-sat',      stats.sat      || 96, 2000, '%', false)
+    }catch(e){
+      animateCount('stat-tutors',  22, 2000, '+',  false)
+      animateCount('stat-students',102, 2000, '+',  false)
+      animateCount('stat-rating',  4.8, 2000, '★',  true)
+      animateCount('stat-sat',     96, 2000, '%',  false)
     }
-    animateCount('stat-tutors',  500,  2000, '+',  false)
-    animateCount('stat-students',2400, 2000, '+',  false)
-    animateCount('stat-rating',  4.9,  2000, '★',  true)
-    animateCount('stat-sat',     98,   2000, '%',  false)
   }, 300)
 }
     // ════════════════════════════════════════════════════════════
