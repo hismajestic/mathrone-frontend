@@ -3175,31 +3175,34 @@ async function submitContactForm(){
     .footer-link{display:block;font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:8px;cursor:pointer;background:none;border:none;text-align:left}
     .footer-link:hover{color:#fff}
     @media(max-width:700px){
-      .steps-grid,.features-grid,.tutors-grid,.testimonials-grid,.footer-grid{grid-template-columns:1fr}
+      .steps-grid,.features-grid,.tutors-grid,.testimonials-grid{grid-template-columns:1fr}
       .contact-grid{grid-template-columns:1fr}
+      .footer-grid{grid-template-columns:1fr 1fr}
       .htitle{font-size:28px}
       .lsection{padding:40px 16px}
-      .lnav{padding:12px 16px}
-      .lnav-links .nav-hidden{display:none}
-      .hstats{gap:20px}
-      .hero{padding:48px 16px}
+      .hero{padding:48px 16px !important}
+      .hstats{gap:16px}
+      .lnav{padding:10px 16px;flex-wrap:nowrap;align-items:center}
+      .lbrand span{display:none}
+      .nav-hidden{display:none !important}
+      .lnav-links{gap:6px;flex-wrap:nowrap}
     }
     @keyframes slideLeft { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
     #tutors-slider:hover { animation-play-state:paused }
   </style>
 
-  <!-- NAV -->
+ <!-- NAV -->
   <nav class="lnav">
-    <button class="lbrand" onclick="navigate('landing')" style="display:flex;align-items:center;gap:10px;background:none;border:none;cursor:pointer">
-  <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" style="height:38px;width:auto"/>
-  <span style="font-size:18px;font-weight:700;color:#fff">Mathrone Academy</span>
-</button>
-    <div class="lnav-links" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-      <button class="btn-o nav-hidden" style="border:none;background:none;font-size:14px;color:#fff;cursor:pointer;padding:6px 10px" onclick="navigate('news')">📰 News</button>
-      <button class="btn-o nav-hidden" style="border:none;background:none;font-size:14px;color:#fff;cursor:pointer;padding:6px 10px" onclick="navigate('about')">About Us</button>
-      <button class="btn-o nav-hidden" style="border:none;background:none;font-size:14px;color:#fff;cursor:pointer;padding:6px 10px" onclick="navigate('privacy')">Privacy</button>
-      <button class="btn-o" onclick="navigate('login')">Sign In</button>
-      <button class="btn-p" onclick="navigate('register')">Get Started</button>
+    <button class="lbrand" onclick="navigate('landing')" style="display:flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer;flex-shrink:0">
+      <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" style="height:36px;width:36px;object-fit:contain;flex-shrink:0"/>
+      <span style="font-size:16px;font-weight:700;color:#fff;white-space:nowrap">Mathrone Academy</span>
+    </button>
+    <div class="lnav-links" style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap;flex-shrink:0">
+      <button class="btn-o nav-hidden" style="border:none;background:none;font-size:14px;color:#fff;cursor:pointer;padding:6px 10px;white-space:nowrap" onclick="navigate('news')">📰 News</button>
+      <button class="btn-o nav-hidden" style="border:none;background:none;font-size:14px;color:#fff;cursor:pointer;padding:6px 10px;white-space:nowrap" onclick="navigate('about')">About Us</button>
+      <button class="btn-o nav-hidden" style="border:none;background:none;font-size:14px;color:#fff;cursor:pointer;padding:6px 10px;white-space:nowrap" onclick="navigate('privacy')">Privacy</button>
+      <button class="btn-o" style="white-space:nowrap" onclick="navigate('login')">Sign In</button>
+      <button class="btn-p" style="white-space:nowrap" onclick="navigate('register')">Get Started</button>
     </div>
   </nav>
 
