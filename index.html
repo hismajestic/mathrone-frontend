@@ -1310,6 +1310,107 @@
 .news-rich-content img { max-width:100%; height:auto; cursor:pointer; border-radius:8px; }
 #news-editor img { max-width:100%; height:auto; cursor:pointer; border-radius:8px; }
 #news-editor img.selected { outline:2px solid var(--blue); }
+
+/* ═══════════════════════════════════════
+   MOBILE RESPONSIVE — max-width: 768px
+═══════════════════════════════════════ */
+@media (max-width: 768px) {
+
+  @media (max-width: 768px) {
+  .mobile-topbar { display: flex !important; }
+  #sidebar-close-btn { display: block !important; }
+}
+  /* Sidebar */
+  .sidebar {
+    position: fixed;
+    left: -260px;
+    top: 0;
+    height: 100vh;
+    z-index: 1000;
+    transition: left 0.3s ease;
+  }
+  .sidebar.open { left: 0; }
+  .dash-main { margin-left: 0 !important; padding: 16px !important; }
+  .dash-layout { flex-direction: column; }
+
+  /* Mobile top bar */
+  .mobile-topbar {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--navy);
+    position: sticky;
+    top: 0;
+    z-index: 99;
+  }
+
+  /* Tables */
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { min-width: 600px; }
+
+  /* Grids */
+  .grid-2 { grid-template-columns: 1fr !important; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* Landing page */
+  .hero { padding: 48px 20px !important; }
+  .htitle { font-size: 32px !important; }
+  .hsub { font-size: 14px !important; }
+  .hbtns { flex-direction: column; align-items: center; }
+  .hstats { gap: 24px !important; }
+  .lnav { padding: 12px 20px !important; }
+  .lnav-links { gap: 4px !important; }
+  .lnav-links button { font-size: 12px !important; padding: 4px 8px !important; }
+  .lsection { padding: 40px 20px !important; }
+  .steps-grid { grid-template-columns: 1fr !important; }
+  .features-grid { grid-template-columns: 1fr !important; }
+  .tutors-grid { grid-template-columns: 1fr !important; }
+  .testimonials-grid { grid-template-columns: 1fr !important; }
+  .contact-grid { grid-template-columns: 1fr !important; }
+  .footer-grid { grid-template-columns: 1fr 1fr !important; }
+
+  /* Auth cards */
+  .auth-wrap { padding: 16px !important; }
+  .auth-card { padding: 24px 16px !important; }
+
+  /* Modals */
+  .modal { max-width: 95vw !important; margin: 10px !important; }
+  .modal-body { max-height: 60vh !important; }
+
+  /* Chat */
+  .chat-wrap { flex-direction: column !important; height: auto !important; }
+  .chat-list { width: 100% !important; max-height: 200px; border-right: none !important; border-bottom: 1px solid var(--g100); }
+  .chat-messages { height: 400px !important; }
+
+  /* Page header */
+  .page-header { flex-direction: column !important; align-items: flex-start !important; gap: 10px !important; }
+
+  /* Cards */
+  .stat-card { padding: 14px !important; }
+  .stat-num { font-size: 24px !important; }
+
+  /* Tabs */
+  .tabs { overflow-x: auto; }
+  .tab-btn { white-space: nowrap; }
+
+  /* News */
+  .news-body { padding: 24px 16px !important; }
+
+  @media (max-width: 768px) {
+  .mobile-topbar { display: flex !important; }
+}
+}
+
+/* Overlay for sidebar on mobile */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 999;
+}
+.sidebar-overlay.show { display: block; }
   </style>
 </head>
 
@@ -2039,8 +2140,7 @@ async function renderPublicNews(activeCategory = null){
 </button>
     <div style="display:flex;gap:10px">
       ${isLoggedIn ? `
-      <button class="btn btn-ghost btn-sm" onclick="navigate('landing')">← Home</button>
-      <button class="btn btn-ghost btn-sm" onclick="navigate('dashboard')">Dashboard</button>
+      <button class="btn btn-ghost btn-sm" onclick="navigate('dashboard')">← Dashboard</button>
       ` : `
       <button class="btn btn-ghost btn-sm" onclick="navigate('landing')">← Home</button>
       <button class="btn btn-ghost btn-sm" onclick="navigate('login')">Sign In</button>
@@ -2057,7 +2157,7 @@ async function renderPublicNews(activeCategory = null){
   </div>
   <div style="background:#0f172a;padding:24px 48px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
     <div style="font-size:13px;color:rgba(255,255,255,0.5)">© 2025 Mathrone Academy. All rights reserved.</div>
-    <button onclick="navigate('landing')" style="font-size:13px;color:rgba(255,255,255,0.5);background:none;border:none;cursor:pointer">← Back to Home</button>
+    <button onclick="${State.user ? 'navigate(\'dashboard\')' : 'navigate(\'landing\')'}" style="font-size:13px;color:rgba(255,255,255,0.5);background:none;border:none;cursor:pointer">${State.user ? '← Dashboard' : '← Back to Home'}</button>
   </div>
   `)
 
@@ -2116,28 +2216,76 @@ async function openNewsPost(postId){
   try{
     const p = await api('/news/' + postId)
     const cat = NEWS_CATEGORIES.find(c=>c.id===p.category) || NEWS_CATEGORIES[0]
-    document.getElementById('modal-root').innerHTML = `
-    <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
-      <div class="modal" style="max-width:700px">
-        <div class="modal-header">
-          <span class="modal-title">${cat.icon} ${cat.label}</span>
-          <button class="modal-close" onclick="document.querySelector('.modal-overlay').remove()">✕</button>
-        </div>
-        <div class="modal-body" style="max-height:70vh;overflow-y:auto">
-          ${p.image_url ? `<img src="${p.image_url}" style="width:100%;border-radius:12px;margin-bottom:16px;max-height:280px;object-fit:cover"/>` : ''}
-          <h2 style="font-size:20px;font-weight:800;color:var(--navy);margin-bottom:8px">${p.title}</h2>
-          <div style="font-size:12px;color:var(--g400);margin-bottom:16px">
-            Posted by ${p.profiles?.full_name||'Admin'} • ${fmtShort(p.created_at)}
-            ${p.source_name ? `• Source: <strong>${p.source_name}</strong>` : ''}
-          </div>
-          <div style="font-size:14px;color:var(--g600);line-height:1.8" class="news-rich-content">${p.content}</div>
-          ${p.source_url ? `
-          <div style="margin-top:20px">
-            <a href="${p.source_url}" target="_blank" class="btn btn-primary btn-sm">🔗 Read Full Article →</a>
-          </div>` : ''}
+    const isLoggedIn = !!State.user
+    render(`
+    <style>
+      .news-article-body h1{font-size:28px;font-weight:800;color:var(--navy);margin:16px 0 8px}
+      .news-article-body h2{font-size:22px;font-weight:700;color:var(--navy);margin:14px 0 6px}
+      .news-article-body h3{font-size:18px;font-weight:700;color:var(--navy);margin:12px 0 6px}
+      .news-article-body p{margin:0 0 14px;line-height:1.8;font-size:15px;color:var(--g600)}
+      .news-article-body ul,.news-article-body ol{padding-left:24px;margin-bottom:14px}
+      .news-article-body li{margin-bottom:6px;line-height:1.7;font-size:15px;color:var(--g600)}
+      .news-article-body a{color:var(--blue);text-decoration:underline}
+      .news-article-body strong{font-weight:700}
+      .news-article-body img{max-width:100%;border-radius:12px;margin:16px 0}
+    </style>
+    <nav style="display:flex;align-items:center;justify-content:space-between;padding:16px 48px;border-bottom:1px solid var(--g100);background:#fff;position:sticky;top:0;z-index:100">
+      <button style="display:flex;align-items:center;gap:10px;background:none;border:none;cursor:pointer" onclick="navigate('news')">
+        <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" style="height:34px;width:auto"/>
+        <span style="font-size:17px;font-weight:700;color:var(--navy)">Mathrone Academy</span>
+      </button>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost btn-sm" onclick="navigate('news')">← Back to News</button>
+        ${isLoggedIn ? `<button class="btn btn-primary btn-sm" onclick="navigate('dashboard')">Dashboard</button>` : `<button class="btn btn-primary btn-sm" onclick="navigate('register')">Get Started</button>`}
+      </div>
+    </nav>
+
+    <div style="max-width:800px;margin:0 auto;padding:48px 24px">
+      <!-- Category badge -->
+      <div style="margin-bottom:16px">
+        <span style="background:${cat.color}22;color:${cat.color};font-size:12px;padding:4px 12px;border-radius:999px;font-weight:700">${cat.icon} ${cat.label}</span>
+        ${p.is_featured ? `<span style="background:#fef9c3;color:#854d0e;font-size:12px;padding:4px 12px;border-radius:999px;font-weight:700;margin-left:6px">⭐ Featured</span>` : ''}
+      </div>
+
+      <!-- Title -->
+      <h1 style="font-size:36px;font-weight:800;color:var(--navy);line-height:1.2;margin-bottom:16px;font-family:'Playfair Display',serif">${p.title}</h1>
+
+      <!-- Meta -->
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid var(--g100)">
+        ${avi(p.profiles?.full_name||'Admin', 36)}
+        <div>
+          <div style="font-size:14px;font-weight:600;color:var(--navy)">${p.profiles?.full_name||'Mathrone Admin'}</div>
+          <div style="font-size:12px;color:var(--g400)">${fmt(p.created_at)} ${p.source_name ? `• Source: <strong>${p.source_name}</strong>` : ''}</div>
         </div>
       </div>
-    </div>`
+
+      <!-- Featured image -->
+      ${p.image_url ? `<img src="${p.image_url}" style="width:100%;border-radius:16px;margin-bottom:32px;max-height:420px;object-fit:cover"/>` : ''}
+
+      <!-- Content -->
+      <div class="news-article-body">${p.content}</div>
+
+      <!-- Source link -->
+      ${p.source_url ? `
+      <div style="margin-top:32px;padding:20px;background:var(--sky);border-radius:12px;border-left:4px solid var(--blue)">
+        <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:6px">Read the full article</div>
+        <a href="${p.source_url}" target="_blank" class="btn btn-primary btn-sm">🔗 Visit Source →</a>
+      </div>` : ''}
+
+      <!-- Admin actions -->
+      ${State.user?.role==='admin' ? `
+      <div style="margin-top:32px;display:flex;gap:10px">
+        <button class="btn btn-ghost btn-sm" onclick="openNewsModal('${p.id}')">✏️ Edit Post</button>
+        <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteNews('${p.id}')">🗑️ Delete Post</button>
+      </div>` : ''}
+    </div>
+
+    <!-- Footer -->
+    <div style="background:#0f172a;padding:24px 48px;display:flex;justify-content:space-between;align-items:center;margin-top:48px">
+      <div style="font-size:13px;color:rgba(255,255,255,0.5)">© 2026 Mathrone Academy</div>
+      <button onclick="navigate('news')" style="font-size:13px;color:rgba(255,255,255,0.5);background:none;border:none;cursor:pointer">← Back to News</button>
+    </div>
+    `)
   }catch(e){
     toast(e.message,'err')
   }
@@ -2481,7 +2629,8 @@ function fmtShort(dt) { return dt ? new Date(dt).toLocaleDateString('en-US', { m
       }
       return `
   <nav class="sidebar" id="sidebar">
-    <button class="sidebar-logo" onclick="navigate('landing')" style="display:flex;align-items:center;gap:10px">
+    <button onclick="closeSidebar()" style="display:none;position:absolute;top:12px;right:12px;background:rgba(255,255,255,0.1);border:none;color:#fff;font-size:18px;cursor:pointer;border-radius:6px;padding:4px 8px;line-height:1" id="sidebar-close-btn">✕</button>
+    <button class="sidebar-logo" onclick="navigate('dashboard')" style="display:flex;align-items:center;gap:10px">
   <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" style="height:32px;width:auto;filter:brightness(0) invert(1)"/>
   Mathrone
 </button>
@@ -2499,11 +2648,25 @@ function fmtShort(dt) { return dt ? new Date(dt).toLocaleDateString('en-US', { m
   </nav>`
     }
 
+  function openSidebar(){
+  document.getElementById('sidebar')?.classList.add('open')
+  document.getElementById('sidebar-overlay')?.classList.add('show')
+}
+function closeSidebar(){
+  document.getElementById('sidebar')?.classList.remove('open')
+  document.getElementById('sidebar-overlay')?.classList.remove('show')
+}
     function dashWrap(active, content) {
       return `
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
   <div class="dash-layout">
     ${sidebar(active)}
     <main class="dash-main" style="animation:fadeUp .4s">
+      <div class="mobile-topbar" style="display:none">
+        <button onclick="openSidebar()" style="background:none;border:none;cursor:pointer;color:#fff;font-size:22px">☰</button>
+        <span style="font-size:16px;font-weight:700;color:#fff">👑 Mathrone</span>
+        <div style="width:32px"></div>
+      </div>
       ${content}
     </main>
   </div>`
@@ -2726,13 +2889,28 @@ function fmtShort(dt) { return dt ? new Date(dt).toLocaleDateString('en-US', { m
 
   <!-- STATS -->
   <div style="background:var(--navy);padding:64px 48px">
-    <div style="max-width:900px;margin:0 auto;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:32px;text-align:center">
-      ${[['500+','Tutors Vetted'],['2,400+','Students Served'],['4.9★','Average Rating'],['98%','Satisfaction Rate']
-        ].map(([n,l])=>`
+    <div style="max-width:1000px;margin:0 auto;display:flex;align-items:center;gap:32px;flex-wrap:wrap;justify-content:center">
+      <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" style="height:80px;width:80px;object-fit:contain"/>
+      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:32px;text-align:center;flex:1">
       <div>
-        <div style="font-size:36px;font-weight:800;color:#f59e0b">${n}</div>
-        <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-top:6px">${l}</div>
-      </div>`).join('')}
+        <div style="font-size:36px;font-weight:800;color:#f59e0b" id="about-stat-tutors">—</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-top:6px">Tutors Vetted</div>
+      </div>
+      <div>
+        <div style="font-size:36px;font-weight:800;color:#f59e0b" id="about-stat-students">—</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-top:6px">Students Served</div>
+      </div>
+      <div>
+        <div style="font-size:36px;font-weight:800;color:#f59e0b" id="about-stat-rating">—</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-top:6px">Average Rating</div>
+      </div>
+      <div>
+        <div style="font-size:36px;font-weight:800;color:#f59e0b" id="about-stat-sat">—</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-top:6px">Satisfaction Rate</div>
+      </div>
+      </div>
+      <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" style="height:80px;width:80px;object-fit:contain"/>
+    </div>
     </div>
   </div>
 
@@ -2774,6 +2952,29 @@ function fmtShort(dt) { return dt ? new Date(dt).toLocaleDateString('en-US', { m
     <button onclick="navigate('landing')" style="font-size:13px;color:rgba(255,255,255,0.5);background:none;border:none;cursor:pointer">← Back to Home</button>
   </div>
   `)
+  // Fetch real stats
+  setTimeout(async ()=>{
+    try{
+      const stats = await fetch(API_URL + '/auth/stats').then(r=>r.json())
+      const el1 = document.getElementById('about-stat-tutors')
+      const el2 = document.getElementById('about-stat-students')
+      const el3 = document.getElementById('about-stat-rating')
+      const el4 = document.getElementById('about-stat-sat')
+      if(el1) animateCount('about-stat-tutors', stats.tutors||22, 2000, '+', false)
+      if(el2) animateCount('about-stat-students', stats.students||105, 2000, '+', false)
+      if(el3) animateCount('about-stat-rating', stats.rating||4.8, 2000, '★', true)
+      if(el4) animateCount('about-stat-sat', stats.sat||96, 2000, '%', false)
+    }catch(e){
+      const el1 = document.getElementById('about-stat-tutors')
+      const el2 = document.getElementById('about-stat-students')
+      const el3 = document.getElementById('about-stat-rating')
+      const el4 = document.getElementById('about-stat-sat')
+      if(el1) el1.textContent = '22+'
+      if(el2) el2.textContent = '105+'
+      if(el3) el3.textContent = '4.8★'
+      if(el4) el4.textContent = '96%'
+    }
+  }, 300)
 }
 async function renderVerifyEmail(token){
   render(`
@@ -2885,6 +3086,45 @@ function animateCount(id, target, duration, suffix, isDecimal){
   }
   requestAnimationFrame(step)
 }
+async function submitContactForm(){
+  const name    = document.getElementById('contact-name')?.value?.trim()
+  const email   = document.getElementById('contact-email')?.value?.trim()
+  const subject = document.getElementById('contact-subject')?.value?.trim()
+  const message = document.getElementById('contact-message')?.value?.trim()
+  const btn     = document.getElementById('contact-btn')
+  const msg     = document.getElementById('contact-msg')
+
+  if(!name||!email||!subject||!message){
+    msg.style.display='block';msg.style.background='#fee2e2';msg.style.color='#dc2626'
+    msg.textContent='Please fill in all fields'; return
+  }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if(!emailRegex.test(email)){
+    msg.style.display='block';msg.style.background='#fee2e2';msg.style.color='#dc2626'
+    msg.textContent='Please enter a valid email address'; return
+  }
+
+  btn.disabled=true; btn.textContent='Sending...'
+  try{
+    await fetch(API_URL + '/auth/contact', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ full_name:name, email, subject, message })
+    })
+    msg.style.display='block';msg.style.background='#dcfce7';msg.style.color='#166534'
+    msg.textContent='✅ Message sent! We will get back to you within 24 hours.'
+    document.getElementById('contact-name').value=''
+    document.getElementById('contact-email').value=''
+    document.getElementById('contact-subject').value=''
+    document.getElementById('contact-message').value=''
+    btn.textContent='Send Message →'
+    btn.disabled=false
+  }catch(e){
+    msg.style.display='block';msg.style.background='#fee2e2';msg.style.color='#dc2626'
+    msg.textContent='Failed to send. Please try again.'
+    btn.disabled=false; btn.textContent='Send Message →'
+  }
+}
     function renderLanding() {
   render(`
   <style>
@@ -2937,9 +3177,12 @@ function animateCount(id, target, duration, suffix, isDecimal){
     @media(max-width:700px){
       .steps-grid,.features-grid,.tutors-grid,.testimonials-grid,.footer-grid{grid-template-columns:1fr}
       .contact-grid{grid-template-columns:1fr}
-      .htitle{font-size:32px}
-      .lsection{padding:48px 20px}
-      .lnav{padding:14px 20px}
+      .htitle{font-size:28px}
+      .lsection{padding:40px 16px}
+      .lnav{padding:12px 16px}
+      .lnav-links .nav-hidden{display:none}
+      .hstats{gap:20px}
+      .hero{padding:48px 16px}
     }
     @keyframes slideLeft { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
     #tutors-slider:hover { animation-play-state:paused }
@@ -2952,9 +3195,9 @@ function animateCount(id, target, duration, suffix, isDecimal){
   <span style="font-size:18px;font-weight:700;color:#fff">Mathrone Academy</span>
 </button>
     <div class="lnav-links" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-      <button class="btn-o" style="border:none;background:none;font-size:14px;color:#fff;cursor:pointer;padding:6px 10px" onclick="navigate('news')">📰 News</button>
-      <button class="btn-o" style="border:none;background:none;font-size:14px;color:#fff;cursor:pointer;padding:6px 10px" onclick="navigate('about')">About Us</button>
-      <button class="btn-o" style="border:none;background:none;font-size:14px;color:#fff;cursor:pointer;padding:6px 10px" onclick="navigate('privacy')">Privacy</button>
+      <button class="btn-o nav-hidden" style="border:none;background:none;font-size:14px;color:#fff;cursor:pointer;padding:6px 10px" onclick="navigate('news')">📰 News</button>
+      <button class="btn-o nav-hidden" style="border:none;background:none;font-size:14px;color:#fff;cursor:pointer;padding:6px 10px" onclick="navigate('about')">About Us</button>
+      <button class="btn-o nav-hidden" style="border:none;background:none;font-size:14px;color:#fff;cursor:pointer;padding:6px 10px" onclick="navigate('privacy')">Privacy</button>
       <button class="btn-o" onclick="navigate('login')">Sign In</button>
       <button class="btn-p" onclick="navigate('register')">Get Started</button>
     </div>
@@ -3100,11 +3343,12 @@ function animateCount(id, target, duration, suffix, isDecimal){
         <div>
           <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:6px">Send us a message</div>
           <div style="font-size:13px;color:var(--g400);margin-bottom:20px">We typically respond within 24 hours on business days.</div>
-          <input class="cinput" placeholder="Your full name"/>
-          <input class="cinput" placeholder="Email address"/>
-          <input class="cinput" placeholder="Subject"/>
-          <textarea class="cinput" rows="4" placeholder="Your message..."></textarea>
-          <button class="btn-g" style="padding:12px 28px">Send Message →</button>
+          <div id="contact-msg" style="display:none;padding:12px;border-radius:8px;margin-bottom:12px;font-size:13px"></div>
+          <input class="cinput" id="contact-name" placeholder="Your full name"/>
+          <input class="cinput" id="contact-email" type="email" placeholder="Email address"/>
+          <input class="cinput" id="contact-subject" placeholder="Subject"/>
+          <textarea class="cinput" id="contact-message" rows="4" placeholder="Your message..."></textarea>
+          <button class="btn-g" id="contact-btn" style="padding:12px 28px" onclick="submitContactForm()">Send Message →</button>
         </div>
         <div>
           <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:20px">Contact details</div>
@@ -3989,17 +4233,65 @@ async function savePaymentPreference(){
     // ════════════════════════════════════════════════════════════
     // ADMIN DASHBOARD
     // ════════════════════════════════════════════════════════════
+    function openContactReply(id, name, email, subject){
+  const modalRoot = document.getElementById('modal-root') || document.createElement('div')
+  if(!document.getElementById('modal-root')){
+    modalRoot.id = 'modal-root'
+    document.body.appendChild(modalRoot)
+  }
+  modalRoot.innerHTML = `
+  <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title">✉️ Reply to ${name}</span>
+        <button class="modal-close" onclick="document.querySelector('.modal-overlay').remove()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="background:var(--sky);border-radius:8px;padding:12px;margin-bottom:16px;font-size:13px">
+          <div><strong>To:</strong> ${name} (${email})</div>
+          <div><strong>Subject:</strong> Re: ${subject}</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Your Reply</label>
+          <textarea class="input" id="reply-content" rows="6" placeholder="Type your reply here..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="document.querySelector('.modal-overlay').remove()">Cancel</button>
+        <button class="btn btn-primary" onclick="sendContactReply('${id}','${email}','${name}','${subject.replace(/'/g,"\\'")}')">Send Reply ✉️</button>
+      </div>
+    </div>
+  </div>`
+}
+
+async function sendContactReply(id, email, name, subject){
+  const content = document.getElementById('reply-content')?.value?.trim()
+  if(!content){ toast('Please write a reply','err'); return }
+  try{
+    await api('/auth/contact-reply', {
+      method: 'POST',
+      body: JSON.stringify({ id, email, name, subject, message: content })
+    })
+    document.querySelector('.modal-overlay')?.remove()
+    toast('Reply sent! ✅')
+    renderAdminDash()
+  }catch(e){
+    toast(e.message,'err')
+  }
+}
     async function renderAdminDash() {
-      render(dashWrap('dashboard', `<div class="loader-center"><div class="spinner"></div></div>`))
-      try {
-        const [tutors, students, sessions, payments] = await Promise.allSettled([
-          api('/tutors/admin/all'), api('/students/admin/all'),
-          api('/sessions/admin/all'), api('/payments/summary/admin')
-        ])
-        const T = tutors.value || []; const S = students.value || []
-        const SE = sessions.value || []; const P = payments.value || {}
-        const pending = T.filter(t => ['applicant', 'under_review', 'written_exam', 'interview'].includes(t.status))
-        render(dashWrap('dashboard', `
+  render(dashWrap('dashboard', `<div class="loader-center"><div class="spinner"></div></div>`))
+  try {
+    const [tutors, students, sessions, payments] = await Promise.allSettled([
+      api('/tutors/admin/all'), api('/students/admin/all'),
+      api('/sessions/admin/all'), api('/payments/summary/admin')
+    ])
+    const T = tutors.value || []; const S = students.value || []
+    const SE = sessions.value || []; const P = payments.value || {}
+    let CM = []
+    try{ CM = await api('/auth/contact-messages') }catch(e){}
+    const pending = T.filter(t => ['applicant', 'under_review', 'written_exam', 'interview'].includes(t.status))
+    render(dashWrap('dashboard', `
     <div class="page-header">
       <div><h1 class="page-title">Admin Dashboard</h1><p class="page-subtitle">Platform overview & management</p></div>
     </div>
@@ -4036,11 +4328,55 @@ async function savePaymentPreference(){
         </div>`).join('') || `<div class="empty-state" style="padding:20px"><div class="empty-sub">No sessions yet</div></div>`}
       </div>
     </div>
+
+    <!-- Contact Messages -->
+    <div class="card" style="padding:24px;margin-bottom:24px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <h3 style="font-size:16px;font-weight:700;color:var(--navy)">📬 Contact Messages</h3>
+      </div>
+      <div id="contact-msgs-list"><div class="loader-center"><div class="spinner"></div></div></div>
+      <div id="contact-msgs-list">
+        ${CM.length ? CM.slice(0,5).map(m=>`
+        <div style="padding:12px;border:1px solid var(--g100);border-radius:8px;margin-bottom:8px;${!m.is_read?'background:var(--sky)':''}">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+            <div>
+              <div style="font-weight:600;font-size:14px">${m.full_name} <span style="font-size:12px;color:var(--g400)">${m.email}</span></div>
+              <div style="font-size:13px;font-weight:600;color:var(--navy);margin-top:2px">${m.subject}</div>
+              <div style="font-size:12px;color:var(--g600);margin-top:4px">${m.message.slice(0,120)}${m.message.length>120?'...':''}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;margin-left:12px">
+              <div style="font-size:11px;color:var(--g400)">${fmtShort(m.created_at)}</div>
+              <button class="btn btn-primary btn-sm" onclick="openContactReply('${m.id}','${m.full_name.replace(/'/g,"\\'")}','${m.email}','${m.subject.replace(/'/g,"\\'")}')">Reply →</button>
+            </div>
+          </div>
+        </div>`).join('') : '<div style="color:var(--g400);font-size:13px;text-align:center;padding:20px">No contact messages yet</div>'}
+      </div>
+    </div>
     `))
-      } catch (e) {
-        toast(e.message, 'err')
-      }
-    }
+
+    // Load contact messages
+    setTimeout(async ()=>{
+      try{
+        const msgs = await api('/auth/contact-messages')
+        const el = document.getElementById('contact-msgs-list')
+        if(el){
+          el.innerHTML = msgs.length ? msgs.slice(0,5).map(m=>`
+          <div style="padding:12px;border:1px solid var(--g100);border-radius:8px;margin-bottom:8px;${!m.is_read?'background:var(--sky)':''}">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+              <div style="font-weight:600;font-size:14px">${m.full_name} <span style="font-size:12px;color:var(--g400)">${m.email}</span></div>
+              <div style="font-size:11px;color:var(--g400)">${fmtShort(m.created_at)}</div>
+            </div>
+            <div style="font-size:13px;font-weight:600;color:var(--navy)">${m.subject}</div>
+            <div style="font-size:12px;color:var(--g600);margin-top:4px">${m.message.slice(0,100)}...</div>
+          </div>`).join('') : '<div style="color:var(--g400);font-size:13px;text-align:center;padding:20px">No contact messages yet</div>'
+        }
+      }catch(e){}
+    }, 500)
+
+  } catch (e) {
+    toast(e.message, 'err')
+  }
+}
 
     // ════════════════════════════════════════════════════════════
     // SESSIONS
@@ -4304,7 +4640,6 @@ async function submitProgress(sessionId){
         </div>
         ${t.bio ? `<p style="font-size:12px;color:var(--g600);line-height:1.5;margin-bottom:14px">${t.bio.slice(0, 100)}${t.bio.length > 100 ? '...' : ''}</p>` : ''}
         <div style="display:flex;justify-content:space-between;align-items:center">
-          ${t.hourly_rate ? `<span style="font-weight:700;color:var(--navy)">$${t.hourly_rate}/hr</span>` : '<span style="color:var(--g400);font-size:13px">Rate on request</span>'}
           ${(State.data.assignedTutorIds || []).includes(t.profile_id) ?
             `<button class="btn btn-primary btn-sm" onclick="openMessageModal('${t.profile_id}','${(t.profiles?.full_name || '').replace(/'/g, "\\'")}')">Message →</button>` :
             `<button class="btn btn-ghost btn-sm" onclick="requestTutor('${t.id}')">Request this Tutor</button>`}
