@@ -28,6 +28,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <style>
     *,
     *::before,
@@ -1297,6 +1298,8 @@
         height: 200px
       }
     }
+    .msg:hover .msg-del-btn { opacity: 1 !important; }
+
     .news-rich-content h1{font-size:24px;font-weight:800;color:var(--navy);margin:16px 0 8px}
 .news-rich-content h2{font-size:20px;font-weight:700;color:var(--navy);margin:14px 0 6px}
 .news-rich-content h3{font-size:17px;font-weight:700;color:var(--navy);margin:12px 0 6px}
@@ -1463,7 +1466,7 @@ const CATEGORY_LEVELS = {
 const RWANDA_DISTRICTS = [
   'Bugesera','Burera','Gakenke','Gasabo','Gatsibo','Gicumbi','Gisagara',
   'Huye','Kamonyi','Karongi','Kayonza','Kicukiro','Kirehe','Muhanga',
-  'Musanze','Ngabo','Ngoma','Ngororero','Nyabihu','Nyagatare','Nyamagabe',
+  'Musanze','Ngoma','Ngororero','Nyabihu','Nyagatare','Nyamagabe',
   'Nyamasheke','Nyanza','Nyarugenge','Nyaruguru','Rubavu','Ruhango',
   'Rulindo','Rusizi','Rutsiro','Rwamagana'
 ]
@@ -1594,6 +1597,8 @@ async function renderPage() {
         'admin-students':'Manage Students — Mathrone Academy',
         'admin-sessions':'Manage Sessions — Mathrone Academy',
         'admin-payments':'Payments — Mathrone Academy',
+        'admin-exam':    'Exam Manager — Mathrone Academy',
+        'exam':          'Written Exam — Mathrone Academy',
       }
       document.title = titles[page] || 'Mathrone Academy'
       localStorage.setItem('tc_page', page)
@@ -2544,6 +2549,8 @@ function closeCropModal(){
       if (p === 'admin-students') return renderAdminStudents()
       if (p === 'admin-sessions') return renderAdminSessions()
       if (p === 'admin-payments') return renderAdminPayments()
+      if (p === 'admin-exam') return renderAdminExam()
+      if (p === 'exam') return renderExam()
       renderLanding()
       setTimeout(loadUnreadCount, 200)
     }
@@ -2610,6 +2617,7 @@ function fmtShort(dt) { return dt ? new Date(dt).toLocaleDateString('en-US', { m
       <button class="sidebar-item ${active === 'admin-tutors' ? 'active' : ''}" onclick="navigate('admin-tutors')"><span class="sidebar-ic">👨‍🏫</span>Tutors</button>
       <button class="sidebar-item ${active === 'admin-students' ? 'active' : ''}" onclick="navigate('admin-students')"><span class="sidebar-ic">🎓</span>Students</button>
       <button class="sidebar-item ${active === 'admin-sessions' ? 'active' : ''}" onclick="navigate('admin-sessions')"><span class="sidebar-ic">📅</span>Sessions</button>
+      <button class="sidebar-item ${active === 'admin-exam' ? 'active' : ''}" onclick="navigate('admin-exam')"><span class="sidebar-ic">📝</span>Exam Manager</button>
       <button class="sidebar-item ${active === 'admin-payments' ? 'active' : ''}" onclick="navigate('admin-payments')"><span class="sidebar-ic">💳</span>Payments</button>
       <span class="sidebar-section">Other</span>
       <button class="sidebar-item ${active === 'messages' ? 'active' : ''}" onclick="navigate('messages')"><span class="sidebar-ic">💬</span>Messages</button>
@@ -2622,6 +2630,7 @@ function fmtShort(dt) { return dt ? new Date(dt).toLocaleDateString('en-US', { m
       <button class="sidebar-item ${active === 'dashboard' ? 'active' : ''}" onclick="navigate('dashboard')"><span class="sidebar-ic">📊</span>Dashboard</button>
       <span class="sidebar-section">Teaching</span>
       <button class="sidebar-item ${active === 'sessions' ? 'active' : ''}" onclick="navigate('sessions')"><span class="sidebar-ic">📅</span>My Sessions</button>
+      <button class="sidebar-item ${active === 'exam' ? 'active' : ''}" onclick="navigate('exam')"><span class="sidebar-ic">📝</span>Written Exam</button>
       <button class="sidebar-item ${active === 'messages' ? 'active' : ''}" onclick="navigate('messages')"><span class="sidebar-ic">💬</span>Messages</button>
       <span class="sidebar-section">Account</span>
       <button class="sidebar-item ${active === 'profile' ? 'active' : ''}" onclick="navigate('profile')"><span class="sidebar-ic">👤</span>Profile</button>
@@ -2791,7 +2800,7 @@ function closeSidebar(){
     <p class="pp-p">If you have any questions or concerns about this Privacy Policy or how we handle your data, please get in touch:</p>
     <ul class="pp-ul">
       <li><strong>Email:</strong> privacy@mathrone.rw</li>
-      <li><strong>Phone:</strong> +250 788 000 000</li>
+      <li><strong>Phone:</strong> +250 786 684 285</li>
       <li><strong>Address:</strong> KG 11 Ave, Kiyovu, Kigali, Rwanda</li>
     </ul>
 
@@ -3370,7 +3379,7 @@ async function submitContactForm(){
           <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:20px">Contact details</div>
           <div style="display:flex;flex-direction:column;gap:20px">
             ${[['📍','Office','KG 11 Ave, Kiyovu, Kigali, Rwanda'],
-               ['📞','Phone','+250 788 000 000'],
+               ['📞','Phone','+250 786 684 285'],
                ['✉️','Email','hello@Mathrone.rw'],
                ['🕐','Hours','Mon–Sat: 8am – 6pm · Sunday: Closed']
               ].map(([ic,t,d])=>`
@@ -3378,7 +3387,7 @@ async function submitContactForm(){
               <div style="font-size:22px">${ic}</div>
               <div><div style="font-size:14px;font-weight:700;color:var(--navy)">${t}</div><div style="font-size:13px;color:var(--g400);margin-top:2px">${d}</div></div>
             </div>`).join('')}
-            <a href="https://wa.me/250788000000" target="_blank" class="btn-wa"
+            <a href="https://wa.me/250786684285" target="_blank" class="btn-wa"
                style="display:inline-flex;align-items:center;gap:8px;background:#25d366;color:#fff;padding:10px 18px;border-radius:10px;font-size:14px;font-weight:700;text-decoration:none;margin-top:8px;transition:background 0.2s;width:fit-content">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.557 4.126 1.528 5.855L.057 23.117a.75.75 0 00.916.943l5.453-1.43A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.891 0-3.667-.5-5.2-1.373l-.374-.217-3.876 1.016 1.035-3.762-.237-.386A9.96 9.96 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
               WhatsApp Us
@@ -3594,6 +3603,9 @@ function toggleStudentLocation(){
       <div class="role-tabs">
         <button class="role-tab ${defaultRole === 'student' ? 'active' : ''}" id="rtab-student" onclick="switchRegRole('student')">🎓 I'm a Student</button>
         <button class="role-tab ${defaultRole === 'tutor' ? 'active' : ''}" id="rtab-tutor" onclick="switchRegRole('tutor')">👨‍🏫 I'm a Tutor</button>
+        <div id="reg-not-recruiting" class="alert-warn" style="display:none;margin:10px 0 0">
+          ⚠️ We are not currently recruiting new tutors. Please check back later or <a onclick="navigate('landing')" style="color:var(--blue);cursor:pointer">contact us</a>.
+        </div>
       </div>
       <div id="reg-form"></div>
       <div class="auth-switch">Already have an account? <a onclick="navigate('login')">Sign in →</a></div>
@@ -3602,6 +3614,26 @@ function toggleStudentLocation(){
   </div>`)
       window._regRole = defaultRole
       renderRegForm(defaultRole)
+
+      // Check if recruiting
+      setTimeout(async ()=>{
+        try{
+          const res = await fetch(API_URL + '/auth/settings/recruiting')
+          const data = await res.json()
+          const tutorTab = document.getElementById('rtab-tutor')
+          const notRecruiting = document.getElementById('reg-not-recruiting')
+          if(!data.is_recruiting){
+            if(tutorTab) tutorTab.style.display = 'none'
+            if(window._regRole === 'tutor'){
+              switchRegRole('student')
+              if(notRecruiting) notRecruiting.style.display = 'block'
+            }
+          } else {
+            if(tutorTab) tutorTab.style.display = ''
+            if(notRecruiting) notRecruiting.style.display = 'none'
+          }
+        }catch(e){}
+      }, 200)
     }
 
     function switchRegRole(role) {
@@ -3719,7 +3751,7 @@ function selectStudentCategory(id){
       </div>
       <div class="grid-2">
         <div class="form-group"><label class="form-label">Password *</label><input class="input" id="r-pw" type="password" placeholder="Min 6 chars"/></div>
-        <div class="form-group"><label class="form-label">Phone</label><input class="input" id="r-phone" placeholder="+1 234 567 8900"/></div>
+        <div class="form-group"><label class="form-label">Phone</label><input class="input" id="r-phone" placeholder="+250 789 123 456"/></div>
       </div>
       
       <div class="form-group">
@@ -4147,6 +4179,475 @@ async function savePaymentPreference(){
     toast(e.message,'err')
   }
 }
+async function renderAdminExam() {
+  render(dashWrap('admin-exam', `<div class="loader-center"><div class="spinner"></div></div>`))
+  try{
+    const [questions, attempts] = await Promise.all([
+      api('/exam/questions/admin'),
+      api('/exam/attempts/admin')
+    ])
+
+    const questionsHtml = questions.length ? questions.map((q,i) => {
+      const optionsHtml = q.type === 'multiple_choice' && q.options
+        ? '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">' +
+          q.options.map(o =>
+            '<span style="background:' + (o===q.correct_answer?'#dcfce7':'var(--g100)') + ';color:' + (o===q.correct_answer?'var(--green)':'var(--g600)') + ';padding:3px 10px;border-radius:6px;font-size:12px">' +
+            o + (o===q.correct_answer?' ✓':'') + '</span>'
+          ).join('') + '</div>'
+        : ''
+      return `<div style="padding:16px;border:1px solid var(--g100);border-radius:10px;display:flex;align-items:flex-start;gap:14px">
+        <div style="background:var(--navy);color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0">${i+1}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:600;color:var(--navy);margin-bottom:4px">${q.question}</div>
+          <div style="font-size:12px;color:var(--g400)">${q.type === 'multiple_choice' ? '🔘 Multiple choice' : '✍️ Written answer'} • ${q.marks} mark${q.marks>1?'s':''}</div>
+          ${optionsHtml}
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          <button class="btn btn-ghost btn-sm" onclick="openEditQuestionModal(${JSON.stringify(q).replace(/"/g,'&quot;')})">✏️</button>
+          <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteQuestion('${q.id}')">🗑️</button>
+        </div>
+      </div>`
+    }).join('') : '<div class="empty-state"><div class="empty-sub">No questions yet. Add your first question!</div></div>'
+
+    const attemptsHtml = attempts.length ? attempts.map(a => {
+      return `<tr>
+        <td><div style="font-weight:600">${a.profiles?.full_name||'—'}</div><div style="font-size:11px;color:var(--g400)">${a.profiles?.email||''}</div></td>
+        <td style="font-size:12px">${fmtShort(a.started_at)}</td>
+        <td style="font-size:12px">${a.submitted_at ? fmtShort(a.submitted_at) : '—'}</td>
+        <td>${statusBadge(a.status)}</td>
+        <td style="font-weight:700;color:var(--navy)">${a.score !== null ? a.score+'%' : '—'}</td>
+        <td style="${(a.tab_switches||0)>2 ? 'color:var(--red);font-weight:700' : 'color:var(--g600)'}">${a.tab_switches||0}</td>
+        <td>
+          <button class="btn btn-ghost btn-sm" onclick="openGradeModal('${a.id}','${(a.profiles?.full_name||'').replace(/'/g,"\\'")}',${a.score||0})">Grade</button>
+          <button class="btn btn-ghost btn-sm" onclick="viewExamAnswers('${a.id}')">View Answers</button>
+        </td>
+      </tr>`
+    }).join('') : ''
+
+    render(dashWrap('admin-exam', `
+    <div class="page-header">
+      <div><h1 class="page-title">Exam Manager</h1><p class="page-subtitle">${questions.length} questions • ${attempts.length} attempts</p></div>
+      <button class="btn btn-primary" onclick="openAddQuestionModal()">+ Add Question</button>
+    </div>
+
+    <div class="card" style="padding:24px;margin-bottom:24px">
+      <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px">📋 Exam Questions</h3>
+      <div style="display:flex;flex-direction:column;gap:10px">${questionsHtml}</div>
+    </div>
+
+    <div class="card" style="padding:24px">
+      <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px">📊 Exam Attempts</h3>
+      ${attempts.length ? `
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tutor</th><th>Started</th><th>Submitted</th><th>Status</th><th>MCQ Score</th><th>Tab Switches</th><th>Actions</th></tr></thead>
+          <tbody>${attemptsHtml}</tbody>
+        </table>
+      </div>` : `<div class="empty-state"><div class="empty-sub">No exam attempts yet</div></div>`}
+    </div>
+    <div id="modal-root"></div>
+    `))
+  }catch(e){ toast(e.message,'err') }
+}
+
+function openAddQuestionModal(existing = null){
+  const isEdit = !!existing
+  document.getElementById('modal-root').innerHTML = `
+  <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
+    <div class="modal" style="max-width:600px">
+      <div class="modal-header">
+        <span class="modal-title">${isEdit ? '✏️ Edit Question' : '+ Add Question'}</span>
+        <button class="modal-close" onclick="document.querySelector('.modal-overlay').remove()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Question Type</label>
+          <select class="input" id="q-type" onchange="onQTypeChange(this.value)">
+            <option value="multiple_choice" ${existing?.type==='multiple_choice'?'selected':''}>Multiple Choice (one answer)</option>
+          <option value="multiple_select" ${existing?.type==='multiple_select'?'selected':''}>Multiple Select (click all that apply)</option>
+          <option value="text" ${existing?.type==='text'?'selected':''}>Written Answer</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Question *</label>
+          <textarea class="input" id="q-text" rows="3" placeholder="Enter the question...">${existing?.question||''}</textarea>
+          <div style="font-size:11px;color:var(--g400);margin-top:4px">Use LaTeX for formulas: \( x^2 + y^2 = z^2 \) for inline, \[ \frac{a}{b} \] for block</div>
+        </div>
+        <div id="q-options-wrap">
+          <div class="form-group">
+            <label class="form-label">Options (one per line) *</label>
+            <textarea class="input" id="q-options" rows="4" placeholder="Option A&#10;Option B&#10;Option C&#10;Option D">${existing?.options?.join('\n')||''}</textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label" id="q-correct-label">Correct Answer *</label>
+            <input class="input" id="q-correct" placeholder="e.g. Option A" value="${existing?.correct_answer||''}"/>
+            <div id="q-correct-hint" style="font-size:11px;color:var(--g400);margin-top:4px">Must match one option exactly</div>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Marks</label>
+            <input class="input" type="number" id="q-marks" min="1" max="10" value="${existing?.marks||1}"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Order</label>
+            <input class="input" type="number" id="q-order" min="0" value="${existing?.order_num||0}"/>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="document.querySelector('.modal-overlay').remove()">Cancel</button>
+        <button class="btn btn-primary" onclick="${isEdit ? `saveEditQuestion('${existing.id}')` : 'saveNewQuestion()'}">
+          ${isEdit ? 'Save Changes' : 'Add Question'}
+        </button>
+      </div>
+    </div>
+  </div>`
+  onQTypeChange(existing?.type || 'multiple_choice')
+}
+
+function openEditQuestionModal(q){ openAddQuestionModal(q) }
+
+function onQTypeChange(type){
+  const wrap  = document.getElementById('q-options-wrap')
+  const label = document.getElementById('q-correct-label')
+  const hint  = document.getElementById('q-correct-hint')
+  if(wrap)  wrap.style.display  = type === 'text' ? 'none' : 'block'
+  if(label && type === 'multiple_select') label.textContent = 'Correct Answers * (comma separated)'
+  if(label && type === 'multiple_choice') label.textContent = 'Correct Answer *'
+  if(hint  && type === 'multiple_select') hint.textContent  = 'e.g. Option A, Option C'
+  if(hint  && type === 'multiple_choice') hint.textContent  = 'Must match one option exactly'
+}
+async function saveNewQuestion(){
+  const type    = document.getElementById('q-type')?.value
+  const text    = document.getElementById('q-text')?.value?.trim()
+  const marks   = parseInt(document.getElementById('q-marks')?.value) || 1
+  const order   = parseInt(document.getElementById('q-order')?.value) || 0
+  const options = type === 'multiple_choice' ? document.getElementById('q-options')?.value?.split('\n').map(o=>o.trim()).filter(Boolean) : null
+  const correct = type === 'multiple_choice' ? document.getElementById('q-correct')?.value?.trim() : null
+  if(!text){ toast('Question text is required','err'); return }
+  if(type === 'multiple_choice' && (!options?.length || !correct)){ toast('Options and correct answer are required','err'); return }
+  try{
+    await api('/exam/questions/admin', { method:'POST', body: JSON.stringify({ question:text, type, options, correct_answer:correct, marks, order_num:order }) })
+    document.querySelector('.modal-overlay')?.remove()
+    toast('Question added ✅')
+    renderAdminExam()
+  }catch(e){ toast(e.message,'err') }
+}
+
+async function saveEditQuestion(id){
+  const type    = document.getElementById('q-type')?.value
+  const text    = document.getElementById('q-text')?.value?.trim()
+  const marks   = parseInt(document.getElementById('q-marks')?.value) || 1
+  const order   = parseInt(document.getElementById('q-order')?.value) || 0
+  const options = type === 'multiple_choice' ? document.getElementById('q-options')?.value?.split('\n').map(o=>o.trim()).filter(Boolean) : null
+  const correct = type === 'multiple_choice' ? document.getElementById('q-correct')?.value?.trim() : null
+  if(!text){ toast('Question text is required','err'); return }
+  try{
+    await api(`/exam/questions/admin/${id}`, { method:'PATCH', body: JSON.stringify({ question:text, type, options, correct_answer:correct, marks, order_num:order }) })
+    document.querySelector('.modal-overlay')?.remove()
+    toast('Question updated ✅')
+    renderAdminExam()
+  }catch(e){ toast(e.message,'err') }
+}
+
+async function deleteQuestion(id){
+  if(!confirm('Delete this question?')) return
+  try{
+    await api(`/exam/questions/admin/${id}`, { method:'DELETE' })
+    toast('Question deleted')
+    renderAdminExam()
+  }catch(e){ toast(e.message,'err') }
+}
+
+function openGradeModal(attemptId, name, currentScore){
+  document.getElementById('modal-root').innerHTML = `
+  <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
+    <div class="modal" style="max-width:420px">
+      <div class="modal-header">
+        <span class="modal-title">Grade ${name}</span>
+        <button class="modal-close" onclick="document.querySelector('.modal-overlay').remove()">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:13px;color:var(--g400);margin-bottom:16px">Set the final score after reviewing written answers. This overrides the auto-graded MCQ score.</p>
+        <div class="form-group">
+          <label class="form-label">Final Score (0-100)</label>
+          <input class="input" type="number" id="final-score" min="0" max="100" value="${currentScore||0}"/>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="document.querySelector('.modal-overlay').remove()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitGrade('${attemptId}')">Save Score ✅</button>
+      </div>
+    </div>
+  </div>`
+}
+
+async function submitGrade(attemptId){
+  const score = parseInt(document.getElementById('final-score')?.value)
+  if(isNaN(score) || score < 0 || score > 100){ toast('Score must be 0-100','err'); return }
+  try{
+    await api(`/exam/attempts/admin/${attemptId}/grade`, { method:'PATCH', body: JSON.stringify({ score }) })
+    document.querySelector('.modal-overlay')?.remove()
+    toast('Score saved ✅')
+    renderAdminExam()
+  }catch(e){ toast(e.message,'err') }
+}
+
+async function viewExamAnswers(attemptId){
+  try{
+    const res = await api(`/exam/attempt/${attemptId}`)
+    const { attempt, questions } = res
+    const answers = attempt.answers || {}
+    document.getElementById('modal-root').innerHTML = `
+    <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
+      <div class="modal" style="max-width:700px">
+        <div class="modal-header">
+          <span class="modal-title">📄 Exam Answers</span>
+          <button class="modal-close" onclick="document.querySelector('.modal-overlay').remove()">✕</button>
+        </div>
+        <div class="modal-body" style="max-height:70vh;overflow-y:auto">
+          ${questions.map((q,i) => `
+          <div style="padding:16px;border:1px solid var(--g100);border-radius:10px;margin-bottom:12px">
+            <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:8px">${i+1}. ${q.question}</div>
+            <div style="font-size:12px;color:var(--g400);margin-bottom:6px">${q.type==='multiple_choice'?'Multiple choice':'Written answer'} • ${q.marks} mark${q.marks>1?'s':''}</div>
+            <div style="background:var(--sky);border-radius:6px;padding:10px;font-size:13px">
+              <strong>Answer:</strong> ${answers[q.id] || '<em style="color:var(--g400)">Not answered</em>'}
+            </div>
+            ${q.type==='multiple_choice' && q.correct_answer ? '<div style="font-size:12px;margin-top:6px;color:' + (answers[q.id]===q.correct_answer ? 'var(--green)' : 'var(--red)') + '">' + (answers[q.id]===q.correct_answer ? '✅ Correct' : '❌ Incorrect') + ' — Correct answer: ' + q.correct_answer + '</div>' : ''}
+          </div>`).join('')}
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" onclick="document.querySelector('.modal-overlay').remove()">Close</button>
+        </div>
+      </div>
+    </div>`
+  }catch(e){ toast(e.message,'err') }
+}
+
+
+async function renderExam() {
+  render(dashWrap('exam', `<div class="loader-center"><div class="spinner"></div></div>`))
+  try {
+    const res = await api('/exam/start', { method: 'POST', body: JSON.stringify({}) })
+    const { attempt_id, time_limit_minutes, questions, resumed } = res
+    let timeLeft = time_limit_minutes * 60
+    let examSubmitted = false
+
+    // Anti-cheat: request fullscreen
+    document.documentElement.requestFullscreen?.().catch(() => {})
+
+    render(dashWrap('exam', `
+    <div style="max-width:800px;margin:0 auto;padding:24px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding:16px;background:var(--navy);border-radius:12px;color:#fff">
+        <div>
+          <div style="font-size:18px;font-weight:700">📝 Written Examination</div>
+          <div style="font-size:12px;opacity:0.7;margin-top:2px">Answer all questions honestly. This exam is monitored.</div>
+        </div>
+        <div style="text-align:center">
+          <div id="exam-timer" style="font-size:28px;font-weight:800;color:var(--gold)">60:00</div>
+          <div style="font-size:11px;opacity:0.7">Time remaining</div>
+        </div>
+      </div>
+
+      <div id="exam-warnings" style="display:none;margin-bottom:16px"></div>
+
+      <div id="exam-progress" style="background:var(--g100);border-radius:999px;height:6px;margin-bottom:24px">
+        <div id="exam-progress-bar" style="background:var(--blue);height:6px;border-radius:999px;width:0%;transition:width .3s"></div>
+      </div>
+
+      <div id="exam-questions">
+        ${questions.map((q, i) => `
+        <div class="card" style="padding:24px;margin-bottom:16px" id="qcard-${q.id}">
+          <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:16px">
+            <div style="background:var(--navy);color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0">${i+1}</div>
+            <div style="font-size:15px;font-weight:600;color:var(--navy);line-height:1.5">${q.question}</div>
+          </div>
+          <div style="font-size:11px;color:var(--g400);margin-bottom:12px">${q.marks} mark${q.marks>1?'s':''} • ${q.type === 'multiple_choice' ? 'Multiple choice' : 'Written answer'}</div>
+
+          ${q.type === 'multiple_choice' ? `
+          <div style="display:flex;flex-direction:column;gap:10px">
+            ${(q.options || []).map((opt, oi) => `
+            <label style="display:flex;align-items:center;gap:10px;padding:12px 16px;border:2px solid var(--g100);border-radius:8px;cursor:pointer;transition:all .2s" id="opt-${q.id}-${oi}" onclick="selectMCQ('${q.id}','${opt}','${attempt_id}',${q.options.length},${oi})">
+              <div style="width:20px;height:20px;border-radius:50%;border:2px solid var(--g300);display:flex;align-items:center;justify-content:center;flex-shrink:0" id="radio-${q.id}-${oi}"></div>
+              <span style="font-size:14px">${opt}</span>
+            </label>`).join('')}
+          </div>` : q.type === 'multiple_select' ? `
+          <div style="font-size:12px;color:var(--blue);margin-bottom:8px;font-weight:600">Select all that apply</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            ${(q.options || []).map((opt, oi) => `
+            <label style="display:flex;align-items:center;gap:10px;padding:12px 16px;border:2px solid var(--g100);border-radius:8px;cursor:pointer;transition:all .2s" id="opt-${q.id}-${oi}" onclick="toggleMSQ('${q.id}','${opt}','${attempt_id}',${oi})">
+              <div style="width:20px;height:20px;border-radius:4px;border:2px solid var(--g300);display:flex;align-items:center;justify-content:center;flex-shrink:0" id="check-${q.id}-${oi}"></div>
+              <span style="font-size:14px">${opt}</span>
+            </label>`).join('')}
+          </div>` : `
+          <textarea class="input" id="text-answer-${q.id}" rows="4" placeholder="Write your answer here..."
+            oninput="saveTextAnswer('${q.id}','${attempt_id}')"
+            style="width:100%;resize:vertical"></textarea>`}
+        </div>`).join('')}
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;margin-top:24px">
+        <button class="btn btn-primary" style="padding:12px 32px;font-size:16px" onclick="submitExam('${attempt_id}')">
+          Submit Exam →
+        </button>
+      </div>
+    </div>
+    `))
+
+    // Timer
+    const timerEl = document.getElementById('exam-timer')
+    const timerInterval = setInterval(() => {
+      if(examSubmitted){ clearInterval(timerInterval); return }
+      timeLeft--
+      const m = Math.floor(timeLeft / 60).toString().padStart(2,'0')
+      const s = (timeLeft % 60).toString().padStart(2,'0')
+      if(timerEl) timerEl.textContent = `${m}:${s}`
+      if(timerEl && timeLeft <= 300) timerEl.style.color = '#ef4444'
+      if(timeLeft <= 0){
+        clearInterval(timerInterval)
+        submitExam(attempt_id, true)
+      }
+    }, 1000)
+
+    // Anti-cheat: tab switch detection
+    document.addEventListener('visibilitychange', function onVisChange(){
+      if(examSubmitted){ document.removeEventListener('visibilitychange', onVisChange); return }
+      if(document.hidden){
+        api('/exam/report-cheating', { method:'POST', body: JSON.stringify({ attempt_id, type:'tab_switch' }) })
+        showExamWarning('⚠️ Tab switch detected! This has been recorded.')
+      }
+    })
+
+    // Anti-cheat: fullscreen exit detection
+    document.addEventListener('fullscreenchange', function onFsChange(){
+      if(examSubmitted){ document.removeEventListener('fullscreenchange', onFsChange); return }
+      if(!document.fullscreenElement){
+        api('/exam/report-cheating', { method:'POST', body: JSON.stringify({ attempt_id, type:'fullscreen_exit' }) })
+        showExamWarning('⚠️ Fullscreen exit detected! Please return to fullscreen. This has been recorded.')
+        document.documentElement.requestFullscreen?.().catch(() => {})
+      }
+    })
+
+    // Anti-cheat: right click disable
+    document.addEventListener('contextmenu', function onCtx(e){
+      if(!examSubmitted) e.preventDefault()
+    })
+
+    // Anti-cheat: copy paste disable
+    document.addEventListener('copy', function onCopy(e){
+      if(!examSubmitted) e.preventDefault()
+    })
+
+  }catch(e){
+    if(e.message?.includes('not invited')){
+      render(dashWrap('exam', `
+      <div class="empty-state">
+        <div class="empty-icon">📝</div>
+        <div class="empty-title">No exam yet</div>
+        <div class="empty-sub">You will be notified when you are invited to take the written exam.</div>
+      </div>`))
+    } else {
+      toast(e.message, 'err')
+      navigate('dashboard')
+    }
+  }
+}
+
+function showExamWarning(msg){
+  const el = document.getElementById('exam-warnings')
+  if(!el) return
+  el.style.display = 'block'
+  el.innerHTML = `<div style="background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;padding:12px;font-size:13px;color:#DC2626;font-weight:600">${msg}</div>`
+  setTimeout(() => { el.style.display = 'none' }, 5000)
+}
+
+let _textSaveTimeout = {}
+function saveTextAnswer(questionId, attemptId){
+  clearTimeout(_textSaveTimeout[questionId])
+  _textSaveTimeout[questionId] = setTimeout(async () => {
+    const val = document.getElementById(`text-answer-${questionId}`)?.value
+    if(val !== undefined){
+      await api('/exam/save-answer', { method:'POST', body: JSON.stringify({ attempt_id: attemptId, question_id: questionId, answer: val }) })
+      updateExamProgress()
+    }
+  }, 800)
+}
+
+function selectMCQ(questionId, answer, attemptId, totalOpts, selectedIdx){
+  // Clear all options visually
+  for(let i = 0; i < totalOpts; i++){
+    const opt = document.getElementById(`opt-${questionId}-${i}`)
+    const radio = document.getElementById(`radio-${questionId}-${i}`)
+    if(opt){ opt.style.border = '2px solid var(--g100)'; opt.style.background = '' }
+    if(radio){ radio.style.background = ''; radio.style.borderColor = 'var(--g300)'; radio.innerHTML = '' }
+  }
+  // Highlight selected
+  const selOpt = document.getElementById(`opt-${questionId}-${selectedIdx}`)
+  const selRadio = document.getElementById(`radio-${questionId}-${selectedIdx}`)
+  if(selOpt){ selOpt.style.border = '2px solid var(--blue)'; selOpt.style.background = 'var(--sky)' }
+  if(selRadio){ selRadio.style.background = 'var(--blue)'; selRadio.style.borderColor = 'var(--blue)'; selRadio.innerHTML = '<div style="width:8px;height:8px;border-radius:50%;background:#fff"></div>' }
+  // Save answer
+  api('/exam/save-answer', { method:'POST', body: JSON.stringify({ attempt_id: attemptId, question_id: questionId, answer }) })
+  updateExamProgress()
+}
+const _msqSelected = {}
+function toggleMSQ(questionId, option, attemptId, optIdx){
+  if(!_msqSelected[questionId]) _msqSelected[questionId] = new Set()
+  const sel = _msqSelected[questionId]
+  const box  = document.getElementById(`check-${questionId}-${optIdx}`)
+  const label = document.getElementById(`opt-${questionId}-${optIdx}`)
+
+  if(sel.has(option)){
+    sel.delete(option)
+    if(box){ box.style.background=''; box.style.borderColor='var(--g300)'; box.innerHTML='' }
+    if(label){ label.style.border='2px solid var(--g100)'; label.style.background='' }
+  } else {
+    sel.add(option)
+    if(box){ box.style.background='var(--blue)'; box.style.borderColor='var(--blue)'; box.innerHTML='<div style="width:10px;height:6px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg);margin-top:-2px"></div>' }
+    if(label){ label.style.border='2px solid var(--blue)'; label.style.background='var(--sky)' }
+  }
+
+  const answer = [...sel].join(',')
+  api('/exam/save-answer', { method:'POST', body: JSON.stringify({ attempt_id: attemptId, question_id: questionId, answer }) })
+  updateExamProgress()
+}
+
+function updateExamProgress(){
+  const questions = document.querySelectorAll('[id^="qcard-"]')
+  const answered = [...questions].filter(q => {
+    const qid = q.id.replace('qcard-','')
+    const mcq = document.querySelector(`[id^="opt-${qid}-"][style*="border: 2px solid var(--blue)"]`)
+    const text = document.getElementById(`text-answer-${qid}`)
+    return mcq || (text && text.value.trim().length > 0)
+  })
+  const bar = document.getElementById('exam-progress-bar')
+  if(bar) bar.style.width = `${(answered.length / questions.length * 100)}%`
+}
+
+async function submitExam(attemptId, autoSubmit = false){
+  if(!autoSubmit && !confirm('Are you sure you want to submit your exam? You cannot change your answers after submission.')) return
+  try{
+    window.examSubmitted = true
+    // Exit fullscreen
+    document.exitFullscreen?.().catch(() => {})
+    const res = await api('/exam/submit', { method:'POST', body: JSON.stringify({ attempt_id: attemptId }) })
+    render(dashWrap('exam', `
+    <div style="max-width:600px;margin:0 auto;padding:48px 24px;text-align:center">
+      <div style="font-size:64px;margin-bottom:16px">🎉</div>
+      <h1 style="font-size:28px;font-weight:800;color:var(--navy);margin-bottom:8px">Exam Submitted!</h1>
+      <p style="font-size:15px;color:var(--g400);margin-bottom:24px">Your answers have been recorded. The admin will review your text answers and notify you of your final result.</p>
+      <div style="background:var(--sky);border-radius:12px;padding:24px;margin-bottom:24px">
+        <div style="font-size:13px;color:var(--g400);margin-bottom:4px">Multiple choice score</div>
+        <div style="font-size:48px;font-weight:800;color:var(--navy)">${res.score}%</div>
+        <div style="font-size:13px;color:var(--g400);margin-top:4px">${res.earned_marks} / ${res.total_marks} marks</div>
+      </div>
+      <p style="font-size:13px;color:var(--g400)">Your written answers will be reviewed by admin. Final score and next steps will be communicated via email.</p>
+      <button class="btn btn-primary" style="margin-top:24px" onclick="navigate('dashboard')">Back to Dashboard →</button>
+    </div>`))
+  }catch(e){ toast(e.message,'err') }
+}
+
     async function renderTutorDash() {
       render(dashWrap('dashboard', `<div class="loader-center"><div class="spinner"></div></div>`))
       try {
@@ -4309,6 +4810,22 @@ async function sendContactReply(id, email, name, subject){
     toast(e.message,'err')
   }
 }
+async function toggleRecruiting(){
+  const btn = document.getElementById('recruiting-toggle-btn')
+  const current = btn?.dataset.recruiting === 'true'
+  try{
+    await api('/auth/settings/recruiting', {
+      method: 'PATCH',
+      body: JSON.stringify({ is_recruiting: !current })
+    })
+    btn.dataset.recruiting = (!current).toString()
+    btn.textContent = !current ? '🟢 Recruiting ON' : '🔴 Recruiting OFF'
+    btn.style.color = !current ? 'var(--green)' : 'var(--red)'
+    toast(!current ? 'Tutor recruiting is now ON ✅' : 'Tutor recruiting is now OFF 🔴')
+  }catch(e){
+    toast(e.message,'err')
+  }
+}
     async function renderAdminDash() {
   render(dashWrap('dashboard', `<div class="loader-center"><div class="spinner"></div></div>`))
   try {
@@ -4324,6 +4841,10 @@ async function sendContactReply(id, email, name, subject){
     render(dashWrap('dashboard', `
     <div class="page-header">
       <div><h1 class="page-title">Admin Dashboard</h1><p class="page-subtitle">Platform overview & management</p></div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:13px;color:var(--g400)">Tutor recruiting:</span>
+        <button id="recruiting-toggle-btn" class="btn btn-ghost btn-sm" onclick="toggleRecruiting()">Loading...</button>
+      </div>
     </div>
     ${pending.length ? `<div class="alert-warn">📋 <strong>${pending.length} tutor application(s)</strong> awaiting review. <button class="btn btn-ghost btn-sm" style="margin-left:8px" onclick="navigate('admin-tutors')">Review now →</button></div>` : ''}
     <div class="stats-grid">
@@ -4402,6 +4923,20 @@ async function sendContactReply(id, email, name, subject){
         }
       }catch(e){}
     }, 500)
+
+    // Load recruiting status
+  setTimeout(async ()=>{
+    try{
+      const res = await fetch(API_URL + '/auth/settings/recruiting')
+      const data = await res.json()
+      const btn = document.getElementById('recruiting-toggle-btn')
+      if(btn){
+        btn.dataset.recruiting = data.is_recruiting.toString()
+        btn.textContent = data.is_recruiting ? '🟢 Recruiting ON' : '🔴 Recruiting OFF'
+        btn.style.color = data.is_recruiting ? 'var(--green)' : 'var(--red)'
+      }
+    }catch(e){}
+  }, 400)
 
   } catch (e) {
     toast(e.message, 'err')
@@ -4779,7 +5314,39 @@ async function sendNewMessage(){
     toast(e.message, 'err')
   }
 }
+async function deleteMessage(id){
+  try{
+    await api(`/messages/${id}`, { method: 'DELETE' })
+    renderMessages()
+  }catch(e){ toast(e.message,'err') }
+}
+function toggleSelectAllMsgs(checked){
+  document.querySelectorAll('.msg-checkbox').forEach(cb => cb.checked = checked)
+  onMsgCheckChange()
+}
 
+function onMsgCheckChange(){
+  const checked = document.querySelectorAll('.msg-checkbox:checked')
+  const btn = document.getElementById('msg-delete-selected-btn')
+  const all = document.querySelectorAll('.msg-checkbox')
+  const selectAll = document.getElementById('msg-select-all')
+  if(btn) btn.style.display = checked.length > 0 ? 'block' : 'none'
+  if(btn) btn.textContent = `🗑️ Delete selected (${checked.length})`
+  if(selectAll) selectAll.indeterminate = checked.length > 0 && checked.length < all.length
+  if(selectAll && checked.length === all.length && all.length > 0) selectAll.checked = true
+}
+
+async function deleteSelectedMsgs(){
+  const checked = [...document.querySelectorAll('.msg-checkbox:checked')]
+  if(!checked.length) return
+  if(!confirm(`Delete ${checked.length} message(s)?`)) return
+  const ids = checked.map(cb => cb.dataset.id)
+  try{
+    await Promise.all(ids.map(id => api(`/messages/${id}`, { method: 'DELETE' })))
+    toast(`${ids.length} message(s) deleted ✅`)
+    renderMessages()
+  }catch(e){ toast(e.message,'err') }
+}
     async function renderMessages() {
       render(dashWrap('messages', `<div class="loader-center"><div class="spinner"></div></div>`))
       try {
@@ -4822,9 +5389,19 @@ async function sendNewMessage(){
           </div>
         </div>
         <div class="msgs-area" id="msgs-area">
-          ${msgs.length ? msgs.map(m => {
+          ${msgs.length ? `
+          <div style="padding:8px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--g100)">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--g400)">
+              <input type="checkbox" id="msg-select-all" onchange="toggleSelectAllMsgs(this.checked)" style="width:14px;height:14px;cursor:pointer"/>
+              Select all
+            </label>
+            <button id="msg-delete-selected-btn" class="btn btn-ghost btn-sm" style="color:var(--red);display:none;font-size:12px" onclick="deleteSelectedMsgs()">🗑️ Delete selected</button>
+          </div>
+          ` + msgs.map(m => {
           const sent = m.sender_id === State.user.id
-          return `<div class="msg ${sent ? 'sent' : 'recv'}">
+          return `<div class="msg ${sent ? 'sent' : 'recv'}" style="position:relative">
+              <input type="checkbox" class="msg-checkbox" data-id="${m.id}" onchange="onMsgCheckChange()" style="position:absolute;${sent?'right:calc(100% + 8px)':'left:calc(100% + 8px)'};top:50%;transform:translateY(-50%);width:14px;height:14px;cursor:pointer"/>
+              ${sent ? `<button onclick="deleteMessage('${m.id}')" style="background:none;border:none;color:var(--g300);cursor:pointer;font-size:13px;opacity:0;transition:opacity .2s;align-self:center" class="msg-del-btn" title="Delete">🗑️</button>` : ''}
               <div class="msg-bubble">${m.content}</div>
               <div class="msg-time">${fmtShort(m.created_at)}</div>
             </div>`}).join('') : `<div class="empty-state"><div class="empty-icon">💬</div><div class="empty-title">No messages yet</div><div class="empty-sub">Send the first message!</div></div>`}
@@ -4839,6 +5416,8 @@ async function sendNewMessage(){
     `))
         // Scroll to bottom
         setTimeout(() => { const a = document.getElementById('msgs-area'); if (a) a.scrollTop = a.scrollHeight }, 100)
+        // Render math formulas
+    setTimeout(() => { if(window.MathJax) MathJax.typesetPromise() }, 300)
       } catch (e) { toast(e.message, 'err') }
     }
 
@@ -4857,6 +5436,41 @@ async function sendNewMessage(){
     // ════════════════════════════════════════════════════════════
     // NOTIFICATIONS
     // ════════════════════════════════════════════════════════════
+    async function deleteNotification(id){
+  if(!confirm('Delete this notification?')) return
+  try{
+    await api(`/notifications/${id}`, { method: 'DELETE' })
+    toast('Notification deleted')
+    renderNotifications()
+  }catch(e){ toast(e.message,'err') }
+}
+function toggleSelectAllNotifs(checked){
+  document.querySelectorAll('.notif-checkbox').forEach(cb => cb.checked = checked)
+  onNotifCheckChange()
+}
+
+function onNotifCheckChange(){
+  const checked = document.querySelectorAll('.notif-checkbox:checked')
+  const btn = document.getElementById('notif-delete-selected-btn')
+  const selectAll = document.getElementById('notif-select-all')
+  const all = document.querySelectorAll('.notif-checkbox')
+  if(btn) btn.style.display = checked.length > 0 ? 'block' : 'none'
+  if(btn) btn.textContent = `🗑️ Delete selected (${checked.length})`
+  if(selectAll) selectAll.indeterminate = checked.length > 0 && checked.length < all.length
+  if(selectAll && checked.length === all.length && all.length > 0) selectAll.checked = true
+}
+
+async function deleteSelectedNotifs(){
+  const checked = [...document.querySelectorAll('.notif-checkbox:checked')]
+  if(!checked.length) return
+  if(!confirm(`Delete ${checked.length} notification(s)?`)) return
+  const ids = checked.map(cb => cb.dataset.id)
+  try{
+    await Promise.all(ids.map(id => api(`/notifications/${id}`, { method: 'DELETE' })))
+    toast(`${ids.length} notification(s) deleted ✅`)
+    renderNotifications()
+  }catch(e){ toast(e.message,'err') }
+}
     async function renderNotifications() {
       render(dashWrap('notifications', `<div class="loader-center"><div class="spinner"></div></div>`))
       try {
@@ -4867,17 +5481,32 @@ async function sendNewMessage(){
       <div><h1 class="page-title">Notifications</h1><p class="page-subtitle">${notifs.filter(n => !n.is_read).length} unread</p></div>
       ${notifs.some(n => !n.is_read) ? `<button class="btn btn-ghost" onclick="markAllRead()">Mark all read</button>` : ''}
     </div>
-    ${notifs.length ? `
+   ${notifs.length ? `
     <div class="card">
+      <div style="padding:12px 20px;border-bottom:1px solid var(--g100);display:flex;align-items:center;justify-content:space-between">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;color:var(--navy)">
+          <input type="checkbox" id="notif-select-all" onchange="toggleSelectAllNotifs(this.checked)" style="width:16px;height:16px;cursor:pointer"/>
+          Select all
+        </label>
+        <button id="notif-delete-selected-btn" class="btn btn-ghost btn-sm" style="color:var(--red);display:none" onclick="deleteSelectedNotifs()">🗑️ Delete selected</button>
+      </div>
       ${notifs.map(n => `
-      <div style="display:flex;gap:14px;padding:16px 20px;border-bottom:1px solid var(--g100);background:${n.is_read ? '#fff' : 'var(--sky)'};cursor:pointer;transition:background .2s" onclick="markRead('${n.id}',this)">
-        <div style="font-size:22px;flex-shrink:0">${typeIcon[n.type] || '🔔'}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-weight:${n.is_read ? '500' : '700'};color:var(--navy);font-size:14px">${n.title}</div>
-          <div style="font-size:13px;color:var(--g600);margin-top:3px;line-height:1.5">${n.body}</div>
-          <div style="font-size:11px;color:var(--g400);margin-top:5px">${fmtShort(n.created_at)}</div>
+      <div style="display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--g100);background:${n.is_read ? '#fff' : 'var(--sky)'}">
+        <input type="checkbox" class="notif-checkbox" data-id="${n.id}" onchange="onNotifCheckChange()" style="width:16px;height:16px;cursor:pointer;flex-shrink:0"/>
+        <div style="flex:1;min-width:0;cursor:pointer" onclick="markRead('${n.id}',this)">
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <div style="font-size:22px;flex-shrink:0">${typeIcon[n.type] || '🔔'}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:${n.is_read ? '500' : '700'};color:var(--navy);font-size:14px">${n.title}</div>
+              <div style="font-size:13px;color:var(--g600);margin-top:3px;line-height:1.5">${n.body}</div>
+              <div style="font-size:11px;color:var(--g400);margin-top:5px">${fmtShort(n.created_at)}</div>
+            </div>
+          </div>
         </div>
-        ${!n.is_read ? `<div style="width:8px;height:8px;border-radius:50%;background:var(--blue);flex-shrink:0;margin-top:6px"></div>` : ''}
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex-shrink:0">
+          ${!n.is_read ? `<div style="width:8px;height:8px;border-radius:50%;background:var(--blue)"></div>` : ''}
+          <button onclick="deleteNotification('${n.id}')" style="background:none;border:none;color:var(--g400);cursor:pointer;font-size:15px;padding:0" title="Delete">🗑️</button>
+        </div>
       </div>`).join('')}
     </div>` : `<div class="empty-state"><div class="empty-icon">🔔</div><div class="empty-title">No notifications</div><div class="empty-sub">You're all caught up!</div></div>`}
     `))
@@ -5087,6 +5716,23 @@ async function sendNewMessage(){
     // ════════════════════════════════════════════════════════════
     // ADMIN — TUTORS
     // ════════════════════════════════════════════════════════════
+    async function deleteTutor(id, name){
+  if(!confirm(`Permanently delete tutor ${name}? This cannot be undone.`)) return
+  try{
+    await api(`/tutors/admin/${id}`, { method: 'DELETE' })
+    toast('Tutor deleted ✅')
+    renderAdminTutors()
+  }catch(e){ toast(e.message,'err') }
+}
+
+async function deleteStudent(id, name){
+  if(!confirm(`Permanently delete student ${name}? This cannot be undone.`)) return
+  try{
+    await api(`/students/admin/${id}`, { method: 'DELETE' })
+    toast('Student deleted ✅')
+    renderAdminStudents()
+  }catch(e){ toast(e.message,'err') }
+}
     async function renderAdminTutors() {
       render(dashWrap('admin-tutors', `<div class="loader-center"><div class="spinner"></div></div>`))
       try {
@@ -5141,7 +5787,12 @@ async function sendNewMessage(){
             <td>${statusBadge(t.status)}</td>
             <td><span class="stars">${stars(t.rating)}</span> ${(t.rating || 0).toFixed(1)}</td>
             <td>${t.total_sessions || 0}</td>
-            <td><button class="btn btn-ghost btn-sm" onclick="openTutorModal(${JSON.stringify(t).replace(/"/g, '&quot;')})">Review →</button></td>
+            <td>
+              <div style="display:flex;gap:6px">
+                <button class="btn btn-ghost btn-sm" onclick="openTutorModal(${JSON.stringify(t).replace(/"/g, '&quot;')})">Review →</button>
+                <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteTutor('${t.id}','${(t.profiles?.full_name||'').replace(/'/g,"\\'")}')">🗑️</button>
+              </div>
+            </td>
           </tr>`).join('')}
         </tbody>
       </table>
@@ -5172,6 +5823,42 @@ async function sendNewMessage(){
         if (el) el.innerHTML = '<span style="font-size:13px;color:var(--g400)">Could not load documents</span>'
       }
     }
+    function onTutorStatusChange(val){
+  const scoreFields  = document.getElementById('modal-score-fields')
+  const rejectWrap   = document.getElementById('modal-rejection-wrap')
+  if(scoreFields) scoreFields.style.display  = ['interview','approved'].includes(val) ? 'grid' : 'none'
+  if(rejectWrap)  rejectWrap.style.display   = val === 'rejected' ? 'block' : 'none'
+}
+
+async function saveTutorStatus(tutorId){
+  const status         = document.getElementById('modal-status')?.value
+  const writtenScore   = document.getElementById('modal-written-score')?.value
+  const interviewScore = document.getElementById('modal-interview-score')?.value
+  const rejectReason   = document.getElementById('modal-rejection-reason')?.value
+  const salary         = document.getElementById('modal-rate')?.value
+  const salaryFreq     = document.getElementById('modal-frequency')?.value
+  const notes          = document.getElementById('modal-notes')?.value
+
+  try{
+    await api(`/tutors/admin/${tutorId}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        status,
+        written_exam_score:  writtenScore   ? parseInt(writtenScore)   : null,
+        interview_score:     interviewScore ? parseInt(interviewScore) : null,
+        rejection_reason:    rejectReason   || null,
+        salary_amount:       salary         ? parseFloat(salary)       : null,
+        salary_frequency:    salaryFreq     || null,
+        admin_notes:         notes          || null,
+      })
+    })
+    document.querySelector('.modal-overlay')?.remove()
+    toast('Status updated and email sent to tutor ✅')
+    navigate('admin-tutors')
+  }catch(e){
+    toast(e.message,'err')
+  }
+}
 
     function openTutorModal(tutor) {
       if (typeof tutor === 'string') tutor = JSON.parse(tutor)
@@ -5206,9 +5893,23 @@ async function sendNewMessage(){
         </div>
         <div class="divider"></div>
         <div class="form-group"><label class="form-label">Update Status</label>
-          <select class="input" id="modal-status">
+          <select class="input" id="modal-status" onchange="onTutorStatusChange(this.value)">
             ${stages.map(s => `<option value="${s}" ${tutor.status === s ? 'selected' : ''}>${s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</option>`).join('')}
           </select>
+        </div>
+        <div class="grid-2" id="modal-score-fields" style="display:none">
+          <div class="form-group">
+            <label class="form-label">Written Exam Score (0–100)</label>
+            <input class="input" type="number" id="modal-written-score" min="0" max="100" placeholder="e.g. 78" value="${tutor.written_exam_score||''}"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Interview Score (0–100)</label>
+            <input class="input" type="number" id="modal-interview-score" min="0" max="100" placeholder="e.g. 85" value="${tutor.interview_score||''}"/>
+          </div>
+        </div>
+        <div class="form-group" id="modal-rejection-wrap" style="display:none">
+          <label class="form-label">Rejection Reason (sent to tutor via email)</label>
+          <textarea class="input" id="modal-rejection-reason" rows="2" placeholder="Brief reason...">${tutor.rejection_reason||''}</textarea>
         </div>
         <div class="form-group"><label class="form-label">Admin Notes</label><textarea class="input" id="modal-notes" placeholder="Optional notes...">${tutor.admin_notes || ''}</textarea></div>
         <div class="form-group">
@@ -5230,11 +5931,14 @@ async function sendNewMessage(){
       </div>
       <div class="modal-footer">
         <button class="btn btn-ghost" onclick="document.querySelector('.modal-overlay').remove()">Cancel</button>
-        <button class="btn btn-primary" onclick="updateTutorStatus('${tutor.id}')">Update Status</button>
+        <button class="btn btn-primary" onclick="saveTutorStatus('${tutor.id}')">Save & Send Email</button>
       </div>
     </div>
   </div>`
-      setTimeout(() => loadTutorDocs(tutor.id), 100)
+      setTimeout(() => {
+        loadTutorDocs(tutor.id)
+        onTutorStatusChange(tutor.status)
+      }, 100)
     }
 
     async function loadTutorDocs(tutorId) {
@@ -5401,6 +6105,7 @@ async function sendNewMessage(){
                 <div style="display:flex;gap:6px;flex-wrap:wrap">
                   <button class="btn btn-primary btn-sm" onclick="openAssignModal('${s.id}','${(s.profiles?.full_name||'').replace(/'/g,"\\'")}',${JSON.stringify(approved).replace(/"/g,'&quot;')},${JSON.stringify(s).replace(/"/g,'&quot;')})">Assign Tutor</button>
                   <button class="btn btn-ghost btn-sm" onclick="generateReport('${s.id}','${(s.profiles?.full_name||'').replace(/'/g,"\\'")}')">📊 Report</button>
+                  <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteStudent('${s.id}','${(s.profiles?.full_name||'').replace(/'/g,"\\'")}')">🗑️</button>
                 </div>
               </td>
             </tr>`).join('')}
@@ -5449,9 +6154,10 @@ async function sendNewMessage(){
                 <div style="display:flex;gap:6px;flex-wrap:wrap">
                   <button class="btn btn-ghost btn-sm" onclick="openAssignModal('${s.id}','${(s.profiles?.full_name||'').replace(/'/g,"\\'")}',${JSON.stringify(approved).replace(/"/g,'&quot;')},${JSON.stringify(s).replace(/"/g,'&quot;')})">🔄 Change</button>
                   <button class="btn btn-ghost btn-sm" onclick="generateReport('${s.id}','${(s.profiles?.full_name||'').replace(/'/g,"\\'")}')">📊 Report</button>
+                  <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteStudent('${s.id}','${(s.profiles?.full_name||'').replace(/'/g,"\\'")}')">🗑️</button>
                 </div>
               </td>
-            </tr>`}).join('')}
+            </tr>`}).join('')}}
           </tbody>
         </table>
       </div>` : `
