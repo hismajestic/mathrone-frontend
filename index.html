@@ -3242,7 +3242,7 @@ async function openNewsPost(slugOrId){
         </div>
 
         <!-- Content (image_url is already inside content, don't show it twice) -->
-        <div class="news-article-body">${p.content}</div>
+        <div class="news-article-body">${(p.content || '').replace(/<div[^>]*data-ad-placeholder="true"[^>]*>.*?<\/div>/gs, `<div style="margin:16px 0;text-align:center"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="XXXXXXXXXX" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});<\/script></div>`)}</div>
 
         <!-- Source link -->
         ${p.source_url ? `
@@ -3420,6 +3420,14 @@ function insertNewsLink(){
 async function openNewsModalAsync(postId = null){
   await openNewsModal(postId)
 }
+function insertAdPlaceholder() {
+  const editor = document.getElementById('news-editor')
+  if (!editor) return
+  editor.focus()
+  document.execCommand('insertHTML', false, 
+    '<div contenteditable="false" style="background:#FFF8ED;border:2px dashed #F5A623;border-radius:8px;padding:12px;margin:16px 0;text-align:center;font-size:13px;font-weight:700;color:#b45309;user-select:none" data-ad-placeholder="true">📢 AD PLACEMENT — Ad will appear here</div>'
+  )
+}
 
 async function openNewsModal(postId = null){
   document.getElementById('modal-root').innerHTML = `
@@ -3490,6 +3498,7 @@ async function openNewsModal(postId = null){
               <button type="button" onclick="document.execCommand('insertOrderedList')" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer">1. List</button>
               <button type="button" onclick="insertNewsLink()" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer">🔗 Link</button>
               <button type="button" onclick="document.getElementById('news-img-upload').click()" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer">🖼️ Image</button>
+              <button type="button" onclick="insertAdPlaceholder()" style="border:1px solid #F5A623;background:#FFF8ED;padding:4px 10px;border-radius:4px;cursor:pointer;font-weight:600;color:#b45309">📢 Ad</button>
               <input type="file" id="news-img-upload" accept="image/*" style="display:none" onchange="insertNewsImage(this)"/>
               <input type="color" onchange="document.execCommand('foreColor',false,this.value)" title="Text color" style="border:1px solid var(--g200);border-radius:4px;width:32px;height:28px;cursor:pointer;padding:2px"/>
             </div>
