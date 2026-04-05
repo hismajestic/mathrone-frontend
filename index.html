@@ -6,8 +6,8 @@
   <!-- Primary SEO -->
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Mathrone Academy — Learn from the Best private Tutors in Rwanda</title>
-<meta name="description" content="Mathrone Academy connects ambitious students with hand-picked, vetted expert tutors  and provides high-quality learning tools from notebooks to educational kits for personalised success,online or at home in Rwanda and online abroad."/>
+<title>Private Tutors in Rwanda | Mathrone Academy – Online & Home Tutoring</title>
+<meta name="description" content="Mathrone Academy connects students in Rwanda with expert private tutors for online and home learning. Improve your results with personalized tutoring"/>
 <meta name="author" content="Mathrone Academy"/>
 <meta name="robots" content="index, follow"/>
 <meta name="theme-color" content="#0D1B40"/>
@@ -112,6 +112,7 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  
   <style>
     *,
     *::before,
@@ -1788,6 +1789,7 @@
   <div id="app"></div>
 
   <script>
+    
     // ════════════════════════════════════════════════════════════
     // CONFIG — change API_URL if your backend runs elsewhere
     // ════════════════════════════════════════════════════════════
@@ -2342,7 +2344,7 @@ async function openPost(postId){
               <div style="font-size:13px;font-weight:700;color:var(--navy)">${post.profiles?.full_name||'?'}</div>
               <div style="font-size:11px;color:var(--g400)">${post.profiles?.role||''} • ${fmtShort(post.created_at)}</div>
             </div>
-            <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="likePost('${post.id}')">❤️ ${post.likes||0}</button>
+            <button class="btn btn-ghost btn-sm" style="margin-left:auto"aria-label="Like post"  onclick="likePost('${post.id}')">❤️ ${post.likes||0}</button>
             ${State.user.role==='admin'?`<button class="btn btn-ghost btn-sm" onclick="pinPost('${post.id}')">📌 ${post.is_pinned?'Unpin':'Pin'}</button>`:''}
           </div>
           <p style="font-size:14px;color:var(--g600);line-height:1.8;margin-bottom:20px">${post.content}</p>

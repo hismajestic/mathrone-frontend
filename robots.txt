@@ -1,0 +1,30 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://mathroneacademy.pages.dev/sitemap.xml
+
+# Private authenticated pages — not indexable
+Disallow: /dashboard
+Disallow: /messages
+Disallow: /profile
+Disallow: /sessions
+Disallow: /notifications
+Disallow: /cart
+Disallow: /wishlist
+Disallow: /my-orders
+Disallow: /forum
+Disallow: /exam
+
+# Admin pages
+Disallow: /admin-tutors
+Disallow: /admin-students
+Disallow: /admin-sessions
+Disallow: /admin-payments
+Disallow: /admin-exam
+Disallow: /admin-shop
+
+# Auth flows
+Disallow: /login
+Disallow: /verify/
+Disallow: /reset/
+Disallow: /report/
