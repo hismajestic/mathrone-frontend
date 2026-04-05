@@ -15,22 +15,30 @@
 <meta name="geo.placename" content="Kigali, Rwanda"/>
 
 <!-- Canonical -->
-<link rel="canonical" href="https://mathroneacademy.pages.dev"/>
+<link rel="canonical" href="https://mathroneacademy.pages.dev/"/>
+
+<!-- Keywords -->
+<meta name="keywords" content="private tutor Rwanda, tutoring Kigali, online tutoring Rwanda, home tutoring, math tutor, science tutor, Mathrone Academy"/>
 
 <!-- Open Graph -->
 <meta property="og:title" content="Mathrone Academy — Learn from the Best Tutors in Rwanda"/>
 <meta property="og:description" content="Connecting ambitious students with hand-picked, vetted tutors for personalised 1-on-1 learning."/>
 <meta property="og:type" content="website"/>
-<meta property="og:url" content="https://mathroneacademy.pages.dev"/>
+<meta property="og:url" content="https://mathroneacademy.pages.dev/"/>
 <meta property="og:image" content="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:image:alt" content="Mathrone Academy — Expert Tutoring in Rwanda"/>
 <meta property="og:site_name" content="Mathrone Academy"/>
 <meta property="og:locale" content="en_RW"/>
 
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:site" content="@mathroneacademy"/>
 <meta name="twitter:title" content="Mathrone Academy — Learn from the Best Tutors in Rwanda"/>
 <meta name="twitter:description" content="Connecting ambitious students with hand-picked, vetted tutors for personalised 1-on-1 learning."/>
 <meta name="twitter:image" content="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png"/>
+<meta name="twitter:image:alt" content="Mathrone Academy — Expert Tutoring in Rwanda"/>
 
 <!-- Favicon -->
 <link rel="icon" href="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png"/>
@@ -63,6 +71,7 @@
     "https://linkedin.com/company/mathroneacademy"
   ]
 }
+</script>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -103,8 +112,8 @@
   ]
 }
 </script>
-</script>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.snow.min.css" rel="stylesheet"/>
@@ -1843,8 +1852,8 @@ const RWANDA_DISTRICTS = [
     // ════════════════════════════════════════════════════════════
     const State = {
       user: JSON.parse(localStorage.getItem('tc_user') || 'null'),
-      page: localStorage.getItem('tc_page') || 'landing',
-      tab: localStorage.getItem('tc_tab') || null,
+      page: 'landing',   // bootFromUrl() sets this from the URL
+      tab: null,
       data: {},
       modal: null,
     }
@@ -2003,15 +2012,70 @@ const descEl = document.querySelector('meta[name="description"]')
 if(descEl && descriptions[page]) descEl.setAttribute('content', descriptions[page])
 const ogDescEl = document.querySelector('meta[property="og:description"]')
 if(ogDescEl && descriptions[page]) ogDescEl.setAttribute('content', descriptions[page])
+
+      // Remove page-specific schemas when navigating away
+      ;['article-schema','product-schema','breadcrumb-schema'].forEach(id => {
+        document.getElementById(id)?.remove()
+      })
+
+      // Keep canonical and og:url in sync with the real URL
+      const urlMap2 = {
+        landing: 'https://mathroneacademy.pages.dev/',
+        news: 'https://mathroneacademy.pages.dev/news',
+        shop: 'https://mathroneacademy.pages.dev/shop',
+        about: 'https://mathroneacademy.pages.dev/about',
+        privacy: 'https://mathroneacademy.pages.dev/privacy',
+        terms: 'https://mathroneacademy.pages.dev/terms',
+      }
+      const canonicalHref = urlMap2[page] || null
+      if (canonicalHref) {
+        document.querySelector('link[rel="canonical"]')?.setAttribute('href', canonicalHref)
+        document.querySelector('meta[property="og:url"]')?.setAttribute('content', canonicalHref)
+      }
+
       localStorage.setItem('tc_page', page)
       localStorage.setItem('tc_tab', tab || '')
-      // Clear hash for main navigation pages
-      if (!page.includes('/') && !page.includes('-')) {
-        window.location.hash = ''
+
+      // Push a real URL into the address bar (SEO + shareable links)
+      const urlMap = {
+        landing: '/', news: '/news', shop: '/shop', about: '/about',
+        privacy: '/privacy', terms: '/terms', login: '/login',
+        register: '/register', dashboard: '/dashboard', forum: '/forum',
+        sessions: '/sessions', messages: '/messages', profile: '/profile',
+        notifications: '/notifications', tutors: '/tutors',
+        'admin-tutors': '/admin-tutors', 'admin-students': '/admin-students',
+        'admin-sessions': '/admin-sessions', 'admin-payments': '/admin-payments',
+        'admin-exam': '/admin-exam', 'admin-shop': '/admin-shop',
+        exam: '/exam', cart: '/cart', wishlist: '/wishlist', 'my-orders': '/my-orders',
       }
+      let newUrl = urlMap[page]
+      if (!newUrl) {
+        if (page.startsWith('news-article/')) newUrl = '/news/' + page.replace('news-article/', '')
+        else if (page.startsWith('shop-product-')) newUrl = '/shop/' + page.replace('shop-product-', '')
+        else if (page.startsWith('verify/')) newUrl = '/verify/' + page.replace('verify/', '')
+        else if (page.startsWith('reset/')) newUrl = '/reset/' + page.replace('reset/', '')
+        else if (page.startsWith('report/')) newUrl = '/report/' + page.replace('report/', '')
+        else newUrl = '/'
+      }
+      if (window.location.pathname !== newUrl) {
+        history.pushState({ page, tab }, document.title, newUrl)
+      }
+
       renderPage()
       setTimeout(loadUnreadCount, 200)
     }
+
+    // Handle browser back/forward buttons
+    window.addEventListener('popstate', function(e) {
+      if (e.state && e.state.page) {
+        State.page = e.state.page
+        State.tab  = e.state.tab || null
+        State.data = {}
+        renderPage()
+      } else {
+        bootFromUrl()
+      }
+    })
     async function renderParentReport(token){
   render(`<div class="loader-center"><div class="spinner"></div></div>`)
   try{
@@ -2638,7 +2702,7 @@ function newsCard(p, featured){
   <div class="pn-ncard" onclick="openNewsPost('${p.id}')">
    <div style="position:relative;width:100%;height:170px;flex-shrink:0;overflow:hidden">
       ${p.image_url
-        ? `<img src="${p.image_url}" style="width:100%;height:170px;object-fit:cover;display:block"/>`
+        ? `<img src="${p.image_url}" alt="${p.title||'News article image'}" style="width:100%;height:170px;object-fit:cover;display:block"/>`
         : `<div class="pn-ncard-img ${imgColor[p.category]||'blue'}" style="height:170px;aspect-ratio:unset">${cat.icon}</div>`
       }
       <div style="position:absolute;top:10px;left:10px;display:flex;gap:5px;flex-wrap:wrap">
@@ -2806,7 +2870,7 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
   <!-- NAV -->
   <nav class="pn-nav">
     <button class="pn-logo" onclick="navigate('${isLoggedIn ? 'dashboard' : 'landing'}')">
-      <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" style="height:30px;width:auto;filter:brightness(0) invert(1)"/>
+      <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" alt="Mathrone Academy logo" style="height:30px;width:auto;filter:brightness(0) invert(1)"/>
       Mathrone <span>Academy</span>
     </button>
     <div class="pn-nav-links">
@@ -3147,7 +3211,7 @@ async function openNewsPost(slugOrId){
     </style>
     <nav style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--g100);background:#fff;position:sticky;top:0;z-index:100">
       <button style="display:flex;align-items:center;gap:10px;background:none;border:none;cursor:pointer" onclick="navigate('news')">
-        <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" style="height:34px;width:auto"/>
+        <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" alt="Mathrone Academy logo" style="height:34px;width:auto"/>
         <span style="font-size:17px;font-weight:700;color:var(--navy)">Mathrone Academy</span>
       </button>
       <div style="display:flex;gap:10px">
@@ -3229,12 +3293,12 @@ async function openNewsPost(slugOrId){
     // Update meta tags for social sharing
   document.title = p.title + ' | Education News Rwanda — Mathrone Academy'
 document.querySelector('meta[property="og:title"]')?.setAttribute('content', p.title + ' | Mathrone Academy Rwanda')
-document.querySelector('meta[property="og:url"]')?.setAttribute('content', 'https://mathroneacademy.pages.dev/#news-article/' + (p.slug || p.id))
+document.querySelector('meta[property="og:url"]')?.setAttribute('content', 'https://mathroneacademy.pages.dev/news/' + (p.slug || p.id))
 document.querySelector('meta[name="twitter:title"]')?.setAttribute('content', p.title + ' | Mathrone Academy Rwanda')
-document.querySelector('meta[name="twitter:url"]')?.setAttribute('content', 'https://mathroneacademy.pages.dev/#news-article/' + (p.slug || p.id))
+document.querySelector('meta[name="twitter:url"]')?.setAttribute('content', 'https://mathroneacademy.pages.dev/news/' + (p.slug || p.id))
   document.querySelector('meta[property="og:title"]')?.setAttribute('content', p.title)
   document.querySelector('meta[property="og:description"]')?.setAttribute('content', p.content.replace(/<[^>]*>/g,'').slice(0,150) + '...')
-  document.querySelector('meta[property="og:url"]')?.setAttribute('content', 'https://mathroneacademy.pages.dev/article/' + p.id)
+  document.querySelector('meta[property="og:url"]')?.setAttribute('content', 'https://mathroneacademy.pages.dev/news/' + p.id)
   document.querySelector('meta[name="twitter:title"]')?.setAttribute('content', p.title)
   document.querySelector('meta[name="twitter:description"]')?.setAttribute('content', p.content.replace(/<[^>]*>/g,'').slice(0,150) + '...')
   const existingSchema = document.getElementById('article-schema')
@@ -3264,10 +3328,28 @@ articleSchema.textContent = JSON.stringify({
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
-    "@id": 'https://mathroneacademy.pages.dev/#news-article/' + (p.slug || p.id)
+    "@id": 'https://mathroneacademy.pages.dev/news/' + (p.slug || p.id)
   }
 })
 document.head.appendChild(articleSchema)
+
+// Breadcrumb schema for article
+const existingBreadcrumb = document.getElementById('breadcrumb-schema')
+if(existingBreadcrumb) existingBreadcrumb.remove()
+const breadcrumbSchema = document.createElement('script')
+breadcrumbSchema.id = 'breadcrumb-schema'
+breadcrumbSchema.type = 'application/ld+json'
+breadcrumbSchema.textContent = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://mathroneacademy.pages.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "News", "item": "https://mathroneacademy.pages.dev/news" },
+    { "@type": "ListItem", "position": 3, "name": p.title, "item": "https://mathroneacademy.pages.dev/news/" + (p.slug || p.id) }
+  ]
+})
+document.head.appendChild(breadcrumbSchema)
+
   if(p.image_url){
     document.querySelector('meta[property="og:image"]')?.setAttribute('content', p.image_url)
     document.querySelector('meta[name="twitter:image"]')?.setAttribute('content', p.image_url)
@@ -3289,7 +3371,7 @@ document.head.appendChild(articleSchema)
       relatedEl.innerHTML = `
         ${related.map(r => `
           <div class="card" style="padding:0;overflow:hidden;cursor:pointer" onclick="openNewsPost('${r.id}')">
-            ${r.image_url ? `<img src="${r.image_url}" style="width:100%;height:140px;object-fit:cover"/>` : `
+            ${r.image_url ? `<img src="${r.image_url}" alt="${r.title||'Related article'}" style="width:100%;height:140px;object-fit:cover"/>` : `
             <div style="width:100%;height:100px;background:linear-gradient(135deg,#e5e7eb,#d1d5db);display:flex;align-items:center;justify-content:center;font-size:32px">📰</div>`}
             <div style="padding:12px">
               <div style="font-size:14px;font-weight:600;color:var(--navy);line-height:1.4;margin-bottom:8px">${r.title}</div>
@@ -3324,8 +3406,8 @@ document.head.appendChild(articleSchema)
     console.log('Failed to load trending news:', e)
     document.getElementById('trending-news').innerHTML = '<p style="color:var(--g400);font-style:italic;text-align:center">Failed to load trending news</p>'
   }
-  // Update URL hash for refresh support
-  window.location.hash = '#news-article/' + (p.slug || p.id)
+  // Update URL for refresh support
+  history.pushState({ page: 'news-article/' + (p.slug || p.id), tab: null }, document.title, '/news/' + (p.slug || p.id))
   }catch(e){
     toast(e.message,'err')
   }
@@ -3617,7 +3699,7 @@ function openCropModal(){
           <div class="resize-handle w" data-direction="w"></div>
           <div class="resize-handle e" data-direction="e"></div>
 
-          <img id="crop-img" src="${src}" style="max-width:100%;display:block;border:2px solid #007bff;border-radius:4px;"/>
+          <img id="crop-img" src="${src}" alt="Image to crop" style="max-width:100%;display:block;border:2px solid #007bff;border-radius:4px;"/>
         </div>
       </div>
       
@@ -4187,7 +4269,7 @@ function closeCropModal(){
     // ════════════════════════════════════════════════════════════
     function avi(name = '?', size = 40, url = null) {
   if(url){
-    return `<img src="${url}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'"/>`
+    return `<img src="${url}" alt="${name}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'"/>`
   }
   const c = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
   return `<div class="avi" style="width:${size}px;height:${size}px;font-size:${size * 0.35}px">${c}</div>`
@@ -4289,7 +4371,7 @@ function fmtShort(dt) { return dt ? new Date(dt).toLocaleDateString('en-US', { m
   <nav class="sidebar" id="sidebar">
     <button onclick="closeSidebar()" style="display:none;position:absolute;top:12px;right:12px;background:rgba(255,255,255,0.1);border:none;color:#fff;font-size:18px;cursor:pointer;border-radius:6px;padding:4px 8px;line-height:1" id="sidebar-close-btn">✕</button>
     <button class="sidebar-logo" onclick="navigate('dashboard')" style="display:flex;align-items:center;gap:10px">
-  <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" style="height:32px;width:auto;filter:brightness(0) invert(1)"/>
+  <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" alt="Mathrone Academy logo" style="height:32px;width:auto;filter:brightness(0) invert(1)"/>
   Mathrone
 </button>
     ${links}
@@ -4343,7 +4425,7 @@ function closeSidebar(){
   render(`
   <nav style="display:flex;align-items:center;justify-content:space-between;padding:14px 48px;border-bottom:1px solid var(--g100);background:#fff;position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:10px">
     <button onclick="navigate('landing')" style="display:flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer">
-      <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" style="height:34px;width:auto"/>
+      <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" alt="Mathrone Academy logo" style="height:34px;width:auto"/>
       <span style="font-size:16px;font-weight:700;color:var(--navy)">Mathrone Academy</span>
     </button>
     <div style="display:flex;gap:10px">
@@ -4561,7 +4643,7 @@ function closeSidebar(){
           <li>Mathrone Academy reserves the right to modify these Terms and Conditions at any time.</li>
           <li>Users will be notified of significant changes via email or platform notification.</li>
           <li>Continued use of the platform after changes are posted constitutes acceptance of the updated terms.</li>
-          <li>The current version of these Terms is always available at <strong>mathroneacademy.pages.dev/#terms</strong>.</li>
+          <li>The current version of these Terms is always available at <strong>mathroneacademy.pages.dev/terms</strong>.</li>
         </ul>`
       },
       {
@@ -4635,7 +4717,7 @@ function closeSidebar(){
 
   <nav class="pp-nav">
     <button style="display:flex;align-items:center;gap:10px;background:none;border:none;cursor:pointer" onclick="navigate('landing')">
-  <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" style="height:34px;width:auto"/>
+  <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" alt="Mathrone Academy logo" style="height:34px;width:auto"/>
   <span style="font-size:17px;font-weight:700;color:var(--navy)">Mathrone Academy</span>
 </button>
     <button class="btn btn-ghost btn-sm" onclick="navigate('landing')">← Back to Home</button>
@@ -4749,7 +4831,7 @@ function closeSidebar(){
   <!-- NAV -->
   <nav class="about-nav">
     <button style="display:flex;align-items:center;gap:10px;background:none;border:none;cursor:pointer" onclick="navigate('landing')">
-  <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" style="height:34px;width:auto"/>
+  <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" alt="Mathrone Academy logo" style="height:34px;width:auto"/>
   <span style="font-size:17px;font-weight:700;color:var(--navy)">Mathrone Academy</span>
 </button>
     <button class="btn btn-ghost btn-sm" onclick="navigate('landing')">← Back to Home</button>
@@ -5289,7 +5371,7 @@ async function renderShop(category = 'all', search = '') {
   const nav = `
   <nav style="display:flex;align-items:center;justify-content:space-between;padding:14px 48px;border-bottom:1px solid var(--g100);background:#fff;position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:10px">
     <button onclick="navigate('landing')" style="display:flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer">
-      <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" style="height:34px;width:auto"/>
+      <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" alt="Mathrone Academy logo" style="height:34px;width:auto"/>
       <span style="font-size:16px;font-weight:700;color:var(--navy)">Mathrone Academy</span>
     </button>
     <div style="display:flex;align-items:center;gap:10px">
@@ -5424,7 +5506,7 @@ function shopProductCard(p, isLoggedIn){
   return `
   <div style="background:#fff;border:1px solid var(--g100);border-radius:16px;overflow:hidden;transition:all .2s;box-shadow:0 1px 3px rgba(0,0,0,0.06)" onmouseover="this.style.boxShadow='0 8px 24px rgba(0,0,0,0.12)'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.06)'">
     <div style="position:relative;height:180px;background:var(--sky);overflow:hidden;cursor:pointer" onclick="navigate('shop-product-${p.id}')">
-      ${p.image_url ? `<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover"/>` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:48px">${SHOP_CATEGORIES.find(c=>c.id===p.category)?.icon||'🛍️'}</div>`}
+      ${p.image_url ? `<img src="${p.image_url}" alt="${p.name||'Product image'}" style="width:100%;height:100%;object-fit:cover"/>` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:48px">${SHOP_CATEGORIES.find(c=>c.id===p.category)?.icon||'🛍️'}</div>`}
       ${p.is_featured ? `<div style="position:absolute;top:10px;left:10px;background:var(--gold);color:#1a1a1a;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px">⭐ Featured</div>` : ''}
       ${p.stock === 0 ? `<div style="position:absolute;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff">Out of Stock</div>` : ''}
       ${p.wholesale_enabled ? `<div style="position:absolute;bottom:10px;left:10px;background:#7C3AED;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px">📦 Wholesale</div>` : ''}
@@ -5514,7 +5596,7 @@ async function renderShopProduct(productId){
     render(`
     <nav style="display:flex;align-items:center;justify-content:space-between;padding:14px 48px;border-bottom:1px solid var(--g100);background:#fff;position:sticky;top:0;z-index:100">
       <button onclick="navigate('shop')" style="display:flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer">
-        <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" style="height:34px;width:auto"/>
+        <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" alt="Mathrone Academy logo" style="height:34px;width:auto"/>
         <span style="font-size:16px;font-weight:700;color:var(--navy)">Mathrone Store</span>
       </button>
       <div style="display:flex;gap:10px">
@@ -5526,7 +5608,7 @@ async function renderShopProduct(productId){
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start">
         <!-- Image -->
         <div style="border-radius:16px;overflow:hidden;background:var(--sky);aspect-ratio:1">
-          ${p.image_url ? `<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover"/>` :
+          ${p.image_url ? `<img src="${p.image_url}" alt="${p.name||'Product image'}" style="width:100%;height:100%;object-fit:cover"/>` :
           `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:80px">${SHOP_CATEGORIES.find(c=>c.id===p.category)?.icon||'🛍️'}</div>`}
         </div>
         <!-- Details -->
@@ -5563,6 +5645,7 @@ productSchema.textContent = JSON.stringify({
   "name": p.name,
   "description": p.description || p.name,
   "image": p.image_url || '',
+  "url": 'https://mathroneacademy.pages.dev/shop/' + p.id,
   "brand": {
     "@type": "Brand",
     "name": "Mathrone Academy"
@@ -5580,6 +5663,23 @@ productSchema.textContent = JSON.stringify({
 })
 document.head.appendChild(productSchema)
 
+// Breadcrumb schema for product
+const existingProdBreadcrumb = document.getElementById('breadcrumb-schema')
+if(existingProdBreadcrumb) existingProdBreadcrumb.remove()
+const prodBreadcrumbSchema = document.createElement('script')
+prodBreadcrumbSchema.id = 'breadcrumb-schema'
+prodBreadcrumbSchema.type = 'application/ld+json'
+prodBreadcrumbSchema.textContent = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://mathroneacademy.pages.dev/" },
+    { "@type": "ListItem", "position": 2, "name": "Shop", "item": "https://mathroneacademy.pages.dev/shop" },
+    { "@type": "ListItem", "position": 3, "name": p.name, "item": "https://mathroneacademy.pages.dev/shop/" + p.id }
+  ]
+})
+document.head.appendChild(prodBreadcrumbSchema)
+
 // Update meta tags for shop product:
 document.querySelector('meta[name="description"]')?.setAttribute('content', 
   `Buy ${p.name} in Rwanda. ${p.description?.slice(0,100) || ''} — Mathrone Academy Learning Store, Kigali.`)
@@ -5590,8 +5690,8 @@ if(p.image_url){
 }
 document.querySelector('meta[property="twitter:title"]')?.setAttribute('content', p.name + ' | Mathrone Academy Store Rwanda')
     document.title = p.name + ' | Buy School Supplies in Rwanda — Mathrone Academy'
-    // Update URL hash for refresh support
-    window.location.hash = '#shop-product-' + productId
+    // Update URL for refresh support
+    history.pushState({ page: 'shop-product-' + productId, tab: null }, document.title, '/shop/' + productId)
   }catch(e){ toast(e.message,'err'); navigate('shop') }
 }
 
@@ -5621,7 +5721,7 @@ async function renderCart(){
           return `
           <div class="card" style="padding:20px;margin-bottom:12px;display:flex;gap:16px;align-items:center">
             <div style="width:72px;height:72px;border-radius:10px;background:var(--sky);flex-shrink:0;overflow:hidden">
-              ${item.image_url?`<img src="${item.image_url}" style="width:100%;height:100%;object-fit:cover"/>`:`<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:28px">${i.bundle_id?'📦':'🛍️'}</div>`}
+              ${item.image_url?`<img src="${item.image_url}" alt="${item.name||'Cart item'}" style="width:100%;height:100%;object-fit:cover"/>`:`<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:28px">${i.bundle_id?'📦':'🛍️'}</div>`}
             </div>
             <div style="flex:1;min-width:0">
               <div style="font-weight:700;color:var(--navy);font-size:15px">${item.name||'—'}</div>
@@ -5962,7 +6062,7 @@ async function renderAdminShop(){
       ${products.map(p=>`
       <div class="card" style="padding:0;overflow:hidden">
         <div style="height:140px;background:var(--sky);position:relative;overflow:hidden">
-          ${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover"/>`:`<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:40px">${SHOP_CATEGORIES.find(c=>c.id===p.category)?.icon||'🛍️'}</div>`}
+          ${p.image_url?`<img src="${p.image_url}" alt="${p.name||'Product image'}" style="width:100%;height:100%;object-fit:cover"/>`:`<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:40px">${SHOP_CATEGORIES.find(c=>c.id===p.category)?.icon||'🛍️'}</div>`}
           ${p.is_featured?`<div style="position:absolute;top:8px;left:8px;background:var(--gold);color:#1a1a1a;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px">⭐ Featured</div>`:''}
           <div style="position:absolute;top:8px;right:8px;background:${p.stock>0?'#dcfce7':'#fee2e2'};color:${p.stock>0?'#065f46':'#991b1b'};font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px">${p.stock>0?'In Stock':'Out of Stock'}</div>
         </div>
@@ -6115,7 +6215,7 @@ function openAddProductModal(existing=null){
             <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('prod-image-file').click()">📷 Upload</button>
           </div>
           <div id="prod-image-preview" style="margin-top:8px">
-            ${existing?.image_url?`<img src="${existing.image_url}" style="height:80px;border-radius:8px;object-fit:cover"/>`:''}
+            ${existing?.image_url?`<img src="${existing.image_url}" alt="Product image preview" style="height:80px;border-radius:8px;object-fit:cover"/>`:''}
           </div>
         </div>
         <div class="form-group">
@@ -6174,7 +6274,7 @@ async function uploadProductImage(input){
     const data = await res.json()
     if(res.ok){
       document.getElementById('prod-image-url').value = data.url
-      document.getElementById('prod-image-preview').innerHTML = `<img src="${data.url}" style="height:80px;border-radius:8px;object-fit:cover"/>`
+      document.getElementById('prod-image-preview').innerHTML = `<img src="${data.url}" alt="Uploaded product image" style="height:80px;border-radius:8px;object-fit:cover"/>`
       toast('Image uploaded ✅')
     } else { toast(data.detail||'Upload failed','err') }
   }catch(e){ toast(e.message,'err') }
@@ -6565,7 +6665,7 @@ async function deleteBundle(id, name){
 
     <!-- BRAND -->
     <button class="lbrand" onclick="navigate('landing')" style="display:flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer;">
-      <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" style="height:60px;width:60px;object-fit:contain"/>
+      <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" alt="Mathrone Academy logo" style="height:60px;width:60px;object-fit:contain"/>
       <span style="font-size:25px;font-weight:700;color:#fff;white-space:nowrap">Mathrone Academy</span>
     </button>
 
@@ -6589,7 +6689,7 @@ async function deleteBundle(id, name){
   <!-- HERO -->
   <section class="hero">
     <div style="position:absolute;inset:0;z-index:0">
-      <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1400&q=80" style="width:100%;height:100%;object-fit:cover;display:block"/>
+      <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1400&q=80" alt="" role="presentation" style="width:100%;height:100%;object-fit:cover;display:block"/>
       <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(30,58,138,0.88) 0%,rgba(37,99,235,0.82) 100%)"></div>
     </div>
     <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center">
@@ -10045,47 +10145,62 @@ async function saveTutorStatus(tutorId){
     // ════════════════════════════════════════════════════════════
 // BOOT
 // ════════════════════════════════════════════════════════════
+
+// Parse the URL path into a State.page value
+function bootFromUrl() {
+  const path = window.location.pathname
+  const hash = window.location.hash
+  const authPages = ['dashboard','sessions','messages','profile','notifications','tutors',
+    'admin-tutors','admin-students','admin-sessions','admin-payments',
+    'admin-exam','admin-shop','exam','cart','wishlist','my-orders','forum']
+  const publicPages = ['news','shop','about','privacy','terms','login','register']
+
+  // Legacy hash deep links — redirect to real URL
+  if (hash.startsWith('#verify/'))       { history.replaceState(null,'','/verify/'+hash.replace('#verify/','')); }
+  if (hash.startsWith('#reset/'))        { history.replaceState(null,'','/reset/'+hash.replace('#reset/','')); }
+  if (hash.startsWith('#report/'))       { history.replaceState(null,'','/report/'+hash.replace('#report/','')); }
+  if (hash.startsWith('#news-article/')) { history.replaceState(null,'','/news/'+hash.replace('#news-article/','')); }
+  if (hash.startsWith('#shop-product-')) { history.replaceState(null,'','/shop/'+hash.replace('#shop-product-','')); }
+
+  const clean = window.location.pathname.replace(/^\//, '').replace(/\/$/, '') || 'landing'
+
+  if (clean === '' || clean === 'landing')          State.page = 'landing'
+  else if (clean === 'news')                        State.page = 'news'
+  else if (clean.startsWith('news/'))               State.page = 'news-article/' + clean.replace('news/', '')
+  else if (clean === 'shop')                        State.page = 'shop'
+  else if (clean.startsWith('shop/'))               State.page = 'shop-product-' + clean.replace('shop/', '')
+  else if (clean === 'about')                       State.page = 'about'
+  else if (clean === 'privacy')                     State.page = 'privacy'
+  else if (clean === 'terms')                       State.page = 'terms'
+  else if (clean === 'login')                       State.page = 'login'
+  else if (clean === 'register')                    State.page = 'register'
+  else if (clean.startsWith('verify/'))             State.page = 'verify/' + clean.replace('verify/', '')
+  else if (clean.startsWith('reset/'))              State.page = 'reset/'  + clean.replace('reset/', '')
+  else if (clean.startsWith('report/'))             State.page = 'report/' + clean.replace('report/', '')
+  else if (authPages.includes(clean))               State.page = clean
+  else                                              State.page = 'landing'
+
+  State.tab = localStorage.getItem('tc_tab') || null
+}
+
 try {
-  const validPages = ['dashboard','sessions','messages','profile','notifications','tutors','admin-tutors','admin-students','admin-sessions','admin-payments','forum','news','shop']
-  if(window.location.hash.startsWith('#verify/')){
-    const token = window.location.hash.replace('#verify/','')
-    State.page = 'verify/' + token
-    renderPage()
-    
-  } else if(window.location.hash.startsWith('#reset/')){
-    const token = window.location.hash.replace('#reset/','')
-    State.page = 'reset/' + token
-    renderPage()
-  } else if(window.location.hash.startsWith('#report/')){
-    const token = window.location.hash.replace('#report/','')
-    State.page = 'report/' + token
-    renderPage()
-  } else if(window.location.hash.startsWith('#news-article/')){
-    const articleId = window.location.hash.replace('#news-article/','')
-    State.page = 'news-article/' + articleId
-    renderPage()
-  } else if(window.location.hash.startsWith('#shop-product-')){
-    const productId = window.location.hash.replace('#shop-product-','')
-    State.page = 'shop-product-' + productId
-    renderPage()
-  } else if(State.user && getToken()){
-    const savedPage = localStorage.getItem('tc_page')
-    State.page = validPages.includes(savedPage) ? savedPage : 'dashboard'
-    State.tab  = localStorage.getItem('tc_tab')||null
-    renderPage()
-    setTimeout(loadUnreadCount, 200)
- } else {
-    State.user = null
-    // Public pages that don't require login — restore them on refresh
-    const savedPage = localStorage.getItem('tc_page')
-    const publicPages = ['news', 'landing', 'about', 'privacy', 'shop']
-    const isPublicPage = publicPages.includes(savedPage) || savedPage?.startsWith('news-article/') || savedPage?.startsWith('shop-product-')
-    if(isPublicPage){
-      State.page = savedPage
+  bootFromUrl()
+  const page = State.page
+  const authRequired = ['dashboard','sessions','messages','profile','notifications','tutors',
+    'admin-tutors','admin-students','admin-sessions','admin-payments',
+    'admin-exam','admin-shop','exam','cart','wishlist','my-orders','forum']
+
+  if (authRequired.includes(page)) {
+    if (State.user && getToken()) {
       renderPage()
+      setTimeout(loadUnreadCount, 200)
     } else {
-      navigate('landing')
+      State.user = null
+      navigate('login')
     }
+  } else {
+    renderPage()
+    if (State.user && getToken()) setTimeout(loadUnreadCount, 200)
   }
 } catch(e) {
   console.error('Boot error:', e)
