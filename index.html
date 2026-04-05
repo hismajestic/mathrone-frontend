@@ -5381,6 +5381,7 @@ async function renderShop(category = 'all', search = '') {
       <button class="btn btn-primary btn-sm" onclick="navigate('dashboard')">Dashboard</button>` : `
       <button class="btn btn-ghost btn-sm" onclick="openGuestOrderModal(guestCart)" id="cart-nav-btn" style="display:none">🛒 Cart</button>
       
+      <button class="btn btn-ghost btn-sm" onclick="navigate('landing')">🏠 Home</button>
       <button class="btn btn-ghost btn-sm" onclick="navigate('login')">Sign In</button>
       <button class="btn btn-primary btn-sm" onclick="navigate('register')">Sign Up</button>`}
     </div>
@@ -5424,7 +5425,7 @@ async function renderShop(category = 'all', search = '') {
 
     render(`
     ${nav}
-    <div style="max-width:1200px;margin:0 auto;padding:32px 24px">
+    <div style="max-width:1200px;margin:0 auto;padding:32px 0">
 
       <!-- Search bar -->
       <div style="display:flex;gap:12px;margin-bottom:32px;flex-wrap:wrap">
@@ -5454,7 +5455,7 @@ async function renderShop(category = 'all', search = '') {
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
           <h2 style="font-size:22px;font-weight:800;color:var(--navy)">⭐ Featured Products</h2>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;margin:0">
           ${featuredCards}
         </div>
       </div>` : ''}
@@ -5477,7 +5478,7 @@ async function renderShop(category = 'all', search = '') {
           <h2 style="font-size:22px;font-weight:800;color:var(--navy)">${category==='all'&&!search?'All Products':'Search Results'} <span style="font-size:14px;font-weight:400;color:var(--g400)">(${products.length})</span></h2>
         </div>
         ${products.length ? `
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;margin:0">
           ${productCards}
         </div>` : `
         <div class="empty-state">
@@ -5498,15 +5499,26 @@ async function renderShop(category = 'all', search = '') {
     toast(e.message,'err')
   }
 }
+function openImageLightbox(src, alt) {
+  if (document.getElementById('img-lightbox')) return
+  const lb = document.createElement('div')
+  lb.id = 'img-lightbox'
+  lb.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.88);display:flex;align-items:center;justify-content:center;cursor:zoom-out;animation:fadeIn .18s ease'
+  lb.innerHTML = `<img src="${src}" alt="${alt||''}" style="max-width:92vw;max-height:92vh;object-fit:contain;border-radius:12px;box-shadow:0 24px 80px rgba(0,0,0,0.6);animation:fadeUp .2s ease"/>
+    <button onclick="event.stopPropagation();document.getElementById('img-lightbox').remove()" style="position:fixed;top:20px;right:24px;background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:24px;width:44px;height:44px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px)">✕</button>`
+  lb.onclick = () => lb.remove()
+  document.body.appendChild(lb)
+}
 
 function shopProductCard(p, isLoggedIn){
   if(!p) return ''
   const discount = isLoggedIn ? 0.03 : 0
   const discountedPrice = p.price * (1 - discount)
   return `
-  <div style="background:#fff;border:1px solid var(--g100);border-radius:16px;overflow:hidden;transition:all .2s;box-shadow:0 1px 3px rgba(0,0,0,0.06)" onmouseover="this.style.boxShadow='0 8px 24px rgba(0,0,0,0.12)'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.06)'">
-    <div style="position:relative;height:180px;background:var(--sky);overflow:hidden;cursor:pointer" onclick="navigate('shop-product-${p.id}')">
-      ${p.image_url ? `<img src="${p.image_url}" alt="${p.name||'Product image'}" style="width:100%;height:100%;object-fit:cover"/>` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:48px">${SHOP_CATEGORIES.find(c=>c.id===p.category)?.icon||'🛍️'}</div>`}
+  <div style="background:#fff;border:1px solid var(--g100);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .2s;box-shadow:0 1px 3px rgba(0,0,0,0.06)" onmouseover="this.style.boxShadow='0 6px 20px rgba(13,27,64,0.14)'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.06)'">
+    <div style="position:relative;aspect-ratio:1/1;background:var(--sky);overflow:hidden;cursor:pointer" onclick="navigate('shop-product-${p.id}')">
+      ${p.image_url ? `<img src="${p.image_url}" alt="${p.name||'Product image'}" loading="lazy" style="width:100%;height:100%;object-fit:contain;padding:10px;transition:transform .25s" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"/>
+      <button onclick="event.stopPropagation();openImageLightbox('${p.image_url}','${(p.name||'').replace(/'/g,"\\'")}')" title="View full image" style="position:absolute;bottom:8px;right:8px;background:rgba(255,255,255,0.9);border:1px solid var(--g200);border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:var(--g600)">⛶</button>` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:56px">${SHOP_CATEGORIES.find(c=>c.id===p.category)?.icon||'🛍️'}</div>`}
       ${p.is_featured ? `<div style="position:absolute;top:10px;left:10px;background:var(--gold);color:#1a1a1a;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px">⭐ Featured</div>` : ''}
       ${p.stock === 0 ? `<div style="position:absolute;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff">Out of Stock</div>` : ''}
       ${p.wholesale_enabled ? `<div style="position:absolute;bottom:10px;left:10px;background:#7C3AED;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px">📦 Wholesale</div>` : ''}
@@ -5823,7 +5835,7 @@ async function renderWishlist(){
       <button class="btn btn-ghost" onclick="navigate('shop')">← Continue Shopping</button>
     </div>
     ${items.length ? `
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;margin:0">
       ${items.map(i=>shopProductCard(i.products, true)).join('')}
     </div>` : `
     <div class="empty-state">
@@ -6673,8 +6685,8 @@ async function deleteBundle(id, name){
 
   <!-- CENTER MENU (DESKTOP ONLY STYLE) -->
   <div class="nav-menu" id="navMenu">
-    <button class="btn-o"style="border:none;background:;font-size:20px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="navigate('news')">📰 News</button>
-    <button class="btn-o"style="border:none;background:none;font-size:20px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="navigate('shop')">🛒 Shop</button>
+    <button class="btn-o"style="border:none;background:;font-size:20px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="navigate('news')">News</button>
+    <button class="btn-o"style="border:none;background:none;font-size:20px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="navigate('shop')">Shop</button>
     <button class="btn-o"style="border:none;background:none;font-size:20px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="navigate('about')">About Us</button>
   </div>
 
