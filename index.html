@@ -3242,7 +3242,7 @@ async function openNewsPost(slugOrId){
         </div>
 
         <!-- Content (image_url is already inside content, don't show it twice) -->
-        <div class="news-article-body">${(p.content || '').replace(/<div[^>]*data-ad-placeholder="true"[^>]*>.*?<\/div>/gs, `<div style="margin:16px 0;text-align:center"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="XXXXXXXXXX" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});<\/script></div>`)}</div>
+       <div class="news-article-body">${(p.content || '').replace(/<table[^>]*data-ad-placeholder="true"[^>]*>.*?<\/table>/gs, `<div style="margin:16px 0;text-align:center"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="XXXXXXXXXX" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});<\/script></div>`)}</div>
 
         <!-- Source link -->
         ${p.source_url ? `
@@ -3424,9 +3424,8 @@ function insertAdPlaceholder() {
   const editor = document.getElementById('news-editor')
   if (!editor) return
   editor.focus()
-  document.execCommand('insertHTML', false, 
-    '<div contenteditable="false" style="background:#FFF8ED;border:2px dashed #F5A623;border-radius:8px;padding:12px;margin:16px 0;text-align:center;font-size:13px;font-weight:700;color:#b45309;user-select:none" data-ad-placeholder="true">📢 AD PLACEMENT — Ad will appear here</div>'
-  )
+  const adHtml = '<table width="100%" style="background:#FFF8ED;border:2px dashed #F5A623;border-radius:8px;margin:16px 0" data-ad-placeholder="true"><tr><td style="padding:14px;text-align:center;font-size:13px;font-weight:700;color:#b45309">📢 AD PLACEMENT — Ad will appear here</td></tr></table><p><br></p>'
+  document.execCommand('insertHTML', false, adHtml)
 }
 
 async function openNewsModal(postId = null){
