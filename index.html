@@ -14,11 +14,17 @@
 <meta name="geo.region" content="RW"/>
 <meta name="geo.placename" content="Kigali, Rwanda"/>
 
+<!--Loading hero image in advance-->
+<link rel="preload" as="image" href="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1400&q=80">
+<!-- Sitemap discovery -->
+ 
+<link rel="sitemap" type="application/xml" href="/sitemap.xml"/>
+
 <!-- Canonical -->
 <link rel="canonical" href="https://mathroneacademy.pages.dev/"/>
 
 <!-- Keywords -->
-<meta name="keywords" content="private tutor Rwanda, tutoring Kigali, online tutoring Rwanda, home tutoring, math tutor, science tutor, Mathrone Academy"/>
+<meta name="keywords" content="private tutor Rwanda, tutoring Kigali, online tutoring Rwanda, primary school tutors Kigali, secondary school tutoring, REB curriculum tutors, home tutoring Rwanda, IGCSE tutors Kigali, math tutor, science tutor, Mathrone Academy shop"/>
 
 <!-- Open Graph -->
 <meta property="og:title" content="Mathrone Academy — Learn from the Best Tutors in Rwanda"/>
@@ -112,6 +118,20 @@
   ]
 }
 </script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Mathrone Academy",
+  "url": "https://mathroneacademy.pages.dev",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://mathroneacademy.pages.dev/search?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet"/>
@@ -1657,6 +1677,22 @@
   @media (max-width: 768px) {
   .mobile-topbar { display: flex !important; }
 }
+/* Convert tables to cards on mobile */
+  .table-wrap table, .table-wrap thead, .table-wrap tbody, .table-wrap th, .table-wrap td, .table-wrap tr { 
+    display: block; 
+  }
+  .table-wrap thead tr { 
+    position: absolute; top: -9999px; left: -9999px; 
+  }
+  .table-wrap tr { 
+    border: 1px solid var(--g100); margin-bottom: 10px; border-radius: 8px; padding: 8px; background: #fff;
+  }
+  .table-wrap td { 
+    border: none; border-bottom: 1px solid var(--g50); position: relative; padding-left: 50% !important; text-align: right; 
+  }
+  .table-wrap td:before { 
+    position: absolute; left: 12px; width: 45%; padding-right: 10px; white-space: nowrap; content: attr(data-label); font-weight: bold; color: var(--navy); text-align: left;
+  }
 }
 
 /* Overlay for sidebar on mobile */
@@ -1738,12 +1774,28 @@
 /* HAMBURGER hidden on desktop */
 .hamburger {
   display: none;
-  font-size: 26px;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
   background: none;
   border: none;
-  color: white;
   cursor: pointer;
+  padding: 0;
+  transition: opacity 0.2s;
 }
+.hamburger:hover { opacity: 0.75; }
+.hamburger span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: #fff;
+  border-radius: 2px;
+  transition: all 0.3s;
+}
+.hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
 /* BUTTON IMPROVEMENT (PRO LOOK) */
 .btn-o {
@@ -1769,33 +1821,165 @@
     display: block;
   }
 
-  /* Hide center menu */
   .nav-menu {
     display: none;
     position: absolute;
-    top: 75px;
-    left: 10px;
-    background: #111;
-    padding: 15px;
-    border-radius: 12px;
+    top: 70px;
+    left: 0;
+    right: 0;
+    background: #0D1B40;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    padding: 12px 16px 16px;
     flex-direction: column;
-    gap: 15px;
-
-    /* 🔥 PRO SHADOW */
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    gap: 4px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+    z-index: 999;
   }
-
   .nav-menu.show {
     display: flex;
   }
+  .nav-menu .btn-o {
+    text-align: left;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 15px !important;
+    width: 100%;
+  }
+  .nav-menu .btn-o:hover {
+    background: rgba(255,255,255,0.07);
+    opacity: 1;
+  }
+  .nav-menu-divider {
+    height: 1px;
+    background: rgba(255,255,255,0.08);
+    margin: 8px 0;
+  }
+  .nav-menu-auth {
+    display: flex;
+    gap: 8px;
+    padding: 4px 0 0;
+  }
+  .nav-menu-auth .btn-o, .nav-menu-auth .btn-p {
+    flex: 1;
+    justify-content: center;
+    text-align: center;
+    font-size: 14px !important;
+  }
 
+}
+/* Mobile Optimization Fixes */
+@media (max-width: 600px) {
+  /* Fix Shop Grid: Show 2 items per row instead of 1 to save scrolling */
+  #app div[style*="grid-template-columns:repeat(auto-fill,minmax(240px,1fr))"] {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    padding: 8px !important;
+  }
+  
+  /* Fix Card Titles from overlapping */
+  .tutor-card, .pn-ncard, .card {
+    padding: 12px !important;
+  }
+
+  /* Dashboard Stats stacking */
+  .stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Make buttons easier to tap with thumbs */
+  .btn, .sidebar-item, .nav-menu button {
+    min-height: 48px !important;
+  }
+
+  /* Fix page titles for mobile */
+  .page-title {
+    font-size: 20px !important;
+  }
+}
+/* Fix table scrolling logic */
+.table-wrap {
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+  border: 1px solid var(--g100);
+}
+/* Fix for Product Detail Grid */
+.prod-detail-container {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr; /* Desktop layout */
+  gap: 40px;
+  align-items: start;
+}
+
+/* On Mobile: Stack them 1 on top of each other */
+@media (max-width: 850px) {
+  .prod-detail-container {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+  
+  #prod-main-img {
+    aspect-ratio: 1 / 1;
+    height: auto !important;
+    max-height: 350px;
+  }
+
+  .prod-info-column {
+    padding: 0 !important;
+  }
+
+  h1.prod-title {
+    font-size: 24px !important;
+  }
+  
+  .prod-action-btns {
+    flex-direction: column !important; /* Stack buttons on mobile */
+  }
+}
+@media (max-width: 400px) {
+  #app div[style*="grid-template-columns:repeat(auto-fill,minmax(240px,1fr))"] {
+    grid-template-columns: 1fr !important; /* Back to 1 column on very small phones */
+  }
 }
   </style>
 </head>
 
 <body>
   <div id="toasts"></div>
-  <div id="app"></div>
+  <div id="app">
+  <!-- SEO Fallback: Visible to bots before JS loads -->
+  <section id="seo-homepage">
+  <h1>Private Tutors in Rwanda | Mathrone Academy</h1>
+
+  <p>
+    Mathrone Academy connects students in Kigali and across Rwanda with expert private tutors
+    for Mathematics, Science, Languages, and Digital Skills. We offer both online tutoring and
+    home lessons tailored to the REB curriculum, IGCSE, and university levels.
+  </p>
+
+  <h2>Find the Best Tutors in Kigali</h2>
+  <p>
+    Whether you need a math tutor, physics teacher, or English support, our platform helps you
+    find qualified tutors quickly. Improve your academic performance with personalized learning.
+  </p>
+
+  <h2>Subjects We Offer</h2>
+  <ul>
+    <li>Mathematics tutoring</li>
+    <li>Physics and Chemistry</li>
+    <li>Biology and Sciences</li>
+    <li>English and French</li>
+    <li>Digital Skills and Programming</li>
+  </ul>
+
+  <h2>Explore Mathrone Academy</h2>
+  <nav>
+    <a href="/news">Latest Education News in Rwanda</a><br>
+    <a href="/shop">Buy School Materials in Kigali</a><br>
+    <a href="/about">Learn More About Us</a>
+  </nav>
+</section>
+  <div class="loader-center"><div class="spinner"></div></div>
+</div>
 
   <script>
     
@@ -1921,7 +2105,33 @@ const RWANDA_DISTRICTS = [
     // ════════════════════════════════════════════════════════════
     function render(html) { document.getElementById('app').innerHTML = html }
     function toggleMenu() {
-  document.getElementById("navMenu").classList.toggle("show");
+  const menu = document.getElementById("navMenu")
+  const btn = document.getElementById("hamburgerBtn")
+  const isOpen = menu.classList.contains("show")
+  if (isOpen) {
+    menu.classList.remove("show")
+    btn.classList.remove("open")
+  } else {
+    menu.classList.add("show")
+    btn.classList.add("open")
+    setTimeout(() => document.addEventListener("click", closeMenuOnOutside), 0)
+  }
+}
+function closeMenu() {
+  const menu = document.getElementById("navMenu")
+  const btn = document.getElementById("hamburgerBtn")
+  if (menu) menu.classList.remove("show")
+  if (btn) btn.classList.remove("open")
+  document.removeEventListener("click", closeMenuOnOutside)
+}
+function closeMenuOnOutside(e) {
+  const nav = document.querySelector(".landing-nav") || document.querySelector("nav")
+  if (nav && !nav.contains(e.target)) closeMenu()
+}
+function scrollToContact() {
+  closeMenu()
+  const el = document.querySelector(".contact-grid")
+  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" })
 }
  async function renderPage() {
       const p = State.page
@@ -1966,10 +2176,26 @@ const RWANDA_DISTRICTS = [
       renderLanding()
       setTimeout(loadUnreadCount, 200)
     }
-    function navigate(page, tab = null) {
-      State.page = page
-      State.tab = tab
-      State.data = {}
+   function navigate(page, tab = null, event = null) {
+  if (event) {
+    // If it's a normal click (not ctrl+click or middle-click)
+    if (!event.ctrlKey && !event.shiftKey && !event.metaKey && event.button !== 1) {
+      event.preventDefault();
+    } else {
+      return; // Allow browser to handle new tab opening
+    }
+  }
+  State.page = page
+  State.tab = tab
+  State.data = {}
+  // IMMEDIATE SEO UPDATE (Before API calls)
+  const metaTitles = {
+    'landing': 'Mathrone Academy | Best Tutors in Rwanda',
+    'news': 'Education News & Scholarships Rwanda | Mathrone Academy',
+    'shop': 'Learning Store | Buy School Supplies in Rwanda',
+    'about': 'About Us | Mathrone Academy'
+  };
+  if (metaTitles[page]) document.title = metaTitles[page];
       const titles = {
         landing:         'Mathrone Academy — Learn from the Best Tutors in Rwanda',
         login:           'Sign In — Mathrone Academy',
@@ -1999,6 +2225,18 @@ const RWANDA_DISTRICTS = [
         'terms': 'Terms & Conditions — Mathrone Academy',
       }
       document.title = titles[page] || 'Mathrone Academy'
+      // SEO Meta description updates
+      const metaDescriptions = {
+        landing: 'Find the best private tutors in Rwanda for home and online lessons. Top-vetted educators for all levels.',
+        shop: 'Buy school supplies in Rwanda: notebooks, math sets, and science kits delivered to your door in Kigali.',
+        news: 'Latest education news, scholarships, and REB updates in Rwanda.',
+        tutors: 'Search and connect with expert mathematics, science, and language tutors in Kigali.',
+        register: 'Join Mathrone Academy today. Start learning with a private tutor or apply to teach.'
+      };
+      const metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc && metaDescriptions[page]) {
+        metaDesc.setAttribute('content', metaDescriptions[page]);
+      }
       // Add this inside navigate() after document.title = ...
 const descriptions = {
   landing: 'Mathrone Academy connects ambitious students with hand-picked, vetted tutors for personalised 1-on-1 learning — online or at home in Rwanda.',
@@ -2012,6 +2250,10 @@ const descEl = document.querySelector('meta[name="description"]')
 if(descEl && descriptions[page]) descEl.setAttribute('content', descriptions[page])
 const ogDescEl = document.querySelector('meta[property="og:description"]')
 if(ogDescEl && descriptions[page]) ogDescEl.setAttribute('content', descriptions[page])
+
+      // Reset noindex (in case user navigated from a 404)
+      document.getElementById('meta-robots-noindex')?.remove()
+      document.querySelector('meta[name="robots"]')?.setAttribute('content', 'index, follow')
 
       // Remove page-specific schemas when navigating away
       ;['article-schema','product-schema','breadcrumb-schema'].forEach(id => {
@@ -2698,8 +2940,9 @@ function newsCard(p, featured){
   const excerpt = p.content.replace(/<[^>]*>/g,'').slice(0,110)
   console.log('Card image_url:', p.title, '|', p.image_url)
   const imgColor = {news:'blue',scholarship:'gold',government:'green',career:'red',abroad:'navy',resources:'purple'}
-  return `
-  <div class="pn-ncard" onclick="openNewsPost('${p.id}')">
+  const articleUrl = p.slug ? `/news/${p.slug}` : `/news/${p.id}`;
+return `
+  <a href="${articleUrl}" class="pn-ncard" style="text-decoration: none; color: inherit; display: flex; flex-direction: column;" onclick="navigate('news-article/${p.slug || p.id}', null, event)">
    <div style="position:relative;width:100%;height:170px;flex-shrink:0;overflow:hidden">
       ${p.image_url
         ? `<img src="${p.image_url}" alt="${p.title||'News article image'}" style="width:100%;height:170px;object-fit:cover;display:block"/>`
@@ -2727,7 +2970,7 @@ function newsCard(p, featured){
         </div>` : ''}
       </div>
     </div>
-  </div>`
+  </a>`
 }
 
 async function renderPublicNews(activeCategory = null, searchQuery = ''){
@@ -2774,6 +3017,10 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
     .pn-sidebar-cat{font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#F5C842;margin-bottom:3px}
     .pn-sidebar-title{font-size:13px;font-weight:500;color:rgba(255,255,255,0.8);line-height:1.4}
     .pn-filterbar{background:#fff;border-bottom:1px solid #E5E2DA;position:sticky;top:0;z-index:90;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+@keyframes pnHeroSlideUp{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-60px)}}
+.pn-hero-main{transition:opacity 0.5s ease, transform 0.5s ease}
+.pn-hero-hidden{animation:pnHeroSlideUp 0.5s cubic-bezier(0.4,0,0.2,1) forwards;pointer-events:none}
+.pn-hero-main{overflow:hidden;transition:max-height 0.5s ease}
     .pn-filterbar-inner{max-width:100%;margin:0;padding:0 1rem;display:flex;align-items:center;gap:0;height:56px}
     .pn-search-wrap{display:flex;align-items:center;gap:8px;width:220px;flex-shrink:0;border-right:1px solid #E5E2DA;padding-right:1rem;margin-right:1rem;height:100%}
     .pn-search-input{border:none;outline:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:14px;color:#1E2845;width:100%}
@@ -2781,10 +3028,22 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
     .pn-search-btn{background:#1A5FFF;color:#fff;border:none;padding:8px 20px;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.2s;flex-shrink:0;margin-right:1.5rem}
     .pn-search-btn:hover{background:#3B7BFF}
     .pn-cats{display:flex;align-items:center;gap:6px;overflow-x:auto;scrollbar-width:none;flex:1}
-    .pn-cats::-webkit-scrollbar{display:none}
-    .pn-cat{display:inline-flex;align-items:center;gap:5px;padding:5px 13px;border-radius:20px;border:1.5px solid #E5E2DA;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:#6B6B80;cursor:pointer;white-space:nowrap;transition:all 0.15s;background:transparent}
-    .pn-cat:hover{border-color:#1A5FFF;color:#1A5FFF}
-    .pn-cat.active{background:#1A5FFF;border-color:#1A5FFF;color:#fff}
+.pn-cats::-webkit-scrollbar{display:none}
+.pn-cat{display:inline-flex;align-items:center;gap:5px;padding:5px 13px;border-radius:20px;border:1.5px solid #E5E2DA;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:#6B6B80;cursor:pointer;white-space:nowrap;transition:all 0.15s;background:transparent}
+.pn-cat:hover{border-color:#1A5FFF;color:#1A5FFF}
+.pn-cat.active{background:#1A5FFF;border-color:#1A5FFF;color:#fff}
+.pn-cat-dropdown{display:none;position:relative;flex-shrink:0}
+.pn-cat-dropdown-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:20px;border:1.5px solid #E5E2DA;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:#1E2845;cursor:pointer;background:#fff;transition:all 0.15s;white-space:nowrap}
+.pn-cat-dropdown-btn:hover{border-color:#1A5FFF;color:#1A5FFF}
+.pn-cat-dropdown-btn.active{background:#1A5FFF;border-color:#1A5FFF;color:#fff}
+.pn-cat-dropdown-btn .pn-cat-arrow{font-size:10px;transition:transform 0.2s;margin-left:2px}
+.pn-cat-dropdown-btn.open .pn-cat-arrow{transform:rotate(180deg)}
+.pn-cat-menu{display:none;position:absolute;top:calc(100% + 8px);left:0;background:#fff;border:1px solid #E5E2DA;border-radius:12px;box-shadow:0 8px 32px rgba(13,27,64,0.12);min-width:200px;z-index:200;overflow:hidden}
+.pn-cat-menu.open{display:block}
+.pn-cat-menu-item{display:flex;align-items:center;gap:10px;padding:10px 16px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:#1E2845;cursor:pointer;transition:background 0.15s;border:none;background:transparent;width:100%;text-align:left}
+.pn-cat-menu-item:hover{background:#F0F4FF;color:#1A5FFF}
+.pn-cat-menu-item.active{background:#EEF4FF;color:#1A5FFF;font-weight:700}
+.pn-cat-menu-item .pn-cat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
     .pn-body{max-width:100%;margin:0;padding:1.5rem 0}.pn-main-side>aside{align-self:start;position:sticky;top:8px}
     .pn-main-side{display:grid;grid-template-columns:1fr 300px;gap:3rem;align-items:start;grid-auto-rows:min-content;grid-auto-rows:min-content;grid-auto-rows:min-content;grid-auto-rows:min-content;grid-auto-rows:min-content;grid-auto-rows:min-content;grid-auto-rows:min-content;grid-auto-rows:min-content;grid-auto-rows:min-content}
     .pn-section-hdr{display:flex;align-items:baseline;gap:1rem;margin-bottom:1.5rem}
@@ -2852,8 +3111,8 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
   .pn-filterbar-inner{padding:8px 0.75rem;height:auto;display:flex;flex-direction:column;gap:6px;align-items:stretch}
   .pn-search-wrap{width:100%;border-right:none;padding-right:0;margin-right:0}
   .pn-search-btn{width:100%;margin-right:0;margin-top:0}
-  .pn-cats{width:100%;flex-wrap:wrap;gap:5px;max-width:100%;overflow:visible}
-  .pn-cat{font-size:11px;padding:4px 10px}
+  .pn-cats{display:none}
+  .pn-cat-dropdown{display:block}
   .pn-ncard-img{height:120px !important}
   .pn-ncard-title{font-size:13px}
   .pn-ncard-excerpt{display:none}
@@ -2924,6 +3183,21 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
         <button class="pn-cat ${!activeCategory?'active':''}" onclick="renderPublicNews()">🌐 All</button>
         ${NEWS_CATEGORIES.map(c=>`<button class="pn-cat ${activeCategory===c.id?'active':''}" onclick="renderPublicNews('${c.id}')">${c.icon} ${c.label}</button>`).join('')}
       </div>
+      <div class="pn-cat-dropdown">
+        <button class="pn-cat-dropdown-btn ${activeCategory?'active':''}" id="pn-cat-btn" onclick="toggleCatDropdown()">
+          ${activeCategory ? (NEWS_CATEGORIES.find(c=>c.id===activeCategory)?.icon+' '+NEWS_CATEGORIES.find(c=>c.id===activeCategory)?.label) : '🌐 All Topics'}
+          <span class="pn-cat-arrow">▾</span>
+        </button>
+        <div class="pn-cat-menu" id="pn-cat-menu">
+          <button class="pn-cat-menu-item ${!activeCategory?'active':''}" onclick="renderPublicNews();closeCatDropdown()">
+            <span class="pn-cat-dot" style="background:#1A5FFF"></span>🌐 All Topics
+          </button>
+          ${NEWS_CATEGORIES.map(c=>`
+          <button class="pn-cat-menu-item ${activeCategory===c.id?'active':''}" onclick="renderPublicNews('${c.id}');closeCatDropdown()">
+            <span class="pn-cat-dot" style="background:${c.color}"></span>${c.icon} ${c.label}
+          </button>`).join('')}
+        </div>
+      </div>
     </div>
   </div>
 
@@ -2951,6 +3225,28 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
     <button onclick="${isLoggedIn ? "navigate('dashboard')" : "navigate('landing')"}" style="font-size:13px;color:rgba(255,255,255,0.4);background:none;border:none;cursor:pointer">${isLoggedIn ? '← Dashboard' : '← Back to Home'}</button>
   </div>
   `)
+
+  // Hide hero on scroll
+  let heroCollapsed = false
+  window.addEventListener('scroll', function onNewsScroll() {
+    const hero = document.querySelector('.pn-hero-main')
+    if (!hero) { window.removeEventListener('scroll', onNewsScroll); return }
+    if (window.scrollY > 60 && !heroCollapsed) {
+      heroCollapsed = true
+      hero.classList.add('pn-hero-hidden')
+      hero.style.maxHeight = '0'
+      hero.style.marginBottom = '0'
+      hero.style.paddingTop = '0'
+      hero.style.paddingBottom = '0'
+    } else if (window.scrollY <= 60 && heroCollapsed) {
+      heroCollapsed = false
+      hero.classList.remove('pn-hero-hidden')
+      hero.style.maxHeight = ''
+      hero.style.marginBottom = ''
+      hero.style.paddingTop = ''
+      hero.style.paddingBottom = ''
+    }
+  }, { passive: true })
 
   // Load content
   try{
@@ -3144,6 +3440,28 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
     document.getElementById('pn-content').innerHTML = `<div style="text-align:center;padding:60px;color:#8A98B8">Failed to load news. Please try again.</div>`
     
   }
+}
+function toggleCatDropdown(){
+  const btn = document.getElementById('pn-cat-btn')
+  const menu = document.getElementById('pn-cat-menu')
+  if(!btn||!menu) return
+  const isOpen = menu.classList.contains('open')
+  if(isOpen){ closeCatDropdown() } else {
+    btn.classList.add('open')
+    menu.classList.add('open')
+    setTimeout(()=>document.addEventListener('click', closeCatOnOutside), 0)
+  }
+}
+function closeCatDropdown(){
+  const btn = document.getElementById('pn-cat-btn')
+  const menu = document.getElementById('pn-cat-menu')
+  if(btn) btn.classList.remove('open')
+  if(menu) menu.classList.remove('open')
+  document.removeEventListener('click', closeCatOnOutside)
+}
+function closeCatOnOutside(e){
+  const wrap = document.querySelector('.pn-cat-dropdown')
+  if(wrap && !wrap.contains(e.target)) closeCatDropdown()
 }
 function searchNews(){
   const query = document.getElementById('news-search-input')?.value?.trim() || ''
@@ -4277,7 +4595,7 @@ function closeCropModal(){
     // ════════════════════════════════════════════════════════════
     function avi(name = '?', size = 40, url = null) {
   if(url){
-    return `<img src="${url}" alt="${name}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'"/>`
+    return `<img src="${url}" alt="Profile of ${name} - Mathrone Academy" title="${name}" loading="lazy" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'"/>`
   }
   const c = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
   return `<div class="avi" style="width:${size}px;height:${size}px;font-size:${size * 0.35}px">${c}</div>`
@@ -5518,44 +5836,50 @@ function openImageLightbox(src, alt) {
   document.body.appendChild(lb)
 }
 
-function shopProductCard(p, isLoggedIn){
-  if(!p) return ''
-  const discount = isLoggedIn ? 0.03 : 0
-  const discountedPrice = p.price * (1 - discount)
+function shopProductCard(p, isLoggedIn) {
+  if (!p) return ''
+  
+  // LOGIC: Guest = full price, Member = 3% off
+  const displayPrice = isLoggedIn ? (p.price * 0.97) : p.price;
+  const safeName = (p.name || '').replace(/'/g, "\\'");
+
   return `
-  <div style="background:#fff;border:1px solid var(--g100);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .2s;box-shadow:0 1px 3px rgba(0,0,0,0.06)" onmouseover="this.style.boxShadow='0 6px 20px rgba(13,27,64,0.14)'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.06)'">
-    <div style="position:relative;aspect-ratio:1/1;background:var(--sky);overflow:hidden;cursor:pointer" onclick="navigate('shop-product-${p.id}')">
-      ${p.image_url ? `<img src="${p.image_url}" alt="${p.name||'Product image'}" loading="lazy" style="width:100%;height:100%;object-fit:contain;padding:10px;transition:transform .25s" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"/>
-      <button onclick="event.stopPropagation();openImageLightbox('${p.image_url}','${(p.name||'').replace(/'/g,"\\'")}')" title="View full image" style="position:absolute;bottom:8px;right:8px;background:rgba(255,255,255,0.9);border:1px solid var(--g200);border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:var(--g600)">⛶</button>` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:56px">${SHOP_CATEGORIES.find(c=>c.id===p.category)?.icon||'🛍️'}</div>`}
-      ${p.is_featured ? `<div style="position:absolute;top:10px;left:10px;background:var(--gold);color:#1a1a1a;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px">⭐ Featured</div>` : ''}
-      ${p.stock === 0 ? `<div style="position:absolute;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff">Out of Stock</div>` : ''}
-      ${p.wholesale_enabled ? `<div style="position:absolute;bottom:10px;left:10px;background:#7C3AED;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px">📦 Wholesale</div>` : ''}
-      <button onclick="event.stopPropagation();toggleWishlist('${p.id}','${(p.name||'').replace(/'/g,"\\'")}',this)" style="position:absolute;top:10px;right:10px;background:rgba(255,255,255,0.9);border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center" id="wish-${p.id}">🤍</button>
-    </div>
-    <div style="padding:16px">
-      ${p.tag ? `<div style="font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">${p.tag}</div>` : ''}
-      <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:4px;cursor:pointer" onclick="navigate('shop-product-${p.id}')">${p.name}</div>
-      <div style="font-size:12px;color:var(--g400);margin-bottom:10px">${(p.description||'').slice(0,60)}${(p.description||'').length>60?'...':''}</div>
-      <div style="margin-bottom:12px">
-        <div style="display:flex;align-items:center;gap:8px">
-          <div style="font-size:18px;font-weight:800;color:var(--navy)">RWF ${Number(discountedPrice).toLocaleString()}</div>
-          ${isLoggedIn ? `<div style="font-size:11px;background:#dcfce7;color:#065f46;padding:2px 6px;border-radius:4px;font-weight:700">3% OFF</div>` : ''}
+  <div style="background:#fff;border:1px solid var(--g100);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;transition:all .2s;box-shadow:0 1px 3px rgba(0,0,0,0.06)" onmouseover="this.style.boxShadow='0 10px 25px rgba(13,27,64,0.12)'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.06)'">
+    
+    <a href="/shop/${p.id}" style="display:block;position:relative;aspect-ratio:1/1;background:var(--sky);overflow:hidden;cursor:pointer" onclick="navigate('shop-product-${p.id}', null, event)">
+      ${p.image_url ? `<img src="${p.image_url}" alt="Buy ${p.name} in Rwanda - Mathrone Academy Learning Store" loading="lazy" style="width:100%;height:100%;object-fit:contain;padding:12px"/>` : 
+        `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:56px">🛍️</div>`}
+    </a>
+
+    <div style="padding:16px;flex:1;display:flex;flex-direction:column">
+      <div style="font-size:14px;font-weight:800;color:var(--navy);margin-bottom:4px;cursor:pointer" onclick="navigate('shop-product-${p.id}')">${p.name}</div>
+      
+      <button onclick="navigate('shop-product-${p.id}')" style="background:none;border:none;color:var(--blue);font-size:12px;font-weight:700;cursor:pointer;padding:0;text-align:left;margin-bottom:12px">
+        View full details →
+      </button>
+
+      <div style="margin-top:auto">
+        <div style="margin-bottom:12px">
+          <div style="font-size:18px;font-weight:800;color:var(--navy)">RWF ${Number(displayPrice).toLocaleString()}</div>
+          
+          <!-- Only show discount badge and original price to members -->
+          ${isLoggedIn ? `
+            <div style="display:flex;gap:6px;align-items:center">
+              <span style="font-size:11px;color:var(--g400);text-decoration:line-through">RWF ${Number(p.price).toLocaleString()}</span>
+              <span style="font-size:10px;background:#dcfce7;color:#065f46;padding:1px 4px;border-radius:4px;font-weight:700">MEMBER -3%</span>
+            </div>` : 
+            `<div style="font-size:11px;color:var(--blue);cursor:pointer" onclick="navigate('login')">Login for 3% member discount</div>`
+          }
         </div>
-        ${isLoggedIn && p.price !== discountedPrice ? `<div style="font-size:11px;color:var(--g400);text-decoration:line-through">RWF ${Number(p.price).toLocaleString()}</div>` : ''}
-        ${p.wholesale_enabled ? `<div style="font-size:11px;color:#7C3AED;margin-top:2px;font-weight:600">📦 ${p.wholesale_label||'Box'} of ${p.wholesale_min_qty}: RWF ${Number(p.wholesale_price||p.price*p.wholesale_min_qty*0.9).toLocaleString()}</div>` : ''}
-      </div>
-      <!-- Quantity selector for wholesale -->
-      ${p.wholesale_enabled ? `
-      <div style="display:flex;gap:6px;margin-bottom:10px">
-        <button onclick="setCardQty('qty-${p.id}',1)" class="qty-preset-btn" style="flex:1;padding:4px;border:1px solid var(--g100);border-radius:6px;background:#fff;cursor:pointer;font-size:11px;font-weight:600">Single</button>
-        <button onclick="setCardQty('qty-${p.id}',${p.wholesale_min_qty})" class="qty-preset-btn" style="flex:1;padding:4px;border:1px solid #7C3AED;border-radius:6px;background:#EDE9FE;cursor:pointer;font-size:11px;font-weight:600;color:#7C3AED">${p.wholesale_label||'Box'}</button>
-        <input type="number" id="qty-${p.id}" value="1" min="1" max="${p.stock}" style="width:50px;text-align:center;border:1px solid var(--g100);border-radius:6px;padding:4px;font-size:13px;font-weight:700"/>
-      </div>` : ''}
-      <div style="display:flex;gap:8px;align-items:center">
-        <button onclick="${p.stock===0?`toast('Out of stock','err')`:isLoggedIn?`addToCartQty('${p.id}',null,'${(p.name||'').replace(/'/g,"\\'")}',this,'qty-${p.id}')`:`addToGuestCart('${p.id}','${(p.name||'').replace(/'/g,"\\'")}',${discountedPrice},1)`}"
-          style="flex:1;background:${p.stock===0?'var(--g100)':'var(--blue)'};color:${p.stock===0?'var(--g400)':'#fff'};border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700">
-          ${p.stock===0?'Out of Stock':'🛒 Add to Cart'}
-        </button>
+        
+        <div style="display:flex;gap:6px">
+          <button onclick="${p.stock === 0 ? "toast('Out of stock','err')" : 
+              isLoggedIn ? `addToCart('${p.id}',null,'${safeName}',this)` : 
+              `addToGuestCart('${p.id}','${safeName}',${p.price},1)`}"
+            style="flex:1;background:var(--blue);color:#fff;border:none;padding:10px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700">
+            🛒 Add to Cart
+          </button>
+        </div>
       </div>
     </div>
   </div>`
@@ -5609,11 +5933,18 @@ function shopBundleCard(b, isLoggedIn){
 // ══════════════════════════════════════════════════
 // PRODUCT DETAIL PAGE
 // ══════════════════════════════════════════════════
-async function renderShopProduct(productId){
+async function renderShopProduct(productId) {
   const isLoggedIn = !!State.user
-  try{
-    const p = await fetch(API_URL + '/shop/products/' + productId).then(r=>r.json())
+  try {
+    const p = await fetch(API_URL + '/shop/products/' + productId).then(r => r.json())
+    const allImages = [p.image_url, ...(p.extra_images || [])].filter(Boolean)
+    
+    // PRICE LOGIC: Members get 3% off, Guests pay full price
+    const displayPrice = isLoggedIn ? (p.price * 0.97) : p.price;
+    const safeName = (p.name || '').replace(/'/g, "\\'");
+
     render(`
+    <!-- STICKY NAV -->
     <nav style="display:flex;align-items:center;justify-content:space-between;padding:14px 48px;border-bottom:1px solid var(--g100);background:#fff;position:sticky;top:0;z-index:100">
       <button onclick="navigate('shop')" style="display:flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer">
         <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" alt="Mathrone Academy logo" style="height:34px;width:auto"/>
@@ -5621,38 +5952,134 @@ async function renderShopProduct(productId){
       </button>
       <div style="display:flex;gap:10px">
         <button class="btn btn-ghost btn-sm" onclick="navigate('shop')">← Back to Shop</button>
-        ${isLoggedIn?`<button class="btn btn-ghost btn-sm" onclick="navigate('cart')">🛒 Cart</button>`:''}
+        ${isLoggedIn ? 
+          `<button class="btn btn-ghost btn-sm" onclick="navigate('cart')" id="cart-nav-btn">🛒 Cart</button>` : 
+          `<button class="btn btn-ghost btn-sm" onclick="openGuestOrderModal(guestCart)" id="cart-nav-btn" 
+             style="${guestCart.length > 0 ? 'display:inline-block' : 'display:none'}">🛒 Cart (${guestCart.reduce((a, b) => a + b.qty, 0)})</button>`
+        }
       </div>
     </nav>
-    <div style="max-width:1000px;margin:0 auto;padding:40px 24px">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start">
-        <!-- Image -->
-        <div style="border-radius:16px;overflow:hidden;background:var(--sky);aspect-ratio:1">
-          ${p.image_url ? `<img src="${p.image_url}" alt="${p.name||'Product image'}" style="width:100%;height:100%;object-fit:cover"/>` :
-          `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:80px">${SHOP_CATEGORIES.find(c=>c.id===p.category)?.icon||'🛍️'}</div>`}
-        </div>
-        <!-- Details -->
-        <div>
-          <div style="font-size:12px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">${SHOP_CATEGORIES.find(c=>c.id===p.category)?.label||p.category}</div>
-          <h1 style="font-size:28px;font-weight:800;color:var(--navy);margin-bottom:8px">${p.name}</h1>
-          ${p.tag?`<div style="display:inline-block;background:#EFF6FF;color:var(--blue);font-size:12px;font-weight:700;padding:4px 12px;border-radius:999px;margin-bottom:16px">${p.tag}</div>`:''}
-          <div style="font-size:32px;font-weight:800;color:var(--navy);margin-bottom:16px">RWF ${Number(p.price).toLocaleString()}</div>
-          <p style="font-size:15px;color:var(--g600);line-height:1.7;margin-bottom:24px">${p.description||''}</p>
-          <div style="font-size:13px;color:${p.stock>0?'var(--green)':'var(--red)'};font-weight:700;margin-bottom:24px">
-            ${p.stock>0?`✅ In Stock (${p.stock} available)`:'❌ Out of Stock'}
+
+<!-- Visible Breadcrumbs -->
+<div style="max-width:1100px; margin: 10px auto; padding: 0 24px; font-size: 13px; color: var(--g400);">
+  <a onclick="navigate('landing')" style="cursor:pointer; color:var(--blue)">Home</a> / 
+  <a onclick="navigate('shop')" style="cursor:pointer; color:var(--blue)">Shop</a> / 
+  <span style="color:var(--g600)">${p.name}</span>
+</div>
+
+    <div style="max-width:1100px;margin:0 auto;padding:40px 24px">
+      <div class="prod-detail-container">
+
+        <!-- IMAGE GALLERY COLUMN -->
+        <div class="prod-image-column">
+          <div id="prod-main-img" style="border-radius:16px;overflow:hidden;background:var(--sky);margin-bottom:12px;border:1px solid var(--g100)">
+            ${allImages.length ? `<img id="prod-main-img-el" src="${allImages[0]}" alt="Buy ${p.name} in Rwanda - Mathrone Academy Learning Store" style="width:100%;height:100%;object-fit:contain;padding:10px"/>` :
+              `<div style="display:flex;align-items:center;justify-content:center;height:300px;font-size:80px">🛍️</div>`}
           </div>
-          <div style="display:flex;gap:12px;flex-wrap:wrap">
-            <button onclick="${p.stock===0?'toast(\'Out of stock\',\'err\')':isLoggedIn?`addToCart('${p.id}',null,'${(p.name||'').replace(/'/g,"\\'")}',this)`:`navigate('login')`}"
-              style="flex:1;background:${p.stock===0?'var(--g100)':'var(--blue)'};color:${p.stock===0?'var(--g400)':'#fff'};border:none;padding:14px;border-radius:10px;cursor:pointer;font-size:15px;font-weight:700">
-              🛒 ${p.stock===0?'Out of Stock':'Add to Cart'}
+          
+          ${allImages.length > 1 ? `
+          <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:10px">
+            ${allImages.map((img, i) => `
+            <div onclick="document.getElementById('prod-main-img-el').src='${img}'" 
+              style="width:70px;height:70px;border-radius:8px;overflow:hidden;cursor:pointer;flex-shrink:0;border:2px solid var(--g200)">
+              <img src="${img}" style="width:100%;height:100%;object-fit:cover"/>
+            </div>`).join('')}
+          </div>` : ''}
+        </div>
+
+        <!-- PRODUCT INFO COLUMN -->
+        <div class="prod-info-column">
+          <div style="font-size:12px;font-weight:700;color:var(--blue);text-transform:uppercase;margin-bottom:8px">${SHOP_CATEGORIES.find(c => c.id === p.category)?.label || p.category}</div>
+          <h1 class="prod-title" style="font-size:32px;font-weight:800;color:var(--navy);margin-bottom:12px">${p.name}</h1>
+          
+          <div style="margin-bottom:20px">
+            <div style="font-size:36px;font-weight:800;color:var(--navy)">RWF ${Number(displayPrice).toLocaleString()}</div>
+            ${isLoggedIn ? 
+              `<div style="color:var(--green);font-size:14px;font-weight:700">✅ Member Discount Applied</div>` : 
+              `<div style="color:var(--g600);font-size:14px">Guest Price. <a onclick="navigate('login')" style="color:var(--blue);cursor:pointer;font-weight:700">Login</a> for -3%</div>`
+            }
+          </div>
+
+          <p style="font-size:16px;color:var(--g600);line-height:1.6;margin-bottom:20px">${p.description || ''}</p>
+
+          <div class="prod-action-btns" style="display:flex;gap:12px">
+            <button onclick="${p.stock === 0 ? "toast('Out of stock','err')" : isLoggedIn ? `addToCart('${p.id}',null,'${safeName}',this)` : `addToGuestCart('${p.id}','${safeName}',${p.price},1)`}"
+              style="flex:2;background:var(--blue);color:#fff;border:none;padding:18px;border-radius:12px;cursor:pointer;font-size:16px;font-weight:700">
+              🛒 Add to Cart
             </button>
-            <button onclick="${isLoggedIn?`toggleWishlist('${p.id}','${(p.name||'').replace(/'/g,"\\'")}',this)`:`navigate('login')`}"
-              style="background:#fff;border:2px solid var(--g100);padding:14px 18px;border-radius:10px;cursor:pointer;font-size:18px" id="wish-${p.id}">🤍</button>
+            
+            <button onclick="${isLoggedIn ? `toggleWishlist('${p.id}','${safeName}',this)` : `toast('Sign in to save','info')`}"
+              style="flex:1;background:#fff;border:2px solid var(--g100);padding:18px;border-radius:12px;cursor:pointer;font-size:20px" id="wish-${p.id}">🤍</button>
           </div>
-          ${!isLoggedIn?`<p style="font-size:12px;color:var(--g400);margin-top:12px;text-align:center"><a onclick="navigate('login')" style="color:var(--blue);cursor:pointer">Sign in</a> to add to cart or wishlist</p>`:''}
+          
+          <div style="font-size:14px;color:${p.stock > 0 ? 'var(--green)' : 'var(--red)'};font-weight:700;margin-top:15px">
+             ${p.stock > 0 ? `✅ In Stock (${p.stock} units)` : '❌ Out of Stock'}
+          </div>
         </div>
-      </div>
+
+    </div>
+
+     <!-- RICH CONTENT SECTION: FULL DESCRIPTION & VIDEO -->
+      ${p.full_description || p.video_url ? `
+      <div style="margin-top:56px; border-top: 2px solid var(--g100); padding-top:48px;">
+        
+        <h2 style="font-size:26px; font-weight:800; color:var(--navy); margin-bottom:32px; font-family:'Playfair Display', serif">
+          Product Details
+        </h2>
+
+        <div style="display: flex; flex-direction: row; gap: 40px; flex-wrap: wrap;">
+          
+          <!-- TEXT CONTENT -->
+          <div style="flex: 1; min-width: 300px;">
+            <div style="font-size:16px; color:var(--g600); line-height:1.9; white-space:pre-line;">
+              ${p.full_description}
+            </div>
+          </div>
+
+          <!-- VIDEO & CONTACT SIDEBAR -->
+          ${p.video_url ? `
+          <div style="width: 100%; max-width: 420px; flex-shrink: 0;">
+            <div style="position: sticky; top: 100px;">
+              
+              <!-- Video Player -->
+              <div style="background: var(--navy); padding: 12px; border-radius: 16px 16px 0 0; color: #fff; font-size: 13px; font-weight: 700; text-align: center;">
+                📺 WATCH PRODUCT PREVIEW
+              </div>
+              <div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; background:#000; border-radius: 0 0 16px 16px; box-shadow: var(--shl)">
+                <iframe src="${p.video_url}" 
+                        style="position:absolute; top:0; left:0; width:100%; height:100%; border:none" 
+                        allowfullscreen 
+                        loading="lazy">
+                </iframe>
+              </div>
+
+              <!-- WhatsApp Support Box -->
+              <div style="margin-top: 24px; background: #fff; padding: 24px; border-radius: 16px; border: 1px solid var(--g100); box-shadow: var(--sh)">
+                 <p style="font-size: 15px; color: var(--navy); font-weight: 700; margin: 0">
+                   Still have questions?
+                 </p>
+                 <p style="font-size: 13px; color: var(--g600); margin-top: 6px; line-height: 1.5">
+                   Need help with this item or want to inquire about bulk wholesale pricing? Chat with our team now.
+                 </p>
+                 
+                 <!-- WhatsApp Button -->
+                 <a href="https://wa.me/${MATHRONE_WHATSAPP.replace(/[^0-9]/g,'')}?text=${encodeURIComponent('Hi Mathrone Academy, I have a question about the product: ' + p.name)}" 
+                    target="_blank" 
+                    style="display: flex; align-items: center; justify-content: center; gap: 10px; background: #25D366; color: #fff; text-decoration: none; padding: 14px; border-radius: 10px; font-weight: 700; font-size: 14px; margin-top: 16px; transition: transform 0.2s"
+                    onmouseover="this.style.transform='scale(1.02)'"
+                    onmouseout="this.style.transform='scale(1)'">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
+                    Chat on WhatsApp
+                 </a>
+              </div>
+            </div>
+          </div>` : ''}
+
+        </div>
+      </div>` : ''}
+
     </div>`)
+
     // Add this after the render() call in renderShopProduct():
 const existingSchema = document.getElementById('product-schema')
 if(existingSchema) existingSchema.remove()
@@ -5713,6 +6140,7 @@ document.querySelector('meta[property="twitter:title"]')?.setAttribute('content'
     // Update URL for refresh support
     history.pushState({ page: 'shop-product-' + productId, tab: null }, document.title, '/shop/' + productId)
   }catch(e){ toast(e.message,'err'); navigate('shop') }
+  
 }
 
 // ══════════════════════════════════════════════════
@@ -6187,7 +6615,9 @@ function toggleWholesaleFields(show){
   const fields = document.getElementById('wholesale-fields')
   if(fields) fields.style.display = show ? 'grid' : 'none'
 }
+let _extraImages = []
 function openAddProductModal(existing=null){
+  _extraImages = existing?.extra_images ? [...existing.extra_images] : []
   const isEdit = !!existing
   document.getElementById('modal-root').innerHTML = `
   <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
@@ -6224,8 +6654,12 @@ function openAddProductModal(existing=null){
           <input class="input" id="prod-tag" value="${existing?.tag||''}" placeholder="e.g. Best Seller, New Arrival"/>
         </div>
         <div class="form-group">
-          <label class="form-label">Description</label>
-          <textarea class="input" id="prod-desc" rows="3" placeholder="Short product description...">${existing?.description||''}</textarea>
+          <label class="form-label">Short Description</label>
+          <textarea class="input" id="prod-desc" rows="2" placeholder="Short product description (shown on card)...">${existing?.description||''}</textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Full Description</label>
+          <textarea class="input" id="prod-full-desc" rows="4" placeholder="Detailed description shown on product page...">${existing?.full_description||''}</textarea>
         </div>
         <div class="form-group">
           <label class="form-label">Product Image</label>
@@ -6236,6 +6670,26 @@ function openAddProductModal(existing=null){
           </div>
           <div id="prod-image-preview" style="margin-top:8px">
             ${existing?.image_url?`<img src="${existing.image_url}" alt="Product image preview" style="height:80px;border-radius:8px;object-fit:cover"/>`:''}
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">YouTube Video URL</label>
+          <input class="input" id="prod-video-url" value="${existing?.video_url||''}" placeholder="e.g. https://www.youtube.com/embed/VIDEO_ID"/>
+          <div style="font-size:11px;color:var(--g400);margin-top:4px">Use the embed URL: youtube.com/embed/VIDEO_ID</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Extra Images</label>
+          <div id="prod-extra-images-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+            ${(existing?.extra_images||[]).map((url,i)=>`
+            <div style="position:relative;width:72px;height:72px" id="extra-img-wrap-${i}">
+              <img src="${url}" style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid var(--g200)"/>
+              <button type="button" onclick="removeExtraImage('${url}')" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:#ef4444;color:#fff;border:none;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:700">✕</button>
+            </div>`).join('')}
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="file" id="prod-extra-image-file" accept="image/*" style="display:none" onchange="uploadExtraImage(this)"/>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('prod-extra-image-file').click()">📷 Add Image</button>
+            <span style="font-size:11px;color:var(--g400)" id="extra-upload-status"></span>
           </div>
         </div>
         <div class="form-group">
@@ -6280,6 +6734,52 @@ function openAddProductModal(existing=null){
 
 function openEditProductModal(p){ openAddProductModal(p) }
 
+async function uploadExtraImage(input){
+  const file = input.files[0]
+  if(!file) return
+  if(file.size > 5*1024*1024){ toast('Image must be under 5MB','err'); return }
+  const statusEl = document.getElementById('extra-upload-status')
+  if(statusEl) statusEl.textContent = 'Uploading...'
+  const form = new FormData()
+  form.append('file', file)
+  try{
+    const res = await fetch(API_URL+'/shop/products/admin/upload-extra-image',{
+      method:'POST', headers:{ Authorization:'Bearer '+getToken() }, body:form
+    })
+    const data = await res.json()
+    if(res.ok){
+      _extraImages.push(data.url)
+      const list = document.getElementById('prod-extra-images-list')
+      if(list){
+        const wrap = document.createElement('div')
+        wrap.style.cssText = 'position:relative;width:72px;height:72px'
+        wrap.innerHTML = `<img src="${data.url}" style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid var(--g200)"/>
+          <button type="button" onclick="removeExtraImage('${data.url}')" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:#ef4444;color:#fff;border:none;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:700">✕</button>`
+        list.appendChild(wrap)
+      }
+      if(statusEl) statusEl.textContent = '✅ Added!'
+      setTimeout(()=>{ if(statusEl) statusEl.textContent='' }, 2000)
+      input.value = ''
+      toast('Extra image added ✅')
+    } else { toast(data.detail||'Upload failed','err'); if(statusEl) statusEl.textContent='' }
+  }catch(e){ toast(e.message,'err'); if(statusEl) statusEl.textContent='' }
+}
+
+async function removeExtraImage(url){
+  try{
+    await api('/shop/products/admin/delete-image',{ method:'DELETE', body:JSON.stringify({ url }) })
+    _extraImages = _extraImages.filter(u => u !== url)
+    // Remove preview from DOM
+    const list = document.getElementById('prod-extra-images-list')
+    if(list){
+      list.querySelectorAll('img').forEach(img => {
+        if(img.src === url) img.closest('div').remove()
+      })
+    }
+    toast('Image removed ✅')
+  }catch(e){ toast(e.message,'err') }
+}
+
 async function uploadProductImage(input){
   const file = input.files[0]
   if(!file) return
@@ -6301,24 +6801,29 @@ async function uploadProductImage(input){
 }
 
 async function saveNewProduct(){
-  const name  = document.getElementById('prod-name')?.value?.trim()
-  const cat   = document.getElementById('prod-cat')?.value
-  const price = parseFloat(document.getElementById('prod-price')?.value)
-  const stock = parseInt(document.getElementById('prod-stock')?.value) || 0
-  const tag   = document.getElementById('prod-tag')?.value?.trim() || null
-  const desc  = document.getElementById('prod-desc')?.value?.trim() || null
-  const img   = document.getElementById('prod-image-url')?.value?.trim() || null
-  const feat  = document.getElementById('prod-featured')?.checked || false
-  const wholesale        = document.getElementById('prod-wholesale')?.checked || false
-  const wholesaleLabel   = document.getElementById('prod-wholesale-label')?.value?.trim() || 'Box'
-  const wholesaleMin     = parseInt(document.getElementById('prod-wholesale-min')?.value) || 6
-  const wholesalePrice   = parseFloat(document.getElementById('prod-wholesale-price')?.value) || null
+  const name      = document.getElementById('prod-name')?.value?.trim()
+  const cat       = document.getElementById('prod-cat')?.value
+  const price     = parseFloat(document.getElementById('prod-price')?.value)
+  const stock     = parseInt(document.getElementById('prod-stock')?.value) || 0
+  const tag       = document.getElementById('prod-tag')?.value?.trim() || null
+  const desc      = document.getElementById('prod-desc')?.value?.trim() || null
+  const fullDesc  = document.getElementById('prod-full-desc')?.value?.trim() || null
+  const img       = document.getElementById('prod-image-url')?.value?.trim() || null
+  const videoUrl  = document.getElementById('prod-video-url')?.value?.trim() || null
+  const feat      = document.getElementById('prod-featured')?.checked || false
+  const wholesale       = document.getElementById('prod-wholesale')?.checked || false
+  const wholesaleLabel  = document.getElementById('prod-wholesale-label')?.value?.trim() || 'Box'
+  const wholesaleMin    = parseInt(document.getElementById('prod-wholesale-min')?.value) || 6
+  const wholesalePrice  = parseFloat(document.getElementById('prod-wholesale-price')?.value) || null
   if(!name || !cat || isNaN(price)){ toast('Name, category and price are required','err'); return }
   try{
-    await api('/shop/products/admin',{ method:'POST', body:JSON.stringify({ name, category:cat, price, stock, tag, description:desc, image_url:img, is_featured:feat,wholesale_enabled: wholesale,
-        wholesale_label:   wholesaleLabel,
-        wholesale_min_qty: wholesaleMin,
-        wholesale_price:   wholesalePrice, }) })
+    await api('/shop/products/admin',{ method:'POST', body:JSON.stringify({
+      name, category:cat, price, stock, tag,
+      description:desc, full_description:fullDesc,
+      image_url:img, extra_images:_extraImages, video_url:videoUrl,
+      is_featured:feat, wholesale_enabled:wholesale,
+      wholesale_label:wholesaleLabel, wholesale_min_qty:wholesaleMin, wholesale_price:wholesalePrice
+    }) })
     document.querySelector('.modal-overlay')?.remove()
     toast('Product added ✅')
     renderAdminShop()
@@ -6326,24 +6831,29 @@ async function saveNewProduct(){
 }
 
 async function saveEditProduct(id){
-  const name  = document.getElementById('prod-name')?.value?.trim()
-  const cat   = document.getElementById('prod-cat')?.value
-  const price = parseFloat(document.getElementById('prod-price')?.value)
-  const stock = parseInt(document.getElementById('prod-stock')?.value) || 0
-  const tag   = document.getElementById('prod-tag')?.value?.trim() || null
-  const desc  = document.getElementById('prod-desc')?.value?.trim() || null
-  const img   = document.getElementById('prod-image-url')?.value?.trim() || null
-  const feat  = document.getElementById('prod-featured')?.checked || false
-  const wholesale        = document.getElementById('prod-wholesale')?.checked || false
-  const wholesaleLabel   = document.getElementById('prod-wholesale-label')?.value?.trim() || 'Box'
-  const wholesaleMin     = parseInt(document.getElementById('prod-wholesale-min')?.value) || 6
-  const wholesalePrice   = parseFloat(document.getElementById('prod-wholesale-price')?.value) || null
+  const name      = document.getElementById('prod-name')?.value?.trim()
+  const cat       = document.getElementById('prod-cat')?.value
+  const price     = parseFloat(document.getElementById('prod-price')?.value)
+  const stock     = parseInt(document.getElementById('prod-stock')?.value) || 0
+  const tag       = document.getElementById('prod-tag')?.value?.trim() || null
+  const desc      = document.getElementById('prod-desc')?.value?.trim() || null
+  const fullDesc  = document.getElementById('prod-full-desc')?.value?.trim() || null
+  const img       = document.getElementById('prod-image-url')?.value?.trim() || null
+  const videoUrl  = document.getElementById('prod-video-url')?.value?.trim() || null
+  const feat      = document.getElementById('prod-featured')?.checked || false
+  const wholesale       = document.getElementById('prod-wholesale')?.checked || false
+  const wholesaleLabel  = document.getElementById('prod-wholesale-label')?.value?.trim() || 'Box'
+  const wholesaleMin    = parseInt(document.getElementById('prod-wholesale-min')?.value) || 6
+  const wholesalePrice  = parseFloat(document.getElementById('prod-wholesale-price')?.value) || null
   if(!name || !cat || isNaN(price)){ toast('Name, category and price are required','err'); return }
   try{
-    await api(`/shop/products/admin/${id}`,{ method:'PATCH', body:JSON.stringify({ name, category:cat, price, stock, tag, description:desc, image_url:img, is_featured:feat,wholesale_enabled: wholesale,
-        wholesale_label:   wholesaleLabel,
-        wholesale_min_qty: wholesaleMin,
-        wholesale_price:   wholesalePrice, }) })
+    await api(`/shop/products/admin/${id}`,{ method:'PATCH', body:JSON.stringify({
+      name, category:cat, price, stock, tag,
+      description:desc, full_description:fullDesc,
+      image_url:img, extra_images:_extraImages, video_url:videoUrl,
+      is_featured:feat, wholesale_enabled:wholesale,
+      wholesale_label:wholesaleLabel, wholesale_min_qty:wholesaleMin, wholesale_price:wholesalePrice
+    }) })
     document.querySelector('.modal-overlay')?.remove()
     toast('Product updated ✅')
     renderAdminShop()
@@ -6681,27 +7191,38 @@ async function deleteBundle(id, name){
   <div class="nav-left" style="display:flex;align-items:center;gap:10px;">
 
     <!-- HAMBURGER (mobile only) -->
-    <button class="hamburger" onclick="toggleMenu()">☰</button>
+    <button class="hamburger" id="hamburgerBtn" onclick="toggleMenu()">
+  <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="18" cy="18" r="17" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
+    <rect x="9" y="12" width="13" height="2.5" rx="1.25" fill="white"/>
+    <rect x="9" y="17" width="13" height="2.5" rx="1.25" fill="white"/>
+    <rect x="9" y="22" width="13" height="2.5" rx="1.25" fill="white"/>
+    <circle cx="25" cy="13.25" r="1.5" fill="white"/>
+    <circle cx="25" cy="18.25" r="1.5" fill="white"/>
+    <circle cx="25" cy="23.25" r="1.5" fill="white"/>
+  </svg>
+</button>
 
     <!-- BRAND -->
-    <button class="lbrand" onclick="navigate('landing')" style="display:flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer;">
+    <a href="/" class="lbrand" style="text-decoration:none" onclick="navigate('landing', null, event)" style="display:flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer;">
       <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" alt="Mathrone Academy logo" style="height:60px;width:60px;object-fit:contain"/>
       <span style="font-size:25px;font-weight:700;color:#fff;white-space:nowrap">Mathrone Academy</span>
-    </button>
+    </a>
 
   </div>
 
-  <!-- CENTER MENU (DESKTOP ONLY STYLE) -->
+ <!-- CENTER MENU (DESKTOP ONLY STYLE) -->
   <div class="nav-menu" id="navMenu">
-    <button class="btn-o"style="border:none;background:;font-size:20px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="navigate('news')">News</button>
-    <button class="btn-o"style="border:none;background:none;font-size:20px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="navigate('shop')">Shop</button>
-    <button class="btn-o"style="border:none;background:none;font-size:20px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="navigate('about')">About Us</button>
+    <a href="/news" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:20px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="navigate('news', null, event)">News</a>
+    <a href="/shop" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:20px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="navigate('shop', null, event)">Shop</a>
+    <a href="/about" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:20px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="navigate('about', null, event)">About Us</a>
+    <a href="#contact" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:20px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="event.preventDefault(); scrollToContact()">Contact Us</a>
   </div>
 
   <!-- RIGHT SIDE -->
   <div class="nav-right" style="display:flex;align-items:center;gap:10px;">
-    <button class="btn-o"style="border:none;background:none;font-size:20px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="navigate('login')">Sign In</button>
-    <button class="btn-p"style="white-space:nowrap;font-size:20px" onclick="navigate('register')">Get Started</button>
+    <a href="/login" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:20px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="navigate('login', null, event)">Sign In</a>
+    <a href="/register" class="btn-p" style="text-decoration:none;white-space:nowrap;font-size:20px" onclick="navigate('register', null, event)">Get Started</a>
   </div>
 
 </nav>
@@ -7281,7 +7802,7 @@ function selectStudentCategory(id){
         </select>
       </div>
       <div class="form-group">
-        <label class="form-label">Session Mode</label>
+        <label class="form-label">Session Mode (Online,Home Visit or Both)</label>
         <select class="input" id="r-mode" onchange="toggleStudentLocation()">
           <option value="online">Online</option>
           <option value="home">Home Visit</option>
@@ -10179,64 +10700,99 @@ async function saveTutorStatus(tutorId){
 // ════════════════════════════════════════════════════════════
 
 // Parse the URL path into a State.page value
+// ════════════════════════════════════════════════════════════
+// BOOT LOGIC (Replaced for 404 Fix & SEO)
+// ════════════════════════════════════════════════════════════
+
 function bootFromUrl() {
-  const path = window.location.pathname
-  const hash = window.location.hash
+  const path = window.location.pathname;
+  const hash = window.location.hash;
+  
+  // 1. Clean the path (removes slashes)
+  let clean = path.replace(/^\//, '').replace(/\/$/, '');
+
+  // 2. SEO Fix: If the path is index.html, treat it as home and clean the URL bar
+  if (clean === 'index.html') {
+    history.replaceState(null, '', '/');
+    clean = '';
+  }
+
   const authPages = ['dashboard','sessions','messages','profile','notifications','tutors',
     'admin-tutors','admin-students','admin-sessions','admin-payments',
-    'admin-exam','admin-shop','exam','cart','wishlist','my-orders','forum']
-  const publicPages = ['news','shop','about','privacy','terms','login','register']
+    'admin-exam','admin-shop','exam','cart','wishlist','my-orders','forum'];
 
-  // Legacy hash deep links — redirect to real URL
+  // 3. Legacy hash deep links support
   if (hash.startsWith('#verify/'))       { history.replaceState(null,'','/verify/'+hash.replace('#verify/','')); }
   if (hash.startsWith('#reset/'))        { history.replaceState(null,'','/reset/'+hash.replace('#reset/','')); }
   if (hash.startsWith('#report/'))       { history.replaceState(null,'','/report/'+hash.replace('#report/','')); }
   if (hash.startsWith('#news-article/')) { history.replaceState(null,'','/news/'+hash.replace('#news-article/','')); }
   if (hash.startsWith('#shop-product-')) { history.replaceState(null,'','/shop/'+hash.replace('#shop-product-','')); }
 
-  const clean = window.location.pathname.replace(/^\//, '').replace(/\/$/, '') || 'landing'
+  // 4. Routing Logic
+  if (clean === '' || clean === 'landing') State.page = 'landing';
+  else if (clean === 'news') State.page = 'news';
+  else if (clean.startsWith('news/')) State.page = 'news-article/' + clean.replace('news/', '');
+  else if (clean === 'shop') State.page = 'shop';
+  else if (clean.startsWith('shop/')) State.page = 'shop-product-' + clean.replace('shop/', '');
+  else if (clean === 'about') State.page = 'about';
+  else if (clean === 'privacy') State.page = 'privacy';
+  else if (clean === 'terms') State.page = 'terms';
+  else if (clean === 'login') State.page = 'login';
+  else if (clean === 'register') State.page = 'register';
+  else if (clean.startsWith('verify/')) State.page = 'verify/' + clean.replace('verify/', '');
+  else if (clean.startsWith('reset/')) State.page = 'reset/'  + clean.replace('reset/', '');
+  else if (clean.startsWith('report/')) State.page = 'report/' + clean.replace('report/', '');
+  else if (authPages.includes(clean)) State.page = clean;
+  else State.page = '404-not-found';
 
-  if (clean === '' || clean === 'landing')          State.page = 'landing'
-  else if (clean === 'news')                        State.page = 'news'
-  else if (clean.startsWith('news/'))               State.page = 'news-article/' + clean.replace('news/', '')
-  else if (clean === 'shop')                        State.page = 'shop'
-  else if (clean.startsWith('shop/'))               State.page = 'shop-product-' + clean.replace('shop/', '')
-  else if (clean === 'about')                       State.page = 'about'
-  else if (clean === 'privacy')                     State.page = 'privacy'
-  else if (clean === 'terms')                       State.page = 'terms'
-  else if (clean === 'login')                       State.page = 'login'
-  else if (clean === 'register')                    State.page = 'register'
-  else if (clean.startsWith('verify/'))             State.page = 'verify/' + clean.replace('verify/', '')
-  else if (clean.startsWith('reset/'))              State.page = 'reset/'  + clean.replace('reset/', '')
-  else if (clean.startsWith('report/'))             State.page = 'report/' + clean.replace('report/', '')
-  else if (authPages.includes(clean))               State.page = clean
-  else                                              State.page = 'landing'
+  State.tab = localStorage.getItem('tc_tab') || null;
 
-  State.tab = localStorage.getItem('tc_tab') || null
+  // 5. SEO Management: Prevent indexing of 404s
+  let robotMeta = document.querySelector('meta[name="robots"]');
+  if (!robotMeta) {
+    robotMeta = document.createElement('meta');
+    robotMeta.name = "robots";
+    document.head.appendChild(robotMeta);
+  }
+
+  if (State.page === '404-not-found') {
+    robotMeta.setAttribute('content', 'noindex, nofollow');
+  } else {
+    robotMeta.setAttribute('content', 'index, follow');
+  }
 }
 
+// EXECUTION
 try {
-  bootFromUrl()
-  const page = State.page
+  bootFromUrl();
+  const page = State.page;
   const authRequired = ['dashboard','sessions','messages','profile','notifications','tutors',
     'admin-tutors','admin-students','admin-sessions','admin-payments',
-    'admin-exam','admin-shop','exam','cart','wishlist','my-orders','forum']
+    'admin-exam','admin-shop','exam','cart','wishlist','my-orders','forum'];
 
-  if (authRequired.includes(page)) {
+  if (page === '404-not-found') {
+    document.title = 'Page Not Found — Mathrone Academy';
+    render(`<div style="min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;font-family:'DM Sans',sans-serif;color:#1E2845">
+      <div style="font-size:64px;font-weight:700;color:#1A5FFF">404</div>
+      <div style="font-size:22px;font-weight:600">Page not found</div>
+      <p style="color:#4A5578;font-size:15px;text-align:center;max-width:340px">The page you're looking for doesn't exist or may have moved.</p>
+      <button onclick="navigate('landing')" style="margin-top:8px;padding:12px 28px;background:#1A5FFF;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer">Go to Homepage</button>
+    </div>`);
+  } else if (authRequired.includes(page)) {
     if (State.user && getToken()) {
-      renderPage()
-      setTimeout(loadUnreadCount, 200)
+      renderPage();
+      setTimeout(loadUnreadCount, 200);
     } else {
-      State.user = null
-      navigate('login')
+      State.user = null;
+      navigate('login');
     }
   } else {
-    renderPage()
-    if (State.user && getToken()) setTimeout(loadUnreadCount, 200)
+    renderPage();
+    if (State.user && getToken()) setTimeout(loadUnreadCount, 200);
   }
 } catch(e) {
-  console.error('Boot error:', e)
-  navigate('landing')
+  console.error('Boot error:', e);
+  navigate('landing');
 }
 </script>
 </body>

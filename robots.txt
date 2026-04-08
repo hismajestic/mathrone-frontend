@@ -25,6 +25,7 @@ Disallow: /admin-shop
 
 # Auth flows
 Disallow: /login
+Disallow: /register
 Disallow: /verify/
 Disallow: /reset/
 Disallow: /report/
