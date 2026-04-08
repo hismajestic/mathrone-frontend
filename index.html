@@ -1940,6 +1940,14 @@
     grid-template-columns: 1fr !important; /* Back to 1 column on very small phones */
   }
 }
+.seo-hidden {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
   </style>
 </head>
 
@@ -1947,7 +1955,7 @@
   <div id="toasts"></div>
   <div id="app">
   <!-- SEO Fallback: Visible to bots before JS loads -->
-  <section id="seo-homepage">
+  <section id="seo-homepage" class="seo-hidden">
   <h1>Private Tutors in Rwanda | Mathrone Academy</h1>
 
   <p>
