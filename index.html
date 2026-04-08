@@ -7406,7 +7406,8 @@ if (pw.length < 6) { showErr(err, 'Password must be at least 6 characters'); ret
           const level = document.getElementById('r-level')?.value
           if (!level) { showErr(err, 'Please select a school level'); btn.disabled = false; btn.textContent = 'Create Student Account →'; return }
           const locationS = document.getElementById('r-location-s')?.value
-if (!locationS) { showErr(err, 'Please select your district'); btn.disabled = false; btn.textContent = 'Create Student Account →'; return }
+const sessionMode = document.getElementById('r-mode')?.value
+if (!locationS && sessionMode !== 'online') { showErr(err, 'Please select your district'); btn.disabled = false; btn.textContent = 'Create Student Account →'; return }
           body = {
             full_name: name, email, password: pw,
             phone: document.getElementById('r-phone')?.value || null,
@@ -8495,6 +8496,16 @@ async function sendContactReply(id, email, name, subject){
     toast(e.message,'err')
   }
 }
+async function deleteContactMessage(id){
+  if(!confirm('Delete this message?')) return
+  try{
+    await api(`/auth/contact-messages/${id}`, { method: 'DELETE' })
+    toast('Message deleted ✅')
+    renderAdminDash()
+  }catch(e){
+    toast(e.message,'err')
+  }
+}
 async function toggleRecruiting(){
   const btn = document.getElementById('recruiting-toggle-btn')
   const current = btn?.dataset.recruiting === 'true'
@@ -8583,6 +8594,7 @@ async function toggleRecruiting(){
             <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;margin-left:12px">
               <div style="font-size:11px;color:var(--g400)">${fmtShort(m.created_at)}</div>
               <button class="btn btn-primary btn-sm" onclick="openContactReply('${m.id}','${m.full_name.replace(/'/g,"\\'")}','${m.email}','${m.subject.replace(/'/g,"\\'")}')">Reply →</button>
+<button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteContactMessage('${m.id}')">🗑️</button>
             </div>
           </div>
         </div>`).join('') : '<div style="color:var(--g400);font-size:13px;text-align:center;padding:20px">No contact messages yet</div>'}
