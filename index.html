@@ -126,7 +126,15 @@
   "@context": "https://schema.org",
   "@type": "WebSite",
   "name": "Mathrone Academy",
-  "url": "https://mathroneacademy.pages.dev"
+  "url": "https://mathroneacademy.pages.dev",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": "https://mathroneacademy.pages.dev/tutors?subject={search_term_string}"
+    },
+    "query-input": "required name=search_term_string"
+  }
 }
 </script>
 
@@ -3869,20 +3877,26 @@ articleSchema.textContent = JSON.stringify({
   "@context": "https://schema.org",
   "@type": "NewsArticle",
   "headline": p.title,
-  "description": p.content.replace(/<[^>]*>/g,'').slice(0,160),
-  "image": p.image_url || 'https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png',
+  "description": p.content.replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim().slice(0,160),
+  "image": {
+    "@type": "ImageObject",
+    "url": p.image_url || 'https://mathroneacademy.pages.dev/og-banner.png',
+    "width": 1200,
+    "height": 630
+  },
   "datePublished": p.created_at,
   "dateModified": p.updated_at || p.created_at,
   "author": {
     "@type": "Organization",
-    "name": "Mathrone Academy"
+    "name": "Mathrone Academy",
+    "url": "https://mathroneacademy.pages.dev"
   },
   "publisher": {
     "@type": "Organization",
     "name": "Mathrone Academy",
     "logo": {
       "@type": "ImageObject",
-      "url": "https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png"
+      "url": "https://mathroneacademy.pages.dev/favicon.png"
     }
   },
   "mainEntityOfPage": {
@@ -6354,43 +6368,26 @@ productSchema.textContent = JSON.stringify({
   "@context": "https://schema.org",
   "@type": "Product",
   "name": p.name,
-  "description": p.description || p.name,
+  "description": (p.description || p.name).replace(/\s+/g,' ').trim(),
   "image": p.image_url || '',
   "url": 'https://mathroneacademy.pages.dev/shop/' + (p.slug||p.id),
-  "brand": {
-    "@type": "Brand",
-    "name": "Mathrone Academy"
-  },
+"sku": p.slug || String(p.id),
+"brand": { "@type": "Brand", "name": "Mathrone Academy" },
+"aggregateRating": p.avg_rating ? {
+  "@type": "AggregateRating",
+  "ratingValue": Number(p.avg_rating).toFixed(1),
+  "reviewCount": p.rating_count || 1
+} : undefined,
   "offers": {
     "@type": "Offer",
     "priceCurrency": "RWF",
     "price": p.price,
+    "url": 'https://mathroneacademy.pages.dev/shop/' + (p.slug||p.id),
     "availability": p.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-    "seller": {
-      "@type": "Organization",
-      "name": "Mathrone Academy"
-    }
+    "seller": { "@type": "Organization", "name": "Mathrone Academy" }
   }
 })
 document.head.appendChild(productSchema)
-
-// Breadcrumb schema for product
-const existingProdBreadcrumb = document.getElementById('breadcrumb-schema')
-if(existingProdBreadcrumb) existingProdBreadcrumb.remove()
-const prodBreadcrumbSchema = document.createElement('script')
-prodBreadcrumbSchema.id = 'breadcrumb-schema'
-prodBreadcrumbSchema.type = 'application/ld+json'
-prodBreadcrumbSchema.textContent = JSON.stringify({
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://mathroneacademy.pages.dev/" },
-    { "@type": "ListItem", "position": 2, "name": "Shop", "item": "https://mathroneacademy.pages.dev/shop" },
-    { "@type": "ListItem", "position": 3, "name": p.name, "item": "https://mathroneacademy.pages.dev/shop/" + (p.slug||p.id) }
-  ]
-})
-document.head.appendChild(prodBreadcrumbSchema)
-
 // Update meta tags for shop product:
 document.querySelector('meta[name="description"]')?.setAttribute('content', 
   `Buy ${p.name} in Rwanda. ${p.description?.slice(0,100) || ''} — Mathrone Academy Learning Store, Kigali.`)
@@ -10981,46 +10978,32 @@ async function saveTutorStatus(tutorId){
 
 function bootFromUrl() {
   const path = window.location.pathname;
-  // Clean path: remove leading/trailing slashes
   let clean = path.replace(/^\//, '').replace(/\/$/, '');
 
-  // 1. Handle Home / Root
   if (clean === '' || clean === 'index.html') {
     State.page = 'landing';
-  } 
-  // 2. Handle News & Articles
-  else if (clean === 'news') {
+  } else if (clean === 'news') {
     State.page = 'news';
-  }
-  else if (clean.startsWith('news/')) {
+  } else if (clean.startsWith('news/')) {
     State.page = 'news-article/' + clean.replace('news/', '');
-  } 
-  // 3. Handle Shop & Products
-  else if (clean === 'shop') {
+  } else if (clean === 'shop') {
     State.page = 'shop';
-  }
-  else if (clean.startsWith('shop/')) {
+  } else if (clean.startsWith('shop/')) {
     State.page = 'shop-product-' + clean.replace('shop/', '');
-  } 
-  // 4. Handle Specific Auth/Static Pages
-  else {
+  } else {
     const validPages = [
-  'about', 'privacy', 'terms', 'login', 'register', 'dashboard', 
-  'sessions', 'messages', 'profile', 'notifications', 'tutors', 
-  'cart', 'wishlist', 'my-orders', 'forum', 'exam',
-  'admin-tutors', 'admin-students', 'admin-sessions', 
-  'admin-payments', 'admin-exam', 'admin-shop'
-];
+      'about', 'privacy', 'terms', 'login', 'register', 'dashboard', 
+      'sessions', 'messages', 'profile', 'notifications', 'tutors', 
+      'cart', 'wishlist', 'my-orders', 'forum', 'exam',
+      'admin-tutors', 'admin-students', 'admin-sessions', 
+      'admin-payments', 'admin-exam', 'admin-shop'
+    ];
     
-    // Check if the path matches one of our defined pages
     if (validPages.includes(clean)) {
       State.page = clean;
-    } 
-    // Handle specific token-based routes
-    else if (clean.startsWith('verify/')) { State.page = 'verify/' + clean.replace('verify/', ''); }
+    } else if (clean.startsWith('verify/')) { State.page = 'verify/' + clean.replace('verify/', ''); }
     else if (clean.startsWith('reset/'))  { State.page = 'reset/' + clean.replace('reset/', ''); }
     else if (clean.startsWith('report/')) { State.page = 'report/' + clean.replace('report/', ''); }
-    // 5. Fallback to 404
     else {
       State.page = '404-not-found';
     }
@@ -11028,10 +11011,14 @@ function bootFromUrl() {
 
   State.tab = localStorage.getItem('tc_tab') || null;
 
-  // Manage robots for 404
   let robotMeta = document.querySelector('meta[name="robots"]');
   if (State.page === '404-not-found') {
-    robotMeta?.setAttribute('content', 'noindex, nofollow');
+    if (!robotMeta) {
+      robotMeta = document.createElement('meta');
+      robotMeta.name = "robots";
+      document.head.appendChild(robotMeta);
+    }
+    robotMeta.setAttribute('content', 'noindex, nofollow');
   } else {
     robotMeta?.setAttribute('content', 'index, follow');
   }
@@ -11137,6 +11124,8 @@ document.addEventListener('touchend', e => {
   }
 }, { passive: true });
 
+
+
 // Ensure Close button is visible on Landing Hamburger
 function renderCloseInHamburger() {
   const menu = document.getElementById('navMenu');
@@ -11164,7 +11153,5 @@ window.toggleMenu = function() {
   <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" defer></script>
-</script>
-</body>
 </body>
 </html>
