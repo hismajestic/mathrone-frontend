@@ -17,7 +17,7 @@ export async function onRequest(context) {
   let dynamicUrls = ''
 
   try {
-    // Fetch published news articles (all rows that have a slug)
+    // News articles
     const newsRes = await fetch(
       `${SUPABASE_URL}/rest/v1/news_posts?select=slug,updated_at&slug=not.is.null&order=updated_at.desc`,
       {
@@ -28,7 +28,6 @@ export async function onRequest(context) {
       }
     )
     const articles = await newsRes.json()
-
     if (Array.isArray(articles)) {
       for (const a of articles) {
         if (!a.slug) continue
@@ -37,9 +36,9 @@ export async function onRequest(context) {
       }
     }
 
-    // Fetch active shop products
-   const shopRes = await fetch(
-  `${SUPABASE_URL}/rest/v1/products?select=slug,updated_at&is_active=eq.true&slug=not.is.null&order=updated_at.desc`,
+    // Products — select all active with slug, no updated_at filter
+    const shopRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/products?select=slug,created_at&is_active=eq.true&slug=not.is.null`,
       {
         headers: {
           apikey: SUPABASE_ANON_KEY,
@@ -48,13 +47,12 @@ export async function onRequest(context) {
       }
     )
     const products = await shopRes.json()
-
     if (Array.isArray(products)) {
       for (const p of products) {
-  if (!p.slug) continue
-  const lastmod = p.updated_at ? p.updated_at.split('T')[0] : today
-  dynamicUrls += urlTag(`${BASE}/shop/${p.slug}`, lastmod, 'weekly', '0.6')
-}
+        if (!p.slug) continue
+        const lastmod = p.created_at ? p.created_at.split('T')[0] : today
+        dynamicUrls += urlTag(`${BASE}/shop/${p.slug}`, lastmod, 'weekly', '0.6')
+      }
     }
   } catch (e) {
     // Supabase unavailable — sitemap still serves static pages
