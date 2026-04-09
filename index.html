@@ -2009,19 +2009,21 @@
     grid-template-columns: 1fr !important; /* Back to 1 column on very small phones */
   }
 }
-.seo-hidden {
-  position: absolute;
-  left: -9999px;
-  top: auto;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
+.seo-hidden, #seo-shell {
+  position: absolute !important;
+  left: -9999px !important;
+  top: -9999px !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
   </style>
 </head>
 
 <body>
-<div id="seo-shell">
+<div id="seo-shell" class="seo-hidden">
 
   <!-- HOME -->
   <div data-route="/">
@@ -11041,20 +11043,6 @@ try {
   <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" defer></script>
-  <script>
-  (function(){
-  var s = document.getElementById('seo-shell');
-  if(s){
-    s.style.position = 'absolute';
-    s.style.width = '1px';
-    s.style.height = '1px';
-    s.style.overflow = 'hidden';
-    s.style.opacity = '0';
-    s.style.pointerEvents = 'none';
-    s.style.top = '-9999px';
-    s.style.left = '-9999px';
-  }
-})();
 </script>
 </body>
 </body>
