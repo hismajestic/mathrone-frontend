@@ -2433,6 +2433,12 @@ if(ogDescEl && descriptions[page]) ogDescEl.setAttribute('content', descriptions
         cart: '/cart', 
         wishlist: '/wishlist', 
         'my-orders': '/my-orders',
+        'admin-tutors': '/admin-tutors',
+        'admin-students': '/admin-students',
+        'admin-sessions': '/admin-sessions',
+        'admin-payments': '/admin-payments',
+        'admin-exam': '/admin-exam',
+        'admin-shop': '/admin-shop'
       };
 
       let newUrl = urlMap[page];
@@ -10925,7 +10931,13 @@ function bootFromUrl() {
   } 
   // 4. Handle Specific Auth/Static Pages
   else {
-    const validPages = ['about', 'privacy', 'terms', 'login', 'register', 'dashboard', 'sessions', 'messages', 'profile', 'notifications', 'tutors', 'cart', 'wishlist', 'my-orders', 'forum', 'exam'];
+    const validPages = [
+  'about', 'privacy', 'terms', 'login', 'register', 'dashboard', 
+  'sessions', 'messages', 'profile', 'notifications', 'tutors', 
+  'cart', 'wishlist', 'my-orders', 'forum', 'exam',
+  'admin-tutors', 'admin-students', 'admin-sessions', 
+  'admin-payments', 'admin-exam', 'admin-shop'
+];
     
     // Check if the path matches one of our defined pages
     if (validPages.includes(clean)) {
@@ -11031,9 +11043,18 @@ try {
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" defer></script>
   <script>
   (function(){
-    var s = document.getElementById('seo-shell');
-    if(s) s.style.display = 'none';
-  })();
+  var s = document.getElementById('seo-shell');
+  if(s){
+    s.style.position = 'absolute';
+    s.style.width = '1px';
+    s.style.height = '1px';
+    s.style.overflow = 'hidden';
+    s.style.opacity = '0';
+    s.style.pointerEvents = 'none';
+    s.style.top = '-9999px';
+    s.style.left = '-9999px';
+  }
+})();
 </script>
 </body>
 </body>
