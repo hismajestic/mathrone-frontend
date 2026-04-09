@@ -14,8 +14,6 @@
 <meta name="geo.region" content="RW"/>
 <meta name="geo.placename" content="Kigali, Rwanda"/>
 
-<!--Loading hero image in advance-->
-<link rel="preload" as="image" href="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1400&q=80">
 <!-- Sitemap discovery -->
  
 <link rel="sitemap" type="application/xml" href="/sitemap.xml"/>
@@ -4695,6 +4693,8 @@ function fmtShort(dt) { return dt ? new Date(dt).toLocaleDateString('en-US', { m
     // Sidebar  // counting unread notifications for badge
 
     async function loadUnreadCount() {
+      // FIX: Don't fetch if there is no user logged in
+      if (!State.user || !getToken()) return; 
       try {
         const notifs = await api('/notifications/?unread_only=true')
         const count = (notifs || []).length
@@ -10846,21 +10846,18 @@ function bootFromUrl() {
   }
 }
 // EXECUTION
+// FINAL BOOT EXECUTION
 try {
   bootFromUrl();
   const page = State.page;
+  
+  // Define pages that require login
   const authRequired = ['dashboard','sessions','messages','profile','notifications','tutors',
     'admin-tutors','admin-students','admin-sessions','admin-payments',
     'admin-exam','admin-shop','exam','cart','wishlist','my-orders','forum'];
 
   if (page === '404-not-found') {
-    document.title = 'Page Not Found — Mathrone Academy';
-    render(`<div style="min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;font-family:'DM Sans',sans-serif;color:#1E2845">
-      <div style="font-size:64px;font-weight:700;color:#1A5FFF">404</div>
-      <div style="font-size:22px;font-weight:600">Page not found</div>
-      <p style="color:#4A5578;font-size:15px;text-align:center;max-width:340px">The page you're looking for doesn't exist or may have moved.</p>
-      <button onclick="navigate('landing')" style="margin-top:8px;padding:12px 28px;background:#1A5FFF;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer">Go to Homepage</button>
-    </div>`);
+    renderPage(); // This will show your 404 UI
   } else if (authRequired.includes(page)) {
     if (State.user && getToken()) {
       renderPage();
@@ -10870,6 +10867,7 @@ try {
       navigate('login');
     }
   } else {
+    // Public pages (landing, news, shop, about, etc)
     renderPage();
     if (State.user && getToken()) setTimeout(loadUnreadCount, 200);
   }
