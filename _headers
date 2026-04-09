@@ -3,30 +3,27 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://*.supabase.co https://api.anthropic.com https://mathrone-backend.onrender.com https://cdnjs.cloudflare.com; frame-ancestors 'none';
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://*.supabase.co https://mathrone-backend.onrender.com; frame-ancestors 'none';
 
-# SPA shell — never cache, always fetch fresh
+# SPA shell — allow conditional caching (much faster)
 /index.html
-  Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: public, no-cache, must-revalidate
 
 /
-  Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: public, no-cache, must-revalidate
 
 /news
-  Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: public, no-cache, must-revalidate
 
 /news/*
-  Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: public, no-cache, must-revalidate
 
 /shop
-  Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: public, no-cache, must-revalidate
 
 /shop/*
-  Cache-Control: no-cache, no-store, must-revalidate
+  Cache-Control: public, no-cache, must-revalidate
 
-/about
-  Cache-Control: no-cache, no-store, must-revalidate
-
-# Static assets — cache forever (filenames are content-hashed)
+# Static assets — cache for 1 year
 /assets/*
   Cache-Control: public, max-age=31536000, immutable

@@ -1,15 +1,6 @@
-# Mathrone Academy — Cloudflare Pages redirects
-
-# News articles: serve the SPA (JS handles the article fetch)
-/news/:slug  /index.html  200
-
-# Shop products: serve the SPA
-/shop/:id    /index.html  200
-
-# Auth token flows: serve the SPA
-/verify/:token   /index.html  200
-/reset/:token    /index.html  200
-/report/:token   /index.html  200
-
-# SPA fallback — all other routes serve index.html
-/*  /index.html  200
+/news/*    /index.html   200
+/shop/*    /index.html   200
+/verify/*  /index.html   200
+/reset/*   /index.html   200
+/report/*  /index.html   200
+/*         /index.html   200

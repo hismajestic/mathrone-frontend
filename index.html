@@ -31,7 +31,7 @@
 <meta property="og:description" content="Connecting ambitious students with hand-picked, vetted tutors for personalised 1-on-1 learning."/>
 <meta property="og:type" content="website"/>
 <meta property="og:url" content="https://mathroneacademy.pages.dev/"/>
-<meta property="og:image" content="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png"/>
+<meta property="og:image" content="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone-social-banner.png"/>
 <meta property="og:image:width" content="1200"/>
 <meta property="og:image:height" content="630"/>
 <meta property="og:image:alt" content="Mathrone Academy — Expert Tutoring in Rwanda"/>
@@ -43,7 +43,7 @@
 <meta name="twitter:site" content="@mathroneacademy"/>
 <meta name="twitter:title" content="Mathrone Academy — Learn from the Best Tutors in Rwanda"/>
 <meta name="twitter:description" content="Connecting ambitious students with hand-picked, vetted tutors for personalised 1-on-1 learning."/>
-<meta name="twitter:image" content="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png"/>
+<meta name="twitter:image" content="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone-social-banner.png"/>
 <meta name="twitter:image:alt" content="Mathrone Academy — Expert Tutoring in Rwanda"/>
 
 <!-- Favicon -->
@@ -135,13 +135,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet"/>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.snow.min.css" rel="stylesheet"/>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js"></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet"/>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-  
   <style>
     *,
     *::before,
@@ -326,6 +319,55 @@
         flex-direction: column;
         height: auto;
         max-height: 80vh;
+      }
+      /* Convert tables to cards on mobile for Admin Excellence */
+ 
+    table, thead, tbody, th, td, tr { 
+      display: block; 
+    }
+    thead tr { 
+      position: absolute; 
+      top: -9999px; 
+      left: -9999px; 
+    }
+    tr { 
+      border: 1px solid var(--g200); 
+      margin-bottom: 12px; 
+      border-radius: 12px; 
+      background: #fff;
+      padding: 8px;
+    }
+    td { 
+      border: none; 
+      position: relative; 
+      padding-left: 50% !important; 
+      text-align: right;
+      min-height: 32px;
+    }
+    td:before { 
+      position: absolute; 
+      left: 12px; 
+      width: 45%; 
+      padding-right: 10px; 
+      white-space: nowrap; 
+      content: attr(data-label); 
+      font-weight: 700; 
+      color: var(--g400); 
+      text-align: left;
+    }
+  }
+    
+    .shop-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 8px;
+      margin: 0;
+    }
+
+    @media (max-width: 600px) {
+      .shop-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
       }
     }
     .btn-primary {
@@ -1905,22 +1947,31 @@
 /* Fix for Product Detail Grid */
 .prod-detail-container {
   display: grid;
-  grid-template-columns: 1.2fr 0.8fr; /* Desktop layout */
+  grid-template-columns: 1.2fr 0.8fr;
   gap: 40px;
-  align-items: start;
+  align-items: stretch;
 }
 
 /* On Mobile: Stack them 1 on top of each other */
 @media (max-width: 850px) {
+  .prod-detail-container,
+  #related-products-section,
+  .prod-full-desc {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+}
+@media (max-width: 850px) {
   .prod-detail-container {
     grid-template-columns: 1fr !important;
     gap: 20px !important;
+    align-items: start;
   }
-  
+
   #prod-main-img {
     aspect-ratio: 1 / 1;
     height: auto !important;
-    max-height: 350px;
+    max-height: 300px;
   }
 
   .prod-info-column {
@@ -1928,11 +1979,11 @@
   }
 
   h1.prod-title {
-    font-size: 24px !important;
+    font-size: 20px !important;
   }
-  
+
   .prod-action-btns {
-    flex-direction: column !important; /* Stack buttons on mobile */
+    flex-direction: row !important;
   }
 }
 @media (max-width: 400px) {
@@ -1955,37 +2006,35 @@
   <div id="toasts"></div>
   <div id="app">
   <!-- SEO Fallback: Visible to bots before JS loads -->
+ <!-- SEO Fallback: Plain HTML for Googlebot to index your dynamic content -->
   <section id="seo-homepage" class="seo-hidden">
-  <h1>Private Tutors in Rwanda | Mathrone Academy</h1>
+    <h1>Mathrone Academy | Best Private Tutors in Rwanda</h1>
+    <p>Mathrone Academy connects students in Kigali and across Rwanda with expert private tutors for Mathematics, Science, Languages, and Digital Skills. We offer both online tutoring and home lessons tailored to the REB curriculum and IGCSE.</p>
 
-  <p>
-    Mathrone Academy connects students in Kigali and across Rwanda with expert private tutors
-    for Mathematics, Science, Languages, and Digital Skills. We offer both online tutoring and
-    home lessons tailored to the REB curriculum, IGCSE, and university levels.
-  </p>
+    <h2>Our Tutoring Services in Kigali</h2>
+    <ul>
+      <li><a href="/tutors">Find Mathematics Tutors in Rwanda</a></li>
+      <li><a href="/register">Become a Tutor - Apply Now</a></li>
+      <li>Physics, Chemistry, and Biology Home Tutoring</li>
+      <li>English and French Language Lessons</li>
+      <li>Digital Skills Training - MS Office, Coding, Graphic Design</li>
+      <li>Mathematics Tutoring for IGCSE and REB</li>
+      <li>Science Tutoring for IGCSE and REB</li>
+    </ul>
 
-  <h2>Find the Best Tutors in Kigali</h2>
-  <p>
-    Whether you need a math tutor, physics teacher, or English support, our platform helps you
-    find qualified tutors quickly. Improve your academic performance with personalized learning.
-  </p>
+    <h2>Rwandan Education News & Scholarships</h2>
+    <p>Stay updated with the latest REB updates and international scholarship opportunities for Rwandan students.</p>
+    <nav>
+      <a href="/news">Browse Education News</a>
+    </nav>
 
-  <h2>Subjects We Offer</h2>
-  <ul>
-    <li>Mathematics tutoring</li>
-    <li>Physics and Chemistry</li>
-    <li>Biology and Sciences</li>
-    <li>English and French</li>
-    <li>Digital Skills and Programming</li>
-  </ul>
+    <h2>Learning Store Rwanda</h2>
+    <p>Buy quality school materials, notebooks, and science kits online with delivery in Kigali.</p>
+    <nav>
+      <a href="/shop">Visit the Mathrone Store</a>
+    </nav>
+  </section>
 
-  <h2>Explore Mathrone Academy</h2>
-  <nav>
-    <a href="/news">Latest Education News in Rwanda</a><br>
-    <a href="/shop">Buy School Materials in Kigali</a><br>
-    <a href="/about">Learn More About Us</a>
-  </nav>
-</section>
   <div class="loader-center"><div class="spinner"></div></div>
 </div>
 
@@ -2197,63 +2246,58 @@ function scrollToContact() {
   State.tab = tab
   State.data = {}
   // IMMEDIATE SEO UPDATE (Before API calls)
-  const metaTitles = {
-    'landing': 'Mathrone Academy | Best Tutors in Rwanda',
-    'news': 'Education News & Scholarships Rwanda | Mathrone Academy',
-    'shop': 'Learning Store | Buy School Supplies in Rwanda',
-    'about': 'About Us | Mathrone Academy'
-  };
-  if (metaTitles[page]) document.title = metaTitles[page];
+ // Comprehensive Page Titles for SEO and User Navigation
       const titles = {
-        landing:         'Mathrone Academy — Learn from the Best Tutors in Rwanda',
-        login:           'Sign In — Mathrone Academy',
-        register:        'Join Mathrone Academy — Register Today',
-        news:            'Education News & Scholarships — Mathrone Academy',
+        landing:         'Mathrone Academy — Best Private Tutors in Rwanda',
+        news:            'Education News & Scholarships Rwanda | Mathrone Academy',
+        shop:            'Learning Store — Buy School Materials in Kigali',
         about:           'About Us — Mathrone Academy',
         privacy:         'Privacy Policy — Mathrone Academy',
+        terms:           'Terms & Conditions — Mathrone Academy',
+        login:           'Sign In — Mathrone Academy',
+        register:        'Join Mathrone Academy — Register Today',
         dashboard:       'Dashboard — Mathrone Academy',
         forum:           'Community Forum — Mathrone Academy',
         sessions:        'My Sessions — Mathrone Academy',
         messages:        'Messages — Mathrone Academy',
         profile:         'My Profile — Mathrone Academy',
         notifications:   'Notifications — Mathrone Academy',
-        tutors:          'Find a Tutor — Mathrone Academy',
+        tutors:          'Find a Math, Science or Language Tutor | Mathrone',
         'admin-tutors':  'Manage Tutors — Mathrone Academy',
         'admin-students':'Manage Students — Mathrone Academy',
         'admin-sessions':'Manage Sessions — Mathrone Academy',
         'admin-payments':'Payments — Mathrone Academy',
         'admin-exam':    'Exam Manager — Mathrone Academy',
-        'exam':          'Written Exam — Mathrone Academy',
-        'shop':          'Learning Store — Mathrone Academy',
-        'shop-product':  'Product — Mathrone Academy',
-        'cart':          'My Cart — Mathrone Academy',
-        'wishlist':      'My Wishlist — Mathrone Academy',
-        'my-orders':     'My Orders — Mathrone Academy',
         'admin-shop':    'Shop Manager — Mathrone Academy',
-        'terms': 'Terms & Conditions — Mathrone Academy',
+        exam:            'Written Exam — Mathrone Academy',
+        cart:            'My Shopping Cart — Mathrone Store',
+        wishlist:        'My Wishlist — Mathrone Academy',
+        'my-orders':     'My Orders — Mathrone Academy',
       }
-      document.title = titles[page] || 'Mathrone Academy'
-      // SEO Meta description updates
-      const metaDescriptions = {
-        landing: 'Find the best private tutors in Rwanda for home and online lessons. Top-vetted educators for all levels.',
-        shop: 'Buy school supplies in Rwanda: notebooks, math sets, and science kits delivered to your door in Kigali.',
-        news: 'Latest education news, scholarships, and REB updates in Rwanda.',
-        tutors: 'Search and connect with expert mathematics, science, and language tutors in Kigali.',
-        register: 'Join Mathrone Academy today. Start learning with a private tutor or apply to teach.'
-      };
+
+      // Dynamic Meta Descriptions to help Google ranking
+      const descriptions = {
+        landing: 'Mathrone Academy connects ambitious students with hand-picked, vetted tutors for personalised 1-on-1 learning — online or at home in Rwanda.',
+        news: 'Stay updated with the latest education news, scholarships, government updates and career opportunities in Rwanda.',
+        shop: 'Buy quality learning materials — notebooks, geometry sets, science kits and more. Delivered to your door in Rwanda.',
+        about: 'Learn about Mathrone Academy — our mission, team and story of connecting students with the best tutors in Rwanda.',
+        register: 'Join Mathrone Academy today. Find a tutor or apply to become one.',
+        tutors: 'Search our directory of qualified tutors in Kigali for REB, IGCSE and University levels.',
+      }
+
+      // Update the browser title
+      document.title = titles[page] || 'Mathrone Academy';
+
+      // Update Meta Description for SEO
       const metaDesc = document.querySelector('meta[name="description"]');
-      if (metaDesc && metaDescriptions[page]) {
-        metaDesc.setAttribute('content', metaDescriptions[page]);
+      if (metaDesc && descriptions[page]) {
+        metaDesc.setAttribute('content', descriptions[page]);
       }
-      // Add this inside navigate() after document.title = ...
-const descriptions = {
-  landing: 'Mathrone Academy connects ambitious students with hand-picked, vetted tutors for personalised 1-on-1 learning — online or at home in Rwanda.',
-  news: 'Stay updated with the latest education news, scholarships, government updates and career opportunities in Rwanda.',
-  shop: 'Buy quality learning materials — notebooks, geometry sets, science kits and more. Delivered to your door in Rwanda.',
-  about: 'Learn about Mathrone Academy — our mission, team and story of connecting students with the best tutors in Rwanda.',
-  register: 'Join Mathrone Academy today. Find a tutor or apply to become one.',
-  login: 'Sign in to your Mathrone Academy account.',
-}
+      
+      const ogDesc = document.querySelector('meta[property="og:description"]');
+      if (ogDesc && descriptions[page]) {
+        ogDesc.setAttribute('content', descriptions[page]);
+      }
 const descEl = document.querySelector('meta[name="description"]')
 if(descEl && descriptions[page]) descEl.setAttribute('content', descriptions[page])
 const ogDescEl = document.querySelector('meta[property="og:description"]')
@@ -2287,28 +2331,49 @@ if(ogDescEl && descriptions[page]) ogDescEl.setAttribute('content', descriptions
       localStorage.setItem('tc_tab', tab || '')
 
       // Push a real URL into the address bar (SEO + shareable links)
+      // Push a real URL into the address bar (SEO + shareable links)
       const urlMap = {
-        landing: '/', news: '/news', shop: '/shop', about: '/about',
-        privacy: '/privacy', terms: '/terms', login: '/login',
-        register: '/register', dashboard: '/dashboard', forum: '/forum',
-        sessions: '/sessions', messages: '/messages', profile: '/profile',
-        notifications: '/notifications', tutors: '/tutors',
-        'admin-tutors': '/admin-tutors', 'admin-students': '/admin-students',
-        'admin-sessions': '/admin-sessions', 'admin-payments': '/admin-payments',
-        'admin-exam': '/admin-exam', 'admin-shop': '/admin-shop',
-        exam: '/exam', cart: '/cart', wishlist: '/wishlist', 'my-orders': '/my-orders',
-      }
-      let newUrl = urlMap[page]
+        landing: '/', 
+        news: '/news', 
+        shop: '/shop', 
+        about: '/about',
+        privacy: '/privacy', 
+        terms: '/terms', 
+        login: '/login',
+        register: '/register', 
+        dashboard: '/dashboard', 
+        forum: '/forum',
+        sessions: '/sessions', 
+        messages: '/messages', 
+        profile: '/profile',
+        notifications: '/notifications', 
+        tutors: '/tutors',
+        cart: '/cart', 
+        wishlist: '/wishlist', 
+        'my-orders': '/my-orders',
+      };
+
+      let newUrl = urlMap[page];
+      
+      // Handle dynamic routes for News and Shop
       if (!newUrl) {
-        if (page.startsWith('news-article/')) newUrl = '/news/' + page.replace('news-article/', '')
-        else if (page.startsWith('shop-product-')) newUrl = '/shop/' + page.replace('shop-product-', '')
-        else if (page.startsWith('verify/')) newUrl = '/verify/' + page.replace('verify/', '')
-        else if (page.startsWith('reset/')) newUrl = '/reset/' + page.replace('reset/', '')
-        else if (page.startsWith('report/')) newUrl = '/report/' + page.replace('report/', '')
-        else newUrl = '/'
+        if (page.startsWith('news-article/')) {
+          newUrl = '/news/' + page.replace('news-article/', '');
+        } else if (page.startsWith('shop-product-')) {
+          newUrl = '/shop/' + page.replace('shop-product-', '');
+        } else if (page.startsWith('verify/')) {
+          newUrl = '/verify/' + page.replace('verify/', '');
+        } else if (page.startsWith('reset/')) {
+          newUrl = '/reset/' + page.replace('reset/', '');
+        } else if (page.startsWith('report/')) {
+          newUrl = '/report/' + page.replace('report/', '');
+        } else {
+          newUrl = '/';
+        }
       }
+
       if (window.location.pathname !== newUrl) {
-        history.pushState({ page, tab }, document.title, newUrl)
+        history.pushState({ page, tab }, document.title, newUrl);
       }
 
       renderPage()
@@ -3616,7 +3681,18 @@ async function openNewsPost(slugOrId){
       <button onclick="navigate('news')" style="font-size:13px;color:rgba(255,255,255,0.5);background:none;border:none;cursor:pointer">← Back to News</button>
     </div>
     `)
-    // Update meta tags for social sharing
+   
+    // Update Meta Tags dynamically for this specific news article
+    document.title = p.title + ' | Mathrone Academy News';
+    const dynamicDesc = p.content.replace(/<[^>]*>/g, '').slice(0, 160) + '...';
+    
+    document.querySelector('meta[name="description"]')?.setAttribute('content', dynamicDesc);
+    document.querySelector('meta[property="og:title"]')?.setAttribute('content', p.title);
+    document.querySelector('meta[property="og:description"]')?.setAttribute('content', dynamicDesc);
+    if (p.image_url) {
+      document.querySelector('meta[property="og:image"]')?.setAttribute('content', p.image_url);
+    }
+ // Update meta tags for social sharing
   document.title = p.title + ' | Education News Rwanda — Mathrone Academy'
 document.querySelector('meta[property="og:title"]')?.setAttribute('content', p.title + ' | Mathrone Academy Rwanda')
 document.querySelector('meta[property="og:url"]')?.setAttribute('content', 'https://mathroneacademy.pages.dev/news/' + (p.slug || p.id))
@@ -5787,9 +5863,9 @@ async function renderShop(category = 'all', search = '') {
       ${category === 'all' && !search && featuredCards ? `
       <div style="margin-bottom:48px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-          <h2 style="font-size:22px;font-weight:800;color:var(--navy)">⭐ Featured Products</h2>
+          <h1 style="font-size:22px;font-weight:800;color:var(--navy)">⭐ Featured Products</h1>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;margin:0">
+        <div class="shop-grid">
           ${featuredCards}
         </div>
       </div>` : ''}
@@ -5798,7 +5874,7 @@ async function renderShop(category = 'all', search = '') {
       ${category === 'all' && !search && bundleCards ? `
       <div style="margin-bottom:48px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-          <h2 style="font-size:22px;font-weight:800;color:var(--navy)">📦 Value Bundles</h2>
+          <h2 style="font-size:22px;font-weight:800;color:var(--navy)">Value Bundles — Mathrone Academy Learning Store</h2>
           <span style="font-size:13px;color:var(--g400)">Save more with our curated bundles</span>
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px">
@@ -5809,10 +5885,10 @@ async function renderShop(category = 'all', search = '') {
       <!-- All products -->
       <div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-          <h2 style="font-size:22px;font-weight:800;color:var(--navy)">${category==='all'&&!search?'All Products':'Search Results'} <span style="font-size:14px;font-weight:400;color:var(--g400)">(${products.length})</span></h2>
+          <h2 style="font-size:22px;font-weight:800;color:var(--navy)">${category==='all'&&!search?'Learning Materials & School Supplies in Rwanda':'Search Results'} <span style="font-size:14px;font-weight:400;color:var(--g400)">(${products.length})</span></h2>
         </div>
         ${products.length ? `
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;margin:0">
+        <div class="shop-grid">
           ${productCards}
         </div>` : `
         <div class="empty-state">
@@ -5843,7 +5919,26 @@ function openImageLightbox(src, alt) {
   lb.onclick = () => lb.remove()
   document.body.appendChild(lb)
 }
-
+async function renderRelatedProducts(productId, category, isLoggedIn) {
+  try {
+    const all = await fetch(API_URL + '/shop/products').then(r => r.json())
+    const related = (Array.isArray(all) ? all : all.products || [])
+      .filter(r => r.id !== productId && r.category === category && r.stock > 0)
+      .slice(0, 4)
+    if (!related.length) return
+    const section = document.getElementById('related-products-section')
+    if (!section) return
+    section.innerHTML = `
+      <div class="prod-full-desc" style="max-width:1400px;margin:40px auto 0;border-top:2px solid var(--g100);padding-top:36px;">
+        <h2 style="font-size:22px;font-weight:800;color:var(--navy);margin-bottom:24px;font-family:'Playfair Display',serif">
+          You may also like
+        </h2>
+        <div class="shop-grid">
+          ${related.map(p => shopProductCard(p, isLoggedIn)).join('')}
+        </div>
+      </section>`
+  } catch(e) { /* silently fail */ }
+}
 function shopProductCard(p, isLoggedIn) {
   if (!p) return ''
   
@@ -5854,21 +5949,21 @@ function shopProductCard(p, isLoggedIn) {
   return `
   <div style="background:#fff;border:1px solid var(--g100);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;transition:all .2s;box-shadow:0 1px 3px rgba(0,0,0,0.06)" onmouseover="this.style.boxShadow='0 10px 25px rgba(13,27,64,0.12)'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.06)'">
     
-    <a href="/shop/${p.id}" style="display:block;position:relative;aspect-ratio:1/1;background:var(--sky);overflow:hidden;cursor:pointer" onclick="navigate('shop-product-${p.id}', null, event)">
+    <a href="/shop/${p.id}" style="display:block;position:relative;aspect-ratio:1/1;background:#fff;overflow:hidden;cursor:pointer;border-bottom:1px solid var(--g100)" onclick="navigate('shop-product-${p.id}', null, event)">
       ${p.image_url ? `<img src="${p.image_url}" alt="Buy ${p.name} in Rwanda - Mathrone Academy Learning Store" loading="lazy" style="width:100%;height:100%;object-fit:contain;padding:12px"/>` : 
         `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:56px">🛍️</div>`}
     </a>
 
     <div style="padding:16px;flex:1;display:flex;flex-direction:column">
       <div style="font-size:14px;font-weight:800;color:var(--navy);margin-bottom:4px;cursor:pointer" onclick="navigate('shop-product-${p.id}')">${p.name}</div>
-      
-      <button onclick="navigate('shop-product-${p.id}')" style="background:none;border:none;color:var(--blue);font-size:12px;font-weight:700;cursor:pointer;padding:0;text-align:left;margin-bottom:12px">
+      ${p.description ? `<div style="font-size:12px;color:var(--g600);line-height:1.4;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${p.description}</div>` : ''}
+      <a href="/shop/${p.id}" onclick="navigate('shop-product-${p.id}', null, event)" style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--blue);text-decoration:none;margin-bottom:12px;padding:4px 10px;background:var(--sky);border-radius:999px;border:1px solid var(--sky2);transition:background .2s" onmouseover="this.style.background='var(--sky2)'" onmouseout="this.style.background='var(--sky)'">
         View full details →
-      </button>
+      </a>
 
       <div style="margin-top:auto">
         <div style="margin-bottom:12px">
-          <div style="font-size:18px;font-weight:800;color:var(--navy)">RWF ${Number(displayPrice).toLocaleString()}</div>
+          <div style="font-size:14px;font-weight:800;color:var(--navy)">RWF ${Number(displayPrice).toLocaleString()}</div>
           
           <!-- Only show discount badge and original price to members -->
           ${isLoggedIn ? `
@@ -5876,7 +5971,7 @@ function shopProductCard(p, isLoggedIn) {
               <span style="font-size:11px;color:var(--g400);text-decoration:line-through">RWF ${Number(p.price).toLocaleString()}</span>
               <span style="font-size:10px;background:#dcfce7;color:#065f46;padding:1px 4px;border-radius:4px;font-weight:700">MEMBER -3%</span>
             </div>` : 
-            `<div style="font-size:11px;color:var(--blue);cursor:pointer" onclick="navigate('login')">Login for 3% member discount</div>`
+            ``
           }
         </div>
         
@@ -5954,10 +6049,10 @@ async function renderShopProduct(productId) {
     render(`
     <!-- STICKY NAV -->
     <nav style="display:flex;align-items:center;justify-content:space-between;padding:14px 48px;border-bottom:1px solid var(--g100);background:#fff;position:sticky;top:0;z-index:100">
-      <button onclick="navigate('shop')" style="display:flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer">
+      <a href="/shop" onclick="navigate('shop', null, event)" style="display:flex;align-items:center;gap:8px;text-decoration:none">
         <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" alt="Mathrone Academy logo" style="height:34px;width:auto"/>
         <span style="font-size:16px;font-weight:700;color:var(--navy)">Mathrone Store</span>
-      </button>
+      </a>
       <div style="display:flex;gap:10px">
         <button class="btn btn-ghost btn-sm" onclick="navigate('shop')">← Back to Shop</button>
         ${isLoggedIn ? 
@@ -5969,13 +6064,13 @@ async function renderShopProduct(productId) {
     </nav>
 
 <!-- Visible Breadcrumbs -->
-<div style="max-width:1100px; margin: 10px auto; padding: 0 24px; font-size: 13px; color: var(--g400);">
-  <a onclick="navigate('landing')" style="cursor:pointer; color:var(--blue)">Home</a> / 
-  <a onclick="navigate('shop')" style="cursor:pointer; color:var(--blue)">Shop</a> / 
+<div style="max-width:1400px; margin: 10px auto; padding: 0; font-size: 13px; color: var(--g400);">
+  <a href="/" onclick="navigate('landing', null, event)" style="cursor:pointer; color:var(--blue)">Home</a> / 
+  <a href="/shop" onclick="navigate('shop', null, event)" style="cursor:pointer; color:var(--blue)">Shop</a> / 
   <span style="color:var(--g600)">${p.name}</span>
 </div>
 
-    <div style="max-width:1100px;margin:0 auto;padding:40px 24px">
+    <div style="max-width:1400px;margin:0 auto;padding:40px 0;overflow-x:hidden">
       <div class="prod-detail-container">
 
         <!-- IMAGE GALLERY COLUMN -->
@@ -5996,99 +6091,85 @@ async function renderShopProduct(productId) {
         </div>
 
         <!-- PRODUCT INFO COLUMN -->
-        <div class="prod-info-column">
-          <div style="font-size:12px;font-weight:700;color:var(--blue);text-transform:uppercase;margin-bottom:8px">${SHOP_CATEGORIES.find(c => c.id === p.category)?.label || p.category}</div>
-          <h1 class="prod-title" style="font-size:32px;font-weight:800;color:var(--navy);margin-bottom:12px">${p.name}</h1>
+        <div class="prod-info-column" style="display:flex;flex-direction:column;">
+          <a href="/shop" onclick="navigate('shop', null, event)" style="font-size:12px;font-weight:700;color:var(--blue);text-transform:uppercase;margin-bottom:8px;display:block;text-decoration:none">${SHOP_CATEGORIES.find(c => c.id === p.category)?.label || p.category}</a>
+          <h1 class="prod-title" style="font-size:20px;font-weight:800;color:var(--navy);margin-bottom:12px">${p.name}</h1>
           
           <div style="margin-bottom:20px">
-            <div style="font-size:36px;font-weight:800;color:var(--navy)">RWF ${Number(displayPrice).toLocaleString()}</div>
+            <div style="font-size:16px;font-weight:800;color:var(--navy)">RWF ${Number(displayPrice).toLocaleString()}</div>
             ${isLoggedIn ? 
               `<div style="color:var(--green);font-size:14px;font-weight:700">✅ Member Discount Applied</div>` : 
-              `<div style="color:var(--g600);font-size:14px">Guest Price. <a onclick="navigate('login')" style="color:var(--blue);cursor:pointer;font-weight:700">Login</a> for -3%</div>`
+              `<div style="color:var(--g600);font-size:13px">Be our member and enjoy discounts. <a onclick="navigate('register')" style="color:var(--blue);cursor:pointer;font-weight:700">Register</a> and find a Tutor.</div>`
             }
           </div>
 
           <p style="font-size:16px;color:var(--g600);line-height:1.6;margin-bottom:20px">${p.description || ''}</p>
 
+          <div style="font-size:14px;color:${p.stock > 0 ? 'var(--green)' : 'var(--red)'};font-weight:700;margin-bottom:10px">
+             ${p.stock > 0 ? `✅ In Stock (${p.stock} units)` : '❌ Out of Stock'}
+          </div>
           <div class="prod-action-btns" style="display:flex;gap:12px">
             <button onclick="${p.stock === 0 ? "toast('Out of stock','err')" : isLoggedIn ? `addToCart('${p.id}',null,'${safeName}',this)` : `addToGuestCart('${p.id}','${safeName}',${p.price},1)`}"
-              style="flex:2;background:var(--blue);color:#fff;border:none;padding:18px;border-radius:12px;cursor:pointer;font-size:16px;font-weight:700">
+              style="flex:2;background:var(--blue);color:#fff;border:none;padding:10px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700">
               🛒 Add to Cart
             </button>
             
             <button onclick="${isLoggedIn ? `toggleWishlist('${p.id}','${safeName}',this)` : `toast('Sign in to save','info')`}"
-              style="flex:1;background:#fff;border:2px solid var(--g100);padding:18px;border-radius:12px;cursor:pointer;font-size:20px" id="wish-${p.id}">🤍</button>
+              style="flex:1;background:#fff;border:2px solid var(--g100);padding:10px;border-radius:8px;cursor:pointer;font-size:15px" id="wish-${p.id}">🤍</button>
           </div>
           
-          <div style="font-size:14px;color:${p.stock > 0 ? 'var(--green)' : 'var(--red)'};font-weight:700;margin-top:15px">
-             ${p.stock > 0 ? `✅ In Stock (${p.stock} units)` : '❌ Out of Stock'}
+          
+        <!-- VIDEO UNDER BUTTONS (right column) -->
+          ${p.video_url ? `
+          <div style="margin-top:16px">
+            <div style="background:var(--navy);padding:10px 12px;border-radius:12px 12px 0 0;color:#fff;font-size:12px;font-weight:700;text-align:center">
+              📺 WATCH PRODUCT PREVIEW
+            </div>
+            <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;background:#000;border-radius:0 0 12px 12px;box-shadow:var(--sh)">
+              <iframe src="${p.video_url}"
+                      style="position:absolute;top:0;left:0;width:100%;height:100%;border:none"
+                      allowfullscreen
+                      loading="lazy">
+              </iframe>
+           </div>
+
+          <!-- WhatsApp Support Box -->
+          <div style="margin-top:12px;background:#fff;padding:16px;border-radius:12px;border:1px solid var(--g100);box-shadow:var(--sh)">
+            <p style="font-size:14px;color:var(--navy);font-weight:700;margin:0">Still have questions?</p>
+            <p style="font-size:12px;color:var(--g600);margin-top:6px;line-height:1.5">Need help or want bulk pricing? Chat with our team now.</p>
+            <a href="https://wa.me/${MATHRONE_WHATSAPP.replace(/[^0-9]/g,'')}?text=${encodeURIComponent('Hi Mathrone Academy, I have a question about: ' + p.name)}"
+               target="_blank"
+               style="display:flex;align-items:center;justify-content:center;gap:8px;background:#25D366;color:#fff;text-decoration:none;padding:11px;border-radius:8px;font-weight:700;font-size:13px;margin-top:12px">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
+              Chat on WhatsApp
+            </a>
           </div>
+          </div>` : ''}
+
         </div>
 
     </div>
 
-     <!-- RICH CONTENT SECTION: FULL DESCRIPTION & VIDEO -->
-      ${p.full_description || p.video_url ? `
-      <div style="margin-top:56px; border-top: 2px solid var(--g100); padding-top:48px;">
-        
-        <h2 style="font-size:26px; font-weight:800; color:var(--navy); margin-bottom:32px; font-family:'Playfair Display', serif">
-          Product Details
-        </h2>
+    <!-- FULL DESCRIPTION — full width below both columns -->
+    ${p.full_description ? `
+    <div class="prod-full-desc" style="max-width:1400px;margin:40px auto 0;border-top:2px solid var(--g100);padding-top:36px;">
+      <h2 style="font-size:20px;font-weight:800;color:var(--navy);margin-bottom:20px;font-family:'Playfair Display',serif">Product Details</h2>
+      <div style="font-size:15px;color:var(--g600);line-height:1.9;white-space:pre-line">${p.full_description}</div>
+    </div>` : ''}
 
-        <div style="display: flex; flex-direction: row; gap: 40px; flex-wrap: wrap;">
-          
-          <!-- TEXT CONTENT -->
-          <div style="flex: 1; min-width: 300px;">
-            <div style="font-size:16px; color:var(--g600); line-height:1.9; white-space:pre-line;">
-              ${p.full_description}
-            </div>
-          </div>
-
-          <!-- VIDEO & CONTACT SIDEBAR -->
-          ${p.video_url ? `
-          <div style="width: 100%; max-width: 420px; flex-shrink: 0;">
-            <div style="position: sticky; top: 100px;">
-              
-              <!-- Video Player -->
-              <div style="background: var(--navy); padding: 12px; border-radius: 16px 16px 0 0; color: #fff; font-size: 13px; font-weight: 700; text-align: center;">
-                📺 WATCH PRODUCT PREVIEW
-              </div>
-              <div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; background:#000; border-radius: 0 0 16px 16px; box-shadow: var(--shl)">
-                <iframe src="${p.video_url}" 
-                        style="position:absolute; top:0; left:0; width:100%; height:100%; border:none" 
-                        allowfullscreen 
-                        loading="lazy">
-                </iframe>
-              </div>
-
-              <!-- WhatsApp Support Box -->
-              <div style="margin-top: 24px; background: #fff; padding: 24px; border-radius: 16px; border: 1px solid var(--g100); box-shadow: var(--sh)">
-                 <p style="font-size: 15px; color: var(--navy); font-weight: 700; margin: 0">
-                   Still have questions?
-                 </p>
-                 <p style="font-size: 13px; color: var(--g600); margin-top: 6px; line-height: 1.5">
-                   Need help with this item or want to inquire about bulk wholesale pricing? Chat with our team now.
-                 </p>
-                 
-                 <!-- WhatsApp Button -->
-                 <a href="https://wa.me/${MATHRONE_WHATSAPP.replace(/[^0-9]/g,'')}?text=${encodeURIComponent('Hi Mathrone Academy, I have a question about the product: ' + p.name)}" 
-                    target="_blank" 
-                    style="display: flex; align-items: center; justify-content: center; gap: 10px; background: #25D366; color: #fff; text-decoration: none; padding: 14px; border-radius: 10px; font-weight: 700; font-size: 14px; margin-top: 16px; transition: transform 0.2s"
-                    onmouseover="this.style.transform='scale(1.02)'"
-                    onmouseout="this.style.transform='scale(1)'">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
-                    Chat on WhatsApp
-                 </a>
-              </div>
-            </div>
-          </div>` : ''}
-
-        </div>
-      </div>` : ''}
-
+    <div id="related-products-section"></div>
     </div>`)
+    // Update Meta Tags dynamically for this specific product
+    document.title = p.name + ' | Buy in Rwanda | Mathrone Store';
+    const prodDesc = (p.description || p.name) + ' - Available now at Mathrone Academy Store.';
+    
+    document.querySelector('meta[name="description"]')?.setAttribute('content', prodDesc);
+    document.querySelector('meta[property="og:title"]')?.setAttribute('content', p.name);
+    document.querySelector('meta[property="og:description"]')?.setAttribute('content', prodDesc);
+    if (p.image_url) {
+      document.querySelector('meta[property="og:image"]')?.setAttribute('content', p.image_url);
+    }
 
-    // Add this after the render() call in renderShopProduct():
 const existingSchema = document.getElementById('product-schema')
 if(existingSchema) existingSchema.remove()
 const productSchema = document.createElement('script')
@@ -6147,6 +6228,7 @@ document.querySelector('meta[property="twitter:title"]')?.setAttribute('content'
     document.title = p.name + ' | Buy School Supplies in Rwanda — Mathrone Academy'
     // Update URL for refresh support
     history.pushState({ page: 'shop-product-' + productId, tab: null }, document.title, '/shop/' + productId)
+  renderRelatedProducts(productId, p.category, isLoggedIn)
   }catch(e){ toast(e.message,'err'); navigate('shop') }
   
 }
@@ -10714,62 +10796,55 @@ async function saveTutorStatus(tutorId){
 
 function bootFromUrl() {
   const path = window.location.pathname;
-  const hash = window.location.hash;
-  
-  // 1. Clean the path (removes slashes)
+  // Clean path: remove leading/trailing slashes
   let clean = path.replace(/^\//, '').replace(/\/$/, '');
 
-  // 2. SEO Fix: If the path is index.html, treat it as home and clean the URL bar
-  if (clean === 'index.html') {
-    history.replaceState(null, '', '/');
-    clean = '';
+  // 1. Handle Home / Root
+  if (clean === '' || clean === 'index.html') {
+    State.page = 'landing';
+  } 
+  // 2. Handle News & Articles
+  else if (clean === 'news') {
+    State.page = 'news';
   }
-
-  const authPages = ['dashboard','sessions','messages','profile','notifications','tutors',
-    'admin-tutors','admin-students','admin-sessions','admin-payments',
-    'admin-exam','admin-shop','exam','cart','wishlist','my-orders','forum'];
-
-  // 3. Legacy hash deep links support
-  if (hash.startsWith('#verify/'))       { history.replaceState(null,'','/verify/'+hash.replace('#verify/','')); }
-  if (hash.startsWith('#reset/'))        { history.replaceState(null,'','/reset/'+hash.replace('#reset/','')); }
-  if (hash.startsWith('#report/'))       { history.replaceState(null,'','/report/'+hash.replace('#report/','')); }
-  if (hash.startsWith('#news-article/')) { history.replaceState(null,'','/news/'+hash.replace('#news-article/','')); }
-  if (hash.startsWith('#shop-product-')) { history.replaceState(null,'','/shop/'+hash.replace('#shop-product-','')); }
-
-  // 4. Routing Logic
-  if (clean === '' || clean === 'landing') State.page = 'landing';
-  else if (clean === 'news') State.page = 'news';
-  else if (clean.startsWith('news/')) State.page = 'news-article/' + clean.replace('news/', '');
-  else if (clean === 'shop') State.page = 'shop';
-  else if (clean.startsWith('shop/')) State.page = 'shop-product-' + clean.replace('shop/', '');
-  else if (clean === 'about') State.page = 'about';
-  else if (clean === 'privacy') State.page = 'privacy';
-  else if (clean === 'terms') State.page = 'terms';
-  else if (clean === 'login') State.page = 'login';
-  else if (clean === 'register') State.page = 'register';
-  else if (clean.startsWith('verify/')) State.page = 'verify/' + clean.replace('verify/', '');
-  else if (clean.startsWith('reset/')) State.page = 'reset/'  + clean.replace('reset/', '');
-  else if (clean.startsWith('report/')) State.page = 'report/' + clean.replace('report/', '');
-  else if (authPages.includes(clean)) State.page = clean;
-  else State.page = '404-not-found';
+  else if (clean.startsWith('news/')) {
+    State.page = 'news-article/' + clean.replace('news/', '');
+  } 
+  // 3. Handle Shop & Products
+  else if (clean === 'shop') {
+    State.page = 'shop';
+  }
+  else if (clean.startsWith('shop/')) {
+    State.page = 'shop-product-' + clean.replace('shop/', '');
+  } 
+  // 4. Handle Specific Auth/Static Pages
+  else {
+    const validPages = ['about', 'privacy', 'terms', 'login', 'register', 'dashboard', 'sessions', 'messages', 'profile', 'notifications', 'tutors', 'cart', 'wishlist', 'my-orders', 'forum', 'exam'];
+    
+    // Check if the path matches one of our defined pages
+    if (validPages.includes(clean)) {
+      State.page = clean;
+    } 
+    // Handle specific token-based routes
+    else if (clean.startsWith('verify/')) { State.page = 'verify/' + clean.replace('verify/', ''); }
+    else if (clean.startsWith('reset/'))  { State.page = 'reset/' + clean.replace('reset/', ''); }
+    else if (clean.startsWith('report/')) { State.page = 'report/' + clean.replace('report/', ''); }
+    // 5. Fallback to 404
+    else {
+      State.page = '404-not-found';
+    }
+  }
 
   State.tab = localStorage.getItem('tc_tab') || null;
 
-  // 5. SEO Management: Prevent indexing of 404s
+  // Manage robots for 404
   let robotMeta = document.querySelector('meta[name="robots"]');
-  if (!robotMeta) {
-    robotMeta = document.createElement('meta');
-    robotMeta.name = "robots";
-    document.head.appendChild(robotMeta);
-  }
-
   if (State.page === '404-not-found') {
-    robotMeta.setAttribute('content', 'noindex, nofollow');
+    robotMeta?.setAttribute('content', 'noindex, nofollow');
   } else {
-    robotMeta.setAttribute('content', 'index, follow');
+    robotMeta?.setAttribute('content', 'index, follow');
   }
 }
-
 // EXECUTION
 try {
   bootFromUrl();
@@ -10803,5 +10878,12 @@ try {
   navigate('landing');
 }
 </script>
+<!-- External Libraries Loaded Non-Blockingly -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.snow.min.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" defer></script>
 </body>
 </html>
