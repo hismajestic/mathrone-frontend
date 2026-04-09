@@ -2208,8 +2208,8 @@ const RWANDA_DISTRICTS = [
         const e = await r.json().catch(() => ({ detail: r.statusText }))
         const msg = typeof e.detail === 'string' ? e.detail : (e.message || JSON.stringify(e.detail) || 'Request failed')
     if(r.status===401 && (msg.toLowerCase().includes('expired') || msg.toLowerCase().includes('invalid token')) && State.user){
-          localStorage.removeItem('tc_token')
-          localStorage.removeItem('tc_refresh')
+  localStorage.removeItem('tc_access')
+  localStorage.removeItem('tc_refresh')
           State.user = null
           toast('Session expired. Please log in again.', 'err')
           if (State.page !== 'login') {
@@ -10953,31 +10953,71 @@ function bootFromUrl() {
 }
 // EXECUTION
 // FINAL BOOT EXECUTION
-try {
+async function refreshAccessToken() {
+  const refresh = localStorage.getItem('tc_refresh')
+  if (!refresh) return false
+  try {
+    const r = await fetch(API_URL + '/auth/refresh', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: refresh })
+    })
+    if (!r.ok) return false
+    const data = await r.json()
+    if (data.access_token) {
+      localStorage.setItem('tc_access', data.access_token)
+      if (data.refresh_token) localStorage.setItem('tc_refresh', data.refresh_token)
+      if (data.user) {
+        localStorage.setItem('tc_user', JSON.stringify(data.user))
+        State.user = data.user
+      }
+      return true
+    }
+    return false
+  } catch { return false }
+}
+
+async function boot() {
   bootFromUrl();
   const page = State.page;
-  
-  // Define pages that require login
+
   const authRequired = ['dashboard','sessions','messages','profile','notifications','tutors',
     'admin-tutors','admin-students','admin-sessions','admin-payments',
     'admin-exam','admin-shop','exam','cart','wishlist','my-orders','forum'];
 
   if (page === '404-not-found') {
-    renderPage(); // This will show your 404 UI
+    renderPage();
   } else if (authRequired.includes(page)) {
     if (State.user && getToken()) {
       renderPage();
       setTimeout(loadUnreadCount, 200);
+    } else if (localStorage.getItem('tc_refresh')) {
+      const ok = await refreshAccessToken()
+      if (ok) {
+        renderPage();
+        setTimeout(loadUnreadCount, 200);
+      } else {
+        clearAuth();
+        navigate('login');
+      }
     } else {
       State.user = null;
       navigate('login');
     }
   } else {
-    // Public pages (landing, news, shop, about, etc)
     renderPage();
     if (State.user && getToken()) setTimeout(loadUnreadCount, 200);
+    else if (localStorage.getItem('tc_refresh')) {
+      refreshAccessToken()
+    }
   }
-} catch(e) {
+}
+
+try {
+  boot()
+  
+  // Define pages that require login
+  } catch(e) {
   console.error('Boot error:', e);
   navigate('landing');
 }
