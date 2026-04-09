@@ -6037,14 +6037,17 @@ function shopBundleCard(b, isLoggedIn){
 // PRODUCT DETAIL PAGE
 // ══════════════════════════════════════════════════
 async function renderShopProduct(productId) {
-  const isLoggedIn = !!State.user
+  const isLoggedIn = !!State.user;
   try {
-    const p = await fetch(API_URL + '/shop/products/' + productId).then(r => r.json())
-    const allImages = [p.image_url, ...(p.extra_images || [])].filter(Boolean)
+    const p = await fetch(API_URL + '/shop/products/' + productId).then(r => r.json());
+    const allImages = [p.image_url, ...(p.extra_images || [])].filter(Boolean);
     
     // PRICE LOGIC: Members get 3% off, Guests pay full price
     const displayPrice = isLoggedIn ? (p.price * 0.97) : p.price;
     const safeName = (p.name || '').replace(/'/g, "\\'");
+
+    // EXCELLENCE FIX: Define privacyVideoUrl here so it is available below
+    const privacyVideoUrl = p.video_url ? p.video_url.replace('youtube.com', 'youtube-nocookie.com') : '';
 
     render(`
     <!-- STICKY NAV -->
