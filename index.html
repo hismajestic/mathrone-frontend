@@ -303,9 +303,17 @@
       }
     
       .grid-2 {
-        grid-template-columns: 1fr;
-        gap: 14px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    @media (max-width: 600px) {
+      .grid-2 {
+        grid-template-columns: 1fr; /* Stacks inputs vertically on phones */
+        gap: 10px;
       }
+    }
      
       .chat-wrap {
         flex-direction: column;
@@ -897,10 +905,11 @@
       box-shadow: 0 20px 70px rgba(13, 27, 64, .22);
       width: 100%;
       max-width: 540px;
-      max-height: 90vh;
-      overflow-y: auto;
+      max-height: 90vh; /* Keeps it from leaving the screen */
+      display: flex;
+      flex-direction: column; /* This is the secret for Excellence */
       animation: fadeUp .3s;
-      -webkit-overflow-scrolling: touch;
+      overflow: hidden;
     }
 
 
@@ -911,7 +920,14 @@
         max-height: 100vh;
         border-radius: 0;
       }
+      .modal-footer {
+        flex-direction: column-reverse;
+      }
+      .modal-footer .btn {
+        width: 100%;
+      }
     }
+    
 
     .modal-header {
       padding: 20px 26px;
@@ -929,15 +945,19 @@
     }
 
     .modal-body {
-      padding: 24px 26px
+      padding: 24px 26px;
+      overflow-y: auto; /* Content inside scrolls, but buttons stay fixed */
+      flex: 1;
     }
 
-    .modal-footer {
+       .modal-footer {
       padding: 16px 26px;
       border-top: 1px solid var(--g100);
       display: flex;
       gap: 10px;
-      justify-content: flex-end
+      justify-content: flex-end;
+      background: #fff;
+      z-index: 10;
     }
 
     .modal-close {
@@ -5556,77 +5576,87 @@ const MATHRONE_WHATSAPP = '+250786684285'
 let guestCart = JSON.parse(localStorage.getItem('guestCart') || '[]')
 
 function openGuestOrderModal(preItems = []){
-  const modalRoot = document.getElementById('modal-root') || document.createElement('div')
+  const modalRoot = document.getElementById('modal-root') || document.createElement('div');
   if(!document.getElementById('modal-root')){
-    modalRoot.id = 'modal-root'
-    document.body.appendChild(modalRoot)
+    modalRoot.id = 'modal-root';
+    document.body.appendChild(modalRoot);
   }
+  
   modalRoot.innerHTML = `
   <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
-    <div class="modal" style="max-width:520px">
+    <div class="modal">
       <div class="modal-header">
         <span class="modal-title">🛒 Place Your Order</span>
         <button class="modal-close" onclick="document.querySelector('.modal-overlay').remove()">✕</button>
       </div>
+      
       <div class="modal-body">
         <div style="background:var(--sky);border-radius:10px;padding:14px;margin-bottom:20px" id="guest-cart-items">
           <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:8px">Your Items:</div>
           ${preItems.map(i=>`
-          <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;padding:4px 0">
-            <span style="flex:1">${i.name}</span>
+          <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px dashed var(--g200)">
+            <span style="flex:1;padding-right:10px">${i.name}</span>
             <div style="display:flex;align-items:center;gap:8px">
-              <button onclick="updateGuestCartQty('${i.id}', ${(i.qty||1)-1})" style="width:20px;height:20px;border-radius:50%;border:1px solid var(--g100);background:#fff;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center">-</button>
-              <span style="font-weight:700;min-width:20px;text-align:center">${i.qty||1}</span>
-              <button onclick="updateGuestCartQty('${i.id}', ${(i.qty||1)+1})" style="width:20px;height:20px;border-radius:50%;border:1px solid var(--g100);background:#fff;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center">+</button>
+              <button onclick="updateGuestCartQty('${i.id}', ${(i.qty||1)-1})" style="width:24px;height:24px;border-radius:50%;border:1px solid var(--g200);background:#fff;cursor:pointer;">-</button>
+              <span style="font-weight:700;min-width:15px;text-align:center">${i.qty||1}</span>
+              <button onclick="updateGuestCartQty('${i.id}', ${(i.qty||1)+1})" style="width:24px;height:24px;border-radius:50%;border:1px solid var(--g200);background:#fff;cursor:pointer;">+</button>
             </div>
-            <span style="font-weight:700;min-width:80px;text-align:right">RWF ${Number(i.price*(i.qty||1)).toLocaleString()}</span>
+            <span style="font-weight:700;min-width:90px;text-align:right">RWF ${Number(i.price*(i.qty||1)).toLocaleString()}</span>
           </div>`).join('')}
-          <div style="border-top:1px solid var(--g100);margin-top:8px;padding-top:8px;display:flex;justify-content:space-between;font-weight:800;font-size:15px" id="guest-cart-total">
+          <div style="margin-top:12px;display:flex;justify-content:space-between;font-weight:800;font-size:16px;color:var(--navy)" id="guest-cart-total">
             <span>Total</span>
             <span>RWF ${Number(preItems.reduce((s,i)=>s+i.price*(i.qty||1),0)).toLocaleString()}</span>
           </div>
         </div>
+
         <div class="form-group">
-          <label class="form-label">Your Full Name *</label>
+          <label class="form-label">Full Name *</label>
           <input class="input" id="guest-name" placeholder="e.g. Jean Claude Mugisha"/>
         </div>
+        
         <div class="grid-2">
           <div class="form-group">
             <label class="form-label">Phone Number *</label>
-            <input class="input" id="guest-phone" placeholder="+250 788 000 000"/>
+            <input class="input" id="guest-phone" type="tel" placeholder="+250 788 000 000"/>
           </div>
           <div class="form-group">
             <label class="form-label">WhatsApp Number</label>
-            <input class="input" id="guest-whatsapp" placeholder="Same as phone if same"/>
+            <input class="input" id="guest-whatsapp" type="tel" placeholder="Optional"/>
           </div>
         </div>
+
         <div class="form-group">
           <label class="form-label">Delivery Address *</label>
           <input class="input" id="guest-address" placeholder="e.g. Kigali, Gasabo, KG 123 St"/>
         </div>
+
         <div class="form-group">
           <label class="form-label">Notes (optional)</label>
-          <textarea class="input" id="guest-notes" rows="2" placeholder="Any special instructions or preferred delivery time..."></textarea>
+          <textarea class="input" id="guest-notes" rows="2" placeholder="Preferred delivery time..."></textarea>
         </div>
-        <div style="background:#FEF3C7;border-radius:8px;padding:12px;font-size:13px;color:#92400E;margin-bottom:12px">
-          💡 Payment is made upon delivery. Our team will contact you to confirm your order.
+
+        <!-- EXCELLENCE: Moved CTA inside scrollable body to prevent overlap -->
+        <div style="background:#E0F2FE;border-radius:12px;padding:16px;margin:20px 0;text-align:center;border:1px solid #BAE6FD">
+          <div style="font-size:14px;color:#0369A1;font-weight:600">📚 Want a Tutor for you or your child?</div>
+          <button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="document.querySelector('.modal-overlay').remove(); navigate('register')">Sign Up as Student</button>
         </div>
-        <div style="background:#F0FDF4;border-radius:8px;padding:12px;font-size:13px;color:#065F46">
-          🚚 Free delivery on orders above RWF 50,000! Below that we will negotiate delivery cost with you.
+
+        <div style="background:#FFFBEB;border-radius:8px;padding:12px;font-size:12px;color:#92400E;margin-bottom:8px">
+          💡 Payment is made upon delivery.
+        </div>
+        <div style="background:#F0FDF4;border-radius:8px;padding:12px;font-size:12px;color:#166534">
+          🚚 Free delivery on orders above RWF 50,000!
         </div>
       </div>
+
       <div class="modal-footer">
         <button class="btn btn-ghost" onclick="document.querySelector('.modal-overlay').remove()">Cancel</button>
         <button class="btn btn-primary" id="guest-order-btn" onclick="submitGuestOrder(guestCart)">
-          📱 Submit Order via WhatsApp
+          📱 Submit via WhatsApp
         </button>
       </div>
-      <div style="background:#E0F2FE;border-radius:8px;padding:12px;font-size:13px;color:#0D47A1;margin-top:12px;text-align:center">
-        📚 If you want a Tutor for you or your child, press here
-        <br><button class="btn btn-primary btn-sm" style="margin-top:8px" onclick="document.querySelector('.modal-overlay').remove(); navigate('register')">Sign Up as Student</button>
-      </div>
     </div>
-  </div>`
+  </div>`;
 }
 
 function addToGuestCart(id, name, price, qty=1){
