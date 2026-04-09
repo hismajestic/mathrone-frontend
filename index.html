@@ -4114,7 +4114,6 @@ async function submitNews(postId){
     })
   }
   const title      = document.getElementById('news-title')?.value?.trim()
-  const slug       = document.getElementById('news-slug')?.value?.trim()||null
   const description= document.getElementById('news-description')?.value?.trim()||null
   const content    = document.getElementById('news-editor')?.innerHTML?.trim()
   const category   = document.getElementById('news-cat')?.value
@@ -4131,7 +4130,7 @@ async function submitNews(postId){
     if(match && match[1]) image_url = match[1]
   }
 
-  if(!title){ toast('Please add a title','err'); return }
+ if(!title){ toast('Please add a title','err'); return }
 if(!content || content === '<br>'){ toast('Please add content','err'); return }
 const slug = document.getElementById('news-slug')?.value?.trim() ||
   title.toLowerCase().trim().replace(/[^a-z0-9\s-]/g,'').replace(/\s+/g,'-')
