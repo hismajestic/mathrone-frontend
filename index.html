@@ -4132,7 +4132,9 @@ async function submitNews(postId){
   }
 
   if(!title){ toast('Please add a title','err'); return }
-  if(!content || content === '<br>'){ toast('Please add content','err'); return }
+if(!content || content === '<br>'){ toast('Please add content','err'); return }
+const slug = document.getElementById('news-slug')?.value?.trim() ||
+  title.toLowerCase().trim().replace(/[^a-z0-9\s-]/g,'').replace(/\s+/g,'-')
 
   try{
     if(postId){
