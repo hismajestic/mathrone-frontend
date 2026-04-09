@@ -6838,9 +6838,10 @@ function openAddProductModal(existing=null){
             <input class="input" id="prod-stock" type="number" min="0" value="${existing?.stock||0}" placeholder="e.g. 50"/>
           </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Short Tag</label>
-          <input class="input" id="prod-tag" value="${existing?.tag||''}" placeholder="e.g. Best Seller, New Arrival"/>
+         <div class="form-group">
+          <label class="form-label">Slug (URL)</label>
+          <input class="input" id="prod-slug" value="${existing?.slug||''}" placeholder="e.g. math-notebook-a4 (auto-generated if empty)"/>
+          <div style="font-size:11px;color:var(--g400);margin-top:4px">Leave empty to auto-generate from product name. Use only lowercase letters, numbers and hyphens.</div>
         </div>
         <div class="form-group">
           <label class="form-label">Short Tag</label>
