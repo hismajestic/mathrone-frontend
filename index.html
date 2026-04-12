@@ -2063,6 +2063,29 @@
   opacity: 0 !important;
   pointer-events: none !important;
 }
+/* Sidebar Drawer for Resources */
+#wb-resource-drawer {
+  position: fixed; top: 0; right: -420px; width: 400px; height: 100vh;
+  background: #fff; z-index: 10000; box-shadow: -10px 0 40px rgba(0,0,0,0.3);
+  transition: right 0.4s ease; display: flex; flex-direction: column;
+}
+#wb-resource-drawer.open { right: 0; }
+
+.wb-toolbar {
+  background: #fff; padding: 10px 20px; display: flex; gap: 12px; 
+  align-items: center; border-bottom: 2px solid var(--blue); z-index: 1000;
+  overflow-x: auto; flex-wrap: nowrap;
+}
+
+.tool-sep { width: 1px; height: 30px; background: var(--g200); margin: 0 5px; }
+
+.wb-btn {
+  background: #fff; border: 1px solid var(--g200); border-radius: 8px;
+  padding: 8px 12px; cursor: pointer; font-weight: 600; font-size: 13px;
+  display: flex; align-items: center; gap: 6px; white-space: nowrap;
+}
+.wb-btn:hover { background: var(--g50); }
+.wb-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
   </style>
 </head>
 
@@ -2172,9 +2195,25 @@
     // CONFIG — change API_URL if your backend runs elsewhere
     // ════════════════════════════════════════════════════════════
   
-    const API_URL = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost'
+   const API_URL = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost'
   ? 'http://127.0.0.1:8000/api/v1'
   : 'https://mathrone-backend.onrender.com/api/v1'
+
+// NEW: Client-side Supabase connection for Whiteboard
+const SB_URL = "https://hdpkjomganndiiprnpok.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkcGtqb21nYW5uZGlpcHJucG9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxMTU5ODEsImV4cCI6MjA4ODY5MTk4MX0.cNA9Eira3m5Bv0v1EFIOdzOMF08avbxYs4zKwIVleLM";
+
+// Define a variable, but don't initialize yet to avoid the crash
+let supabaseClient = null;
+
+function getSupabase() {
+  if (supabaseClient) return supabaseClient;
+  if (window.supabase) {
+    supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
+    return supabaseClient;
+  }
+  return null;
+}
   
   const CATEGORIES = [
   { id: 'academic',   icon: '📚', label: 'Academic Tutoring',      desc: 'Primary, Secondary & University subjects' },
@@ -2367,7 +2406,7 @@ function scrollToContact() {
       if (p === 'admin-exam')    return renderAdminExam()
       if (p === 'exam')          return renderExam()
       if (p === 'cart')          return renderCart()
-      if (p === 'wishlist')      return renderWishlist()
+      if (p === 'wishlist')      return hiteishlist()
       if (p === 'my-orders')     return renderMyOrders()
       if (p === 'admin-shop')    return renderAdminShop()
       renderLanding()
@@ -4849,6 +4888,31 @@ function closeCropModal(){
     // ════════════════════════════════════════════════════════════
     // HELPERS
     // ════════════════════════════════════════════════════════════
+    /** --- SEO & META HELPER --- **/
+function updatePageSEO(params) {
+  const { title, description, url, noindex, schema } = params;
+  document.title = `${title} | Mathrone Academy Rwanda`;
+  const metaDesc = document.querySelector('meta[name="description"]');
+  if (metaDesc) metaDesc.setAttribute('content', description);
+  
+  // Update Robots for search engines
+  let robots = document.getElementById('meta-robots-logic') || document.createElement('meta');
+  robots.id = 'meta-robots-logic';
+  robots.name = 'robots';
+  robots.content = noindex ? 'noindex, nofollow' : 'index, follow';
+  if (!document.getElementById('meta-robots-logic')) document.head.appendChild(robots);
+
+  // Schema Injection
+  const oldSchema = document.getElementById('dynamic-schema');
+  if (oldSchema) oldSchema.remove();
+  if (schema) {
+    const script = document.createElement('script');
+    script.id = 'dynamic-schema';
+    script.type = 'application/ld+json';
+    script.textContent = JSON.stringify(schema);
+    document.head.appendChild(script);
+  }
+}
     function avi(name = '?', size = 40, url = null) {
   if(url){
     return `<img src="${url}" alt="Profile of ${name} - Mathrone Academy" title="${name}" loading="lazy" decoding="async" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'"/>`
@@ -8381,7 +8445,7 @@ if (!locationT) { showErr(err, 'Please select your district'); btn.disabled = fa
               ${statusBadge(s.status)}
             </div>
             <div style="font-size:12px;color:var(--g400)">${fmt(s.scheduled_at)} • ${s.duration_mins} mins • ${s.mode}</div>
-            ${s.meeting_link ? `<a href="${s.meeting_link}" target="_blank" class="btn btn-primary btn-sm" style="margin-top:8px">Join Session →</a>` : ''}
+            <a href="https://meet.jit.si/MathroneMajesticV5_${s.id.replace(/-/g, '')}#config.prejoinPageEnabled=false&config.disableModeratorIndicator=true" target="_blank" class="btn btn-primary btn-sm" style="margin-top:8px">📹 Join Session →</a>
           </div>`).join('')}
         </div>` : `
         <div class="empty-state" style="padding:20px">
@@ -9532,19 +9596,432 @@ async function submitProgress(sessionId){
             <div style="font-size:12px;color:var(--g400);margin-top:3px">${fmt(s.scheduled_at)} • ${s.duration_mins} minutes</div>
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
-            ${statusBadge(s.status)}
-            ${s.meeting_link && s.status === 'scheduled' ? `<a href="${s.meeting_link}" target="_blank" class="btn btn-primary btn-sm">Join Session →</a>` : ''}
-            ${s.status === 'completed' && !s.student_rating && State.user.role === 'student' ? `<button class="btn btn-gold btn-sm" onclick="openRatingModal('${s.id}','${s.subject}')">Rate Session ⭐</button>` : ''}
-            ${s.status==='completed'&&State.user.role==='tutor'?`<button class="btn btn-primary btn-sm" onclick="openProgressModal('${s.id}','${s.subject}','${s.student_id}')">Add Feedback 📝</button>`:''}
-            ${s.status === 'completed' && s.student_rating ? `<div class="stars">${stars(s.student_rating)}</div>` : ''}
-          </div>
+    ${statusBadge(s.status)}
+    
+    <!-- Active Session Controls (Video + Whiteboard) -->
+    ${s.status === 'scheduled' ? `
+    <div style="display:flex; gap:6px; flex-wrap: wrap; justify-content: flex-end;">
+        <a href="https://meet.jit.si/MathroneMajesticV5_${s.id.replace(/-/g, '')}#config.prejoinPageEnabled=false&config.disableModeratorIndicator=true" target="_blank" class="btn btn-primary btn-sm">📹 Join Session</a>
+        <button class="btn btn-secondary btn-sm" onclick="renderWhiteboard('${s.id}')">🎨 Board</button>
+    </div>
+    ` : ''}
+
+    <!-- Student Rating Button -->
+    ${s.status === 'completed' && !s.student_rating && State.user.role === 'student' ? `
+        <button class="btn btn-gold btn-sm" onclick="openRatingModal('${s.id}','${s.subject}')">Rate Session ⭐</button>
+    ` : ''}
+
+    <!-- Tutor Feedback Button -->
+    ${s.status === 'completed' && State.user.role === 'tutor' ? `
+        <button class="btn btn-primary btn-sm" onclick="openProgressModal('${s.id}','${s.subject}','${s.student_id}')">Add Feedback 📝</button>
+    ` : ''}
+
+    <!-- Completed Stars -->
+    ${s.status === 'completed' && s.student_rating ? `<div class="stars">${stars(s.student_rating)}</div>` : ''}
+</div>
         </div>`}).join('')}
     </div>` : `<div class="empty-state"><div class="empty-icon">📅</div><div class="empty-title">No ${tab} sessions</div><div class="empty-sub">Your sessions will appear here once scheduled by admin</div></div>`}
     <div id="modal-root"></div>
     `))
       } catch (e) { toast(e.message, 'err') }
     }
+    /** --- WHITEBOARD FEATURE --- **/
+function renderWhiteboard(sessionId) {
+  // SEO Meta - Marks board as private
+  updatePageSEO({ title: "STEM Majestic Lab", description: "Visual STEM learning board.", url: `/whiteboard/${sessionId}`, noindex: true });
 
+  const html = `
+    <div style="display:flex; flex-direction:column; height: 100vh; width:100%; position:fixed; top:0; left:0; background:var(--g50); z-index:9999;">
+      
+      <!-- HEADER -->
+      <div style="background: var(--navy); padding: 10px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid var(--blue);">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" style="height:30px; filter:brightness(0) invert(1)"/>
+          <span style="color:#fff; font-weight:800; font-size:16px;">STEM MAJESTIC LAB</span>
+        </div>
+        <div style="display:flex; gap:10px;">
+           <button class="btn btn-sm" onclick="toggleResourceDrawer()" style="background:var(--gold); color:#1a1a1a; font-weight:800;">🧪 Load Labs & Sim</button>
+           <button class="btn btn-sm btn-ghost" style="color:#fff; border-color:rgba(255,255,255,0.3);" onclick="toggleSplitScreen()">📹 Toggle Video</button>
+           <button class="btn btn-sm btn-secondary" onclick="location.reload()">Exit Lab</button>
+        </div>
+      </div>
+
+      <!-- RESOURCE HUB -->
+      <div id="wb-resource-drawer">
+        <div style="padding:20px; background:var(--navy); color:#fff; display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-weight:800;">Science Hub</span>
+          <button onclick="toggleResourceDrawer()" style="background:none; border:none; color:#fff; font-size:24px; cursor:pointer;">✕</button>
+        </div>
+        <div style="padding:20px; overflow-y:auto; flex:1;">
+          <div class="form-group">
+            <label class="form-label">Paste Any Link (PhET, YouTube, Geogebra)</label>
+            <div style="display:flex; gap:5px;">
+              <input type="text" id="custom-link-input" class="input" style="min-height:40px; font-size:12px;" placeholder="https://...">
+              <button class="btn btn-primary btn-sm" onclick="loadCustomLink()">LOAD</button>
+            </div>
+          </div>
+          <div class="resource-item" onclick="loadExternalContent('https://www.geogebra.org/calculator')">📐 Geogebra Graphing</div>
+          <div class="resource-item" onclick="loadExternalContent('https://phet.colorado.edu/sims/html/forces-and-motion-basics/latest/forces-and-motion-basics_en.html')">⚡ Physics Simulation</div>
+          <div class="resource-item" onclick="loadExternalContent('https://phet.colorado.edu/sims/html/fractions-intro/latest/fractions-intro_en.html')">🔢 Math Simulation</div>
+        </div>
+      </div>
+
+      <!-- TOOLBAR -->
+      <div class="wb-toolbar">
+        <button class="wb-btn active" id="tool-pencil" onclick="setSTEMTool('pencil')">✏️ Draw</button>
+        <button class="wb-btn" id="tool-select" onclick="setSTEMTool('select')">🖱️ Select</button>
+        <button class="wb-btn" id="tool-text" onclick="addSTEMText()">Aa Text</button>
+        <button class="wb-btn" id="tool-eraser" onclick="setSTEMTool('eraser')">🧹 Eraser</button>
+        
+        <div class="tool-sep"></div>
+        
+        <button class="wb-btn" onclick="addGraduatedRuler()">📏 Ruler</button>
+        <button class="wb-btn" onclick="addProtractor()">📐 Protractor</button>
+        
+        <div class="tool-sep"></div>
+        
+        <button class="wb-btn" onclick="addSTEMShape('arrow')">↗️ Vector</button>
+        <button class="wb-btn" onclick="addSTEMShape('rect')">⬜</button>
+        <button class="wb-btn" onclick="addSTEMShape('circle')">⭕</button>
+
+        <div class="tool-sep"></div>
+
+        <div style="display:flex; align-items:center; gap:8px;">
+          <input type="color" id="wb-color" value="#1A5FFF" onchange="updateSTEMStyle()" style="width:34px; height:34px; cursor:pointer; border:none; background:none;">
+          <select id="wb-width" onchange="updateSTEMStyle()" class="input" style="width:80px; min-height:34px; font-size:12px;">
+            <option value="2">Thin</option>
+            <option value="5" selected>Med</option>
+            <option value="12">Bold</option>
+          </select>
+        </div>
+
+        <div style="flex:1"></div>
+        <button class="btn btn-sm btn-danger" onclick="clearWB()">Reset</button>
+      </div>
+
+      <!-- WORK AREA -->
+      <div style="display:flex; flex:1; overflow:hidden;">
+        <!-- VIDEO PANEL -->
+        <div id="wb-video-panel" style="flex: 0 0 350px; border-right: 3px solid var(--navy); display:none; background:#000;">
+           <iframe id="wb-jitsi-frame" allow="camera; microphone; display-capture; fullscreen" style="width:100%; height:100%; border:none;"></iframe>
+        </div>
+
+        <!-- BOARD AREA -->
+        <div style="flex:1; position:relative; overflow:hidden;">
+          <!-- LAB OVERLAY -->
+          <div id="sim-overlay" style="display:none; position:absolute; inset:0; background:#fff; z-index:500;">
+            <div style="padding:10px 20px; background:var(--navy); color:#fff; display:flex; justify-content:space-between; align-items:center;">
+              <span id="sim-title" style="font-weight:700;">Virtual STEM Lab</span>
+              <button onclick="closeExternalContent()" class="btn btn-sm btn-danger">✕ Back to Board</button>
+            </div>
+            <iframe id="sim-iframe" style="width:100%; height:calc(100% - 50px); border:none;"></iframe>
+          </div>
+
+          <div id="canvas-container" style="width:100%; height:100%; overflow:auto; display:flex; justify-content:center; align-items:center; background:#f0f2f5;">
+             <div id="grid-box" style="background:#fff; box-shadow:var(--shl);">
+                <canvas id="wb-canvas-el"></canvas>
+             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  render(html);
+  setTimeout(() => initWhiteboardSync(sessionId), 100);
+}
+async function initWhiteboardSync(sessionId) {
+  const canvas = new fabric.Canvas('wb-canvas-el', { width: 1300, height: 850, isDrawingMode: true });
+  window.wbInstance = canvas;
+  canvas.freeDrawingBrush.width = 5;
+  canvas.freeDrawingBrush.color = '#1A5FFF';
+
+  const client = getSupabase(); // Assumes your helper function exists
+  const channel = client ? client.channel('wb_' + sessionId) : null;
+
+  // --- 1. KEYBOARD DELETE ---
+  window.addEventListener('keydown', (e) => {
+    if (e.key === "Delete" || e.key === "Backspace") {
+      canvas.getActiveObjects().forEach(obj => {
+        canvas.remove(obj);
+        if(channel) channel.send({ type: 'broadcast', event: 'del', payload: { id: obj.id } });
+      });
+      canvas.discardActiveObject().renderAll();
+    }
+  });
+
+  // --- 2. GRADUATED RULER ---
+  window.addGraduatedRuler = () => {
+    setSTEMTool('select');
+    const width = 500;
+    const body = new fabric.Rect({ width, height: 50, fill: 'rgba(245, 166, 35, 0.1)', stroke: '#F5A623', strokeWidth: 2 });
+    const marks = [];
+    for (let i = 0; i <= width; i += 10) {
+      const maj = i % 50 === 0;
+      marks.push(new fabric.Line([i, 0, i, maj ? 20 : 10], { stroke: '#333', strokeWidth: 1 }));
+      if (maj) marks.push(new fabric.IText((i/10).toString(), { left: i + 2, top: 22, fontSize: 12, fontWeight: '800' }));
+    }
+    const ruler = new fabric.Group([body, ...marks], { left: 200, top: 200, id: 'rul_'+Math.random() });
+    canvas.add(ruler);
+    canvas.setActiveObject(ruler).renderAll();
+  };
+
+  // --- 3. PROTRACTOR ---
+  window.addProtractor = () => {
+    setSTEMTool('select');
+    const radius = 150;
+    const color = document.getElementById('wb-color').value;
+
+    // 1. Semi-circle background
+    const circle = new fabric.Circle({
+        radius: radius,
+        startAngle: Math.PI,
+        endAngle: 0,
+        fill: 'rgba(255, 255, 255, 0.7)',
+        stroke: color,
+        strokeWidth: 2,
+        originX: 'center',
+        originY: 'center'
+    });
+
+    const elements = [circle];
+
+    // 2. Add graduations
+    for (let i = 0; i <= 180; i += 1) {
+        const angle = (i - 180) * (Math.PI / 180);
+        let tickLen = 8;
+        let isMajor = i % 10 === 0;
+        let isMid = i % 5 === 0;
+
+        if (isMajor) tickLen = 20;
+        else if (isMid) tickLen = 13;
+
+        const x1 = Math.cos(angle) * radius;
+        const y1 = Math.sin(angle) * radius;
+        const x2 = Math.cos(angle) * (radius - tickLen);
+        const y2 = Math.sin(angle) * (radius - tickLen);
+
+        elements.push(new fabric.Line([x1, y1, x2, y2], {
+            stroke: color,
+            strokeWidth: isMajor ? 2 : 1,
+            selectable: false
+        }));
+
+        // Add degree numbers every 20 degrees
+        if (isMajor && i % 20 === 0) {
+            const tx = Math.cos(angle) * (radius - 35);
+            const ty = Math.sin(angle) * (radius - 35);
+            elements.push(new fabric.IText(i.toString(), {
+                left: tx,
+                top: ty,
+                fontSize: 14,
+                fontWeight: 'bold',
+                fill: color,
+                originX: 'center',
+                originY: 'center',
+                angle: i - 90, // Rotates text to align with radius
+                selectable: false
+            }));
+        }
+    }
+
+    // 3. Center Crosshair
+    elements.push(new fabric.Line([-10, 0, 10, 0], { stroke: color, strokeWidth: 2 }));
+    elements.push(new fabric.Line([0, -10, 0, 10], { stroke: color, strokeWidth: 2 }));
+
+    const protractor = new fabric.Group(elements, {
+        left: 400,
+        top: 300,
+        id: 'pro_' + Math.random(),
+        originX: 'center',
+        originY: 'center'
+    });
+
+    canvas.add(protractor);
+    canvas.setActiveObject(protractor).renderAll();
+};
+
+  // --- 4. TOOL CONTROL ---
+  window.setSTEMTool = (tool) => {
+    canvas.isDrawingMode = (tool === 'pencil');
+    canvas.selection = (tool === 'select');
+    document.querySelectorAll('.wb-btn').forEach(b => b.classList.remove('active'));
+    if(document.getElementById('tool-'+tool)) document.getElementById('tool-'+tool).classList.add('active');
+  };
+
+  window.addSTEMText = () => {
+    setSTEMTool('select');
+    const t = new fabric.IText('Type equation...', { left: 300, top: 300, fontSize: 24, fontFamily: 'DM Sans', fill: document.getElementById('wb-color').value });
+    canvas.add(t);
+    canvas.setActiveObject(t);
+  };
+
+  window.updateSTEMStyle = () => {
+    canvas.freeDrawingBrush.color = document.getElementById('wb-color').value;
+    canvas.freeDrawingBrush.width = parseInt(document.getElementById('wb-width').value);
+  };
+
+  // --- 5. SPLIT SCREEN & LINKS ---
+  // --- 5. SPLIT SCREEN & LINKS ---
+  window.toggleSplitScreen = () => {
+    const vidPanel = document.getElementById('wb-video-panel');
+    const isHidden = vidPanel.style.display === 'none';
+    vidPanel.style.display = isHidden ? 'block' : 'none';
+
+    if(isHidden) {
+      vidPanel.innerHTML = ''; 
+      const roomName = `MathroneMajesticV5_${sessionId.replace(/-/g, '')}`;
+      
+      const options = {
+        roomName: roomName,
+        width: '100%',
+        height: '100%',
+        parentNode: vidPanel,
+        configOverwrite: {
+          prejoinPageEnabled: false,      
+          disableModeratorIndicator: true, 
+          startWithAudioMuted: false,
+          enableWelcomePage: false
+        },
+        interfaceConfigOverwrite: {
+          TOOLBAR_BUTTONS: ['microphone', 'camera', 'desktop', 'chat', 'raisehand', 'tileview', 'mute-everyone', 'hangup']
+        },
+        userInfo: {
+          displayName: (State.user.role === 'tutor' ? 'Tutor: ' : 'Student: ') + State.user.full_name
+        }
+      };
+      new JitsiMeetExternalAPI("meet.jit.si", options);
+    }
+  };
+
+  window.toggleResourceDrawer = () => document.getElementById('wb-resource-drawer').classList.toggle('open');
+  
+  window.loadExternalContent = (url) => {
+    document.getElementById('sim-iframe').src = url;
+    document.getElementById('sim-overlay').style.display = 'block';
+    toggleResourceDrawer();
+  };
+
+  // 1. Add this Library Constant at the top of your STEM functions
+const STEM_LIBRARY = [
+  { group: "Simulations", items: [
+    { n: "PhET Physics", u: "https://phet.colorado.edu/sims/html/forces-and-motion-basics/latest/forces-and-motion-basics_en.html" },
+    { n: "PhET Chemistry", u: "https://phet.colorado.edu/sims/html/build-an-atom/latest/build-an-atom_en.html" },
+    { n: "PhET Math", u: "https://phet.colorado.edu/sims/html/fractions-intro/latest/fractions-intro_en.html" },
+    { n: "Virtual Biology Lab", u: "https://learn.genetics.utah.edu/content/labs/" }
+  ]},
+  { group: "Mathematics", items: [
+    { n: "GeoGebra Graphing", u: "https://www.geogebra.org/calculator" },
+    { n: "GeoGebra Geometry", u: "https://www.geogebra.org/geometry" },
+    { n: "Desmos Calculator", u: "https://www.desmos.com/calculator" }
+  ]},
+  { group: "Video Channels", items: [
+    { n: "Khan Academy", u: "https://www.youtube.com/embed?listType=user_uploads&list=khanacademy" },
+    { n: "CrashCourse", u: "https://www.youtube.com/embed?listType=user_uploads&list=crashcourse" }
+  ]}
+];
+
+// 2. Update the Resource Drawer HTML inside renderWhiteboard
+// Find the div id="wb-resource-drawer" and replace its inner content:
+`
+<div id="wb-resource-drawer">
+  <div style="padding:20px; background:var(--navy); color:#fff; display:flex; justify-content:space-between; align-items:center;">
+    <span style="font-weight:800;">MAJESTIC SCIENCE HUB</span>
+    <button onclick="toggleResourceDrawer()" style="background:none; border:none; color:#fff; font-size:24px; cursor:pointer;">✕</button>
+  </div>
+  <div style="padding:20px; overflow-y:auto; flex:1;">
+    <div class="form-group">
+      <label class="form-label">Load External Lab/Video (URL)</label>
+      <div style="display:flex; gap:5px;">
+        <input type="text" id="custom-link-input" class="input" style="min-height:40px;" placeholder="Paste link here...">
+        <button class="btn btn-primary btn-sm" onclick="loadCustomLink()">LOAD</button>
+      </div>
+      <small style="color:var(--g400); font-size:11px;">Supports YouTube, PhET, GeoGebra, etc.</small>
+    </div>
+    
+    ${STEM_LIBRARY.map(cat => `
+      <div style="margin-top:20px; font-weight:800; font-size:12px; color:var(--blue); text-transform:uppercase;">${cat.group}</div>
+      <div style="display:grid; grid-template-columns:1fr; gap:8px; margin-top:10px;">
+        ${cat.items.map(item => `
+          <button class="wb-btn" style="text-align:left; justify-content:flex-start; width:100%;" 
+            onclick="loadExternalContent('${item.u}', '${item.n}')">
+            🔬 ${item.n}
+          </button>
+        `).join('')}
+      </div>
+    `).join('')}
+  </div>
+</div>
+`
+
+// 3. Updated loadCustomLink function (Add to your script)
+window.loadCustomLink = () => {
+  let url = document.getElementById('custom-link-input').value.trim();
+  if(!url) return;
+
+  // Transform YouTube links
+  if(url.includes('youtube.com/watch?v=')) {
+    const vid = url.split('v=')[1].split('&')[0];
+    url = `https://www.youtube.com/embed/${vid}?autoplay=1`;
+  } else if (url.includes('youtu.be/')) {
+    const vid = url.split('.be/')[1].split('?')[0];
+    url = `https://www.youtube.com/embed/${vid}?autoplay=1`;
+  }
+  
+  // Ensure PhET links have allow-fullscreen parameters
+  if(url.includes('phet.colorado.edu')) {
+    if(!url.includes('?')) url += '?';
+    url += '&allowfullscreen';
+  }
+
+  loadExternalContent(url, "External Resource");
+};
+
+  window.closeExternalContent = () => {
+    document.getElementById('sim-overlay').style.display = 'none';
+    document.getElementById('sim-iframe').src = '';
+  };
+
+  // --- 6. REAL-TIME SYNC ---
+  if(channel) {
+    channel.on('broadcast', { event: 'draw' }, (p) => {
+      fabric.util.enlivenObjects([p.payload], (objs) => {
+        objs.forEach(o => {
+          const exist = canvas.getObjects().find(old => old.id === o.id);
+          if(exist) canvas.remove(exist);
+          o.remote = true;
+          canvas.add(o);
+        });
+        canvas.renderAll();
+      });
+    }).on('broadcast', { event: 'del' }, (p) => {
+      const target = canvas.getObjects().find(o => o.id === p.payload.id);
+      if(target) canvas.remove(target);
+      canvas.renderAll();
+    }).subscribe();
+
+    canvas.on('object:added', (e) => {
+      if(e.target.remote) return;
+      if(!e.target.id) e.target.set('id', Math.random().toString(36).substring(2,9));
+      channel.send({ type:'broadcast', event:'draw', payload: e.target.toObject(['id']) });
+    });
+    canvas.on('object:modified', (e) => {
+      if(e.target.remote) return;
+      channel.send({ type:'broadcast', event:'draw', payload: e.target.toObject(['id']) });
+    });
+  }
+  
+  window.addSTEMShape = (type) => {
+    setSTEMTool('select');
+    const color = document.getElementById('wb-color').value;
+    const props = { left: 300, top: 300, stroke: color, strokeWidth: 4, fill: 'transparent', id: 'sh_'+Math.random() };
+    let s;
+    if(type === 'rect') s = new fabric.Rect({ ...props, width: 150, height: 100 });
+    if(type === 'circle') s = new fabric.Circle({ ...props, radius: 60 });
+    if(type === 'arrow') s = new fabric.Path('M 0 0 L 120 0 L 110 -10 M 120 0 L 110 10', { ...props, fill:null });
+    canvas.add(s);
+    canvas.setActiveObject(s).renderAll();
+  };
+}
     function openRatingModal(sessionId, subject) {
       let rating = 5
       document.getElementById('modal-root').innerHTML = `
@@ -11153,5 +11630,9 @@ window.toggleMenu = function() {
   <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" defer></script>
+  <!-- SEO Safe: Defer loading libraries so they don't block page rendering -->
+   <script src="https://meet.jit.si/external_api.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js" defer></script>
 </body>
 </html>
