@@ -2200,6 +2200,20 @@
 }
 .wb-btn:hover { background: rgba(255,255,255,0.2); color: #fff; }
 .wb-btn.active { background: var(--blue); color: #fff; border-color: var(--blue2); }
+    
+    /* Enlarged Video Mode for Screen Sharing */
+    #lab-video-panel.fullscreen-video {
+      width: 90% !important;
+      height: 85% !important;
+      top: 5% !important;
+      left: 5% !important;
+      right: auto !important;
+      bottom: auto !important;
+      transition: all 0.3s ease;
+    }
+    #lab-video-panel.fullscreen-video video {
+      max-height: 100% !important;
+    }
   </style>
 </head>
 
@@ -9830,11 +9844,18 @@ function renderWhiteboard(sessionId) {
           <span style="font-size:9px;color:rgba(245,166,35,0.85);letter-spacing:2px;text-transform:uppercase;font-weight:700;">STEM Majestic Lab</span>
         </div>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
-          <button class="btn btn-sm" onclick="toggleResourceDrawer()" style="background:#F5A623; color:#1a1a1a; font-weight:800; font-size:12px;">🧪 Labs & Sims</button>
-          ${(State.user && State.user.role) ? `<button class="btn btn-sm" onclick="toggleLabVideo()" id="lab-video-btn" style="background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:12px;" title="Start video call inside the lab">📹 Video Call</button>` : `<button class="btn btn-sm" onclick="toggleSplitScreen()" id="lab-video-btn" style="background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:12px;" title="Open Jitsi video meeting (new tab)">📹 Video Meet ↗</button>`}
-          <button class="btn btn-sm" onclick="toggleShapesPanel()" style="background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:12px;">📐 Shapes</button>
-          <button class="btn btn-sm" onclick="exitMajesticLab()" style="background:#EF4444; color:#fff; font-size:12px;">✕ Exit</button>
-        </div>
+  <button class="btn btn-sm" onclick="toggleResourceDrawer()" style="background:#F5A623; color:#1a1a1a; font-weight:800; font-size:12px;">🧪 Labs & Sims</button>
+  
+  ${(State.user && State.user.role) ? `
+    <button class="btn btn-sm" onclick="toggleLabVideo()" id="lab-video-btn" style="background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:12px;" title="Start video call inside the lab">📹 Video Call</button>
+    <button class="btn btn-sm host-only" onclick="toggleScreenShare()" id="share-screen-btn" style="background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:12px; display:none;" title="Share your screen with the student">🖥️ Share Screen</button>
+  ` : `
+    <button class="btn btn-sm" onclick="toggleSplitScreen()" id="lab-video-btn" style="background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:12px;" title="Open Jitsi video meeting (new tab)">📹 Video Meet ↗</button>
+  `}
+
+  <button class="btn btn-sm" onclick="toggleShapesPanel()" style="background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:12px;">📐 Shapes</button>
+  <button class="btn btn-sm" onclick="exitMajesticLab()" style="background:#EF4444; color:#fff; font-size:12px;">✕ Exit</button>
+</div>
       </div>
 
       <!-- RESOURCE DRAWER -->
@@ -11845,44 +11866,39 @@ canvas.on('path:created', triggerCloudSave);
     channel
     .on('broadcast', { event: 'rtc-call-started' }, async (msg) => {
       if (_rtcIsMe(msg)) return;
-      // If WE started the call and someone just joined — send them the offer
-      if (_rtcStarted && _rtcIsHost) {
+      
+      const iAmHost = (State.user && (State.user.role === 'tutor' || State.user.role === 'admin')) || window._isLabHost;
+
+      // SITUATION A: I am the Host (Tutor), I already started my camera, and a Student just clicked "Join".
+      // Now I start the WebRTC handshake.
+      if (_rtcStarted && iAmHost && !msg.payload.isHost) {
         window._rtcRemoteName = msg.payload.name;
-        try { await _rtcStartAsHost(); } catch(e) {}
+        toast(`Student ${msg.payload.name} joined. Connecting video...`, 'info');
+        try { await _rtcStartAsHost(); } catch(e) { console.error("WebRTC Error:", e); }
         return;
       }
-      // If we are already in a call as non-host, ignore
-      if (_rtcStarted) return;
-      // Store the caller's name
-      window._rtcRemoteName = msg.payload.name;
 
-      // Change our video button to "Join Call" so the other person knows a call is active
-      const btn = document.getElementById('lab-video-btn');
-      if (btn && !_rtcStarted) {
-        btn.textContent = '📹 Join Call';
-        btn.style.background = 'rgba(16,185,129,0.7)';
-        btn.style.animation = 'none';
-        // Pulse animation to draw attention
-        btn.style.boxShadow = '0 0 0 0 rgba(16,185,129,0.7)';
-        btn.style.animation = 'rtcPulse 1.5s infinite';
-      }
-
-      // Also show the popup notification
-      document.getElementById('rtc-call-notif')?.remove();
-      const notif = document.createElement('div');
-      notif.id = 'rtc-call-notif';
-      notif.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#0D1B40;color:#fff;padding:16px 24px;border-radius:12px;z-index:99999;font-size:14px;font-weight:700;display:flex;gap:12px;align-items:center;box-shadow:0 8px 32px rgba(0,0,0,0.5);border:2px solid #10B981;';
-      notif.innerHTML = `📹 <strong>${msg.payload.name || 'Someone'}</strong> started a video call! <button onclick="document.getElementById('rtc-call-notif')?.remove();window.toggleLabVideo();" style="background:#10B981;color:#fff;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-weight:800;font-size:13px;">Join 📞</button> <button onclick="document.getElementById('rtc-call-notif')?.remove()" style="background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:8px;padding:8px 12px;cursor:pointer;">Later</button>`;
-      document.body.appendChild(notif);
-      // Auto-dismiss after 30 seconds
-      setTimeout(() => {
-        document.getElementById('rtc-call-notif')?.remove();
-        // Reset button if they didn't join
-        if (!_rtcStarted) {
-          const b = document.getElementById('lab-video-btn');
-          if (b) { b.textContent = '📹 Video Call'; b.style.background = 'rgba(255,255,255,0.12)'; b.style.animation = ''; b.style.boxShadow = ''; }
+      // SITUATION B: I am the Student, I see the Tutor has started a call.
+      // I show the notification and change my button color.
+      if (!_rtcStarted && msg.payload.isHost) {
+        window._rtcRemoteName = msg.payload.name;
+        
+        const btn = document.getElementById('lab-video-btn');
+        if (btn) {
+          btn.textContent = '📹 Join Call';
+          btn.style.background = 'rgba(16,185,129,0.7)';
+          btn.style.boxShadow = '0 0 0 0 rgba(16,185,129,0.7)';
+          btn.style.animation = 'rtcPulse 1.5s infinite';
         }
-      }, 30000);
+
+        document.getElementById('rtc-call-notif')?.remove();
+        const notif = document.createElement('div');
+        notif.id = 'rtc-call-notif';
+        notif.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#0D1B40;color:#fff;padding:16px 24px;border-radius:12px;z-index:99999;font-size:14px;font-weight:700;display:flex;gap:12px;align-items:center;box-shadow:0 8px 32px rgba(0,0,0,0.5);border:2px solid #10B981;';
+        notif.innerHTML = `📹 <strong>${msg.payload.name}</strong> started a video call! <button onclick="document.getElementById('rtc-call-notif')?.remove();window.toggleLabVideo();" style="background:#10B981;color:#fff;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-weight:800;font-size:13px;">Join 📞</button> <button onclick="document.getElementById('rtc-call-notif')?.remove()" style="background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:8px;padding:8px 12px;cursor:pointer;">Later</button>`;
+        document.body.appendChild(notif);
+        setTimeout(() => notif.remove(), 30000);
+      }
     })
     .on('broadcast', { event: 'rtc-offer' }, async (msg) => {
       if (_rtcIsMe(msg)) return;
@@ -11987,15 +12003,23 @@ function _rtcHidePanel() {
 
 function _rtcSetBtn(active) {
   const btn = document.getElementById('lab-video-btn');
+  const shareBtn = document.getElementById('share-screen-btn');
+  const iAmHost = !!(State.user && (State.user.role === 'tutor' || State.user.role === 'admin')) || !!window._isLabHost;
+
   if (!btn) return;
   if (active) {
     btn.style.background = 'rgba(239,68,68,0.8)';
     btn.style.color = '#fff';
     btn.textContent = '📹 End Call';
+    if (iAmHost && shareBtn) shareBtn.style.display = 'inline-flex';
   } else {
     btn.style.background = 'rgba(255,255,255,0.12)';
     btn.style.color = '#fff';
     btn.textContent = '📹 Video Call';
+    if (shareBtn) {
+      if (window._isSharingScreen) stopScreenShare();
+      shareBtn.style.display = 'none';
+    }
   }
 }
 
@@ -12033,9 +12057,15 @@ function _rtcMakePeer(remoteName) {
   _rtcPeer = new RTCPeerConnection(STUN);
 
   // When we get remote video/audio
-  _rtcPeer.ontrack = (e) => {
+   _rtcPeer.ontrack = (e) => {
     const rv = document.getElementById('lab-remote-video');
-    if (rv) { rv.srcObject = e.streams[0]; rv.play().catch(()=>{}); }
+    if (rv) { 
+      rv.srcObject = e.streams[0]; 
+      rv.play().catch(()=>{}); 
+      // ADD THIS LINE BELOW
+      rv.title = "Double-click to enlarge";
+      rv.ondblclick = () => document.getElementById('lab-video-panel').classList.toggle('fullscreen-video');
+    }
     const s = document.getElementById('lab-call-status');
     if (s) s.style.display = 'none';
     const lb = document.getElementById('lab-remote-label');
@@ -12102,45 +12132,34 @@ window.toggleLabVideo = async () => {
     return;
   }
 
+  // Define who is the host (Tutor or Guest with token)
   _rtcIsHost = !!(State.user && (State.user.role === 'tutor' || State.user.role === 'admin')) || !!window._isLabHost;
 
   try {
-    await _rtcGetMedia();
+    await _rtcGetMedia(); // Open local camera
     _rtcShowPanel();
     _rtcStarted = true;
     _rtcSetBtn(true);
 
-    if (_rtcIsHost) {
-      // Tutor: announce call then send offer
-      _rtcSend('rtc-call-started', {
-        name: State.user?.full_name || window._wbGuestName || 'Tutor',
-        isHost: true
-      });
-      // Small delay so student registers the call-started before offer arrives
-      setTimeout(async () => {
-        try { await _rtcStartAsHost(); } catch(e) {}
-      }, 800);
+    // Announce to the channel that I have opened my camera and am ready
+    _rtcSend('rtc-call-started', {
+      name: State.user?.full_name || window._wbGuestName || (_rtcIsHost ? 'Tutor' : 'Student'),
+      isHost: _rtcIsHost
+    });
+
+    if (!_rtcIsHost && _rtcPendingOffer) {
+      // If I am a student joining and an offer is already waiting, answer it now
+      try { 
+        await _rtcAnswerOffer(_rtcPendingOffer, window._rtcRemoteName || 'Partner'); 
+        _rtcPendingOffer = null; 
+      } catch(e) { toast('Connection error: ' + e.message, 'err'); }
     } else {
-      // Non-host joined — tell the caller we joined
-      _rtcSend('rtc-call-started', {
-        name: State.user?.full_name || window._wbGuestName || 'Student',
-        isHost: false
-      });
-      if (_rtcPendingOffer) {
-        // Caller sent offer already — answer it now
-        try { await _rtcAnswerOffer(_rtcPendingOffer, window._rtcRemoteName || 'Partner'); _rtcPendingOffer = null; }
-        catch(e) { toast('Could not connect: ' + e.message, 'err'); }
-      } else {
-        // No offer yet — caller will send one when they receive our rtc-call-started
-        // (handled in the rtc-call-started listener on the caller side)
-      }
+      toast(_rtcIsHost ? "Waiting for student to join..." : "Connecting to tutor...", "info");
     }
 
   } catch(e) {
-    toast('Could not access camera/mic: ' + e.message, 'err');
-    _rtcStarted = false;
-    _rtcSetBtn(false);
-    _rtcHidePanel();
+    toast('Camera error: ' + e.message, 'err');
+    _rtcStarted = false; _rtcSetBtn(false); _rtcHidePanel();
   }
 };
 
@@ -12167,6 +12186,57 @@ window.stopLabVideo = () => {
     toast('Video call ended.', 'info');
   }
 };
+window._isSharingScreen = false;
+window._originalStream = null;
+
+async function toggleScreenShare() {
+  if (window._isSharingScreen) {
+    stopScreenShare();
+    return;
+  }
+  try {
+    const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+    const screenTrack = screenStream.getVideoTracks()[0];
+
+    if (_rtcPeer && _rtcStarted) {
+      const senders = _rtcPeer.getSenders();
+      const videoSender = senders.find(s => s.track && s.track.kind === 'video');
+      if (videoSender) videoSender.replaceTrack(screenTrack);
+    }
+
+    window._originalStream = _localStream;
+    const localVid = document.getElementById('lab-local-video');
+    if (localVid) localVid.srcObject = screenStream;
+
+    const btn = document.getElementById('share-screen-btn');
+    btn.innerHTML = "🚫 Stop Sharing";
+    btn.style.background = "var(--red)";
+    window._isSharingScreen = true;
+
+    screenTrack.onended = () => stopScreenShare();
+    toast("Sharing screen... Students see your screen in the video frame.", "ok");
+  } catch (e) {
+    toast("Screen share failed: " + e.message, "err");
+  }
+}
+
+function stopScreenShare() {
+  if (!window._isSharingScreen) return;
+  const localVid = document.getElementById('lab-local-video');
+  const videoTrack = window._originalStream.getVideoTracks()[0];
+
+  if (_rtcPeer && _rtcStarted) {
+    const senders = _rtcPeer.getSenders();
+    const videoSender = senders.find(s => s.track && s.track.kind === 'video');
+    if (videoSender) videoSender.replaceTrack(videoTrack);
+  }
+
+  if (localVid) localVid.srcObject = window._originalStream;
+  const btn = document.getElementById('share-screen-btn');
+  btn.innerHTML = "🖥️ Share Screen";
+  btn.style.background = "rgba(255,255,255,0.12)";
+  window._isSharingScreen = false;
+}
 // ── Video panel drag to move ─────────────────────────────────
 (function initVideoPanelDrag() {
   // Run after DOM is ready
@@ -14374,6 +14444,14 @@ function enterPresentationMode() {
       // Only tutor gets annotation tools
       setupDocAnnotationEvents(annoCanvas);
       docSetTool('pen');
+
+      // Sync Scrolling
+      const viewport = document.getElementById('doc-viewport');
+      if (viewport) {
+        viewport.onscroll = () => {
+          broadcastDocScroll(viewport.scrollTop, viewport.scrollLeft);
+        };
+      }
     }
     resetDocZoom();
   };
@@ -14763,6 +14841,17 @@ function broadcastDocAnno(payload) {
     _docAnnoBatch = [];
   }, 40); // 40ms batching = ~25fps
 }
+let _docScrollSyncTimer = null;
+function broadcastDocScroll(top, left) {
+  const ch = window._wbChannel;
+  if (!ch) return;
+  clearTimeout(_docScrollSyncTimer);
+  _docScrollSyncTimer = setTimeout(() => {
+    try {
+      ch.send({ type: 'broadcast', event: 'doc-scroll', payload: { top, left } });
+    } catch(e) {}
+  }, 50); // 50ms delay to prevent network flooding (20fps sync)
+}
 
 // ── Student-Side: receive presentation events ────────────────
 // Add these inside the existing channel.on() chain in initWhiteboardSync
@@ -14829,6 +14918,16 @@ function setupDocStudentListeners(channel) {
         window._docAnnoCtx.clearRect(0, 0, document.getElementById('doc-anno-canvas').width, document.getElementById('doc-anno-canvas').height);
       }
       delete window._docAnnotations[msg.payload.slide];
+    })
+    .on('broadcast', { event: 'doc-scroll' }, (msg) => {
+      const viewport = document.getElementById('doc-viewport');
+      if (viewport) {
+        viewport.scrollTo({
+          top: msg.payload.top,
+          left: msg.payload.left,
+          behavior: 'auto'
+        });
+      }
     })
     .on('broadcast', { event: 'doc-zoom' }, (msg) => {
     window._docZoom = msg.payload.zoom;
