@@ -7,6 +7,8 @@
 # SPA shell caching logic
 /index.html
   Cache-Control: public, no-cache, must-revalidate
+  Vary: Accept-Encoding
+  X-Content-Type-Options: nosniff
 
 /
   Cache-Control: public, no-cache, must-revalidate
