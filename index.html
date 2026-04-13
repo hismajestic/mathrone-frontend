@@ -6341,7 +6341,6 @@ async function renderRelatedProducts(productId, category, isLoggedIn) {
 }
 function shopProductCard(p, isLoggedIn) {
   if (!p) return ''
-  const displayPrice = isLoggedIn ? (p.price * 0.97) : p.price;
   const safeName = (p.name || '').replace(/'/g, "\\'");
 
   return `
@@ -6361,7 +6360,7 @@ function shopProductCard(p, isLoggedIn) {
 
       <div style="margin-top:auto">
         <div style="margin-bottom:12px">
-          <div style="font-size:14px;font-weight:800;color:var(--navy)">RWF ${Number(displayPrice).toLocaleString()}</div>
+          <div style="font-size:14px;font-weight:800;color:var(--navy)">RWF ${isLoggedIn ? Number(p.price * 0.97).toLocaleString() : Number(p.price).toLocaleString()}</div>
           
           <!-- Only show discount badge and original price to members -->
           ${isLoggedIn ? `
@@ -6422,7 +6421,7 @@ function shopBundleCard(b, isLoggedIn){
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div style="font-size:22px;font-weight:800;color:var(--gold)">RWF ${Number(b.price).toLocaleString()}</div>
-        <button onclick="${isLoggedIn?`addToCart(null,'${b.id}','${(b.name||'').replace(/'/g,"\\'")}',this)`:`navigate('login')`}"
+        <button onclick="${isLoggedIn?`addToCart(null,'${b.id}','${(b.name||'').replace(/'/g,"\\'")}',this)`:`addToGuestCart(null,'${(b.name||'').replace(/'/g,"\\'")}',${b.price},1)`}"
           style="background:var(--gold);color:#1a1a1a;border:none;padding:10px 18px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700">
           🛒 Add Bundle
         </button>
@@ -6442,7 +6441,7 @@ async function renderShopProduct(productId) {
     const allImages = [p.image_url, ...(p.extra_images || [])].filter(Boolean);
     
     // PRICE LOGIC: Members get 3% off, Guests pay full price
-    const displayPrice = isLoggedIn ? (p.price * 0.97) : p.price;
+    const displayPrice = p.price; // Always show full price; discount shown separately for members
     const safeName = (p.name || '').replace(/'/g, "\\'");
 
     // EXCELLENCE FIX: Define privacyVideoUrl here so it is available below
@@ -6498,10 +6497,10 @@ async function renderShopProduct(productId) {
           <h1 class="prod-title" style="font-size:20px;font-weight:800;color:var(--navy);margin-bottom:12px">${p.name}</h1>
           
           <div style="margin-bottom:20px">
-            <div style="font-size:16px;font-weight:800;color:var(--navy)">RWF ${Number(displayPrice).toLocaleString()}</div>
+            <div style="font-size:16px;font-weight:800;color:var(--navy)">RWF ${isLoggedIn ? Number(p.price * 0.97).toLocaleString() : Number(p.price).toLocaleString()}</div>
             ${isLoggedIn ? 
-              `<div style="color:var(--green);font-size:14px;font-weight:700">✅ Member Discount Applied</div>` : 
-              `<div style="color:var(--g600);font-size:13px">Be our member and enjoy discounts. <a onclick="navigate('register')" style="color:var(--blue);cursor:pointer;font-weight:700">Register</a> and find a Tutor.</div>`
+              `<div style="color:var(--green);font-size:14px;font-weight:700">✅ Member Discount Applied (-3%)</div>` : 
+              `<div style="color:var(--g600);font-size:13px">Sign in to get a member discount. <a onclick="navigate('register')" style="color:var(--blue);cursor:pointer;font-weight:700">Register</a> or <a onclick="navigate('login')" style="color:var(--blue);cursor:pointer;font-weight:700">Sign In</a>.</div>`
             }
           </div>
 
