@@ -10068,7 +10068,7 @@ async function renderWhiteboard(sessionId) {
                 <button onclick="closeExternalContent()" class="btn btn-sm btn-danger" style="font-size:11px;">✕ Back to Board</button>
               </div>
             </div>
-            <iframe id="sim-iframe" allow="camera; microphone; fullscreen; accelerometer; gyroscope" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation" style="width:100%; height:calc(100% - 42px); border:none;"></iframe>
+            <iframe id="sim-iframe" allow="camera; microphone; fullscreen; accelerometer; gyroscope" sandbox="allow-scripts allow-forms allow-popups allow-presentation" style="width:100%; height:calc(100% - 42px); border:none;"></iframe>
           </div>
      <!-- DOCUMENT PRESENTATION OVERLAY -->
           <!-- DOCUMENT PRESENTATION OVERLAY (FULL SCREEN VERSION) -->
@@ -11995,9 +11995,13 @@ function _rtcSend(event, payload) {
   const ch = _rtcGetChannel();
   if (!ch) return;
   try {
-    // Safely serialize — RTCSessionDescription is not a plain object
     const safe = JSON.parse(JSON.stringify(payload));
-    ch.send({ type: 'broadcast', event, payload: { ...safe, _senderId: _rtcMyId } });
+    // Use the newer method to avoid the REST fallback warning
+    ch.send({ 
+      type: 'broadcast', 
+      event: event, 
+      payload: { ...safe, _senderId: _rtcMyId }
+    });
   } catch(e) { console.warn('_rtcSend failed:', e); }
 }
 
