@@ -10614,8 +10614,18 @@ canvas.on('path:created', triggerCloudSave);
   })();
   // ── END TABLET SUPPORT ───────────────────────────────────────────────────
   const client = getSupabase();
-  const channel = client ? client.channel('wb_' + sessionId) : null;
-  window._wbChannel = channel; // make accessible to loadExternalContent
+  if (!client) return;
+
+  // Optimized channel config to prevent REST fallback error
+  const channel = client.channel('wb_' + sessionId, {
+    config: { broadcast: { self: false, ack: false } }
+  });
+  
+  window._wbChannel = channel;
+
+  channel.subscribe((status) => {
+    if (status === 'SUBSCRIBED') console.log("Majestic Lab: Realtime Connected ✅");
+  });
 
   // Object count updater
   const updateCount = () => {
@@ -11890,36 +11900,47 @@ canvas.on('path:created', triggerCloudSave);
       
       const iAmHost = (State.user && (State.user.role === 'tutor' || State.user.role === 'admin')) || window._isLabHost;
 
-      // SITUATION A: I am the Host (Tutor), I already started my camera, and a Student just clicked "Join".
-      // Now I start the WebRTC handshake.
-      if (_rtcStarted && iAmHost && !msg.payload.isHost) {
+      // Situation: Both are now "active" in the call.
+      if (_rtcStarted) {
         window._rtcRemoteName = msg.payload.name;
-        toast(`Student ${msg.payload.name} joined. Connecting video...`, 'info');
-        try { await _rtcStartAsHost(); } catch(e) { console.error("WebRTC Error:", e); }
+        // If I am the Tutor (Host), I MUST initiate the connection offer.
+        if (iAmHost) {
+          console.log("Partner joined. I am Host, sending WebRTC offer...");
+          // We wait 1.5 seconds to ensure the student's browser is fully "listening"
+          setTimeout(async () => {
+            try { await _rtcStartAsHost(); } catch(e) { console.error("Signaling Error:", e); }
+          }, 1500);
+        } else if (!msg.payload.isReply) {
+          // If I am the student, and the tutor just joined, tell the tutor I am already here
+          // so the tutor can initiate the offer.
+          console.log("Host joined. I am Student, pinging Host to send offer...");
+          _rtcSend('rtc-call-started', {
+            name: State.user?.full_name || window._wbGuestName || 'Student',
+            isHost: false,
+            isReply: true
+          });
+        }
         return;
       }
 
-      // SITUATION B: I am the Student, I see the Tutor has started a call.
-      // I show the notification and change my button color.
-      if (!_rtcStarted && msg.payload.isHost) {
-        window._rtcRemoteName = msg.payload.name;
-        
-        const btn = document.getElementById('lab-video-btn');
-        if (btn) {
-          btn.textContent = '📹 Join Call';
-          btn.style.background = 'rgba(16,185,129,0.7)';
-          btn.style.boxShadow = '0 0 0 0 rgba(16,185,129,0.7)';
-          btn.style.animation = 'rtcPulse 1.5s infinite';
-        }
+      if (msg.payload.isReply) return; // Ignore ghost replies if I haven't joined yet
 
-        document.getElementById('rtc-call-notif')?.remove();
-        const notif = document.createElement('div');
-        notif.id = 'rtc-call-notif';
-        notif.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#0D1B40;color:#fff;padding:16px 24px;border-radius:12px;z-index:99999;font-size:14px;font-weight:700;display:flex;gap:12px;align-items:center;box-shadow:0 8px 32px rgba(0,0,0,0.5);border:2px solid #10B981;';
-        notif.innerHTML = `📹 <strong>${msg.payload.name}</strong> started a video call! <button onclick="document.getElementById('rtc-call-notif')?.remove();window.toggleLabVideo();" style="background:#10B981;color:#fff;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-weight:800;font-size:13px;">Join 📞</button> <button onclick="document.getElementById('rtc-call-notif')?.remove()" style="background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:8px;padding:8px 12px;cursor:pointer;">Later</button>`;
-        document.body.appendChild(notif);
-        setTimeout(() => notif.remove(), 30000);
+      // Situation: I haven't joined yet, show the "Incoming Call" notification.
+      window._rtcRemoteName = msg.payload.name;
+      const btn = document.getElementById('lab-video-btn');
+      if (btn) {
+        btn.textContent = '📹 Join Call';
+        btn.style.background = 'rgba(16,185,129,0.7)';
+        btn.style.animation = 'rtcPulse 1.5s infinite';
       }
+
+      document.getElementById('rtc-call-notif')?.remove();
+      const notif = document.createElement('div');
+      notif.id = 'rtc-call-notif';
+      notif.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#0D1B40;color:#fff;padding:16px 24px;border-radius:12px;z-index:99999;font-size:14px;font-weight:700;display:flex;gap:12px;align-items:center;box-shadow:0 8px 32px rgba(0,0,0,0.5);border:2px solid #10B981;';
+      notif.innerHTML = `📹 <strong>${msg.payload.name}</strong> is calling... <button onclick="document.getElementById('rtc-call-notif')?.remove();window.toggleLabVideo();" style="background:#10B981;color:#fff;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-weight:800;font-size:13px;">Answer 📞</button> <button onclick="document.getElementById('rtc-call-notif')?.remove()" style="background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:8px;padding:8px 12px;cursor:pointer;">Ignore</button>`;
+      document.body.appendChild(notif);
+      setTimeout(() => notif.remove(), 30000);
     })
     .on('broadcast', { event: 'rtc-offer' }, async (msg) => {
       if (_rtcIsMe(msg)) return;
@@ -11993,10 +12014,14 @@ function _rtcGetChannel() {
 
 function _rtcSend(event, payload) {
   const ch = _rtcGetChannel();
-  if (!ch) return;
+  // If channel doesn't exist or isn't fully 'joined', wait and retry. 
+  // This stops the "Falling back to REST" console error.
+  if (!ch || ch.state !== 'joined') {
+    setTimeout(() => _rtcSend(event, payload), 300);
+    return;
+  }
   try {
     const safe = JSON.parse(JSON.stringify(payload));
-    // Use the newer method to avoid the REST fallback warning
     ch.send({ 
       type: 'broadcast', 
       event: event, 
@@ -12157,33 +12182,36 @@ window.toggleLabVideo = async () => {
     return;
   }
 
-  // Define who is the host (Tutor or Guest with token)
+  // 1. Show the video panel UI immediately
+  _rtcShowPanel(); 
+
   _rtcIsHost = !!(State.user && (State.user.role === 'tutor' || State.user.role === 'admin')) || !!window._isLabHost;
 
   try {
-    await _rtcGetMedia(); // Open local camera
-    _rtcShowPanel();
+    // 2. Turn on the camera
+    await _rtcGetMedia(); 
     _rtcStarted = true;
     _rtcSetBtn(true);
 
-    // Announce to the channel that I have opened my camera and am ready
+    // 3. Tell the other person I am ready
     _rtcSend('rtc-call-started', {
       name: State.user?.full_name || window._wbGuestName || (_rtcIsHost ? 'Tutor' : 'Student'),
       isHost: _rtcIsHost
     });
 
+    // 4. If I am the student (Peer) and the tutor (Host) already sent an offer, answer it now
     if (!_rtcIsHost && _rtcPendingOffer) {
-      // If I am a student joining and an offer is already waiting, answer it now
-      try { 
-        await _rtcAnswerOffer(_rtcPendingOffer, window._rtcRemoteName || 'Partner'); 
-        _rtcPendingOffer = null; 
-      } catch(e) { toast('Connection error: ' + e.message, 'err'); }
-    } else {
-      toast(_rtcIsHost ? "Waiting for student to join..." : "Connecting to tutor...", "info");
+      console.log("Processing pending offer from Host...");
+      setTimeout(async () => {
+        try { 
+          await _rtcAnswerOffer(_rtcPendingOffer, window._rtcRemoteName || 'Tutor'); 
+          _rtcPendingOffer = null; 
+        } catch(e) { console.error("Answer error:", e); }
+      }, 800);
     }
 
   } catch(e) {
-    toast('Camera error: ' + e.message, 'err');
+    toast('Media Error: ' + e.message, 'err');
     _rtcStarted = false; _rtcSetBtn(false); _rtcHidePanel();
   }
 };
@@ -15002,6 +15030,8 @@ else if (ev.type === 'laser') {
     window._docStudentLaserTimer = setTimeout(() => { if(dot) dot.style.display='none'; }, 1000);
 }
       });
+}).subscribe((status) => {
+      if (status === 'SUBSCRIBED') console.log("Majestic Lab: Signaling Channel Active");
     });
 }
 // ── Text box on slide ────────────────────────────────────────
