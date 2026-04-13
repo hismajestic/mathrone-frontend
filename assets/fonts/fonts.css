@@ -1,0 +1,71 @@
+/* Self-hosted font declarations — place woff2 files in this folder
+   Download script: see README or run scripts/download-fonts.sh
+   If files are absent, the @import fallback below is used automatically */
+
+/* ── DM Sans ─────────────────────────────────────── */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('DM Sans Regular'), local('DMSans-Regular'),
+       url('/assets/fonts/dm-sans-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'DM Sans';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('DM Sans Italic'), local('DMSans-Italic'),
+       url('/assets/fonts/dm-sans-400i.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: local('DM Sans Medium'), local('DMSans-Medium'),
+       url('/assets/fonts/dm-sans-500.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: local('DM Sans SemiBold'), local('DMSans-SemiBold'),
+       url('/assets/fonts/dm-sans-600.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('DM Sans Bold'), local('DMSans-Bold'),
+       url('/assets/fonts/dm-sans-700.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: local('DM Sans ExtraBold'), local('DMSans-ExtraBold'),
+       url('/assets/fonts/dm-sans-800.woff2') format('woff2');
+}
+
+/* ── Playfair Display ────────────────────────────── */
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Playfair Display Bold'), local('PlayfairDisplay-Bold'),
+       url('/assets/fonts/playfair-700.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: local('Playfair Display Black'), local('PlayfairDisplay-Black'),
+       url('/assets/fonts/playfair-900.woff2') format('woff2');
+}

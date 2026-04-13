@@ -1,9 +1,15 @@
 User-agent: *
 Allow: /
+Allow: /shop
+Allow: /shop/
+Allow: /news
+Allow: /news/
+Allow: /tutors
+Allow: /about
+Allow: /privacy
+Allow: /terms
 
-Sitemap: https://mathroneacademy.pages.dev/sitemap.xml
-
-# Private authenticated pages — not indexable
+# Private authenticated pages
 Disallow: /dashboard
 Disallow: /messages
 Disallow: /profile
@@ -14,18 +20,23 @@ Disallow: /wishlist
 Disallow: /my-orders
 Disallow: /forum
 Disallow: /exam
-
-# Admin pages
 Disallow: /admin-tutors
 Disallow: /admin-students
 Disallow: /admin-sessions
 Disallow: /admin-payments
 Disallow: /admin-exam
 Disallow: /admin-shop
-
-# Auth flows
 Disallow: /login
 Disallow: /register
 Disallow: /verify/
 Disallow: /reset/
 Disallow: /report/
+Disallow: /lab/
+
+# Allow Googlebot to crawl JS and CSS (critical for SPA indexing)
+User-agent: Googlebot
+Allow: /app.js
+Allow: /style.css
+Allow: /components/
+
+Sitemap: https://mathroneacademy.pages.dev/sitemap.xml
