@@ -15,7 +15,7 @@
         <div style="display:flex; align-items:center; gap:12px;">
           <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" style="height:28px; filter:brightness(0) invert(1)"/>
           <span style="color:#fff; font-weight:900; font-size:15px; letter-spacing:1px;">⚗️ STEM MAJESTIC LAB</span>
-          ${isTutor ? '<span style="background:#F5A623;color:#0D1B40;font-size:10px;font-weight:900;padding:2px 8px;border-radius:99px;margin-left:4px;">TUTOR · MOD</span>' : '<span style="background:#10B981;color:#fff;font-size:10px;font-weight:900;padding:2px 8px;border-radius:99px;margin-left:4px;">STUDENT</span>'}
+          ${isTutor ? '<span style="background:#F5A623;color:#0D1B40;font-size:10px;font-weight:900;padding:2px 8px;border-radius:99px;margin-left:4px;">TUTOR � MOD</span>' : '<span style="background:#10B981;color:#fff;font-size:10px;font-weight:900;padding:2px 8px;border-radius:99px;margin-left:4px;">STUDENT</span>'}
         </div>
         <!-- CENTER BRAND -->
         <div style="position:absolute;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;pointer-events:none;user-select:none;">
@@ -110,8 +110,8 @@
 
         <!-- Formula & Greek -->
         <button class="wb-btn" onclick="openFormulaEditor()" title="Formula Editor with symbol keyboard">𝑓 Formula</button>
-        <button class="wb-btn" onclick="toggleGreekPanel()" title="Insert Greek Letters" id="greek-toggle-btn">Ω Greek</button>
-        <button class="wb-btn" onclick="toggleSciFormulas()" title="Science Formula Library — click to place on board" id="sci-formulas-btn">📋 Formulas</button>
+        <button class="wb-btn" onclick="toggleGreekPanel()" title="Insert Greek Letters" id="greek-toggle-btn">O Greek</button>
+        <button class="wb-btn" onclick="toggleSciFormulas()" title="Science Formula Library � click to place on board" id="sci-formulas-btn">📋 Formulas</button>
 
         <div class="tool-sep" style="width:1px; height:28px; background:rgba(255,255,255,0.2); margin:0 4px;"></div>
 
@@ -157,7 +157,7 @@
 
       <!-- GREEK LETTERS PANEL (slides down below toolbar) -->
       <div id="wb-greek-panel" style="display:none; background:#1a2a50; border-bottom:2px solid #0D1B40; padding:6px 14px; flex-shrink:0; flex-wrap:wrap; gap:3px; max-height:130px; overflow-y:auto;">
-        <div style="color:rgba(255,255,255,0.5); font-size:10px; font-weight:700; width:100%; margin-bottom:4px; text-transform:uppercase; letter-spacing:1px;">Lowercase — click to insert on canvas</div>
+        <div style="color:rgba(255,255,255,0.5); font-size:10px; font-weight:700; width:100%; margin-bottom:4px; text-transform:uppercase; letter-spacing:1px;">Lowercase � click to insert on canvas</div>
         <div id="greek-buttons" style="display:flex; flex-wrap:wrap; gap:3px;"></div>
       </div>
 
@@ -184,7 +184,7 @@
 
       <!-- SCIENCE FORMULAS LIBRARY PANEL -->
       <div id="wb-sci-formulas-panel" style="display:none; background:#0e1a38; border-bottom:2px solid #0D1B40; padding:8px 14px; flex-shrink:0; max-height:220px; overflow-y:auto;">
-        <div style="color:rgba(255,255,255,0.55); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">📋 Science Formula Library — click any formula to place it on the board</div>
+        <div style="color:rgba(255,255,255,0.55); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">📋 Science Formula Library � click any formula to place it on the board</div>
         <div id="sci-formula-groups" style="display:flex; flex-wrap:wrap; gap:4px;"></div>
       </div>
 
@@ -272,9 +272,9 @@
   </div>
 
   <!-- Main Viewport: Scrollable -->
-  <div id="doc-viewport" style="flex:1; overflow:auto; background:#1e1e2e; display:flex; align-items:center; justify-content:center; padding:20px;">
-    <div id="doc-zoom-container" style="position:relative; transform-origin: top center; transition: transform 0.1s ease;">
-        <div id="doc-canvas-wrap" style="position:relative; display:inline-block; line-height:0; box-shadow:0 20px 80px rgba(0,0,0,0.5);">
+  <div id="doc-viewport" style="flex:1; overflow:auto; background:#1e1e2e; padding:0;">
+    <div id="doc-zoom-container" style="position:relative; transform-origin: top left; transition: transform 0.1s ease; width:100%;">
+        <div id="doc-canvas-wrap" style="position:relative; display:block; line-height:0; box-shadow:0 20px 80px rgba(0,0,0,0.5);">
           <canvas id="doc-slide-canvas" style="display:block; background:#fff;"></canvas>
           <canvas id="doc-anno-canvas" style="position:absolute; top:0; left:0; cursor:crosshair; pointer-events:none;"></canvas>
           <div id="doc-floating-items" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:495;"></div>
@@ -325,7 +325,7 @@
           // Show a subtle prompt instead of auto-starting (respects privacy)
           const prompt = document.createElement('div');
           prompt.style.cssText = 'position:fixed;top:70px;right:16px;z-index:9999;background:#0D1B40;color:#fff;padding:12px 16px;border-radius:10px;font-size:12px;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,0.4);border:1px solid rgba(26,95,255,0.4);display:flex;gap:10px;align-items:center;';
-          prompt.innerHTML = `📹 Start video call with your session partner? <button onclick="toggleLabVideo();this.parentElement.remove();" style="background:#1A5FFF;color:#fff;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:11px;font-weight:800;">Start</button><button onclick="this.parentElement.remove()" style="background:none;border:none;color:rgba(255,255,255,0.5);cursor:pointer;font-size:14px;">✕</button>`;
+          prompt.innerHTML = `📹 Start video call with your session partner? <button onclick="toggleLabVideo();this.parentElement.remove();" style="background:#1A5FFF;color:#fff;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:11px;font-weight:800;">Start</button><button onclick="this.parentElement.remove()" style="background:none;border:none;color:rgba(255,255,255,0.5);cursor:pointer;font-size:14px;">?</button>`;
           document.body.appendChild(prompt);
           setTimeout(() => prompt?.remove(), 15000);
         }
@@ -336,7 +336,7 @@
 
 function buildLibraryHTML() {
   const STEM_LIBRARY = [
-    { group: "⚡ PhET — Physics", emoji: "⚡", items: [
+    { group: "? PhET � Physics", emoji: "?", items: [
       { n: "Forces & Motion Basics", u: "https://phet.colorado.edu/sims/html/forces-and-motion-basics/latest/forces-and-motion-basics_en.html" },
       { n: "Projectile Motion", u: "https://phet.colorado.edu/sims/html/projectile-motion/latest/projectile-motion_en.html" },
       { n: "Wave on a String", u: "https://phet.colorado.edu/sims/html/wave-on-a-string/latest/wave-on-a-string_en.html" },
@@ -352,7 +352,7 @@ function buildLibraryHTML() {
       { n: "Charges & Fields", u: "https://phet.colorado.edu/sims/html/charges-and-fields/latest/charges-and-fields_en.html" },
       { n: "Color Vision", u: "https://phet.colorado.edu/sims/html/color-vision/latest/color-vision_en.html" }
     ]},
-    { group: "🌡️ PhET — Thermodynamics", emoji: "🌡️", items: [
+    { group: "??? PhET � Thermodynamics", emoji: "???", items: [
       { n: "States of Matter", u: "https://phet.colorado.edu/sims/html/states-of-matter/latest/states-of-matter_en.html" },
       { n: "States of Matter (Basics)", u: "https://phet.colorado.edu/sims/html/states-of-matter-basics/latest/states-of-matter-basics_en.html" },
       { n: "Gas Properties", u: "https://phet.colorado.edu/sims/html/gas-properties/latest/gas-properties_en.html" },
@@ -362,7 +362,7 @@ function buildLibraryHTML() {
       { n: "Energy Forms & Changes", u: "https://phet.colorado.edu/sims/html/energy-forms-and-changes/latest/energy-forms-and-changes_en.html" },
       { n: "Fourier: Making Waves", u: "https://phet.colorado.edu/sims/html/fourier-making-waves/latest/fourier-making-waves_en.html" }
     ]},
-    { group: "⚗️ PhET — Chemistry", emoji: "🧪", items: [
+    { group: "?? PhET � Chemistry", emoji: "??", items: [
       { n: "Build an Atom", u: "https://phet.colorado.edu/sims/html/build-an-atom/latest/build-an-atom_en.html" },
       { n: "Reactants, Products & Leftovers", u: "https://phet.colorado.edu/sims/html/reactants-products-and-leftovers/latest/reactants-products-and-leftovers_en.html" },
       { n: "Molecular Shapes", u: "https://phet.colorado.edu/sims/html/molecule-shapes/latest/molecule-shapes_en.html" },
@@ -372,7 +372,7 @@ function buildLibraryHTML() {
       { n: "Molecule Polarity", u: "https://phet.colorado.edu/sims/html/molecule-polarity/latest/molecule-polarity_en.html" },
       { n: "Periodic Table (PhET)", u: "https://phet.colorado.edu/sims/html/build-a-nucleus/latest/build-a-nucleus_en.html" }
     ]},
-    { group: "📐 Mathematics Tools", emoji: "🧮", items: [
+    { group: "?? Mathematics Tools", emoji: "??", items: [
       { n: "GeoGebra Graphing", u: "https://www.geogebra.org/calculator" },
       { n: "GeoGebra Geometry", u: "https://www.geogebra.org/geometry" },
       { n: "GeoGebra 3D Calculator", u: "https://www.geogebra.org/3d" },
@@ -383,53 +383,53 @@ function buildLibraryHTML() {
       { n: "Desmos Scientific Calculator", u: "https://www.desmos.com/scientific" },
       { n: "Wolfram Alpha", u: "https://www.wolframalpha.com/" },
       { n: "Symbolab", u: "https://www.symbolab.com/" },
-      { n: "PhET — Fractions Intro", u: "https://phet.colorado.edu/sims/html/fractions-intro/latest/fractions-intro_en.html" },
-      { n: "PhET — Area Model Algebra", u: "https://phet.colorado.edu/sims/html/area-model-algebra/latest/area-model-algebra_en.html" }
+      { n: "PhET � Fractions Intro", u: "https://phet.colorado.edu/sims/html/fractions-intro/latest/fractions-intro_en.html" },
+      { n: "PhET � Area Model Algebra", u: "https://phet.colorado.edu/sims/html/area-model-algebra/latest/area-model-algebra_en.html" }
     ]},
-    { group: "🧬 Biology & Life Science", emoji: "🧫", items: [
+    { group: "?? Biology & Life Science", emoji: "??", items: [
       { n: "Learn Genetics (Utah)", u: "https://learn.genetics.utah.edu/" },
       { n: "HHMI BioInteractive", u: "https://www.biointeractive.org/classroom-resources" },
       { n: "Cells Alive", u: "https://www.cellsalive.com/" },
-      { n: "PhET — Natural Selection", u: "https://phet.colorado.edu/sims/html/natural-selection/latest/natural-selection_en.html" },
-      { n: "PhET — Gene Expression", u: "https://phet.colorado.edu/sims/html/gene-expression-essentials/latest/gene-expression-essentials_en.html" },
+      { n: "PhET � Natural Selection", u: "https://phet.colorado.edu/sims/html/natural-selection/latest/natural-selection_en.html" },
+      { n: "PhET � Gene Expression", u: "https://phet.colorado.edu/sims/html/gene-expression-essentials/latest/gene-expression-essentials_en.html" },
       { n: "Phylo (Genomics Game)", u: "https://phylo.cs.mcgill.ca/" },
       { n: "CK-12 Biology Labs", u: "https://www.ck12.org/student/" }
     ]},
-    { group: "🌍 Earth, Space & Environment", emoji: "🚀", items: [
+    { group: "?? Earth, Space & Environment", emoji: "??", items: [
       { n: "Stellarium Web (Planetarium)", u: "https://stellarium-web.org/" },
       { n: "NASA Eyes on the Solar System", u: "https://eyes.nasa.gov/apps/solar-system/#/home" },
       { n: "USGS Earthquake Map", u: "https://earthquake.usgs.gov/earthquakes/map/" },
-      { n: "PhET — Greenhouse Effect", u: "https://phet.colorado.edu/sims/html/greenhouse-effect/latest/greenhouse-effect_en.html" },
-      { n: "PhET — My Solar System", u: "https://phet.colorado.edu/sims/html/my-solar-system/latest/my-solar-system_en.html" }
+      { n: "PhET � Greenhouse Effect", u: "https://phet.colorado.edu/sims/html/greenhouse-effect/latest/greenhouse-effect_en.html" },
+      { n: "PhET � My Solar System", u: "https://phet.colorado.edu/sims/html/my-solar-system/latest/my-solar-system_en.html" }
     ]},
-    { group: "🔌 Interactive Physics & Engineering", emoji: "🎲", items: [
+    { group: "?? Interactive Physics & Engineering", emoji: "??", items: [
       { n: "Falstad Circuit Simulator", u: "https://www.falstad.com/circuit/circuitjs.html" },
       { n: "myPhysicsLab", u: "https://www.myphysicslab.com/" },
       { n: "oPhysics Simulations", u: "https://ophysics.com/" },
       { n: "Physics Classroom Interactives", u: "https://www.physicsclassroom.com/Physics-Interactives" },
-      { n: "PhET — Ohm's Law", u: "https://phet.colorado.edu/sims/html/ohms-law/latest/ohms-law_en.html" },
-      { n: "PhET — Resistance in a Wire", u: "https://phet.colorado.edu/sims/html/resistance-in-a-wire/latest/resistance-in-a-wire_en.html" }
+      { n: "PhET � Ohm's Law", u: "https://phet.colorado.edu/sims/html/ohms-law/latest/ohms-law_en.html" },
+      { n: "PhET � Resistance in a Wire", u: "https://phet.colorado.edu/sims/html/resistance-in-a-wire/latest/resistance-in-a-wire_en.html" }
     ]},
-    { group: "🎓 Video Learning", emoji: "▶️", items: [
+    { group: "?? Video Learning", emoji: "??", items: [
       { n: "Khan Academy", u: "https://www.khanacademy.org/" },
-      { n: "CrashCourse (YouTube — Physics)", u: "https://www.youtube.com/watch?v=ZM8ECpBuQYE" },
-      { n: "3Blue1Brown (YouTube — Math)", u: "https://www.youtube.com/watch?v=WUvTyaaNkzM" },
-      { n: "Kurzgesagt (YouTube — Science)", u: "https://www.youtube.com/watch?v=1AElONvi9WQ" },
+      { n: "CrashCourse (YouTube � Physics)", u: "https://www.youtube.com/watch?v=ZM8ECpBuQYE" },
+      { n: "3Blue1Brown (YouTube � Math)", u: "https://www.youtube.com/watch?v=WUvTyaaNkzM" },
+      { n: "Kurzgesagt (YouTube � Science)", u: "https://www.youtube.com/watch?v=1AElONvi9WQ" },
       { n: "MIT OpenCourseWare", u: "https://ocw.mit.edu/" },
       { n: "OpenStax Free Textbooks", u: "https://openstax.org/subjects" }
     ]},
-    { group: "🖥️ Coding & Computer Science", emoji: "💻", items: [
+    { group: "??? Coding & Computer Science", emoji: "??", items: [
       { n: "p5.js Web Editor", u: "https://editor.p5js.org/" },
       { n: "Scratch 3.0 Editor", u: "https://scratch.mit.edu/projects/editor/" },
       { n: "Blockly Games", u: "https://blockly.games/" },
       { n: "CS Unplugged", u: "https://csunplugged.org/en/" },
     ]},
-    { group: "🔬 Interactive Chemistry Tools", emoji: "⚗️", items: [
+    { group: "?? Interactive Chemistry Tools", emoji: "??", items: [
       { n: "Periodic Table (ptable.com)", u: "https://ptable.com/" },
       { n: "ChemDoodle Web", u: "https://web.chemdoodle.com/" },
       { n: "Molecular Workbench (Concord)", u: "https://learn.concord.org/" }
     ]},
-    { group: "🌊 PhysiWorld — Physics Simulations", emoji: "🌊", items: [
+    { group: "?? PhysiWorld � Physics Simulations", emoji: "??", items: [
       { n: "PhysiWorld Home", u: "https://physiworld.com/" },
       { n: "Projectile Simulator", u: "https://physiworld.com/projectile-motion/" },
       { n: "Simple Harmonic Motion", u: "https://physiworld.com/simple-harmonic-motion/" },
@@ -437,19 +437,19 @@ function buildLibraryHTML() {
       { n: "Wave Superposition", u: "https://physiworld.com/wave-superposition/" },
       { n: "Lens & Mirrors Optics", u: "https://physiworld.com/optics/" }
     ]},
-    { group: "🚗 Rigs of Rods — Physics Sandbox", emoji: "🚗", items: [
+    { group: "?? Rigs of Rods � Physics Sandbox", emoji: "??", items: [
       { n: "Rigs of Rods Official", u: "https://www.rigsofrods.org/" },
       { n: "RoR Forum & Downloads", u: "https://forum.rigsofrods.org/" },
       { n: "RoR Repository (Mods)", u: "https://repository.rigsofrods.org/" },
       { n: "RoR Documentation", u: "https://docs.rigsofrods.org/" }
     ]},
-    { group: "🔭 The Science Playground", emoji: "🧪", items: [
+    { group: "?? The Science Playground", emoji: "??", items: [
       { n: "thescienceplayground.com", u: "https://www.thescienceplayground.com/" },
       { n: "Interactive Science Experiments", u: "https://www.thescienceplayground.com/experiments/" },
       { n: "Science Games", u: "https://www.thescienceplayground.com/games/" },
       { n: "Science Videos", u: "https://www.thescienceplayground.com/videos/" }
     ]},
-    { group: "🌐 More Interactive Resources", emoji: "🌐", items: [
+    { group: "?? More Interactive Resources", emoji: "??", items: [
       { n: "Walter Fendt Physics Applets", u: "https://www.walter-fendt.de/html5/phen/" },
       { n: "nrich.maths.org", u: "https://nrich.maths.org/" },
       { n: "Polypad (Interactive Textbook)", u: "https://polypad.amplify.com/" },
@@ -457,7 +457,7 @@ function buildLibraryHTML() {
       { n: "ExploreLearning Gizmos", u: "https://www.explorelearning.com/" },
       { n: "Labster Virtual Labs", u: "https://www.labster.com/simulations/" },
       { n: "ChemCollective Virtual Lab", u: "http://chemcollective.org/vlab/vlab.php" },
-      { n: "PhET — All Simulations", u: "https://phet.colorado.edu/en/simulations/filter?type=html" }
+      { n: "PhET � All Simulations", u: "https://phet.colorado.edu/en/simulations/filter?type=html" }
     ]}
   ];
 
@@ -481,48 +481,48 @@ function buildLibraryHTML() {
 function buildShapesPanelHTML() {
   const categories = [
     { label: "2D Flat Shapes", shapes: [
-      { id: "triangle", label: "Triangle", icon: "△" },
-      { id: "square", label: "Square", icon: "⬜" },
-      { id: "rect", label: "Rectangle", icon: "▬" },
-      { id: "circle", label: "Circle", icon: "⭕" },
-      { id: "ellipse", label: "Ellipse", icon: "⬭" },
-      { id: "semicircle", label: "Semicircle", icon: "◗" },
-      { id: "sector", label: "Sector/Pie", icon: "◴" },
-      { id: "segment", label: "Arc Segment", icon: "◑" },
-      { id: "parallelogram", label: "Parallelogram", icon: "▱" },
-      { id: "rhombus", label: "Rhombus", icon: "◇" },
-      { id: "trapezium", label: "Trapezium", icon: "⏢" },
-      { id: "kite", label: "Kite", icon: "🪁" },
-      { id: "pentagon", label: "Pentagon", icon: "⬠" },
-      { id: "hexagon", label: "Hexagon", icon: "⬡" },
-      { id: "heptagon", label: "Heptagon", icon: "⬠" },
-      { id: "octagon", label: "Octagon", icon: "⯃" },
-      { id: "nonagon", label: "Nonagon", icon: "⬠" },
-      { id: "decagon", label: "Decagon", icon: "⬠" },
-      { id: "star", label: "Star (5pt)", icon: "⭐" },
-      { id: "star6", label: "Star (6pt)", icon: "✡" },
-      { id: "arrow", label: "Arrow Vector", icon: "➡" },
-      { id: "cross", label: "Cross/Plus", icon: "➕" }
+      { id: "triangle", label: "Triangle", icon: "?" },
+      { id: "square", label: "Square", icon: "?" },
+      { id: "rect", label: "Rectangle", icon: "?" },
+      { id: "circle", label: "Circle", icon: "?" },
+      { id: "ellipse", label: "Ellipse", icon: "?" },
+      { id: "semicircle", label: "Semicircle", icon: "?" },
+      { id: "sector", label: "Sector/Pie", icon: "?" },
+      { id: "segment", label: "Arc Segment", icon: "?" },
+      { id: "parallelogram", label: "Parallelogram", icon: "?" },
+      { id: "rhombus", label: "Rhombus", icon: "?" },
+      { id: "trapezium", label: "Trapezium", icon: "?" },
+      { id: "kite", label: "Kite", icon: "??" },
+      { id: "pentagon", label: "Pentagon", icon: "?" },
+      { id: "hexagon", label: "Hexagon", icon: "?" },
+      { id: "heptagon", label: "Heptagon", icon: "?" },
+      { id: "octagon", label: "Octagon", icon: "?" },
+      { id: "nonagon", label: "Nonagon", icon: "?" },
+      { id: "decagon", label: "Decagon", icon: "?" },
+      { id: "star", label: "Star (5pt)", icon: "?" },
+      { id: "star6", label: "Star (6pt)", icon: "?" },
+      { id: "arrow", label: "Arrow Vector", icon: "?" },
+      { id: "cross", label: "Cross/Plus", icon: "?" }
     ]},
     { label: "3D Solids", shapes: [
-      { id: "cube3d", label: "Cube", icon: "🧊" },
-      { id: "cuboid3d", label: "Cuboid", icon: "📦" },
-      { id: "sphere3d", label: "Sphere", icon: "🔵" },
-      { id: "cylinder3d", label: "Cylinder", icon: "🥫" },
-      { id: "cone3d", label: "Cone", icon: "🔺" },
-      { id: "pyramid3d", label: "Pyramid", icon: "🔺" },
-      { id: "tetrahedron3d", label: "Tetrahedron", icon: "🔷" },
-      { id: "octahedron3d", label: "Octahedron", icon: "🔷" },
-      { id: "hemisphere3d", label: "Hemisphere", icon: "◗" },
-      { id: "torus3d", label: "Torus", icon: "🍩" }
+      { id: "cube3d", label: "Cube", icon: "??" },
+      { id: "cuboid3d", label: "Cuboid", icon: "??" },
+      { id: "sphere3d", label: "Sphere", icon: "??" },
+      { id: "cylinder3d", label: "Cylinder", icon: "??" },
+      { id: "cone3d", label: "Cone", icon: "??" },
+      { id: "pyramid3d", label: "Pyramid", icon: "??" },
+      { id: "tetrahedron3d", label: "Tetrahedron", icon: "??" },
+      { id: "octahedron3d", label: "Octahedron", icon: "??" },
+      { id: "hemisphere3d", label: "Hemisphere", icon: "?" },
+      { id: "torus3d", label: "Torus", icon: "??" }
     ]},
     { label: "Curves & Special", shapes: [
-      { id: "parabola", label: "Parabola", icon: "∩" },
-      { id: "hyperbola", label: "Hyperbola", icon: "⊃" },
-      { id: "spiral", label: "Spiral", icon: "🌀" },
-      { id: "sinwave", label: "Sine Wave", icon: "〰" },
-      { id: "coswave", label: "Cosine Wave", icon: "〰" },
-      { id: "tanwave", label: "Tan Wave", icon: "〰" }
+      { id: "parabola", label: "Parabola", icon: "n" },
+      { id: "hyperbola", label: "Hyperbola", icon: "?" },
+      { id: "spiral", label: "Spiral", icon: "??" },
+      { id: "sinwave", label: "Sine Wave", icon: "?" },
+      { id: "coswave", label: "Cosine Wave", icon: "?" },
+      { id: "tanwave", label: "Tan Wave", icon: "?" }
     ]}
   ];
 
@@ -545,7 +545,7 @@ function buildShapesPanelHTML() {
 }
 
 async function initWhiteboardSync(sessionId) {
-  // Safety guard — if fabric still not ready, bail cleanly
+  // Safety guard � if fabric still not ready, bail cleanly
   if (!window.fabric || !window.fabric.Canvas) {
     const canvasContainer = document.getElementById('canvas-container');
     if (canvasContainer) canvasContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#fff;font-size:16px;font-weight:700;">⚠️ Drawing engine unavailable. Please refresh.</div>';
@@ -591,14 +591,14 @@ canvas.on('path:created', triggerCloudSave);
       pages[window._wbCurrentPage] = data;
       localStorage.setItem('wb_pages_' + sessionId, JSON.stringify(pages));
     } catch(e) {}
-    // Try cloud save silently — won't crash if endpoint missing
+    // Try cloud save silently � won't crash if endpoint missing
     try {
       await fetch(API_URL + '/lab/whiteboard/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ session_id: sessionId, page_index: window._wbCurrentPage, json_data: data })
       });
-    } catch (e) { /* cloud unavailable — local save already done */ }
+    } catch (e) { /* cloud unavailable � local save already done */ }
   };
 
   window.loadFromCloud = async () => {
@@ -666,9 +666,9 @@ canvas.on('path:created', triggerCloudSave);
   // --- Branded PDF EXPORT ---
   window.downloadLabAsPDF = async () => {
     if (!window.jspdf) {
-      toast("PDF library still loading, please try again in 2 seconds.", "err"); return;
+      toast("Loading PDF library...", "info");
+      try { await ensureJsPDF(); } catch(e) { toast("Failed to load PDF library.", "err"); return; }
     }
-    toast("Generating branded PDF... please wait");
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('l', 'px', [canvas.width, canvas.height]);
     const logoUrl = "https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png";
@@ -698,10 +698,10 @@ canvas.on('path:created', triggerCloudSave);
             });
             staticCanvas.add(img);
 
-            // 3. Add Page footer text — co-branded
+            // 3. Add Page footer text � co-branded
             const institutionName = window._wbInstitutionName || '';
             const footerLeft = new fabric.Text(
-              institutionName ? `${institutionName}  ·  Powered by Mathrone Academy STEM Majestic Lab` : `Mathrone Academy STEM Majestic Lab`,
+              institutionName ? `${institutionName}  �  Powered by Mathrone Academy STEM Majestic Lab` : `Mathrone Academy STEM Majestic Lab`,
               { left: 40, top: canvas.height - 38, fontSize: 13, fill: '#8A98B8', fontFamily: 'DM Sans', fontWeight: '700' }
             );
             const footerRight = new fabric.Text(`Page ${i+1} of ${window._wbNotebook.length}`, {
@@ -713,7 +713,7 @@ canvas.on('path:created', triggerCloudSave);
             // Separator line
             const footerLine = new fabric.Line([30, canvas.height - 48, canvas.width - 30, canvas.height - 48], { stroke: '#c0cce0', strokeWidth: 1 });
             staticCanvas.add(footerLine);
-            // footer variable removed — footerLeft/footerRight/footerLine already added above
+            // footer variable removed � footerLeft/footerRight/footerLine already added above
 
             staticCanvas.renderAll();
             
@@ -743,7 +743,7 @@ canvas.on('path:created', triggerCloudSave);
 
   canvas.freeDrawingBrush.width = 2;
   canvas.freeDrawingBrush.color = '#1A5FFF';
-// ── TABLET / STYLUS SUPPORT (Huion H640P, Wacom, XP-Pen, etc.) ──────────
+// -- TABLET / STYLUS SUPPORT (Huion H640P, Wacom, XP-Pen, etc.) ----------
   (() => {
     const upperCanvas = canvas.upperCanvasEl;
     // Enable pointer events for stylus pressure
@@ -754,7 +754,7 @@ canvas.on('path:created', triggerCloudSave);
       if (e.pointerType === 'pen' || e.pointerType === 'touch') {
         _stylusDown = true;
         upperCanvas.setPointerCapture(e.pointerId);
-        // Apply pressure to brush width (pressure 0–1, scale to 1–12px)
+        // Apply pressure to brush width (pressure 0�1, scale to 1�12px)
         if (e.pressure && e.pressure > 0 && canvas.isDrawingMode) {
           canvas.freeDrawingBrush.width = Math.max(1, Math.round(e.pressure * 12));
         }
@@ -777,7 +777,7 @@ canvas.on('path:created', triggerCloudSave);
     upperCanvas.addEventListener('touchstart', e => { if (canvas.isDrawingMode) e.preventDefault(); }, { passive: false });
     upperCanvas.addEventListener('touchmove', e => { if (canvas.isDrawingMode) e.preventDefault(); }, { passive: false });
   })();
-  // ── END TABLET SUPPORT ───────────────────────────────────────────────────
+  // -- END TABLET SUPPORT ---------------------------------------------------
   const client = getSupabase();
   if (!client) return;
 
@@ -900,7 +900,7 @@ canvas.on('path:created', triggerCloudSave);
     elements.push(new fabric.Line([-radius, 0, radius, 0], { stroke: color, strokeWidth: 2, selectable: false }));
     elements.push(new fabric.Line([-radius - 10, 0, radius + 10, 0], { stroke: color, strokeWidth: 1, strokeDashArray: [4, 3], selectable: false }));
 
-    // OUTER graduations (0→180, left to right)
+    // OUTER graduations (0?180, left to right)
     for (let i = 0; i <= 180; i += 1) {
       const rad = (180 - i) * (Math.PI / 180);
       const isMaj = i % 10 === 0;
@@ -918,7 +918,7 @@ canvas.on('path:created', triggerCloudSave);
       }
     }
 
-    // INNER graduations (180→0, reversed direction, shown inside)
+    // INNER graduations (180?0, reversed direction, shown inside)
     const innerR = radius - 28;
     for (let i = 0; i <= 180; i += 1) {
       const rad = (180 - i) * (Math.PI / 180);
@@ -940,13 +940,13 @@ canvas.on('path:created', triggerCloudSave);
     }
 
     // Labels
-    elements.push(new fabric.IText('0°', { left: radius + 8, top: -6, fontSize: 11, fill: '#1A5FFF', fontWeight: '900', selectable: false }));
-    elements.push(new fabric.IText('180°', { left: -radius - 32, top: -6, fontSize: 11, fill: '#1A5FFF', fontWeight: '900', selectable: false }));
-    elements.push(new fabric.IText('90°', { left: -8, top: -(radius - 10), fontSize: 11, fill: '#1A5FFF', fontWeight: '900', selectable: false }));
+    elements.push(new fabric.IText('0�', { left: radius + 8, top: -6, fontSize: 11, fill: '#1A5FFF', fontWeight: '900', selectable: false }));
+    elements.push(new fabric.IText('180�', { left: -radius - 32, top: -6, fontSize: 11, fill: '#1A5FFF', fontWeight: '900', selectable: false }));
+    elements.push(new fabric.IText('90�', { left: -8, top: -(radius - 10), fontSize: 11, fill: '#1A5FFF', fontWeight: '900', selectable: false }));
 
     // Blue outer label
-    elements.push(new fabric.IText('OUTER →', { left: 30, top: 6, fontSize: 9, fill: '#1A5FFF', selectable: false }));
-    elements.push(new fabric.IText('← INNER', { left: 30, top: 16, fontSize: 9, fill: '#F59E0B', selectable: false }));
+    elements.push(new fabric.IText('OUTER ?', { left: 30, top: 6, fontSize: 9, fill: '#1A5FFF', selectable: false }));
+    elements.push(new fabric.IText('? INNER', { left: 30, top: 16, fontSize: 9, fill: '#F59E0B', selectable: false }));
 
     // Center cross
     elements.push(new fabric.Line([-12, 0, 12, 0], { stroke: '#EF4444', strokeWidth: 2, selectable: false }));
@@ -962,8 +962,8 @@ canvas.on('path:created', triggerCloudSave);
     setSTEMTool('select');
     const color = document.getElementById('wb-color').value;
     const path = new fabric.Path('M 0 0 L 200 0 L 0 -200 Z', { fill: 'rgba(200,230,255,0.3)', stroke: color, strokeWidth: 2 });
-    const hmark = new fabric.IText('90°', { left: 5, top: -25, fontSize: 12, fill: color });
-    const label = new fabric.IText('45°-45°-90°', { left: 50, top: -50, fontSize: 10, fill: '#666' });
+    const hmark = new fabric.IText('90�', { left: 5, top: -25, fontSize: 12, fill: color });
+    const label = new fabric.IText('45�-45�-90�', { left: 50, top: -50, fontSize: 10, fill: '#666' });
     const grp = new fabric.Group([path, hmark, label], { left: 300, top: 400, id: 'sq_' + Math.random() });
     canvas.add(grp); canvas.setActiveObject(grp).renderAll();
   };
@@ -1052,15 +1052,15 @@ canvas.on('path:created', triggerCloudSave);
     const color = document.getElementById('wb-color').value;
     const els = [];
     // Isometric projection of 3D axes
-    // X axis → right
+    // X axis ? right
     els.push(new fabric.Line([0, 0, 180, 0], { stroke: '#EF4444', strokeWidth: 2.5 }));
     els.push(new fabric.Path('M 172 -6 L 180 0 L 172 6', { stroke: '#EF4444', strokeWidth: 2, fill: null }));
     els.push(new fabric.IText('x', { left: 185, top: -10, fontSize: 16, fontWeight: '900', fill: '#EF4444', fontStyle: 'italic' }));
-    // Y axis → up
+    // Y axis ? up
     els.push(new fabric.Line([0, 0, 0, -180], { stroke: '#10B981', strokeWidth: 2.5 }));
     els.push(new fabric.Path('M -6 -172 L 0 -180 L 6 -172', { stroke: '#10B981', strokeWidth: 2, fill: null }));
     els.push(new fabric.IText('y', { left: 6, top: -196, fontSize: 16, fontWeight: '900', fill: '#10B981', fontStyle: 'italic' }));
-    // Z axis → back-left (isometric)
+    // Z axis ? back-left (isometric)
     const zAngle = (210 * Math.PI) / 180;
     const zLen = 150;
     const zX = Math.cos(zAngle) * zLen;
@@ -1079,7 +1079,7 @@ canvas.on('path:created', triggerCloudSave);
       els.push(new fabric.Line([-5, py, 5, py], { stroke: '#10B981', strokeWidth: 1 }));
       if (i % 2 === 0) els.push(new fabric.IText(i.toString(), { left: 8, top: py, fontSize: 10, fill: '#10B981', originY: 'center' }));
     }
-    // Dashed guide planes (xy, xz, yz) — light outlines
+    // Dashed guide planes (xy, xz, yz) � light outlines
     els.push(new fabric.Path('M 0 0 L 120 0 L 120 -120 L 0 -120 Z', { stroke: 'rgba(239,68,68,0.2)', strokeWidth: 1, strokeDashArray: [5,4], fill: 'rgba(239,68,68,0.04)' }));
     // Origin dot
     els.push(new fabric.Circle({ radius: 5, fill: color, originX: 'center', originY: 'center' }));
@@ -1091,62 +1091,62 @@ canvas.on('path:created', triggerCloudSave);
   // --- FORMULA EDITOR ---
   const FORMULA_SYMBOLS = [
     // Superscripts & subscripts
-    { label: 'x²', ins: '²' }, { label: 'x³', ins: '³' }, { label: 'xⁿ', ins: 'ⁿ' },
-    { label: 'x₀', ins: '₀' }, { label: 'x₁', ins: '₁' }, { label: 'x₂', ins: '₂' },
+    { label: 'x�', ins: '�' }, { label: 'x�', ins: '�' }, { label: 'xn', ins: 'n' },
+    { label: 'x0', ins: '0' }, { label: 'x1', ins: '1' }, { label: 'x2', ins: '2' },
     // Operators
-    { label: '±', ins: '±' }, { label: '×', ins: '×' }, { label: '÷', ins: '÷' },
-    { label: '≤', ins: '≤' }, { label: '≥', ins: '≥' }, { label: '≠', ins: '≠' },
-    { label: '≈', ins: '≈' }, { label: '∝', ins: '∝' }, { label: '∞', ins: '∞' },
-    { label: '√', ins: '√' }, { label: '∛', ins: '∛' }, { label: '∜', ins: '∜' },
+    { label: '�', ins: '�' }, { label: '�', ins: '�' }, { label: '�', ins: '�' },
+    { label: '=', ins: '=' }, { label: '=', ins: '=' }, { label: '?', ins: '?' },
+    { label: '�', ins: '�' }, { label: '?', ins: '?' }, { label: '8', ins: '8' },
+    { label: 'v', ins: 'v' }, { label: '?', ins: '?' }, { label: '?', ins: '?' },
     // Fractions
-    { label: '½', ins: '½' }, { label: '⅓', ins: '⅓' }, { label: '¼', ins: '¼' },
-    { label: '¾', ins: '¾' }, { label: '⅔', ins: '⅔' },
-    // Calculus — LaTeX templates
-    { label: '∂', ins: '∂' }, { label: '∇', ins: '∇' }, { label: 'Δ', ins: 'Δ' },
-    { label: '∑ₙ', ins: '\\sum_{n=1}^{\\infty} ' }, { label: '∏', ins: '\\prod_{n=1}^{N} ' },
-    { label: '∫', ins: '\\int ' }, { label: '∫ₐᵇ', ins: '\\int_{a}^{b} ' },
-    { label: '∬', ins: '\\iint ' }, { label: '∮', ins: '\\oint ' },
-    { label: 'lim x→∞', ins: '\\lim_{x \\to \\infty} ' },
-    { label: 'lim x→0', ins: '\\lim_{x \\to 0} ' },
-    { label: 'lim x→a', ins: '\\lim_{x \\to a} ' },
-    { label: 'lim x→0⁺', ins: '\\lim_{x \\to 0^+} ' },
+    { label: '�', ins: '�' }, { label: '?', ins: '?' }, { label: '�', ins: '�' },
+    { label: '�', ins: '�' }, { label: '?', ins: '?' },
+    // Calculus � LaTeX templates
+    { label: '?', ins: '?' }, { label: '?', ins: '?' }, { label: '?', ins: '?' },
+    { label: '??', ins: '\\sum_{n=1}^{\\infty} ' }, { label: '?', ins: '\\prod_{n=1}^{N} ' },
+    { label: '?', ins: '\\int ' }, { label: '???', ins: '\\int_{a}^{b} ' },
+    { label: '?', ins: '\\iint ' }, { label: '?', ins: '\\oint ' },
+    { label: 'lim x?8', ins: '\\lim_{x \\to \\infty} ' },
+    { label: 'lim x?0', ins: '\\lim_{x \\to 0} ' },
+    { label: 'lim x?a', ins: '\\lim_{x \\to a} ' },
+    { label: 'lim x?0?', ins: '\\lim_{x \\to 0^+} ' },
     { label: 'frac', ins: '\\frac{a}{b}' }, { label: 'sqrt', ins: '\\sqrt{x}' },
-    { label: 'x²', ins: 'x^{2}' }, { label: 'xⁿ', ins: 'x^{n}' },
-    { label: 'd/dx', ins: '\\frac{d}{dx}' }, { label: '→', ins: '\\to ' },
+    { label: 'x�', ins: 'x^{2}' }, { label: 'xn', ins: 'x^{n}' },
+    { label: 'd/dx', ins: '\\frac{d}{dx}' }, { label: '?', ins: '\\to ' },
     // Logic & Sets
-    { label: '∈', ins: '∈' }, { label: '∉', ins: '∉' }, { label: '⊂', ins: '⊂' },
-    { label: '⊃', ins: '⊃' }, { label: '∪', ins: '∪' }, { label: '∩', ins: '∩' },
-    { label: '∀', ins: '∀' }, { label: '∃', ins: '∃' }, { label: '⇒', ins: '⇒' },
-    { label: '⇔', ins: '⇔' }, { label: '¬', ins: '¬' },
+    { label: '?', ins: '?' }, { label: '?', ins: '?' }, { label: '?', ins: '?' },
+    { label: '?', ins: '?' }, { label: '?', ins: '?' }, { label: 'n', ins: 'n' },
+    { label: '?', ins: '?' }, { label: '?', ins: '?' }, { label: '?', ins: '?' },
+    { label: '?', ins: '?' }, { label: '�', ins: '�' },
     // Geometry
-    { label: '∠', ins: '∠' }, { label: '⊥', ins: '⊥' }, { label: '∥', ins: '∥' },
-    { label: '≅', ins: '≅' }, { label: '∼', ins: '∼' }, { label: '°', ins: '°' },
+    { label: '?', ins: '?' }, { label: '?', ins: '?' }, { label: '?', ins: '?' },
+    { label: '?', ins: '?' }, { label: '~', ins: '~' }, { label: '�', ins: '�' },
     // Physics / Thermo
-    { label: 'ℏ', ins: 'ℏ' }, { label: 'ψ', ins: 'ψ' }, { label: 'Ψ', ins: 'Ψ' },
-    { label: 'λ', ins: 'λ' }, { label: 'μ', ins: 'μ' }, { label: 'σ', ins: 'σ' },
-    { label: 'ω', ins: 'ω' }, { label: 'Ω', ins: 'Ω' }, { label: 'ρ', ins: 'ρ' },
-    { label: 'η', ins: 'η' }, { label: 'τ', ins: 'τ' }, { label: 'γ', ins: 'γ' },
+    { label: '?', ins: '?' }, { label: '?', ins: '?' }, { label: '?', ins: '?' },
+    { label: '?', ins: '?' }, { label: '�', ins: '�' }, { label: 's', ins: 's' },
+    { label: '?', ins: '?' }, { label: 'O', ins: 'O' }, { label: '?', ins: '?' },
+    { label: '?', ins: '?' }, { label: 't', ins: 't' }, { label: '?', ins: '?' },
     // Common formula templates
-    { label: 'F=ma', ins: 'F = ma' }, { label: 'E=mc²', ins: 'E = mc²' },
-    { label: 'PV=nRT', ins: 'PV = nRT' }, { label: 'ΔS≥0', ins: 'ΔS ≥ 0' },
-    { label: 'a²+b²=c²', ins: 'a² + b² = c²' },
+    { label: 'F=ma', ins: 'F = ma' }, { label: 'E=mc�', ins: 'E = mc�' },
+    { label: 'PV=nRT', ins: 'PV = nRT' }, { label: '?S=0', ins: '?S = 0' },
+    { label: 'a�+b�=c�', ins: 'a� + b� = c�' },
     { label: 'v=u+at', ins: 'v = u + at' },
-    { label: 'W=QΔT', ins: 'W = QΔT' }, { label: 'η=W/Q', ins: 'η = W/Q' }
+    { label: 'W=Q?T', ins: 'W = Q?T' }, { label: '?=W/Q', ins: '? = W/Q' }
   ];
 
   const GREEK_LETTERS = [
-    { label: 'α', name: 'alpha' }, { label: 'β', name: 'beta' }, { label: 'γ', name: 'gamma' },
-    { label: 'δ', name: 'delta' }, { label: 'ε', name: 'epsilon' }, { label: 'ζ', name: 'zeta' },
-    { label: 'η', name: 'eta' }, { label: 'θ', name: 'theta' }, { label: 'ι', name: 'iota' },
-    { label: 'κ', name: 'kappa' }, { label: 'λ', name: 'lambda' }, { label: 'μ', name: 'mu' },
-    { label: 'ν', name: 'nu' }, { label: 'ξ', name: 'xi' }, { label: 'π', name: 'pi' },
-    { label: 'ρ', name: 'rho' }, { label: 'σ', name: 'sigma' }, { label: 'τ', name: 'tau' },
-    { label: 'υ', name: 'upsilon' }, { label: 'φ', name: 'phi' }, { label: 'χ', name: 'chi' },
-    { label: 'ψ', name: 'psi' }, { label: 'ω', name: 'omega' },
-    { label: 'Γ', name: 'Gamma' }, { label: 'Δ', name: 'Delta' }, { label: 'Θ', name: 'Theta' },
-    { label: 'Λ', name: 'Lambda' }, { label: 'Ξ', name: 'Xi' }, { label: 'Π', name: 'Pi' },
-    { label: 'Σ', name: 'Sigma' }, { label: 'Υ', name: 'Upsilon' }, { label: 'Φ', name: 'Phi' },
-    { label: 'Ψ', name: 'Psi' }, { label: 'Ω', name: 'Omega' }
+    { label: 'a', name: 'alpha' }, { label: '�', name: 'beta' }, { label: '?', name: 'gamma' },
+    { label: 'd', name: 'delta' }, { label: 'e', name: 'epsilon' }, { label: '?', name: 'zeta' },
+    { label: '?', name: 'eta' }, { label: '?', name: 'theta' }, { label: '?', name: 'iota' },
+    { label: '?', name: 'kappa' }, { label: '?', name: 'lambda' }, { label: '�', name: 'mu' },
+    { label: '?', name: 'nu' }, { label: '?', name: 'xi' }, { label: 'p', name: 'pi' },
+    { label: '?', name: 'rho' }, { label: 's', name: 'sigma' }, { label: 't', name: 'tau' },
+    { label: '?', name: 'upsilon' }, { label: 'f', name: 'phi' }, { label: '?', name: 'chi' },
+    { label: '?', name: 'psi' }, { label: '?', name: 'omega' },
+    { label: 'G', name: 'Gamma' }, { label: '?', name: 'Delta' }, { label: 'T', name: 'Theta' },
+    { label: '?', name: 'Lambda' }, { label: '?', name: 'Xi' }, { label: '?', name: 'Pi' },
+    { label: 'S', name: 'Sigma' }, { label: '?', name: 'Upsilon' }, { label: 'F', name: 'Phi' },
+    { label: '?', name: 'Psi' }, { label: 'O', name: 'Omega' }
   ];
 
   // Build Greek buttons
@@ -1219,51 +1219,51 @@ canvas.on('path:created', triggerCloudSave);
 
   // --- SCIENCE FORMULA LIBRARY ---
   const SCI_FORMULAS = [
-    { cat: '⚡ Mechanics', color: '#3B7BFF', formulas: [
-      'F = ma', 'W = Fd', 'P = W/t', 'KE = ½mv²', 'PE = mgh',
-      'v = u + at', 's = ut + ½at²', 'v² = u² + 2as', 'p = mv',
-      'F·Δt = Δp', 'τ = Fr', 'ω = 2πf', 'v = ωr', 'a = v²/r',
-      'F = mv²/r', 'G = 6.674×10⁻¹¹ Nm²/kg²', 'F = Gm₁m₂/r²'
+    { cat: '? Mechanics', color: '#3B7BFF', formulas: [
+      'F = ma', 'W = Fd', 'P = W/t', 'KE = �mv�', 'PE = mgh',
+      'v = u + at', 's = ut + �at�', 'v� = u� + 2as', 'p = mv',
+      'F�?t = ?p', 't = Fr', '? = 2pf', 'v = ?r', 'a = v�/r',
+      'F = mv�/r', 'G = 6.674�10?�� Nm�/kg�', 'F = Gm1m2/r�'
     ]},
-    { cat: '🌡️ Thermodynamics', color: '#F59E0B', formulas: [
-      'Q = mcΔT', 'PV = nRT', 'ΔU = Q − W', 'W = PΔV',
-      'η = 1 − Tc/Th', 'ΔS = Q/T', 'ΔS ≥ 0', 'U = (3/2)nRT',
-      'c = Q/(mΔT)', 'k = -λA(dT/dx)'
+    { cat: '??? Thermodynamics', color: '#F59E0B', formulas: [
+      'Q = mc?T', 'PV = nRT', '?U = Q - W', 'W = P?V',
+      '? = 1 - Tc/Th', '?S = Q/T', '?S = 0', 'U = (3/2)nRT',
+      'c = Q/(m?T)', 'k = -?A(dT/dx)'
     ]},
-    { cat: '⚡ Electricity', color: '#10B981', formulas: [
-      'V = IR', 'P = IV', 'P = I²R', 'P = V²/R', 'R = ρL/A',
-      'Q = CV', 'E = Q/ε₀A', 'F = qE', 'F = qvB',
-      'ε = -dΦ/dt', 'V = Ed', 'C = ε₀A/d', 'I = dQ/dt',
+    { cat: '? Electricity', color: '#10B981', formulas: [
+      'V = IR', 'P = IV', 'P = I�R', 'P = V�/R', 'R = ?L/A',
+      'Q = CV', 'E = Q/e0A', 'F = qE', 'F = qvB',
+      'e = -dF/dt', 'V = Ed', 'C = e0A/d', 'I = dQ/dt',
       'Vs/Vp = Ns/Np'
     ]},
-    { cat: '〰️ Waves & Optics', color: '#8B5CF6', formulas: [
-      'v = fλ', 'T = 1/f', 'n = c/v', 'n₁sinθ₁ = n₂sinθ₂',
-      '1/f = 1/v + 1/u', 'm = v/u', 'E = hf', 'λ = h/mv',
-      'I = P/A', 'dsinθ = nλ'
+    { cat: '?? Waves & Optics', color: '#8B5CF6', formulas: [
+      'v = f?', 'T = 1/f', 'n = c/v', 'n1sin?1 = n2sin?2',
+      '1/f = 1/v + 1/u', 'm = v/u', 'E = hf', '? = h/mv',
+      'I = P/A', 'dsin? = n?'
     ]},
-    { cat: '☢️ Modern Physics', color: '#EF4444', formulas: [
-      'E = mc²', 'E = hf', 'KE = hf − φ', 'λ = h/p',
-      'ΔxΔp ≥ ℏ/2', 'E = -13.6/n² eV', 't = t₀/√(1−v²/c²)',
-      'N = N₀e^(−λt)', 't½ = ln2/λ', 'E = mc² + KE'
+    { cat: '?? Modern Physics', color: '#EF4444', formulas: [
+      'E = mc�', 'E = hf', 'KE = hf - f', '? = h/p',
+      '?x?p = ?/2', 'E = -13.6/n� eV', 't = t0/v(1-v�/c�)',
+      'N = N0e^(-?t)', 't� = ln2/?', 'E = mc� + KE'
     ]},
-    { cat: '🧪 Chemistry', color: '#06B6D4', formulas: [
-      'PV = nRT', 'pH = -log[H⁺]', 'pH + pOH = 14',
-      'ΔG = ΔH − TΔS', 'ΔG = -nFE', 'Kc = [C]^c[D]^d/[A]^a[B]^b',
-      'E = E° − (RT/nF)lnQ', 'M₁V₁ = M₂V₂', 'n = m/M',
-      'λmax = b/T (Wien)', 'c = λν'
+    { cat: '?? Chemistry', color: '#06B6D4', formulas: [
+      'PV = nRT', 'pH = -log[H?]', 'pH + pOH = 14',
+      '?G = ?H - T?S', '?G = -nFE', 'Kc = [C]^c[D]^d/[A]^a[B]^b',
+      'E = E� - (RT/nF)lnQ', 'M1V1 = M2V2', 'n = m/M',
+      '?max = b/T (Wien)', 'c = ??'
     ]},
-    { cat: '📐 Mathematics', color: '#F5A623', formulas: [
-      'a² + b² = c²', 'A = πr²', 'C = 2πr', 'V = (4/3)πr³',
-      'A = ½bh', 'sin²θ + cos²θ = 1', 'tanθ = sinθ/cosθ',
-      'dy/dx = lim(Δy/Δx)', '∫xⁿdx = xⁿ⁺¹/(n+1) + C',
-      'det(A) = ad − bc', 'e^(iπ) + 1 = 0', 'log(ab) = loga + logb',
-      'nCr = n!/r!(n-r)!', 'f\'(x) = lim[f(x+h)−f(x)]/h'
+    { cat: '?? Mathematics', color: '#F5A623', formulas: [
+      'a� + b� = c�', 'A = pr�', 'C = 2pr', 'V = (4/3)pr�',
+      'A = �bh', 'sin�? + cos�? = 1', 'tan? = sin?/cos?',
+      'dy/dx = lim(?y/?x)', '?xndx = xn?�/(n+1) + C',
+      'det(A) = ad - bc', 'e^(ip) + 1 = 0', 'log(ab) = loga + logb',
+      'nCr = n!/r!(n-r)!', 'f\'(x) = lim[f(x+h)-f(x)]/h'
     ]},
-    { cat: '🧬 Biology', color: '#34D399', formulas: [
-      'BMI = mass(kg)/height(m)²', 'HR_max = 220 − age',
-      'osmotic pressure = iMRT', 'Q₁₀ = (R₂/R₁)^(10/(T₂−T₁))',
-      'Hardy-Weinberg: p² + 2pq + q² = 1', 'p + q = 1',
-      'net productivity = gross − respiration'
+    { cat: '?? Biology', color: '#34D399', formulas: [
+      'BMI = mass(kg)/height(m)�', 'HR_max = 220 - age',
+      'osmotic pressure = iMRT', 'Q10 = (R2/R1)^(10/(T2-T1))',
+      'Hardy-Weinberg: p� + 2pq + q� = 1', 'p + q = 1',
+      'net productivity = gross - respiration'
     ]}
   ];
 
@@ -1304,9 +1304,9 @@ canvas.on('path:created', triggerCloudSave);
 
    
 
-  // ── FORMULA ENGINE: MathJax SVG → Canvas Image ───────────────────────────
+  // -- FORMULA ENGINE: MathJax SVG ? Canvas Image ---------------------------
   // Renders LaTeX via MathJax tex-svg, extracts the SVG, converts to PNG via
-  // an offscreen canvas, then stamps it on Fabric — identical to Word equations.
+  // an offscreen canvas, then stamps it on Fabric � identical to Word equations.
 
   function latexToFabricImage(latexStr, scaleFactor, color, callback) {
     if (!window.MathJax || !window.MathJax.tex2svg) {
@@ -1331,7 +1331,7 @@ canvas.on('path:created', triggerCloudSave);
       // Set color on all paths
       svgEl.querySelectorAll('path').forEach(p => p.setAttribute('fill', color));
 
-      // Use Fabric's native SVG loader — handles <defs> and fonts correctly
+      // Use Fabric's native SVG loader � handles <defs> and fonts correctly
       const svgStr = new XMLSerializer().serializeToString(svgEl);
       fabric.loadSVGFromString(svgStr, (objects, options) => {
         if (!objects || objects.length === 0) { callback(null); return; }
@@ -1381,7 +1381,7 @@ canvas.on('path:created', triggerCloudSave);
         prev.appendChild(node);
       } catch(e) { prev.textContent = val; }
     } else {
-      // MathJax not ready yet — show raw LaTeX styled
+      // MathJax not ready yet � show raw LaTeX styled
       prev.innerHTML = `<span style="font-family:Georgia,serif;font-style:italic;color:#111;font-size:15px">${val}</span>`;
     }
   };
@@ -1417,7 +1417,7 @@ canvas.on('path:created', triggerCloudSave);
       if (prev) prev.innerHTML = '';
     });
   };
-  // ── END FORMULA ENGINE ───────────────────────────────────────────────────
+  // -- END FORMULA ENGINE ---------------------------------------------------
 
   // --- ADD EQUATION (legacy quick-add, kept for compat) ---
   window.addEquation = () => openFormulaEditor();
@@ -1766,7 +1766,7 @@ canvas.on('path:created', triggerCloudSave);
     const isTutor2 = State.user && (State.user.role === 'tutor' || State.user.role === 'admin');
     const isGuestHost = window._isLabHost === true;
     const displayName = encodeURIComponent((isTutor2 || isGuestHost ? '👨‍🏫 ' : '🎓 ') + (State.user?.full_name || (window._wbGuestName || 'User')));
-    // Build proper Jitsi URL — config keys go after # with & separators, userInfo uses JSON
+    // Build proper Jitsi URL � config keys go after # with & separators, userInfo uses JSON
     const jitsiUrl = `https://meet.jit.si/${roomName}`
       + `#config.prejoinPageEnabled=false`
       + `&config.startWithAudioMuted=true`
@@ -1853,7 +1853,7 @@ canvas.on('path:created', triggerCloudSave);
     if (src) window.open(src, '_blank');
   };
 
-  // --- REAL-TIME SYNC (full two-way: tutor draws → student sees live) ---
+  // --- REAL-TIME SYNC (full two-way: tutor draws ? student sees live) ---
   if (channel) {
     // Receive remote draw/move/delete events
     channel.on('broadcast', { event: 'draw' }, (msg) => {
@@ -2029,7 +2029,7 @@ canvas.on('path:created', triggerCloudSave);
     })
     .subscribe();
   setupDocStudentListeners(channel);
-  // NOTE: doc student listeners are chained inside setupDocStudentListeners before subscribe — see below
+  // NOTE: doc student listeners are chained inside setupDocStudentListeners before subscribe � see below
 
     // Helper: send an object
     const sendObj = (obj) => {
@@ -2112,7 +2112,7 @@ canvas.on('path:created', triggerCloudSave);
     remoteCursorEl._hideTimer = setTimeout(() => { if (remoteCursorEl) remoteCursorEl.style.display = 'none'; }, 3000);
   }
 
-  // ── RTC Signaling via Supabase channel ──────────────────────
+  // -- RTC Signaling via Supabase channel ----------------------
   // Store channel globally so the engine outside can use it
   window._wbChannel = channel;
 
@@ -2161,10 +2161,10 @@ canvas.on('path:created', triggerCloudSave);
       if (_rtcIsMe(msg)) return;
       const iAmHost = (State.user && (State.user.role === 'tutor' || State.user.role === 'admin')) || window._isLabHost;
       if (iAmHost) return;
-      // Store the offer — answer it when student clicks "Answer" or immediately if already started
+      // Store the offer � answer it when student clicks "Answer" or immediately if already started
       _rtcPendingOffer = msg.payload.sdp;
       if (_rtcStarted) {
-        // Student already clicked Answer — process immediately
+        // Student already clicked Answer � process immediately
         try { await _rtcAnswerOffer(_rtcPendingOffer, window._rtcRemoteName || 'Tutor'); _rtcPendingOffer = null; }
         catch(e) { toast('Could not connect: ' + e.message, 'err'); }
       }
@@ -2187,7 +2187,7 @@ canvas.on('path:created', triggerCloudSave);
     .on('broadcast', { event: 'rtc-end' }, (msg) => {
       if (_rtcIsMe(msg)) return;
       if (_rtcStarted) {
-        // Other party hung up — clean up without sending rtc-end again
+        // Other party hung up � clean up without sending rtc-end again
         _rtcCleanPeer();
         if (_localStream) { _localStream.getTracks().forEach(t => t.stop()); _localStream = null; }
         const lv = document.getElementById('lab-local-video');
@@ -2204,11 +2204,11 @@ canvas.on('path:created', triggerCloudSave);
     });
   }
 }
-// ════════════════════════════════════════════════════════════
-// WEBRTC VIDEO ENGINE — globals accessible everywhere
+// ------------------------------------------------------------
+// WEBRTC VIDEO ENGINE � globals accessible everywhere
 // channel reference stored on window so functions outside
 // initWhiteboardSync can use it
-// ════════════════════════════════════════════════════════════
+// ------------------------------------------------------------
 var _rtcPeer = null;
 var _localStream = null;
 var _rtcStarted = false;
@@ -2369,7 +2369,7 @@ async function _rtcStartAsHost() {
   const offer = await peer.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: true });
   await peer.setLocalDescription(offer);
 
-  // Send plain serializable object — not RTCSessionDescription instance
+  // Send plain serializable object � not RTCSessionDescription instance
   _rtcSend('rtc-offer', { sdp: { type: peer.localDescription.type, sdp: peer.localDescription.sdp } });
 }
 
@@ -2510,7 +2510,7 @@ function stopScreenShare() {
   btn.style.background = "rgba(255,255,255,0.12)";
   window._isSharingScreen = false;
 }
-// ── Video panel drag to move ─────────────────────────────────
+// -- Video panel drag to move ---------------------------------
 (function initVideoPanelDrag() {
   // Run after DOM is ready
   const tryInit = () => {
@@ -2576,7 +2576,7 @@ window.toggleLabVideoCam = () => {
   if (btn) btn.textContent = t.enabled ? '📷 Cam' : '🚫 Cam Off';
 };
 
-// ── Exit Lab ─────────────────────────────────────────────────
+// -- Exit Lab -------------------------------------------------
 function exitMajesticLab() {
   if (window._rtcStarted && typeof window.stopLabVideo === 'function') window.stopLabVideo();
   if (window.wbInstance) { try { window.wbInstance.dispose(); } catch(e){} window.wbInstance = null; }
@@ -2590,14 +2590,14 @@ function exitMajesticLab() {
   navigate(prev, State.prevTab);
 }
 
-// ── Tutor direct lab (no session) ────────────────────────────
+// -- Tutor direct lab (no session) ----------------------------
 function openTutorLabDirect() {
   window._wbInstitutionName = '';
   window._isLabHost = true;
   renderWhiteboard('tutor_' + State.user.id + '_' + Date.now());
 }
 
-// ── Document Presentation — missing helpers ───────────────────
+// -- Document Presentation � missing helpers -------------------
 
 function renderDocSlide(idx) {
   const slideCtx = window._docSlideCtx;
@@ -2876,342 +2876,4 @@ function setupDocStudentListeners(channel) {
       window._docSlides = [];
       toast('Tutor ended the presentation', 'info');
     });
-}
-
-// ══════════════════════════════════════════════════════════════
-// DOCUMENT PRESENTATION ENGINE — PDF/PPT/DOCX → Live Slides
-// ══════════════════════════════════════════════════════════════
-
-async function openPresentationDoc(input) {
-  const file = input.files[0];
-  if (!file) return;
-  
-  toast('Processing document... Please wait', 'info');
-  
-  try {
-    // Load PDF.js if not already loaded
-    if (!window.pdfjsLib) {
-      await loadPDFJS();
-    }
-    
-    const arrayBuffer = await file.arrayBuffer();
-    let slides = [];
-    
-    // Handle different file types
-    if (file.name.endsWith('.pdf')) {
-      slides = await convertPDFToSlides(arrayBuffer);
-    } else if (file.name.endsWith('.pptx') || file.name.endsWith('.ppt') || file.name.endsWith('.docx') || file.name.endsWith('.doc')) {
-      // For Office files, convert to PDF first (requires backend or use pdf.js workaround)
-      toast('Converting Office document to PDF...', 'info');
-      slides = await convertOfficeToPDF(file);
-    } else {
-      toast('Unsupported file format. Please use PDF, PPT, or DOCX.', 'err');
-      return;
-    }
-    
-    if (slides.length === 0) {
-      toast('No slides found in document', 'err');
-      return;
-    }
-    
-    // Store slides globally
-    window._docSlides = slides;
-    window._docCurrentSlide = 0;
-    window._docAnnotations = {};
-    window._docStudentMode = false;
-    
-    // Enter presentation mode locally
-    enterPresentationMode();
-    
-    // Broadcast to students - OPTIMIZED: Send in batches
-    const ch = window._wbChannel;
-    if (ch) {
-      toast(`Broadcasting ${slides.length} slides to students...`, 'info');
-      
-      // Tell students to prepare
-      ch.send({ 
-        type: 'broadcast', 
-        event: 'doc-enter-start', 
-        payload: { total: slides.length } 
-      });
-      
-      // Send slides in batches of 3 to avoid overwhelming the channel
-      const BATCH_SIZE = 3;
-      for (let i = 0; i < slides.length; i += BATCH_SIZE) {
-        const batch = slides.slice(i, Math.min(i + BATCH_SIZE, slides.length));
-        
-        // Send each slide in the batch
-        for (let j = 0; j < batch.length; j++) {
-          const idx = i + j;
-          try {
-            ch.send({ 
-              type: 'broadcast', 
-              event: 'doc-slide-data', 
-              payload: { 
-                idx: idx, 
-                data: batch[j],
-                current: window._docCurrentSlide,
-                total: slides.length
-              } 
-            });
-          } catch(e) {
-            console.error('Failed to send slide', idx, e);
-          }
-        }
-        
-        // Wait 500ms between batches to avoid rate limiting
-        if (i + BATCH_SIZE < slides.length) {
-          await new Promise(resolve => setTimeout(resolve, 500));
-        }
-      }
-      
-      toast('✅ Presentation started! Students can now see your slides.', 'ok');
-    }
-    
-  } catch (err) {
-    console.error('Document processing error:', err);
-    toast('Failed to process document: ' + err.message, 'err');
-  }
-}
-
-async function loadPDFJS() {
-  return new Promise((resolve, reject) => {
-    if (window.pdfjsLib) {
-      resolve();
-      return;
-    }
-    
-    const script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
-    script.onload = () => {
-      window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-      resolve();
-    };
-    script.onerror = reject;
-    document.head.appendChild(script);
-  });
-}
-
-async function convertPDFToSlides(arrayBuffer) {
-  const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-  const slides = [];
-  
-  for (let i = 1; i <= pdf.numPages; i++) {
-    const page = await pdf.getPage(i);
-    const viewport = page.getViewport({ scale: 2.0 }); // High quality
-    
-    const canvas = document.createElement('canvas');
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
-    const ctx = canvas.getContext('2d');
-    
-    await page.render({ canvasContext: ctx, viewport: viewport }).promise;
-    
-    // Convert to data URL with compression
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-    slides.push(dataUrl);
-    
-    // Update progress
-    if (i % 5 === 0 || i === pdf.numPages) {
-      toast(`Processing page ${i} of ${pdf.numPages}...`, 'info');
-    }
-  }
-  
-  return slides;
-}
-
-async function convertOfficeToPDF(file) {
-  // For Office files, we need a backend conversion service
-  // As a workaround, we can use a free API or tell user to convert manually
-  
-  // Option 1: Use CloudConvert API (requires API key)
-  // Option 2: Use LibreOffice online converter
-  // Option 3: Tell user to save as PDF first
-  
-  toast('Please save your PowerPoint/Word document as PDF first, then upload the PDF.', 'err');
-  return [];
-}
-
-function enterPresentationMode() {
-  if (!window._docSlides || window._docSlides.length === 0) return;
-  
-  // Hide whiteboard canvas, show presentation overlay
-  const canvasContainer = document.getElementById('canvas-container');
-  const overlay = document.getElementById('doc-present-overlay');
-  
-  if (canvasContainer) canvasContainer.style.display = 'none';
-  if (overlay) overlay.style.display = 'flex';
-  
-  // Setup canvases
-  const slideCanvas = document.getElementById('doc-slide-canvas');
-  const annoCanvas = document.getElementById('doc-anno-canvas');
-  
-  if (!slideCanvas || !annoCanvas) return;
-  
-  // Set canvas size based on first slide
-  const img = new Image();
-  img.onload = () => {
-    const maxW = window.innerWidth - 100;
-    const maxH = window.innerHeight - 200;
-    
-    let w = img.width;
-    let h = img.height;
-    
-    // Scale to fit screen
-    if (w > maxW) {
-      h = h * (maxW / w);
-      w = maxW;
-    }
-    if (h > maxH) {
-      w = w * (maxH / h);
-      h = maxH;
-    }
-    
-    slideCanvas.width = w;
-    slideCanvas.height = h;
-    annoCanvas.width = w;
-    annoCanvas.height = h;
-    
-    window._docCW = w;
-    window._docCH = h;
-    window._docSlideCtx = slideCanvas.getContext('2d');
-    window._docAnnoCtx = annoCanvas.getContext('2d');
-    window._docZoom = 1.0;
-    
-    // Render first slide
-    renderDocSlide(0);
-    buildThumbStrip();
-    
-    // Setup annotation tools (only for host)
-    const isHost = (State.user && (State.user.role === 'tutor' || State.user.role === 'admin')) || window._isLabHost;
-    if (isHost && !window._docStudentMode) {
-      setupDocAnnotationEvents(annoCanvas);
-      docSetTool('pen');
-    } else {
-      removeDocAnnotationEvents();
-    }
-    
-    // Setup scroll sync (host only)
-    if (isHost && !window._docStudentMode) {
-      const viewport = document.getElementById('doc-viewport');
-      if (viewport) {
-        let scrollTimeout;
-        viewport.addEventListener('scroll', () => {
-          clearTimeout(scrollTimeout);
-          scrollTimeout = setTimeout(() => {
-            broadcastDocScroll(viewport.scrollTop, viewport.scrollLeft);
-          }, 100);
-        });
-      }
-    }
-  };
-  img.src = window._docSlides[0];
-}
-
-function closePresentationMode() {
-  // Hide overlay, show canvas
-  const overlay = document.getElementById('doc-present-overlay');
-  const canvasContainer = document.getElementById('canvas-container');
-  
-  if (overlay) overlay.style.display = 'none';
-  if (canvasContainer) canvasContainer.style.display = 'flex';
-  
-  // Broadcast exit to students
-  const ch = window._wbChannel;
-  if (ch && !window._docStudentMode) {
-    try {
-      ch.send({ type: 'broadcast', event: 'doc-exit', payload: {} });
-    } catch(e) {}
-  }
-  
-  window._docSlides = [];
-  window._docStudentMode = false;
-  toast('Presentation ended', 'info');
-}
-
-// Zoom functions
-window._docZoom = 1.0;
-
-function zoomDoc(delta) {
-  window._docZoom = Math.max(0.5, Math.min(3.0, window._docZoom + delta));
-  applyDocZoom();
-  
-  // Broadcast zoom to students
-  const ch = window._wbChannel;
-  if (ch && !window._docStudentMode) {
-    try {
-      ch.send({ type: 'broadcast', event: 'doc-zoom', payload: { zoom: window._docZoom } });
-    } catch(e) {}
-  }
-}
-
-function resetDocZoom() {
-  window._docZoom = 1.0;
-  applyDocZoom();
-  
-  const ch = window._wbChannel;
-  if (ch && !window._docStudentMode) {
-    try {
-      ch.send({ type: 'broadcast', event: 'doc-zoom', payload: { zoom: 1.0 } });
-    } catch(e) {}
-  }
-}
-
-function applyDocZoom() {
-  const container = document.getElementById('doc-zoom-container');
-  const label = document.getElementById('doc-zoom-label');
-  
-  if (container) {
-    container.style.transform = `scale(${window._docZoom})`;
-  }
-  
-  if (label) {
-    label.textContent = Math.round(window._docZoom * 100) + '%';
-  }
-}
-
-// Floating image support
-function triggerFloatingImage() {
-  document.getElementById('doc-float-img-upload')?.click();
-}
-
-function addDocFloatingImage(input) {
-  const file = input.files[0];
-  if (!file) return;
-  
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const img = document.createElement('img');
-    img.src = e.target.result;
-    img.style.cssText = 'position:absolute;max-width:200px;cursor:move;border:2px solid #1A5FFF;border-radius:4px;';
-    img.draggable = true;
-    
-    const container = document.getElementById('doc-floating-items');
-    if (container) {
-      container.appendChild(img);
-      container.style.pointerEvents = 'auto';
-      
-      // Make draggable
-      let offsetX = 0, offsetY = 0;
-      img.addEventListener('mousedown', (e) => {
-        offsetX = e.offsetX;
-        offsetY = e.offsetY;
-        
-        const onMove = (e2) => {
-          const rect = container.getBoundingClientRect();
-          img.style.left = (e2.clientX - rect.left - offsetX) + 'px';
-          img.style.top = (e2.clientY - rect.top - offsetY) + 'px';
-        };
-        
-        const onUp = () => {
-          document.removeEventListener('mousemove', onMove);
-          document.removeEventListener('mouseup', onUp);
-        };
-        
-        document.addEventListener('mousemove', onMove);
-        document.addEventListener('mouseup', onUp);
-      });
-    }
-  };
-  reader.readAsDataURL(file);
 }

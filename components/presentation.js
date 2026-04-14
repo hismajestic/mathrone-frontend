@@ -69,7 +69,7 @@ function enterPresentationMode() {
   if (!slideCanvas || !annoCanvas) return;
   const firstImg = new Image();
   firstImg.onload = () => {
-    const W = Math.min(firstImg.naturalWidth, window.innerWidth - 80);
+    const W = window.innerWidth;
     const H = Math.round(W * firstImg.naturalHeight / firstImg.naturalWidth);
     window._docCW = W; window._docCH = H;
     slideCanvas.width = W; slideCanvas.height = H;
