@@ -1507,26 +1507,75 @@ async function submitExam(attemptId, autoSubmit = false){
     function openTutorLabDirect(){
   window._wbInstitutionName = '';
   window._isLabHost = true;
-  renderWhiteboard('tutor_' + State.user.id + '_' + Date.now());
+  const sessionId = 'tutor_' + State.user.id + '_' + Date.now();
+  window._currentTutorLabSessionId = sessionId;
+  renderWhiteboard(sessionId);
 }
 function openTutorLabShareModal(){
-  const sessionId = 'tutor_' + State.user.id + '_' + Date.now();
-  const roomName = 'MathroneMajesticV5_' + sessionId.replace(/[^a-zA-Z0-9]/g,'');
-  const link = window.location.origin + '/lab/' + sessionId;
   document.getElementById('modal-root').innerHTML = `
   <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
-    <div class="modal" style="max-width:440px">
+    <div class="modal" style="max-width:480px">
       <div class="modal-header"><span class="modal-title">🔗 Share Lab Link with Student</span><button class="modal-close" onclick="document.querySelector('.modal-overlay').remove()">✕</button></div>
       <div class="modal-body">
-        <p style="font-size:13px;color:var(--g600);margin-bottom:12px">Share this link with your student. They can join the lab session directly.</p>
-        <div style="background:var(--sky);border-radius:var(--rs);padding:12px;word-break:break-all;font-size:12px;color:var(--navy)">${link}</div>
+        <p style="font-size:13px;color:var(--g600);margin-bottom:12px">Generate a secure, time-limited link for your student to join the live lab session.</p>
+        <div class="form-group">
+          <label class="form-label">Student Name</label>
+          <input class="input" id="share-student-name" placeholder="e.g. Jean Paul" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Session Duration</label>
+          <select class="input" id="share-duration">
+            <option value="1">1 hour</option>
+            <option value="2">2 hours</option>
+            <option value="3" selected>3 hours</option>
+            <option value="8">Full day (8 hours)</option>
+          </select>
+        </div>
+        <div id="share-link-result" style="display:none;margin-top:12px;background:var(--sky);border-radius:10px;padding:14px">
+          <p style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:6px">✅ Share this link with your student:</p>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input class="input" id="share-link-output" readonly style="font-size:12px;background:#fff;flex:1;">
+            <button class="btn btn-sm btn-primary" onclick="navigator.clipboard.writeText(document.getElementById('share-link-output').value);toast('Link copied! 📋')">📋 Copy</button>
+          </div>
+          <p style="font-size:11px;color:var(--g600);margin-top:6px">The student opens this link to join your live lab session in real-time.</p>
+        </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-ghost" onclick="document.querySelector('.modal-overlay').remove()">Close</button>
-        <button class="btn btn-primary" onclick="navigator.clipboard.writeText('${link}');toast('Link copied! 📋')">Copy Link 📋</button>
+        <button class="btn btn-primary" id="share-gen-btn" onclick="generateTutorStudentLabLink()">🔗 Generate Link</button>
       </div>
     </div>
   </div>`;
+}
+
+async function generateTutorStudentLabLink(){
+  const name = document.getElementById('share-student-name')?.value?.trim() || 'Student';
+  const hours = parseInt(document.getElementById('share-duration')?.value || '3');
+  const btn = document.getElementById('share-gen-btn');
+  if(btn){ btn.disabled = true; btn.textContent = '⏳ Generating...'; }
+  try{
+    // Use the current tutor's active lab session ID so both sides share the same Supabase channel
+    const sessionId = window._currentTutorLabSessionId || ('tutor_' + State.user.id + '_' + Date.now());
+    const result = await api('/lab/tokens', {
+      method: 'POST',
+      body: JSON.stringify({ buyer_name: name, hours, session_id: sessionId })
+    });
+    const link = window.location.origin + '/lab/' + result.token;
+    document.getElementById('share-link-output').value = link;
+    document.getElementById('share-link-result').style.display = 'block';
+    // Also open the lab now if not already open, using the same session ID
+    if(!window.wbInstance){
+      window._wbInstitutionName = '';
+      window._isLabHost = true;
+      window._currentTutorLabSessionId = sessionId;
+      renderWhiteboard(sessionId);
+    }
+    toast('Link generated! Share it with your student. ✅');
+  }catch(e){
+    toast(e.message, 'err');
+  }finally{
+    if(btn){ btn.disabled = false; btn.textContent = '🔗 Generate Link'; }
+  }
 }
 async function renderTutorDash() {
       render(dashWrap('dashboard', `<div class="loader-center"><div class="spinner"></div></div>`))

@@ -12,8 +12,8 @@
 
 <!-- ③ Preload critical resources — LCP logo gets fetchpriority=high -->
 <link rel="preload" href="/style.css" as="style"/>
-<link rel="preload" href="/app.js" as="script"/>
-<link rel="preload" href="/assets/fonts.css" as="style"/>
+<link rel="preload" href="/app.js" as="script" crossorigin="anonymous"/>
+<link rel="preload" href="/assets/fonts/fonts.css" as="style"/>
 <link rel="preload" href="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" as="image" fetchpriority="high"/>
 
 <!-- ④ Inline critical CSS — renders spinner with zero extra request -->

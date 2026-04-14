@@ -29,7 +29,7 @@
     <button class="btn btn-sm" onclick="toggleLabVideo()" id="lab-video-btn" style="background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:12px;" title="Start video call inside the lab">📹 Video Call</button>
     <button class="btn btn-sm" onclick="toggleScreenShare()" id="share-screen-btn" style="background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:12px; display:none;" title="Share your screen with the student">🖥️ Share Screen</button>
   ` : `
-    <button class="btn btn-sm" onclick="toggleSplitScreen()" id="lab-video-btn" style="background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:12px;" title="Open Jitsi video meeting (new tab)">📹 Video Meet ↗</button>
+    <button class="btn btn-sm" onclick="toggleSplitScreen()" id="lab-splitscreen-btn" style="background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:12px;" title="Open Jitsi video meeting (new tab)">📹 Video Meet ↗</button>
   `}
 
   <button class="btn btn-sm" onclick="toggleShapesPanel()" style="background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:12px;">📐 Shapes</button>
@@ -272,8 +272,8 @@
   </div>
 
   <!-- Main Viewport: Scrollable -->
-  <div id="doc-viewport" style="flex:1; overflow:auto; background:#1e1e2e; padding:0;">
-    <div id="doc-zoom-container" style="position:relative; transform-origin: top left; transition: transform 0.1s ease; width:100%;">
+  <div id="doc-viewport" style="flex:1; overflow:auto; background:#1e1e2e; padding:0; display:flex; justify-content:center; align-items:flex-start;">
+    <div id="doc-zoom-container" style="position:relative; transform-origin: top center; transition: transform 0.1s ease; display:inline-block;">
         <div id="doc-canvas-wrap" style="position:relative; display:block; line-height:0; box-shadow:0 20px 80px rgba(0,0,0,0.5);">
           <canvas id="doc-slide-canvas" style="display:block; background:#fff;"></canvas>
           <canvas id="doc-anno-canvas" style="position:absolute; top:0; left:0; cursor:crosshair; pointer-events:none;"></canvas>
@@ -336,7 +336,7 @@
 
 function buildLibraryHTML() {
   const STEM_LIBRARY = [
-    { group: "? PhET � Physics", emoji: "?", items: [
+    { group: "🧲 PhET – Physics", emoji: "🧲", items: [
       { n: "Forces & Motion Basics", u: "https://phet.colorado.edu/sims/html/forces-and-motion-basics/latest/forces-and-motion-basics_en.html" },
       { n: "Projectile Motion", u: "https://phet.colorado.edu/sims/html/projectile-motion/latest/projectile-motion_en.html" },
       { n: "Wave on a String", u: "https://phet.colorado.edu/sims/html/wave-on-a-string/latest/wave-on-a-string_en.html" },
@@ -352,7 +352,7 @@ function buildLibraryHTML() {
       { n: "Charges & Fields", u: "https://phet.colorado.edu/sims/html/charges-and-fields/latest/charges-and-fields_en.html" },
       { n: "Color Vision", u: "https://phet.colorado.edu/sims/html/color-vision/latest/color-vision_en.html" }
     ]},
-    { group: "??? PhET � Thermodynamics", emoji: "???", items: [
+    { group: "🔥 PhET – Thermodynamics", emoji: "🔥", items: [
       { n: "States of Matter", u: "https://phet.colorado.edu/sims/html/states-of-matter/latest/states-of-matter_en.html" },
       { n: "States of Matter (Basics)", u: "https://phet.colorado.edu/sims/html/states-of-matter-basics/latest/states-of-matter-basics_en.html" },
       { n: "Gas Properties", u: "https://phet.colorado.edu/sims/html/gas-properties/latest/gas-properties_en.html" },
@@ -362,7 +362,7 @@ function buildLibraryHTML() {
       { n: "Energy Forms & Changes", u: "https://phet.colorado.edu/sims/html/energy-forms-and-changes/latest/energy-forms-and-changes_en.html" },
       { n: "Fourier: Making Waves", u: "https://phet.colorado.edu/sims/html/fourier-making-waves/latest/fourier-making-waves_en.html" }
     ]},
-    { group: "?? PhET � Chemistry", emoji: "??", items: [
+    { group: "🧪 PhET – Chemistry", emoji: "🧪", items: [
       { n: "Build an Atom", u: "https://phet.colorado.edu/sims/html/build-an-atom/latest/build-an-atom_en.html" },
       { n: "Reactants, Products & Leftovers", u: "https://phet.colorado.edu/sims/html/reactants-products-and-leftovers/latest/reactants-products-and-leftovers_en.html" },
       { n: "Molecular Shapes", u: "https://phet.colorado.edu/sims/html/molecule-shapes/latest/molecule-shapes_en.html" },
@@ -372,7 +372,7 @@ function buildLibraryHTML() {
       { n: "Molecule Polarity", u: "https://phet.colorado.edu/sims/html/molecule-polarity/latest/molecule-polarity_en.html" },
       { n: "Periodic Table (PhET)", u: "https://phet.colorado.edu/sims/html/build-a-nucleus/latest/build-a-nucleus_en.html" }
     ]},
-    { group: "?? Mathematics Tools", emoji: "??", items: [
+    { group: "📐 Mathematics Tools", emoji: "📐", items: [
       { n: "GeoGebra Graphing", u: "https://www.geogebra.org/calculator" },
       { n: "GeoGebra Geometry", u: "https://www.geogebra.org/geometry" },
       { n: "GeoGebra 3D Calculator", u: "https://www.geogebra.org/3d" },
@@ -383,53 +383,53 @@ function buildLibraryHTML() {
       { n: "Desmos Scientific Calculator", u: "https://www.desmos.com/scientific" },
       { n: "Wolfram Alpha", u: "https://www.wolframalpha.com/" },
       { n: "Symbolab", u: "https://www.symbolab.com/" },
-      { n: "PhET � Fractions Intro", u: "https://phet.colorado.edu/sims/html/fractions-intro/latest/fractions-intro_en.html" },
-      { n: "PhET � Area Model Algebra", u: "https://phet.colorado.edu/sims/html/area-model-algebra/latest/area-model-algebra_en.html" }
+      { n: "PhET – Fractions Intro", u: "https://phet.colorado.edu/sims/html/fractions-intro/latest/fractions-intro_en.html" },
+      { n: "PhET – Area Model Algebra", u: "https://phet.colorado.edu/sims/html/area-model-algebra/latest/area-model-algebra_en.html" }
     ]},
-    { group: "?? Biology & Life Science", emoji: "??", items: [
+    { group: "🧬 Biology & Life Science", emoji: "🧬", items: [
       { n: "Learn Genetics (Utah)", u: "https://learn.genetics.utah.edu/" },
       { n: "HHMI BioInteractive", u: "https://www.biointeractive.org/classroom-resources" },
       { n: "Cells Alive", u: "https://www.cellsalive.com/" },
-      { n: "PhET � Natural Selection", u: "https://phet.colorado.edu/sims/html/natural-selection/latest/natural-selection_en.html" },
-      { n: "PhET � Gene Expression", u: "https://phet.colorado.edu/sims/html/gene-expression-essentials/latest/gene-expression-essentials_en.html" },
+      { n: "PhET – Natural Selection", u: "https://phet.colorado.edu/sims/html/natural-selection/latest/natural-selection_en.html" },
+      { n: "PhET – Gene Expression", u: "https://phet.colorado.edu/sims/html/gene-expression-essentials/latest/gene-expression-essentials_en.html" },
       { n: "Phylo (Genomics Game)", u: "https://phylo.cs.mcgill.ca/" },
       { n: "CK-12 Biology Labs", u: "https://www.ck12.org/student/" }
     ]},
-    { group: "?? Earth, Space & Environment", emoji: "??", items: [
+    { group: "🌍 Earth, Space & Environment", emoji: "🌍", items: [
       { n: "Stellarium Web (Planetarium)", u: "https://stellarium-web.org/" },
       { n: "NASA Eyes on the Solar System", u: "https://eyes.nasa.gov/apps/solar-system/#/home" },
       { n: "USGS Earthquake Map", u: "https://earthquake.usgs.gov/earthquakes/map/" },
-      { n: "PhET � Greenhouse Effect", u: "https://phet.colorado.edu/sims/html/greenhouse-effect/latest/greenhouse-effect_en.html" },
-      { n: "PhET � My Solar System", u: "https://phet.colorado.edu/sims/html/my-solar-system/latest/my-solar-system_en.html" }
+      { n: "PhET – Greenhouse Effect", u: "https://phet.colorado.edu/sims/html/greenhouse-effect/latest/greenhouse-effect_en.html" },
+      { n: "PhET – My Solar System", u: "https://phet.colorado.edu/sims/html/my-solar-system/latest/my-solar-system_en.html" }
     ]},
-    { group: "?? Interactive Physics & Engineering", emoji: "??", items: [
+    { group: "⚙️ Interactive Physics & Engineering", emoji: "⚙️", items: [
       { n: "Falstad Circuit Simulator", u: "https://www.falstad.com/circuit/circuitjs.html" },
       { n: "myPhysicsLab", u: "https://www.myphysicslab.com/" },
       { n: "oPhysics Simulations", u: "https://ophysics.com/" },
       { n: "Physics Classroom Interactives", u: "https://www.physicsclassroom.com/Physics-Interactives" },
-      { n: "PhET � Ohm's Law", u: "https://phet.colorado.edu/sims/html/ohms-law/latest/ohms-law_en.html" },
-      { n: "PhET � Resistance in a Wire", u: "https://phet.colorado.edu/sims/html/resistance-in-a-wire/latest/resistance-in-a-wire_en.html" }
+      { n: "PhET – Ohm's Law", u: "https://phet.colorado.edu/sims/html/ohms-law/latest/ohms-law_en.html" },
+      { n: "PhET – Resistance in a Wire", u: "https://phet.colorado.edu/sims/html/resistance-in-a-wire/latest/resistance-in-a-wire_en.html" }
     ]},
-    { group: "?? Video Learning", emoji: "??", items: [
+    { group: "📺 Video Learning", emoji: "📺", items: [
       { n: "Khan Academy", u: "https://www.khanacademy.org/" },
-      { n: "CrashCourse (YouTube � Physics)", u: "https://www.youtube.com/watch?v=ZM8ECpBuQYE" },
-      { n: "3Blue1Brown (YouTube � Math)", u: "https://www.youtube.com/watch?v=WUvTyaaNkzM" },
-      { n: "Kurzgesagt (YouTube � Science)", u: "https://www.youtube.com/watch?v=1AElONvi9WQ" },
+      { n: "CrashCourse (YouTube – Physics)", u: "https://www.youtube.com/watch?v=ZM8ECpBuQYE" },
+      { n: "3Blue1Brown (YouTube – Math)", u: "https://www.youtube.com/watch?v=WUvTyaaNkzM" },
+      { n: "Kurzgesagt (YouTube – Science)", u: "https://www.youtube.com/watch?v=1AElONvi9WQ" },
       { n: "MIT OpenCourseWare", u: "https://ocw.mit.edu/" },
       { n: "OpenStax Free Textbooks", u: "https://openstax.org/subjects" }
     ]},
-    { group: "??? Coding & Computer Science", emoji: "??", items: [
+    { group: "💻 Coding & Computer Science", emoji: "💻", items: [
       { n: "p5.js Web Editor", u: "https://editor.p5js.org/" },
       { n: "Scratch 3.0 Editor", u: "https://scratch.mit.edu/projects/editor/" },
       { n: "Blockly Games", u: "https://blockly.games/" },
       { n: "CS Unplugged", u: "https://csunplugged.org/en/" },
     ]},
-    { group: "?? Interactive Chemistry Tools", emoji: "??", items: [
+    { group: "🧪 Interactive Chemistry Tools", emoji: "🧪", items: [
       { n: "Periodic Table (ptable.com)", u: "https://ptable.com/" },
       { n: "ChemDoodle Web", u: "https://web.chemdoodle.com/" },
       { n: "Molecular Workbench (Concord)", u: "https://learn.concord.org/" }
     ]},
-    { group: "?? PhysiWorld � Physics Simulations", emoji: "??", items: [
+    { group: "🌐 PhysiWorld – Physics Simulations", emoji: "🌐", items: [
       { n: "PhysiWorld Home", u: "https://physiworld.com/" },
       { n: "Projectile Simulator", u: "https://physiworld.com/projectile-motion/" },
       { n: "Simple Harmonic Motion", u: "https://physiworld.com/simple-harmonic-motion/" },
@@ -437,19 +437,19 @@ function buildLibraryHTML() {
       { n: "Wave Superposition", u: "https://physiworld.com/wave-superposition/" },
       { n: "Lens & Mirrors Optics", u: "https://physiworld.com/optics/" }
     ]},
-    { group: "?? Rigs of Rods � Physics Sandbox", emoji: "??", items: [
+    { group: "🎮 Rigs of Rods – Physics Sandbox", emoji: "🎮", items: [
       { n: "Rigs of Rods Official", u: "https://www.rigsofrods.org/" },
       { n: "RoR Forum & Downloads", u: "https://forum.rigsofrods.org/" },
       { n: "RoR Repository (Mods)", u: "https://repository.rigsofrods.org/" },
       { n: "RoR Documentation", u: "https://docs.rigsofrods.org/" }
     ]},
-    { group: "?? The Science Playground", emoji: "??", items: [
+    { group: "🎢 The Science Playground", emoji: "🎢", items: [
       { n: "thescienceplayground.com", u: "https://www.thescienceplayground.com/" },
       { n: "Interactive Science Experiments", u: "https://www.thescienceplayground.com/experiments/" },
       { n: "Science Games", u: "https://www.thescienceplayground.com/games/" },
       { n: "Science Videos", u: "https://www.thescienceplayground.com/videos/" }
     ]},
-    { group: "?? More Interactive Resources", emoji: "??", items: [
+    { group: "📚 More Interactive Resources", emoji: "📚", items: [
       { n: "Walter Fendt Physics Applets", u: "https://www.walter-fendt.de/html5/phen/" },
       { n: "nrich.maths.org", u: "https://nrich.maths.org/" },
       { n: "Polypad (Interactive Textbook)", u: "https://polypad.amplify.com/" },
@@ -457,7 +457,7 @@ function buildLibraryHTML() {
       { n: "ExploreLearning Gizmos", u: "https://www.explorelearning.com/" },
       { n: "Labster Virtual Labs", u: "https://www.labster.com/simulations/" },
       { n: "ChemCollective Virtual Lab", u: "http://chemcollective.org/vlab/vlab.php" },
-      { n: "PhET � All Simulations", u: "https://phet.colorado.edu/en/simulations/filter?type=html" }
+      { n: "PhET – All Simulations", u: "https://phet.colorado.edu/en/simulations/filter?type=html" }
     ]}
   ];
 
@@ -481,48 +481,48 @@ function buildLibraryHTML() {
 function buildShapesPanelHTML() {
   const categories = [
     { label: "2D Flat Shapes", shapes: [
-      { id: "triangle", label: "Triangle", icon: "?" },
-      { id: "square", label: "Square", icon: "?" },
-      { id: "rect", label: "Rectangle", icon: "?" },
-      { id: "circle", label: "Circle", icon: "?" },
-      { id: "ellipse", label: "Ellipse", icon: "?" },
-      { id: "semicircle", label: "Semicircle", icon: "?" },
-      { id: "sector", label: "Sector/Pie", icon: "?" },
-      { id: "segment", label: "Arc Segment", icon: "?" },
-      { id: "parallelogram", label: "Parallelogram", icon: "?" },
-      { id: "rhombus", label: "Rhombus", icon: "?" },
-      { id: "trapezium", label: "Trapezium", icon: "?" },
-      { id: "kite", label: "Kite", icon: "??" },
-      { id: "pentagon", label: "Pentagon", icon: "?" },
-      { id: "hexagon", label: "Hexagon", icon: "?" },
-      { id: "heptagon", label: "Heptagon", icon: "?" },
-      { id: "octagon", label: "Octagon", icon: "?" },
-      { id: "nonagon", label: "Nonagon", icon: "?" },
-      { id: "decagon", label: "Decagon", icon: "?" },
-      { id: "star", label: "Star (5pt)", icon: "?" },
-      { id: "star6", label: "Star (6pt)", icon: "?" },
-      { id: "arrow", label: "Arrow Vector", icon: "?" },
-      { id: "cross", label: "Cross/Plus", icon: "?" }
+      { id: "triangle", label: "Triangle", icon: "🔺" },
+      { id: "square", label: "Square", icon: "🟦" },
+      { id: "rect", label: "Rectangle", icon: "▭" },
+      { id: "circle", label: "Circle", icon: "⭕" },
+      { id: "ellipse", label: "Ellipse", icon: "⬭" },
+      { id: "semicircle", label: "Semicircle", icon: "🌗" },
+      { id: "sector", label: "Sector/Pie", icon: "🍕" },
+      { id: "segment", label: "Arc Segment", icon: "⌓" },
+      { id: "parallelogram", label: "Parallelogram", icon: "▱" },
+      { id: "rhombus", label: "Rhombus", icon: "◈" },
+      { id: "trapezium", label: "Trapezium", icon: "⏢" },
+      { id: "kite", label: "Kite", icon: "🪁" },
+      { id: "pentagon", label: "Pentagon", icon: "⬠" },
+      { id: "hexagon", label: "Hexagon", icon: "⬡" },
+      { id: "heptagon", label: "Heptagon", icon: "⎔" },
+      { id: "octagon", label: "Octagon", icon: "🛑" },
+      { id: "nonagon", label: "Nonagon", icon: "⏣" },
+      { id: "decagon", label: "Decagon", icon: "⚙️" },
+      { id: "star", label: "Star (5pt)", icon: "⭐" },
+      { id: "star6", label: "Star (6pt)", icon: "✡️" },
+      { id: "arrow", label: "Arrow Vector", icon: "➡️" },
+      { id: "cross", label: "Cross/Plus", icon: "➕" }
     ]},
     { label: "3D Solids", shapes: [
-      { id: "cube3d", label: "Cube", icon: "??" },
-      { id: "cuboid3d", label: "Cuboid", icon: "??" },
-      { id: "sphere3d", label: "Sphere", icon: "??" },
-      { id: "cylinder3d", label: "Cylinder", icon: "??" },
-      { id: "cone3d", label: "Cone", icon: "??" },
-      { id: "pyramid3d", label: "Pyramid", icon: "??" },
-      { id: "tetrahedron3d", label: "Tetrahedron", icon: "??" },
-      { id: "octahedron3d", label: "Octahedron", icon: "??" },
-      { id: "hemisphere3d", label: "Hemisphere", icon: "?" },
-      { id: "torus3d", label: "Torus", icon: "??" }
+      { id: "cube3d", label: "Cube", icon: "🧊" },
+      { id: "cuboid3d", label: "Cuboid", icon: "📦" },
+      { id: "sphere3d", label: "Sphere", icon: "⚽" },
+      { id: "cylinder3d", label: "Cylinder", icon: "🛢️" },
+      { id: "cone3d", label: "Cone", icon: "🍦" },
+      { id: "pyramid3d", label: "Pyramid", icon: "⛺" },
+      { id: "tetrahedron3d", label: "Tetrahedron", icon: "🔺" },
+      { id: "octahedron3d", label: "Octahedron", icon: "💎" },
+      { id: "hemisphere3d", label: "Hemisphere", icon: "🥣" },
+      { id: "torus3d", label: "Torus", icon: "🍩" }
     ]},
     { label: "Curves & Special", shapes: [
-      { id: "parabola", label: "Parabola", icon: "n" },
-      { id: "hyperbola", label: "Hyperbola", icon: "?" },
-      { id: "spiral", label: "Spiral", icon: "??" },
-      { id: "sinwave", label: "Sine Wave", icon: "?" },
-      { id: "coswave", label: "Cosine Wave", icon: "?" },
-      { id: "tanwave", label: "Tan Wave", icon: "?" }
+      { id: "parabola", label: "Parabola", icon: "∩" },
+      { id: "hyperbola", label: "Hyperbola", icon: "≍" },
+      { id: "spiral", label: "Spiral", icon: "🌀" },
+      { id: "sinwave", label: "Sine Wave", icon: "〰️" },
+      { id: "coswave", label: "Cosine Wave", icon: "∿" },
+      { id: "tanwave", label: "Tan Wave", icon: "⦚" }
     ]}
   ];
 
@@ -632,7 +632,7 @@ canvas.on('path:created', triggerCloudSave);
     window._wbCurrentPage = window._wbNotebook.length - 1;
     canvas.clear();
     updatePageUI();
-    if(channel) channel.send({ type: 'broadcast', event: 'page-change', payload: { page: window._wbCurrentPage, total: window._wbNotebook.length } });
+    if(channel) channel.send({ type: 'broadcast', event: 'page-change', payload: { page: window._wbCurrentPage, total: window._wbNotebook.length, json: {} } });
   };
 
   window.nextWBPage = async () => {
@@ -641,7 +641,7 @@ canvas.on('path:created', triggerCloudSave);
       window._wbNotebook[window._wbCurrentPage] = canvas.toJSON(['id']);
       window._wbCurrentPage++;
       canvas.loadFromJSON(window._wbNotebook[window._wbCurrentPage], () => { canvas.renderAll(); updatePageUI(); });
-      if(channel) channel.send({ type: 'broadcast', event: 'page-change', payload: { page: window._wbCurrentPage, total: window._wbNotebook.length } });
+      if(channel) channel.send({ type: 'broadcast', event: 'page-change', payload: { page: window._wbCurrentPage, total: window._wbNotebook.length, json: window._wbNotebook[window._wbCurrentPage] } });
     }
   };
 
@@ -651,7 +651,7 @@ canvas.on('path:created', triggerCloudSave);
       window._wbNotebook[window._wbCurrentPage] = canvas.toJSON(['id']);
       window._wbCurrentPage--;
       canvas.loadFromJSON(window._wbNotebook[window._wbCurrentPage], () => { canvas.renderAll(); updatePageUI(); });
-      if(channel) channel.send({ type: 'broadcast', event: 'page-change', payload: { page: window._wbCurrentPage, total: window._wbNotebook.length } });
+      if(channel) channel.send({ type: 'broadcast', event: 'page-change', payload: { page: window._wbCurrentPage, total: window._wbNotebook.length, json: window._wbNotebook[window._wbCurrentPage] } });
     }
   };
 
@@ -787,10 +787,6 @@ canvas.on('path:created', triggerCloudSave);
   });
   
   window._wbChannel = channel;
-
-  channel.subscribe((status) => {
-    if (status === 'SUBSCRIBED') console.log("Majestic Lab: Realtime Connected ✅");
-  });
 
   // Object count updater
   const updateCount = () => {
@@ -1091,62 +1087,60 @@ canvas.on('path:created', triggerCloudSave);
   // --- FORMULA EDITOR ---
   const FORMULA_SYMBOLS = [
     // Superscripts & subscripts
-    { label: 'x�', ins: '�' }, { label: 'x�', ins: '�' }, { label: 'xn', ins: 'n' },
-    { label: 'x0', ins: '0' }, { label: 'x1', ins: '1' }, { label: 'x2', ins: '2' },
+    { label: 'x²', ins: '²' }, { label: 'x³', ins: '³' }, { label: 'xⁿ', ins: 'ⁿ' },
+    { label: 'x₀', ins: '₀' }, { label: 'x₁', ins: '₁' }, { label: 'x₂', ins: '₂' },
     // Operators
-    { label: '�', ins: '�' }, { label: '�', ins: '�' }, { label: '�', ins: '�' },
-    { label: '=', ins: '=' }, { label: '=', ins: '=' }, { label: '?', ins: '?' },
-    { label: '�', ins: '�' }, { label: '?', ins: '?' }, { label: '8', ins: '8' },
-    { label: 'v', ins: 'v' }, { label: '?', ins: '?' }, { label: '?', ins: '?' },
+    { label: '×', ins: '×' }, { label: '÷', ins: '÷' }, { label: '±', ins: '±' },
+    { label: '≤', ins: '≤' }, { label: '≥', ins: '≥' }, { label: '≠', ins: '≠' },
+    { label: '≈', ins: '≈' }, { label: '≡', ins: '≡' }, { label: '∞', ins: '∞' },
+    { label: '√', ins: '√' }, { label: '∛', ins: '∛' }, { label: '∝', ins: '∝' },
     // Fractions
-    { label: '�', ins: '�' }, { label: '?', ins: '?' }, { label: '�', ins: '�' },
-    { label: '�', ins: '�' }, { label: '?', ins: '?' },
-    // Calculus � LaTeX templates
-    { label: '?', ins: '?' }, { label: '?', ins: '?' }, { label: '?', ins: '?' },
-    { label: '??', ins: '\\sum_{n=1}^{\\infty} ' }, { label: '?', ins: '\\prod_{n=1}^{N} ' },
-    { label: '?', ins: '\\int ' }, { label: '???', ins: '\\int_{a}^{b} ' },
-    { label: '?', ins: '\\iint ' }, { label: '?', ins: '\\oint ' },
-    { label: 'lim x?8', ins: '\\lim_{x \\to \\infty} ' },
-    { label: 'lim x?0', ins: '\\lim_{x \\to 0} ' },
-    { label: 'lim x?a', ins: '\\lim_{x \\to a} ' },
-    { label: 'lim x?0?', ins: '\\lim_{x \\to 0^+} ' },
+    { label: '½', ins: '½' }, { label: '⅓', ins: '⅓' }, { label: '¼', ins: '¼' },
+    { label: '¾', ins: '¾' }, { label: '‰', ins: '‰' },
+    // Calculus
+    { label: '∫', ins: '∫' }, { label: '∬', ins: '∬' }, { label: '∭', ins: '∭' },
+    { label: '∑', ins: '\\sum_{n=1}^{\\infty} ' }, { label: '∏', ins: '\\prod_{n=1}^{N} ' },
+    { label: '∮', ins: '\\oint ' },
+    { label: 'lim x→∞', ins: '\\lim_{x \\to \\infty} ' },
+    { label: 'lim x→0', ins: '\\lim_{x \\to 0} ' },
+    { label: 'lim x→a', ins: '\\lim_{x \\to a} ' },
     { label: 'frac', ins: '\\frac{a}{b}' }, { label: 'sqrt', ins: '\\sqrt{x}' },
-    { label: 'x�', ins: 'x^{2}' }, { label: 'xn', ins: 'x^{n}' },
-    { label: 'd/dx', ins: '\\frac{d}{dx}' }, { label: '?', ins: '\\to ' },
+    { label: 'x²', ins: 'x^{2}' }, { label: 'xⁿ', ins: 'x^{n}' },
+    { label: 'd/dx', ins: '\\frac{d}{dx}' }, { label: '→', ins: '\\to ' },
     // Logic & Sets
-    { label: '?', ins: '?' }, { label: '?', ins: '?' }, { label: '?', ins: '?' },
-    { label: '?', ins: '?' }, { label: '?', ins: '?' }, { label: 'n', ins: 'n' },
-    { label: '?', ins: '?' }, { label: '?', ins: '?' }, { label: '?', ins: '?' },
-    { label: '?', ins: '?' }, { label: '�', ins: '�' },
+    { label: '∴', ins: '∴' }, { label: '∵', ins: '∵' }, { label: '∈', ins: '∈' },
+    { label: '∉', ins: '∉' }, { label: '⊂', ins: '⊂' }, { label: '∩', ins: '∩' },
+    { label: '∪', ins: '∪' }, { label: '∅', ins: '∅' }, { label: '∀', ins: '∀' },
+    { label: '∃', ins: '∃' }, { label: '∇', ins: '∇' },
     // Geometry
-    { label: '?', ins: '?' }, { label: '?', ins: '?' }, { label: '?', ins: '?' },
-    { label: '?', ins: '?' }, { label: '~', ins: '~' }, { label: '�', ins: '�' },
+    { label: '∠', ins: '∠' }, { label: '△', ins: '△' }, { label: '⊥', ins: '⊥' },
+    { label: '∥', ins: '∥' }, { label: '~', ins: '~' }, { label: '≅', ins: '≅' },
     // Physics / Thermo
-    { label: '?', ins: '?' }, { label: '?', ins: '?' }, { label: '?', ins: '?' },
-    { label: '?', ins: '?' }, { label: '�', ins: '�' }, { label: 's', ins: 's' },
-    { label: '?', ins: '?' }, { label: 'O', ins: 'O' }, { label: '?', ins: '?' },
-    { label: '?', ins: '?' }, { label: 't', ins: 't' }, { label: '?', ins: '?' },
+    { label: '°', ins: '°' }, { label: '℃', ins: '℃' }, { label: '℉', ins: '℉' },
+    { label: 'ℏ', ins: 'ℏ' }, { label: 'λ', ins: 'λ' }, { label: 'ρ', ins: 'ρ' },
+    { label: 'μ', ins: 'μ' }, { label: 'Ω', ins: 'Ω' }, { label: 'Φ', ins: 'Φ' },
+    { label: 'Δ', ins: 'Δ' }, { label: 'τ', ins: 'τ' }, { label: 'θ', ins: 'θ' },
     // Common formula templates
-    { label: 'F=ma', ins: 'F = ma' }, { label: 'E=mc�', ins: 'E = mc�' },
-    { label: 'PV=nRT', ins: 'PV = nRT' }, { label: '?S=0', ins: '?S = 0' },
-    { label: 'a�+b�=c�', ins: 'a� + b� = c�' },
+    { label: 'F=ma', ins: 'F = ma' }, { label: 'E=mc²', ins: 'E = mc²' },
+    { label: 'PV=nRT', ins: 'PV = nRT' }, { label: 'ΔS=0', ins: 'ΔS = 0' },
+    { label: 'a²+b²=c²', ins: 'a² + b² = c²' },
     { label: 'v=u+at', ins: 'v = u + at' },
-    { label: 'W=Q?T', ins: 'W = Q?T' }, { label: '?=W/Q', ins: '? = W/Q' }
+    { label: 'W=QΔT', ins: 'W = QΔT' }, { label: 'λ=W/Q', ins: 'λ = W/Q' }
   ];
 
   const GREEK_LETTERS = [
-    { label: 'a', name: 'alpha' }, { label: '�', name: 'beta' }, { label: '?', name: 'gamma' },
-    { label: 'd', name: 'delta' }, { label: 'e', name: 'epsilon' }, { label: '?', name: 'zeta' },
-    { label: '?', name: 'eta' }, { label: '?', name: 'theta' }, { label: '?', name: 'iota' },
-    { label: '?', name: 'kappa' }, { label: '?', name: 'lambda' }, { label: '�', name: 'mu' },
-    { label: '?', name: 'nu' }, { label: '?', name: 'xi' }, { label: 'p', name: 'pi' },
-    { label: '?', name: 'rho' }, { label: 's', name: 'sigma' }, { label: 't', name: 'tau' },
-    { label: '?', name: 'upsilon' }, { label: 'f', name: 'phi' }, { label: '?', name: 'chi' },
-    { label: '?', name: 'psi' }, { label: '?', name: 'omega' },
-    { label: 'G', name: 'Gamma' }, { label: '?', name: 'Delta' }, { label: 'T', name: 'Theta' },
-    { label: '?', name: 'Lambda' }, { label: '?', name: 'Xi' }, { label: '?', name: 'Pi' },
-    { label: 'S', name: 'Sigma' }, { label: '?', name: 'Upsilon' }, { label: 'F', name: 'Phi' },
-    { label: '?', name: 'Psi' }, { label: 'O', name: 'Omega' }
+    { label: 'α', name: 'alpha' }, { label: 'β', name: 'beta' }, { label: 'γ', name: 'gamma' },
+    { label: 'δ', name: 'delta' }, { label: 'ε', name: 'epsilon' }, { label: 'ζ', name: 'zeta' },
+    { label: 'η', name: 'eta' }, { label: 'θ', name: 'theta' }, { label: 'ι', name: 'iota' },
+    { label: 'κ', name: 'kappa' }, { label: 'λ', name: 'lambda' }, { label: 'μ', name: 'mu' },
+    { label: 'ν', name: 'nu' }, { label: 'ξ', name: 'xi' }, { label: 'π', name: 'pi' },
+    { label: 'ρ', name: 'rho' }, { label: 'σ', name: 'sigma' }, { label: 'τ', name: 'tau' },
+    { label: 'υ', name: 'upsilon' }, { label: 'φ', name: 'phi' }, { label: 'χ', name: 'chi' },
+    { label: 'ψ', name: 'psi' }, { label: 'ω', name: 'omega' },
+    { label: 'Γ', name: 'Gamma' }, { label: 'Δ', name: 'Delta' }, { label: 'Θ', name: 'Theta' },
+    { label: 'Λ', name: 'Lambda' }, { label: 'Ξ', name: 'Xi' }, { label: 'Π', name: 'Pi' },
+    { label: 'Σ', name: 'Sigma' }, { label: 'Υ', name: 'Upsilon' }, { label: 'Φ', name: 'Phi' },
+    { label: 'Ψ', name: 'Psi' }, { label: 'Ω', name: 'Omega' }
   ];
 
   // Build Greek buttons
@@ -1219,51 +1213,51 @@ canvas.on('path:created', triggerCloudSave);
 
   // --- SCIENCE FORMULA LIBRARY ---
   const SCI_FORMULAS = [
-    { cat: '? Mechanics', color: '#3B7BFF', formulas: [
-      'F = ma', 'W = Fd', 'P = W/t', 'KE = �mv�', 'PE = mgh',
-      'v = u + at', 's = ut + �at�', 'v� = u� + 2as', 'p = mv',
-      'F�?t = ?p', 't = Fr', '? = 2pf', 'v = ?r', 'a = v�/r',
-      'F = mv�/r', 'G = 6.674�10?�� Nm�/kg�', 'F = Gm1m2/r�'
+    { cat: '⚙️ Mechanics', color: '#3B7BFF', formulas: [
+      'F = ma', 'W = Fd', 'P = W/t', 'KE = ½mv²', 'PE = mgh',
+      'v = u + at', 's = ut + ½at²', 'v² = u² + 2as', 'p = mv',
+      'FΔt = Δp', 'τ = Fr', 'ω = 2πf', 'v = ωr', 'a = v²/r',
+      'F = mv²/r', 'G = 6.674×10⁻¹¹ Nm²/kg²', 'F = Gm₁m₂/r²'
     ]},
-    { cat: '??? Thermodynamics', color: '#F59E0B', formulas: [
-      'Q = mc?T', 'PV = nRT', '?U = Q - W', 'W = P?V',
-      '? = 1 - Tc/Th', '?S = Q/T', '?S = 0', 'U = (3/2)nRT',
-      'c = Q/(m?T)', 'k = -?A(dT/dx)'
+    { cat: '🔥 Thermodynamics', color: '#F59E0B', formulas: [
+      'Q = mcΔT', 'PV = nRT', 'ΔU = Q - W', 'W = PΔV',
+      'η = 1 - Tc/Th', 'ΔS = Q/T', 'ΔS ≥ 0', 'U = (3/2)nRT',
+      'c = Q/(mΔT)', 'k = -q/(A(dT/dx))'
     ]},
-    { cat: '? Electricity', color: '#10B981', formulas: [
-      'V = IR', 'P = IV', 'P = I�R', 'P = V�/R', 'R = ?L/A',
-      'Q = CV', 'E = Q/e0A', 'F = qE', 'F = qvB',
-      'e = -dF/dt', 'V = Ed', 'C = e0A/d', 'I = dQ/dt',
+    { cat: '⚡ Electricity', color: '#10B981', formulas: [
+      'V = IR', 'P = IV', 'P = I²R', 'P = V²/R', 'R = ρL/A',
+      'Q = CV', 'E = Q/(ε₀A)', 'F = qE', 'F = qvB',
+      'ε = -dΦ/dt', 'V = Ed', 'C = ε₀A/d', 'I = dQ/dt',
       'Vs/Vp = Ns/Np'
     ]},
-    { cat: '?? Waves & Optics', color: '#8B5CF6', formulas: [
-      'v = f?', 'T = 1/f', 'n = c/v', 'n1sin?1 = n2sin?2',
-      '1/f = 1/v + 1/u', 'm = v/u', 'E = hf', '? = h/mv',
-      'I = P/A', 'dsin? = n?'
+    { cat: '🌈 Waves & Optics', color: '#8B5CF6', formulas: [
+      'v = fλ', 'T = 1/f', 'n = c/v', 'n₁sinθ₁ = n₂sinθ₂',
+      '1/f = 1/v + 1/u', 'm = v/u', 'E = hf', 'λ = h/p',
+      'I = P/A', 'd sinθ = nλ'
     ]},
-    { cat: '?? Modern Physics', color: '#EF4444', formulas: [
-      'E = mc�', 'E = hf', 'KE = hf - f', '? = h/p',
-      '?x?p = ?/2', 'E = -13.6/n� eV', 't = t0/v(1-v�/c�)',
-      'N = N0e^(-?t)', 't� = ln2/?', 'E = mc� + KE'
+    { cat: '⚛️ Modern Physics', color: '#EF4444', formulas: [
+      'E = mc²', 'E = hf', 'KE = hf - Φ', 'λ = h/p',
+      'ΔxΔp ≥ h/4π', 'E = -13.6/n² eV', 't = t₀/√(1-v²/c²)',
+      'N = N₀e^(-λt)', 't½ = ln2/λ', 'E = mc² + KE'
     ]},
-    { cat: '?? Chemistry', color: '#06B6D4', formulas: [
-      'PV = nRT', 'pH = -log[H?]', 'pH + pOH = 14',
-      '?G = ?H - T?S', '?G = -nFE', 'Kc = [C]^c[D]^d/[A]^a[B]^b',
-      'E = E� - (RT/nF)lnQ', 'M1V1 = M2V2', 'n = m/M',
-      '?max = b/T (Wien)', 'c = ??'
+    { cat: '🧪 Chemistry', color: '#06B6D4', formulas: [
+      'PV = nRT', 'pH = -log[H⁺]', 'pH + pOH = 14',
+      'ΔG = ΔH - TΔS', 'ΔG = -nFE', 'Kc = [C]ᶜ[D]ᵈ/[A]ᵃ[B]ᵇ',
+      'E = E° - (RT/nF)lnQ', 'M₁V₁ = M₂V₂', 'n = m/M',
+      'λ_max = b/T', 'c = λν'
     ]},
-    { cat: '?? Mathematics', color: '#F5A623', formulas: [
-      'a� + b� = c�', 'A = pr�', 'C = 2pr', 'V = (4/3)pr�',
-      'A = �bh', 'sin�? + cos�? = 1', 'tan? = sin?/cos?',
-      'dy/dx = lim(?y/?x)', '?xndx = xn?�/(n+1) + C',
-      'det(A) = ad - bc', 'e^(ip) + 1 = 0', 'log(ab) = loga + logb',
-      'nCr = n!/r!(n-r)!', 'f\'(x) = lim[f(x+h)-f(x)]/h'
+    { cat: '📐 Mathematics', color: '#F5A623', formulas: [
+      'a² + b² = c²', 'A = πr²', 'C = 2πr', 'V = (4/3)πr³',
+      'A = ½bh', 'sin²θ + cos²θ = 1', 'tanθ = sinθ/cosθ',
+      'dy/dx = lim(Δy/Δx)', '∫xⁿdx = xⁿ⁺¹/(n+1) + C',
+      'det(A) = ad - bc', 'e^(iπ) + 1 = 0', 'log(ab) = log a + log b',
+      'nCr = n!/(r!(n-r)!)', "f'(x) = lim[f(x+h)-f(x)]/h"
     ]},
-    { cat: '?? Biology', color: '#34D399', formulas: [
-      'BMI = mass(kg)/height(m)�', 'HR_max = 220 - age',
-      'osmotic pressure = iMRT', 'Q10 = (R2/R1)^(10/(T2-T1))',
-      'Hardy-Weinberg: p� + 2pq + q� = 1', 'p + q = 1',
-      'net productivity = gross - respiration'
+    { cat: '🧬 Biology', color: '#34D399', formulas: [
+      'BMI = mass(kg)/height(m)²', 'HR_max = 220 - age',
+      'π = iMRT', 'Q10 = (R2/R1)^(10/(T2-T1))',
+      'p² + 2pq + q² = 1', 'p + q = 1',
+      'NPP = GPP - R'
     ]}
   ];
 
@@ -1877,14 +1871,18 @@ canvas.on('path:created', triggerCloudSave);
     .on('broadcast', { event: 'page-change' }, (msg) => {
       window._wbCurrentPage = msg.payload.page;
       const total = msg.payload.total;
+      const json  = msg.payload.json;
       
       // Ensure guest local notebook array matches host size
       while(window._wbNotebook.length < total) window._wbNotebook.push({});
       
-      if (window._wbNotebook[window._wbCurrentPage]) {
-         canvas.loadFromJSON(window._wbNotebook[window._wbCurrentPage], () => { canvas.renderAll(); });
+      // Store the received page JSON so it's available for future navigation
+      if (json) window._wbNotebook[window._wbCurrentPage] = json;
+
+      if (json && Object.keys(json).length > 0) {
+        canvas.loadFromJSON(json, () => { canvas.renderAll(); });
       } else {
-         canvas.clear();
+        canvas.clear(); canvas.renderAll();
       }
       const el = document.getElementById('page-num-display');
       if(el) el.textContent = `${window._wbCurrentPage + 1} / ${total}`;
@@ -1893,22 +1891,38 @@ canvas.on('path:created', triggerCloudSave);
       showRemoteCursor(msg.payload);
     })
     .on('broadcast', { event: 'live-stroke' }, (msg) => {
-      // Draw live tutor stroke on student canvas as it happens
-      if (!window._remoteStrokeCtx) {
-        const upperCanvas = canvas.upperCanvasEl;
-        window._remoteStrokeCtx = upperCanvas.getContext('2d');
+      // Draw live tutor stroke on a persistent overlay canvas above the Fabric canvas
+      let liveCtx = window._liveStrokeCtx;
+      if (!liveCtx) {
+        const gridBox = document.getElementById('grid-box');
+        if (!gridBox) return;
+        const overlay = document.createElement('canvas');
+        overlay.id = 'live-stroke-overlay';
+        overlay.width = canvas.width;
+        overlay.height = canvas.height;
+        overlay.style.cssText = 'position:absolute;top:0;left:0;pointer-events:none;z-index:10;';
+        gridBox.style.position = 'relative';
+        gridBox.appendChild(overlay);
+        liveCtx = overlay.getContext('2d');
+        window._liveStrokeCtx = liveCtx;
+        // Clear the overlay once the stroke is committed to Fabric (path:created)
+        canvas.on('path:created', () => {
+          if (window._liveStrokeCtx) {
+            const ov = document.getElementById('live-stroke-overlay');
+            if (ov) window._liveStrokeCtx.clearRect(0, 0, ov.width, ov.height);
+          }
+        });
       }
-      const ctx = window._remoteStrokeCtx;
       const pts = msg.payload.points;
       if (!pts || pts.length < 2) return;
-      ctx.strokeStyle = msg.payload.color || '#1A5FFF';
-      ctx.lineWidth = msg.payload.width || 2;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.beginPath();
-      ctx.moveTo(pts[0].x, pts[0].y);
-      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
-      ctx.stroke();
+      liveCtx.strokeStyle = msg.payload.color || '#1A5FFF';
+      liveCtx.lineWidth = msg.payload.width || 2;
+      liveCtx.lineCap = 'round';
+      liveCtx.lineJoin = 'round';
+      liveCtx.beginPath();
+      liveCtx.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < pts.length; i++) liveCtx.lineTo(pts[i].x, pts[i].y);
+      liveCtx.stroke();
     })
     .on('broadcast', { event: 'load-sim' }, (msg) => {
       const isHost = (State.user && (State.user.role === 'tutor' || State.user.role === 'admin')) || window._isLabHost;
@@ -2021,13 +2035,13 @@ canvas.on('path:created', triggerCloudSave);
     .on('broadcast', { event: 'doc-exit' }, () => {
       if (!window._docStudentMode) return;
       window._docStudentMode = false;
-      const ov = document.getElementById('doc-present-overlay');
+      const overlay = document.getElementById('doc-present-overlay');
       const cc = document.getElementById('canvas-container');
-      if (ov) ov.style.display = 'none';
+      if (overlay) overlay.style.display = 'none';
       if (cc) cc.style.display = 'flex';
-      window._docSlides = []; toast('Tutor ended the presentation', 'info');
-    })
-    .subscribe();
+      window._docSlides = [];
+      toast('Tutor ended the presentation', 'info');
+    });
   setupDocStudentListeners(channel);
   // NOTE: doc student listeners are chained inside setupDocStudentListeners before subscribe � see below
 
@@ -2072,6 +2086,20 @@ canvas.on('path:created', triggerCloudSave);
         return; 
       }
 
+      // Live stroke: stream drawing points to students in real-time
+      if (canvas.isDrawingMode && _liveStroke !== null && e.e.buttons === 1) {
+        _liveStroke.push({ x: Math.round(pt.x), y: Math.round(pt.y) });
+        if (_liveStroke.length >= 3) {
+          try {
+            channel.send({ type: 'broadcast', event: 'live-stroke', payload: {
+              points: _liveStroke.slice(-6), // send last 6 points to keep payload small
+              color: canvas.freeDrawingBrush.color,
+              width: canvas.freeDrawingBrush.width
+            }});
+          } catch(err) {}
+        }
+      }
+
       try {
         channel.send({ type: 'broadcast', event: 'cursor', payload: {
           x: Math.round(pt.x), y: Math.round(pt.y),
@@ -2080,6 +2108,8 @@ canvas.on('path:created', triggerCloudSave);
         }});
       } catch(err) {}
     });
+
+    canvas.on('mouse:up', () => { _liveStroke = null; });
 
     // Sync: deletions
     canvas.on('object:removed', (e) => {
@@ -2120,51 +2150,50 @@ canvas.on('path:created', triggerCloudSave);
     channel
     .on('broadcast', { event: 'rtc-call-started' }, async (msg) => {
       if (_rtcIsMe(msg)) return;
-      
-      const iAmHost = (State.user && (State.user.role === 'tutor' || State.user.role === 'admin')) || window._isLabHost;
 
-      if (_rtcStarted) {
-        window._rtcRemoteName = msg.payload.name;
-        if (iAmHost) {
-          // Wait longer to ensure student peer is fully ready
+      const iAmHost = (State.user && (State.user.role === 'tutor' || State.user.role === 'admin')) || window._isLabHost;
+      window._rtcRemoteName = msg.payload.name;
+
+      if (msg.payload.isReply) {
+        if (_rtcStarted && iAmHost && !_rtcPeer) {
           setTimeout(async () => {
-            try { await _rtcStartAsHost(); } catch(e) { console.error('Signaling Error:', e); }
-          }, 2000);
-        } else if (!msg.payload.isReply) {
-          _rtcSend('rtc-call-started', {
-            name: State.user?.full_name || window._wbGuestName || 'Student',
-            isHost: false,
-            isReply: true
-          });
+            try { await _rtcStartAsHost(); } catch(e) { console.error('Offer error:', e); }
+          }, 1200);
         }
         return;
       }
 
-      if (msg.payload.isReply) return;
-
-      window._rtcRemoteName = msg.payload.name;
-      const btn = document.getElementById('lab-video-btn');
-      if (btn) {
-        btn.textContent = '\uD83D\uDCF9 Join Call';
-        btn.style.background = 'rgba(16,185,129,0.7)';
+      if (_rtcStarted) {
+        _rtcSend('rtc-call-started', {
+          name: State.user?.full_name || window._wbGuestName || (iAmHost ? 'Tutor' : 'Student'),
+          isHost: iAmHost,
+          isReply: true
+        });
+        if (iAmHost && !_rtcPeer) {
+          setTimeout(async () => {
+            try { await _rtcStartAsHost(); } catch(e) { console.error('Offer error:', e); }
+          }, 1200);
+        }
+        return;
       }
+
+      const btn = document.getElementById('lab-video-btn');
+      if (btn) { btn.textContent = '📹 Join Call'; btn.style.background = 'rgba(16,185,129,0.7)'; }
 
       document.getElementById('rtc-call-notif')?.remove();
       const notif = document.createElement('div');
       notif.id = 'rtc-call-notif';
       notif.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#0D1B40;color:#fff;padding:16px 24px;border-radius:12px;z-index:99999;font-size:14px;font-weight:700;display:flex;gap:12px;align-items:center;box-shadow:0 8px 32px rgba(0,0,0,0.5);border:2px solid #10B981;';
-      notif.innerHTML = `\uD83D\uDCF9 <strong>${msg.payload.name}</strong> is calling... <button onclick="document.getElementById('rtc-call-notif')?.remove();window.toggleLabVideo();" style="background:#10B981;color:#fff;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-weight:800;font-size:13px;">Answer \uD83D\uDCDE</button> <button onclick="document.getElementById('rtc-call-notif')?.remove()" style="background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:8px;padding:8px 12px;cursor:pointer;">Ignore</button>`;
+      notif.innerHTML = `📹 <strong>${msg.payload.name}</strong> is calling... <button onclick="document.getElementById('rtc-call-notif')?.remove();window.toggleLabVideo();" style="background:#10B981;color:#fff;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-weight:800;font-size:13px;">Answer 📞</button> <button onclick="document.getElementById('rtc-call-notif')?.remove()" style="background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:8px;padding:8px 12px;cursor:pointer;">Ignore</button>`;
       document.body.appendChild(notif);
       setTimeout(() => notif.remove(), 30000);
     })
     .on('broadcast', { event: 'rtc-offer' }, async (msg) => {
       if (_rtcIsMe(msg)) return;
       const iAmHost = (State.user && (State.user.role === 'tutor' || State.user.role === 'admin')) || window._isLabHost;
-      if (iAmHost) return;
-      // Store the offer � answer it when student clicks "Answer" or immediately if already started
+      if (iAmHost) return; 
       _rtcPendingOffer = msg.payload.sdp;
       if (_rtcStarted) {
-        // Student already clicked Answer � process immediately
         try { await _rtcAnswerOffer(_rtcPendingOffer, window._rtcRemoteName || 'Tutor'); _rtcPendingOffer = null; }
         catch(e) { toast('Could not connect: ' + e.message, 'err'); }
       }
@@ -2175,19 +2204,25 @@ canvas.on('path:created', triggerCloudSave);
         try {
           const desc = msg.payload.sdp;
           await _rtcPeer.setRemoteDescription(new RTCSessionDescription({ type: desc.type, sdp: desc.sdp }));
+          _rtcProcessIceQueue();
         } catch(e) { console.warn('rtc-answer error:', e); }
       }
     })
     .on('broadcast', { event: 'rtc-ice' }, async (msg) => {
       if (_rtcIsMe(msg)) return;
-      if (_rtcPeer && msg.payload.candidate) {
-        try { await _rtcPeer.addIceCandidate(new RTCIceCandidate(msg.payload.candidate)); } catch(e) {}
-      }
+      if (!_rtcPeer) return;
+      try {
+        const candidate = new RTCIceCandidate(msg.payload.candidate);
+        if (_rtcPeer.remoteDescription && _rtcPeer.remoteDescription.type) {
+          await _rtcPeer.addIceCandidate(candidate);
+        } else {
+          _rtcIceQueue.push(candidate);
+        }
+      } catch(e) {}
     })
     .on('broadcast', { event: 'rtc-end' }, (msg) => {
       if (_rtcIsMe(msg)) return;
       if (_rtcStarted) {
-        // Other party hung up � clean up without sending rtc-end again
         _rtcCleanPeer();
         if (_localStream) { _localStream.getTracks().forEach(t => t.stop()); _localStream = null; }
         const lv = document.getElementById('lab-local-video');
@@ -2201,27 +2236,59 @@ canvas.on('path:created', triggerCloudSave);
         if (btn2) { btn2.textContent = '📹 Video Call'; btn2.style.background = 'rgba(255,255,255,0.12)'; btn2.style.animation = ''; btn2.style.boxShadow = ''; }
         toast('The other party ended the call.', 'info');
       }
+    })
+    .subscribe((status) => {
+      if (status === 'SUBSCRIBED') console.log("Majestic Lab: Realtime Connected ✅");
     });
+
+    setupDocStudentListeners(channel);
   }
-}
+} 
+// <-- END OF initWhiteboardSync
+
 // ------------------------------------------------------------
-// WEBRTC VIDEO ENGINE � globals accessible everywhere
-// channel reference stored on window so functions outside
-// initWhiteboardSync can use it
+// WEBRTC VIDEO ENGINE & UI GLOBALS
 // ------------------------------------------------------------
 var _rtcPeer = null;
 var _localStream = null;
 var _rtcStarted = false;
 var _rtcIsHost = false;
-var STUN = { iceServers: [
-  { urls: 'stun:stun.l.google.com:19302' },
-  { urls: 'stun:stun1.l.google.com:19302' },
-  { urls: 'stun:stun2.l.google.com:19302' }
-]};
+var STUN = { 
+  iceServers: [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: 'stun:stun2.l.google.com:19302' },
+    // Free public TURN (Metered.ca — replace with your own for production)
+    {
+      urls: 'turn:a.relay.metered.ca:80',
+      username:   '9db3e8c2e77c71d3349ae0ea',
+      credential: 'hQcsuVlem5IdTiC4	'
+    },
+    {
+      urls: 'turn:a.relay.metered.ca:443',
+      username: '9db3e8c2e77c71d3349ae0ea',
+      credential: 'hQcsuVlem5IdTiC4	'
+    },
+    {
+      urls: 'turn:a.relay.metered.ca:443?transport=tcp',
+      username: '9db3e8c2e77c71d3349ae0ea',
+      credential: 'hQcsuVlem5IdTiC4	'
+    }
+  ],
+  iceCandidatePoolSize: 10
+};
 
-// Store my own identity so we can ignore our own broadcasts
 var _rtcMyId = Math.random().toString(36).slice(2);
 var _rtcPendingOffer = null;
+var _rtcIceQueue = [];
+
+function _rtcProcessIceQueue() {
+  if (!_rtcPeer || !_rtcPeer.remoteDescription) return;
+  while (_rtcIceQueue.length > 0) {
+    const candidate = _rtcIceQueue.shift();
+    _rtcPeer.addIceCandidate(candidate).catch(e => console.warn('ICE add error:', e));
+  }
+}
 
 function _rtcGetChannel() {
   return window._wbChannel || null;
@@ -2229,19 +2296,11 @@ function _rtcGetChannel() {
 
 function _rtcSend(event, payload) {
   const ch = _rtcGetChannel();
-  // If channel doesn't exist or isn't fully 'joined', wait and retry. 
-  // This stops the "Falling back to REST" console error.
-  if (!ch || ch.state !== 'joined') {
-    setTimeout(() => _rtcSend(event, payload), 300);
-    return;
-  }
+  if (!ch) return;
   try {
     const safe = JSON.parse(JSON.stringify(payload));
-    ch.send({ 
-      type: 'broadcast', 
-      event: event, 
-      payload: { ...safe, _senderId: _rtcMyId }
-    });
+    // Send directly. Supabase handles internal buffering automatically.
+    ch.send({ type: 'broadcast', event: event, payload: { ...safe, _senderId: _rtcMyId } });
   } catch(e) { console.warn('_rtcSend failed:', e); }
 }
 
@@ -2252,7 +2311,6 @@ function _rtcIsMe(msg) {
 function _rtcShowPanel() {
   const panel = document.getElementById('lab-video-panel');
   if (panel) panel.style.display = 'block';
-  // Re-trigger play after panel is visible (hidden elements can't play)
   setTimeout(() => {
     const lv = document.getElementById('lab-local-video');
     if (lv && _localStream) { lv.srcObject = _localStream; lv.play().catch(()=>{}); }
@@ -2275,12 +2333,12 @@ function _rtcSetBtn(active) {
   if (active) {
     btn.style.background = 'rgba(239,68,68,0.8)';
     btn.style.color = '#fff';
-    btn.textContent = '\uD83D\uDCF9 End Call';
+    btn.textContent = '📹 End Call';
     if (iAmHost && shareBtn) shareBtn.style.display = 'inline-flex';
   } else {
     btn.style.background = 'rgba(255,255,255,0.12)';
     btn.style.color = '#fff';
-    btn.textContent = '\uD83D\uDCF9 Video Call';
+    btn.textContent = '📹 Video Call';
     if (shareBtn) {
       if (window._isSharingScreen) stopScreenShare();
       shareBtn.style.display = 'none';
@@ -2290,7 +2348,6 @@ function _rtcSetBtn(active) {
 
 async function _rtcGetMedia() {
   if (_localStream) {
-    // Re-assign to video element every time in case panel was hidden when first set
     const lv = document.getElementById('lab-local-video');
     if (lv && lv.srcObject !== _localStream) {
       lv.srcObject = _localStream;
@@ -2300,10 +2357,7 @@ async function _rtcGetMedia() {
   }
   _localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
   const lv = document.getElementById('lab-local-video');
-  if (lv) {
-    lv.srcObject = _localStream;
-    lv.play().catch(()=>{});
-  }
+  if (lv) { lv.srcObject = _localStream; lv.play().catch(()=>{}); }
   return _localStream;
 }
 
@@ -2319,15 +2373,14 @@ function _rtcCleanPeer() {
 
 function _rtcMakePeer(remoteName) {
   _rtcCleanPeer();
+  _rtcIceQueue = [];
   _rtcPeer = new RTCPeerConnection(STUN);
 
-  // When we get remote video/audio
-   _rtcPeer.ontrack = (e) => {
+  _rtcPeer.ontrack = (e) => {
     const rv = document.getElementById('lab-remote-video');
     if (rv) { 
       rv.srcObject = e.streams[0]; 
       rv.play().catch(()=>{}); 
-      // ADD THIS LINE BELOW
       rv.title = "Double-click to enlarge";
       rv.ondblclick = () => document.getElementById('lab-video-panel').classList.toggle('fullscreen-video');
     }
@@ -2336,14 +2389,14 @@ function _rtcMakePeer(remoteName) {
     const lb = document.getElementById('lab-remote-label');
     if (lb) lb.textContent = remoteName || 'Connected';
     _rtcShowPanel();
+    const lv = document.getElementById('lab-local-video');
+    if (lv && _localStream && !lv.srcObject) { lv.srcObject = _localStream; lv.play().catch(()=>{}); }
   };
 
-  // Send ICE candidates to the other side
   _rtcPeer.onicecandidate = (e) => {
     if (e.candidate) _rtcSend('rtc-ice', { candidate: e.candidate });
   };
 
-  // Connection state changes
   _rtcPeer.onconnectionstatechange = () => {
     const state = _rtcPeer ? _rtcPeer.connectionState : '';
     const s = document.getElementById('lab-call-status');
@@ -2357,10 +2410,25 @@ function _rtcMakePeer(remoteName) {
     }
   };
 
+  // Safari fallback — onconnectionstatechange is unreliable on WebKit
+  _rtcPeer.oniceconnectionstatechange = () => {
+    const state = _rtcPeer ? _rtcPeer.iceConnectionState : '';
+    const s = document.getElementById('lab-call-status');
+    if (state === 'connected' || state === 'completed') {
+      if (s) s.style.display = 'none';
+    }
+    if (state === 'failed') {
+      if (s) { s.style.display = 'flex'; s.textContent = '⚠️ Connection lost...'; }
+      // Attempt ICE restart on failure
+      if (_rtcPeer && _rtcIsHost) {
+        try { _rtcPeer.restartIce(); } catch(e) {}
+      }
+    }
+  };
+
   return _rtcPeer;
 }
 
-// Called by host (tutor) to start the call
 async function _rtcStartAsHost() {
   const stream = await _rtcGetMedia();
   const peer = _rtcMakePeer('Student');
@@ -2369,11 +2437,9 @@ async function _rtcStartAsHost() {
   const offer = await peer.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: true });
   await peer.setLocalDescription(offer);
 
-  // Send plain serializable object � not RTCSessionDescription instance
   _rtcSend('rtc-offer', { sdp: { type: peer.localDescription.type, sdp: peer.localDescription.sdp } });
 }
 
-// Called by student when they receive an offer
 async function _rtcAnswerOffer(sdp, hostName) {
   const stream = await _rtcGetMedia();
   const peer = _rtcMakePeer(hostName || 'Tutor');
@@ -2383,66 +2449,57 @@ async function _rtcAnswerOffer(sdp, hostName) {
   await peer.setRemoteDescription(new RTCSessionDescription(desc));
   const answer = await peer.createAnswer();
   await peer.setLocalDescription(answer);
+  _rtcProcessIceQueue();
 
-  // Serialize answer safely before sending
   _rtcSend('rtc-answer', { sdp: { type: peer.localDescription.type, sdp: peer.localDescription.sdp } });
-  _rtcShowPanel();
   _rtcStarted = true;
   _rtcSetBtn(true);
+  _rtcShowPanel();
 }
 
 window.toggleLabVideo = async () => {
-  if (_rtcStarted) {
-    window.stopLabVideo();
-    return;
-  }
+  if (_rtcStarted) { window.stopLabVideo(); return; }
 
-  _rtcShowPanel();
   _rtcIsHost = !!(State.user && (State.user.role === 'tutor' || State.user.role === 'admin')) || !!window._isLabHost;
 
   try {
     await _rtcGetMedia();
+    _rtcShowPanel();
     _rtcStarted = true;
     _rtcSetBtn(true);
 
-    // Tell the other person I am ready
     _rtcSend('rtc-call-started', {
       name: State.user?.full_name || window._wbGuestName || (_rtcIsHost ? 'Tutor' : 'Student'),
-      isHost: _rtcIsHost
+      isHost: _rtcIsHost,
+      isReply: !!window._rtcRemoteName
     });
 
-    // Student: if tutor already sent an offer, answer it after a short delay
-    // to ensure our peer connection listeners are attached
     if (!_rtcIsHost && _rtcPendingOffer) {
-      setTimeout(async () => {
-        try {
-          await _rtcAnswerOffer(_rtcPendingOffer, window._rtcRemoteName || 'Tutor');
-          _rtcPendingOffer = null;
-        } catch(e) { console.error('Answer error:', e); }
-      }, 1000);
+      const offerToProcess = _rtcPendingOffer;
+      _rtcPendingOffer = null;
+      try {
+        await _rtcAnswerOffer(offerToProcess, window._rtcRemoteName || 'Tutor');
+      } catch(e) { console.error('Answer error:', e); }
     }
 
-    // Tutor: if student is already in the call (sent rtc-call-started before us),
-    // send the offer after giving student time to set up their peer
     if (_rtcIsHost && window._rtcRemoteName) {
       setTimeout(async () => {
         try { await _rtcStartAsHost(); } catch(e) { console.error('Offer error:', e); }
-      }, 2000);
+      }, 800);
     }
 
   } catch(e) {
     toast('Camera/mic error: ' + e.message, 'err');
-    _rtcStarted = false; _rtcSetBtn(false); _rtcHidePanel();
+    _rtcStarted = false; _rtcSetBtn(false);
+    const panel = document.getElementById('lab-video-panel');
+    if (panel && panel.style.display !== 'block') _rtcHidePanel();
   }
 };
 
 window.stopLabVideo = () => {
   const wasStarted = _rtcStarted;
   _rtcCleanPeer();
-  if (_localStream) {
-    _localStream.getTracks().forEach(t => t.stop());
-    _localStream = null;
-  }
+  if (_localStream) { _localStream.getTracks().forEach(t => t.stop()); _localStream = null; }
   const lv = document.getElementById('lab-local-video');
   if (lv) lv.srcObject = null;
   const rv = document.getElementById('lab-remote-video');
@@ -2450,23 +2507,17 @@ window.stopLabVideo = () => {
   _rtcStarted = false;
   _rtcSetBtn(false);
   _rtcHidePanel();
-  // Also reset "Join Call" state if it was showing
   document.getElementById('rtc-call-notif')?.remove();
   const btn = document.getElementById('lab-video-btn');
   if (btn) { btn.textContent = '📹 Video Call'; btn.style.background = 'rgba(255,255,255,0.12)'; btn.style.animation = ''; btn.style.boxShadow = ''; }
-  if (wasStarted) {
-    _rtcSend('rtc-end', {});
-    toast('Video call ended.', 'info');
-  }
+  if (wasStarted) { _rtcSend('rtc-end', {}); toast('Video call ended.', 'info'); }
 };
+
 window._isSharingScreen = false;
 window._originalStream = null;
 
 async function toggleScreenShare() {
-  if (window._isSharingScreen) {
-    stopScreenShare();
-    return;
-  }
+  if (window._isSharingScreen) { stopScreenShare(); return; }
   try {
     const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
     const screenTrack = screenStream.getVideoTracks()[0];
@@ -2488,9 +2539,7 @@ async function toggleScreenShare() {
 
     screenTrack.onended = () => stopScreenShare();
     toast("Sharing screen... Students see your screen in the video frame.", "ok");
-  } catch (e) {
-    toast("Screen share failed: " + e.message, "err");
-  }
+  } catch (e) { toast("Screen share failed: " + e.message, "err"); }
 }
 
 function stopScreenShare() {
@@ -2510,9 +2559,8 @@ function stopScreenShare() {
   btn.style.background = "rgba(255,255,255,0.12)";
   window._isSharingScreen = false;
 }
-// -- Video panel drag to move ---------------------------------
+
 (function initVideoPanelDrag() {
-  // Run after DOM is ready
   const tryInit = () => {
     const panel = document.getElementById('lab-video-panel');
     const handle = document.getElementById('lab-vid-drag-handle');
@@ -2521,14 +2569,10 @@ function stopScreenShare() {
     handle.addEventListener('mousedown', (e) => {
       if (e.target.tagName === 'BUTTON') return;
       dragging = true;
-      // Switch from bottom/right to top/left positioning
       const r = panel.getBoundingClientRect();
-      panel.style.right = 'auto';
-      panel.style.bottom = 'auto';
-      panel.style.left = r.left + 'px';
-      panel.style.top = r.top + 'px';
-      ox = e.clientX - r.left;
-      oy = e.clientY - r.top;
+      panel.style.right = 'auto'; panel.style.bottom = 'auto';
+      panel.style.left = r.left + 'px'; panel.style.top = r.top + 'px';
+      ox = e.clientX - r.left; oy = e.clientY - r.top;
       handle.style.cursor = 'grabbing';
       e.preventDefault();
     });
@@ -2538,7 +2582,6 @@ function stopScreenShare() {
       panel.style.top  = Math.max(0, Math.min(window.innerHeight - 80, e.clientY - oy)) + 'px';
     });
     document.addEventListener('mouseup', () => { dragging = false; handle.style.cursor = 'grab'; });
-    // Touch support
     handle.addEventListener('touchstart', (e) => {
       if (e.target.tagName === 'BUTTON') return;
       const t = e.touches[0];
@@ -2558,6 +2601,7 @@ function stopScreenShare() {
   };
   setTimeout(tryInit, 500);
 })();
+
 window.toggleLabVideoMute = () => {
   if (!_localStream) return;
   const t = _localStream.getAudioTracks()[0];
@@ -2576,7 +2620,6 @@ window.toggleLabVideoCam = () => {
   if (btn) btn.textContent = t.enabled ? '📷 Cam' : '🚫 Cam Off';
 };
 
-// -- Exit Lab -------------------------------------------------
 function exitMajesticLab() {
   if (window._rtcStarted && typeof window.stopLabVideo === 'function') window.stopLabVideo();
   if (window.wbInstance) { try { window.wbInstance.dispose(); } catch(e){} window.wbInstance = null; }
@@ -2585,20 +2628,21 @@ function exitMajesticLab() {
     if (sb) try { sb.removeChannel(window._wbChannel); } catch(e){}
     window._wbChannel = null;
   }
-  // Navigate back
   const prev = State.prevPage || 'dashboard';
   navigate(prev, State.prevTab);
 }
 
-// -- Tutor direct lab (no session) ----------------------------
 function openTutorLabDirect() {
   window._wbInstitutionName = '';
   window._isLabHost = true;
-  renderWhiteboard('tutor_' + State.user.id + '_' + Date.now());
+  const sessionId = 'tutor_' + State.user.id + '_' + Date.now();
+  window._currentTutorLabSessionId = sessionId;
+  renderWhiteboard(sessionId);
 }
 
-// -- Document Presentation � missing helpers -------------------
-
+// ------------------------------------------------------------
+// DOCUMENT PRESENTATION HELPERS
+// ------------------------------------------------------------
 function renderDocSlide(idx) {
   const slideCtx = window._docSlideCtx;
   const annoCtx  = window._docAnnoCtx;
@@ -2609,7 +2653,6 @@ function renderDocSlide(idx) {
   img.onload = () => {
     slideCtx.clearRect(0, 0, window._docCW, window._docCH);
     slideCtx.drawImage(img, 0, 0, window._docCW, window._docCH);
-    // Restore annotations for this slide
     if (annoCtx) {
       annoCtx.clearRect(0, 0, window._docCW, window._docCH);
       const saved = window._docAnnotations[idx];
@@ -2621,16 +2664,13 @@ function renderDocSlide(idx) {
   };
   img.src = window._docSlides[idx];
 
-  // Update counter
   const counter = document.getElementById('doc-slide-counter');
   if (counter) counter.textContent = `${idx + 1} / ${window._docSlides.length}`;
 
-  // Update thumb strip active state
   document.querySelectorAll('.doc-thumb').forEach((t, i) => {
     t.style.border = i === idx ? '2px solid #1A5FFF' : '2px solid transparent';
   });
 
-  // Broadcast to students
   const ch = window._wbChannel;
   if (ch && !window._docStudentMode) {
     try { ch.send({ type: 'broadcast', event: 'doc-slide-change', payload: { idx } }); } catch(e) {}
@@ -2665,7 +2705,6 @@ function docSetTool(tool) {
   } else {
     annoCanvas.style.cursor = 'crosshair';
   }
-  // Highlight active tool button
   ['pen','highlight','arrow','text','laser'].forEach(t => {
     const btn = document.getElementById('doc-tool-' + t);
     if (btn) btn.style.background = t === tool ? 'var(--blue)' : 'rgba(255,255,255,0.1)';
@@ -2744,7 +2783,6 @@ function setupDocAnnotationEvents(annoCanvas) {
         const width = parseInt(document.getElementById('doc-pen-width')?.value || '4');
         ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineCap = 'round';
         ctx.beginPath(); ctx.moveTo(arrowStart.x, arrowStart.y); ctx.lineTo(pos.x, pos.y); ctx.stroke();
-        // Arrowhead
         const angle = Math.atan2(pos.y - arrowStart.y, pos.x - arrowStart.x);
         const headLen = 16;
         ctx.beginPath();

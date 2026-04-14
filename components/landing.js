@@ -829,7 +829,7 @@
   </div>
 
   <!-- Footer -->
-  <div style="background:#0f172a;padding:24px 48px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+  <div style="background:#0f172a;padding:20px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
     <div style="font-size:13px;color:rgba(255,255,255,0.5)">© 2026 Mathrone Academy. All rights reserved.</div>
     <div style="display:flex;gap:16px">
       <button onclick="navigate('privacy')" style="font-size:13px;color:rgba(255,255,255,0.5);background:none;border:none;cursor:pointer">Privacy Policy</button>
@@ -943,7 +943,7 @@
     </div>
   </div>
 
-  <div style="background:#0f172a;padding:24px 48px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+  <div style="background:#0f172a;padding:20px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
     <div style="font-size:13px;color:rgba(255,255,255,0.5)">© 2025 Mathrone Academy. All rights reserved.</div>
     <button onclick="navigate('terms')" style="font-size:13px;color:rgba(255,255,255,0.5);background:none;border:none;cursor:pointer">Terms & Conditions</button>
     <button onclick="navigate('landing')" style="font-size:13px;color:rgba(255,255,255,0.5);background:none;border:none;cursor:pointer">← Back to Home</button>
@@ -955,13 +955,27 @@
    function renderAboutUs(){
   render(`
   <style>
-    .about-nav{display:flex;align-items:center;justify-content:space-between;padding:16px 48px;border-bottom:1px solid var(--g100);background:#fff;position:sticky;top:0;z-index:100}
-    .about-hero{background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 100%);padding:80px 48px;text-align:center}
-    .about-body{max-width:1100px;margin:0 auto;padding:56px 48px}
-    .about-h2{font-size:28px;font-weight:800;color:var(--navy);font-family:'Playfair Display',serif;margin-bottom:12px}
+    .about-nav{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--g100);background:#fff;position:sticky;top:0;z-index:100}
+    .about-hero{background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 100%);padding:60px 20px;text-align:center}
+    .about-hero h1{font-size:clamp(28px,6vw,48px)!important}
+    .about-body{max-width:1100px;margin:0 auto;padding:48px 20px}
+    .about-h2{font-size:clamp(22px,4vw,28px);font-weight:800;color:var(--navy);font-family:'Playfair Display',serif;margin-bottom:12px}
     .about-p{font-size:15px;color:var(--g600);line-height:1.8;margin-bottom:14px}
-    .value-card{background:#fff;border:1px solid var(--g100);border-radius:16px;padding:24px;text-align:center}
-    .team-card{background:#fff;border:1px solid var(--g100);border-radius:16px;padding:24px;text-align:center}
+    .value-card{background:#fff;border:1px solid var(--g100);border-radius:16px;padding:20px;text-align:center}
+    .team-card{background:#fff;border:1px solid var(--g100);border-radius:16px;padding:20px;text-align:center}
+    .about-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+    .about-grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+    @media(max-width:768px){
+      .about-nav{padding:12px 16px}
+      .about-hero{padding:48px 16px}
+      .about-body{padding:40px 16px}
+      .about-grid-2{grid-template-columns:1fr;gap:28px}
+      .about-grid-3{grid-template-columns:1fr 1fr;gap:14px}
+    }
+    @media(max-width:480px){
+      .about-grid-3{grid-template-columns:1fr;gap:12px}
+      .about-hero h1{font-size:26px!important}
+    }
   </style>
 
   <!-- NAV -->
@@ -978,11 +992,18 @@
     <div style="display:inline-block;background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.9);font-size:13px;padding:6px 16px;border-radius:999px;margin-bottom:24px;border:1px solid rgba(255,255,255,0.2)">👑 Our Story</div>
     <h1 style="font-size:48px;font-weight:800;color:#fff;font-family:'Playfair Display',serif;margin-bottom:16px">About Mathrone Academy</h1>
     <p style="font-size:17px;color:rgba(255,255,255,0.75);max-width:600px;margin:0 auto">Built on the belief that every student deserves a majestic education — fit for a throne.</p>
+    <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:32px;margin-top:40px">
+      ${[['about-stat-tutors','22+','Expert Tutors'],['about-stat-students','105+','Students Served'],['about-stat-rating','4.8★','Average Rating'],['about-stat-sat','96%','Satisfaction Rate']].map(([id,val,label])=>`
+      <div style="text-align:center">
+        <div id="${id}" style="font-size:32px;font-weight:800;color:#fff">${val}</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.65);margin-top:4px">${label}</div>
+      </div>`).join('')}
+    </div>
   </div>
 
   <!-- MISSION -->
-  <div style="background:var(--sky);padding:72px 48px">
-    <div class="about-body" style="padding:0;display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center">
+  <div style="background:var(--sky);padding:clamp(40px,6vw,72px) clamp(16px,4vw,48px)">
+    <div class="about-body about-grid-2" style="padding:0">
       <div>
         <div style="font-size:11px;font-weight:700;color:var(--blue);letter-spacing:0.08em;margin-bottom:12px">OUR MISSION</div>
         <h2 class="about-h2">Majestic Learning.<br/>Royal Results.</h2>
@@ -1007,9 +1028,9 @@
   </div>
 
   <!-- STORY -->
-  <div style="padding:72px 48px">
+  <div style="padding:clamp(40px,6vw,72px) clamp(16px,4vw,48px)">
     <div class="about-body" style="padding:0">
-      <div style="text-align:center;margin-bottom:48px">
+      <div style="text-align:center;margin-bottom:40px">
         <div style="font-size:11px;font-weight:700;color:var(--blue);letter-spacing:0.08em;margin-bottom:12px">OUR STORY</div>
         <h2 class="about-h2" style="text-align:center">How Mathrone Began</h2>
       </div>
@@ -1023,13 +1044,13 @@
   </div>
 
   <!-- VALUES -->
-  <div style="background:var(--sky);padding:72px 48px">
+  <div style="background:var(--sky);padding:clamp(40px,6vw,72px) clamp(16px,4vw,48px)">
     <div class="about-body" style="padding:0">
-      <div style="text-align:center;margin-bottom:48px">
+      <div style="text-align:center;margin-bottom:40px">
         <div style="font-size:11px;font-weight:700;color:var(--blue);letter-spacing:0.08em;margin-bottom:12px">WHAT WE STAND FOR</div>
         <h2 class="about-h2" style="text-align:center">Our Core Values</h2>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px">
+      <div class="about-grid-3">
         ${[['👑','Excellence','We hold every tutor and every session to the highest standard. Mediocrity has no place at Mathrone.'],
            ['🤝','Trust','Parents and students trust us with something precious — their children\'s future. We never take that lightly.'],
            ['📊','Accountability','Every session is tracked, every result is measured. We are accountable to every student\'s progress.'],
@@ -1046,15 +1067,14 @@
     </div>
   </div>
 
- 
   <!-- TEAM -->
-  <div style="padding:72px 48px">
+  <div style="padding:clamp(40px,6vw,72px) clamp(16px,4vw,48px)">
     <div class="about-body" style="padding:0">
-      <div style="text-align:center;margin-bottom:48px">
+      <div style="text-align:center;margin-bottom:40px">
         <div style="font-size:11px;font-weight:700;color:var(--blue);letter-spacing:0.08em;margin-bottom:12px">THE PEOPLE BEHIND MATHRONE</div>
         <h2 class="about-h2" style="text-align:center">Meet the Team</h2>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px">
+      <div class="about-grid-3">
         ${[['RJ','#1e40af','RUKUNDO Janvier (Mr. Majesty)','Founder & CEO','Visionary teacher passionate about transforming education in Rwanda and across Africa.'],
            ['TL','#065f46','Academic Lead','Head of Tutors','Oversees tutor recruitment, vetting, and quality assurance across all subjects.'],
            ['OS','#7c3aed','Operations','Platform Manager','Manages day-to-day platform operations, student assignments, and parent relations.']
@@ -1070,7 +1090,7 @@
   </div>
 
   <!-- CTA -->
-  <div style="background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 100%);padding:72px 48px;text-align:center">
+  <div style="background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 100%);padding:clamp(40px,6vw,72px) clamp(16px,4vw,48px);text-align:center">
     <h2 style="font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:#fff;margin-bottom:14px">Join the Mathrone Family</h2>
     <p style="color:rgba(255,255,255,0.7);font-size:16px;margin-bottom:32px">Whether you're a student, parent, or tutor — there's a place for you at Mathrone Academy.</p>
     <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
@@ -1080,7 +1100,7 @@
   </div>
 
   <!-- FOOTER -->
-  <div style="background:#0f172a;padding:24px 48px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+  <div style="background:#0f172a;padding:20px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
     <div style="font-size:13px;color:rgba(255,255,255,0.5)">© 2025 Mathrone Academy. All rights reserved.</div>
     <button onclick="navigate('landing')" style="font-size:13px;color:rgba(255,255,255,0.5);background:none;border:none;cursor:pointer">← Back to Home</button>
   </div>

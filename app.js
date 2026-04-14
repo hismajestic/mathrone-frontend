@@ -16,7 +16,9 @@ let supabaseClient = null;
 function getSupabase() {
   if (supabaseClient) return supabaseClient;
   if (window.supabase) {
-    supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
+    supabaseClient = window.supabase.createClient(SB_URL, SB_KEY, {
+      auth: { persistSession: false }
+    });
     return supabaseClient;
   }
   return null;
@@ -3204,9 +3206,12 @@ async function renderPublicLab(token) {
     noindex: true
   });
 
-  renderWhiteboard(token);
-  // Store the lab token for session context
-  window._currentLabSessionId = token;
+  // If the token has a session_id (tutor shared their live lab), join that exact session
+  // so both sides are on the same Supabase realtime channel
+  const effectiveSessionId = check.session_id || token;
+
+  renderWhiteboard(effectiveSessionId);
+  window._currentLabSessionId = effectiveSessionId;
 
   // Token holders always get full host access — nothing to hide
   // (Logged-in students coming through renderWhiteboard directly have their own access control)
@@ -3299,7 +3304,7 @@ async function validateGuestLabToken(token) {
       return { valid: false, reason: typeof err.detail === 'string' ? err.detail : 'Access denied.' };
     }
     const data = await result.json();
-    return { valid: true, name: data.buyer_name, institution_id: data.institution_id, institution_name: data.institution_name || '' };
+    return { valid: true, name: data.buyer_name, institution_id: data.institution_id, institution_name: data.institution_name || '', session_id: data.session_id || null };
   } catch(e) {
     return { valid: false, reason: 'Could not verify access. Check your connection.' };
   }
@@ -3750,9 +3755,14 @@ function resetDocZoom() {
 function applyDocZoom() {
   const container = document.getElementById('doc-zoom-container');
   const label = document.getElementById('doc-zoom-label');
-  if(container) container.style.transform = `scale(${window._docZoom})`;
-  if(label) label.textContent = Math.round(window._docZoom * 100) + '%';
-  
+  if (container) {
+    container.style.transform = `scale(${window._docZoom})`;
+    container.style.transformOrigin = 'top center';
+    // Expand the inline-block container so the viewport scrollbar reflects zoomed size
+    const cH = window._docCH || 720;
+    container.style.marginBottom = `${Math.max(0, (window._docZoom - 1) * cH)}px`;
+  }
+  if (label) label.textContent = Math.round(window._docZoom * 100) + '%';
   const ch = window._wbChannel;
   if (ch) try { ch.send({ type: 'broadcast', event: 'doc-zoom', payload: { zoom: window._docZoom } }); } catch(e) {}
 }
