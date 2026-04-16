@@ -2482,10 +2482,12 @@ window.toggleLabVideo = async () => {
       } catch(e) { console.error('Answer error:', e); }
     }
 
-    if (_rtcIsHost && window._rtcRemoteName) {
+    if (_rtcIsHost && window._rtcRemoteName && !_rtcPendingOffer) {
       setTimeout(async () => {
-        try { await _rtcStartAsHost(); } catch(e) { console.error('Offer error:', e); }
-      }, 800);
+        if (!_rtcPeer) {
+          try { await _rtcStartAsHost(); } catch(e) { console.error('Offer error:', e); }
+        }
+      }, 1500);
     }
 
   } catch(e) {

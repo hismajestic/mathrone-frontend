@@ -503,9 +503,10 @@ async function sendAiMessage(){
 
     hideTyping()
 
-    if(!res || !res.type){
+    if(!res || (!res.type && !res.content)){
       throw new Error('Invalid response from AI')
     }
+    if(!res.type) res.type = 'message'
 
     if(res.type === 'quiz' && res.options && res.options.length > 0){
       const qid = 'q_' + Date.now()

@@ -518,7 +518,7 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
     const [allPosts, featuredPosts, popularPosts] = await Promise.all([
       fetch(API_URL + '/news/?' + (activeCategory ? `category=${activeCategory}&` : '') + (searchQuery ? `search=${encodeURIComponent(searchQuery)}` : '')).then(r=>r.json()),
       fetch(API_URL + '/news/?featured=true&limit=6').then(r=>r.json()),
-      fetch(API_URL + '/news/?popular=true&limit=4').then(r=>r.json())
+      fetch(API_URL + '/news/?popular=true&limit=4' + (activeCategory ? `&category=${activeCategory}` : '')).then(r=>r.json())
     ])
 
     const posts = allPosts.filter(p => !p.is_featured)
@@ -632,10 +632,10 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
             </div>`}
           </section>
           <hr class="pn-divider"/>` : 
-          popularPosts.length ? `
+          (!activeCategory && popularPosts.length) ? `
           <section style="margin-bottom:0">
             <div class="pn-section-hdr">
-              <h2 class="pn-section-title">🔥 Most Popular</h2>
+              <h2 class="pn-section-title">Most Popular</h2>
             </div>
             <div class="pn-grid-4">
               ${popularPosts.map(p => newsCard(p, false)).join('')}
@@ -646,7 +646,7 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
           ${featuredPosts.length ? `
           <section style="margin-bottom:2.5rem">
             <div class="pn-section-hdr">
-              <h2 class="pn-section-title">⭐ Featured</h2>
+              <h2 class="pn-section-title"> Featured</h2>
               <button class="pn-view-all" onclick="renderPublicNews()">View all →</button>
             </div>
             <div class="pn-grid-3">
