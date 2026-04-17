@@ -1217,7 +1217,7 @@ function launchExam(res){
   const questionsPerPage = 5
   const totalPages = Math.ceil(questions.length / questionsPerPage)
 
-  function renderExamPage(){
+  function renderExamPageOnly(){
     const start = currentPage * questionsPerPage
     const end = start + questionsPerPage
     const pageQuestions = questions.slice(start, end)
@@ -1318,12 +1318,21 @@ function launchExam(res){
               const idx = (q.options||[]).findIndex(o => o === opt)
               if(idx >= 0) toggleMSQ(q.id, opt, attempt_id, idx)
             })
+          } else if(q.type === 'matching'){
+            const parts = saved.split('||')
+            parts.forEach((val, pi) => {
+              const sel = document.getElementById(`match-${q.id}-${pi}`)
+              if(sel && val) sel.value = val
+            })
           }
         })
         updateExamProgress()
         if(window.MathJax) MathJax.typesetPromise()
       }, 300)
     }
+
+    if(window._examTimerRunning) return  // guard: only start timer once
+    window._examTimerRunning = true
 
     // Timer
     const timerEl = document.getElementById('exam-timer')
@@ -1385,14 +1394,14 @@ function launchExam(res){
 
     window.changePage = function(dir){
       currentPage += dir
-      renderExamPage()
+      renderExamPageOnly()
     }
   }
 
   // Request fullscreen
   document.documentElement.requestFullscreen?.().catch(() => {})
 
-  renderExamPage()
+  renderExamPageOnly()
 }
 function showExamWarning(msg){
   const el = document.getElementById('exam-warnings')

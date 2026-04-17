@@ -226,7 +226,7 @@
                 <button onclick="closeExternalContent()" class="btn btn-sm btn-danger" style="font-size:11px;">✕ Back to Board</button>
               </div>
             </div>
-            <iframe id="sim-iframe" allow="camera; microphone; fullscreen; accelerometer; gyroscope" sandbox="allow-scripts allow-forms allow-popups allow-presentation" style="width:100%; height:calc(100% - 42px); border:none;"></iframe>
+            <iframe id="sim-iframe" allow="camera; microphone; fullscreen; accelerometer; gyroscope" sandbox="allow-scripts allow-forms allow-popups allow-presentation allow-same-origin allow-pointer-lock allow-downloads" style="width:100%; height:calc(100% - 42px); border:none;"></iframe>
           </div>
      <!-- DOCUMENT PRESENTATION OVERLAY -->
           <!-- DOCUMENT PRESENTATION OVERLAY (FULL SCREEN VERSION) -->
