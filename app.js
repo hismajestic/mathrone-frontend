@@ -21,6 +21,8 @@ function getSupabase() {
     });
     return supabaseClient;
   }
+  // Try again if the script hasn't loaded yet
+  setTimeout(getSupabase, 500);
   return null;
 }
   
@@ -331,7 +333,6 @@ function scrollToContact() {
       if (p === 'wishlist')      { await loadComponent('shop'); return renderWishlist() }
       if (p === 'my-orders')     { await loadComponent('shop'); return renderMyOrders() }
       if (p === 'admin-shop')    { await loadComponent('shop'); return renderAdminShop() }
-      if (p === 'news')          { await loadComponent('news'); return renderNews() }
       await loadComponent('landing'); renderLanding()
       setTimeout(loadUnreadCount, 200)
     }
@@ -1060,10 +1061,15 @@ function fmtShort(dt) { return dt ? new Date(dt).toLocaleDateString('en-US', { m
     let _realtimeSubscribing = false;
 
     function startRealtimeSync() {
+      const sb = getSupabase();
+      if (!sb) { 
+        setTimeout(startRealtimeSync, 1000); 
+        return; 
+      }
       if (_realtimeChannel || _realtimeSubscribing) return; // already running or starting
       _realtimeSubscribing = true;
-      const sb = getSupabase();
-      if (!sb || !State.user) return;
+      
+      if (!State.user) return;
 
       const userId = State.user.id;
       const userRole = State.user.role;
@@ -3165,6 +3171,8 @@ window.toggleMenu = function() {
 async function renderPublicLab(token) {
   localStorage.setItem('tc_lab_token', token);
   const isHost = State.user && (State.user.role === 'tutor' || State.user.role === 'admin');
+  
+  let effectiveSessionId = token;
 
   if (!isHost) {
     const check = await validateGuestLabToken(token);
@@ -3182,11 +3190,15 @@ async function renderPublicLab(token) {
     }
 
     toast(`Welcome, ${check.name}! 👋`, 'ok');
-  window._wbGuestName = check.name || 'Guest';
-  window._wbInstitutionName = check.institution_name || '';
-  window._labInstitutionId = check.institution_id || null;
-  // Token holders are the paying user — they get full lab host access
-  window._isLabHost = true;
+    window._wbGuestName = check.name || 'Guest';
+    window._wbInstitutionName = check.institution_name || '';
+    window._labInstitutionId = check.institution_id || null;
+    window._isLabHost = true; // Renters get host privileges
+    
+    // Safely assign the session ID inside the scope where 'check' exists
+    const hashSession = window.location.hash ? window.location.hash.replace('#', '') : null;
+    effectiveSessionId = hashSession || check.session_id || token;
+
     if (check.institution_id) {
       const fp = localStorage.getItem('ml_device_id');
       if (fp) {
@@ -3198,6 +3210,10 @@ async function renderPublicLab(token) {
         window._labPingInterval = setInterval(pingFn, 3 * 60 * 1000);
       }
     }
+  } else {
+    window._isLabHost = true;
+    const hashSession = window.location.hash ? window.location.hash.replace('#', '') : null;
+    if (hashSession) effectiveSessionId = hashSession;
   }
 
   updatePageSEO({
@@ -3206,21 +3222,14 @@ async function renderPublicLab(token) {
     noindex: true
   });
 
-  // If the token has a session_id (tutor shared their live lab), join that exact session
-  // so both sides are on the same Supabase realtime channel
-  const effectiveSessionId = check.session_id || token;
-
   renderWhiteboard(effectiveSessionId);
   window._currentLabSessionId = effectiveSessionId;
-
-  // Token holders always get full host access — nothing to hide
-  // (Logged-in students coming through renderWhiteboard directly have their own access control)
 }
   
-  
 function openGenerateLabLinkModal() {
+  document.querySelectorAll('.modal-overlay.lab-modal').forEach(m => m.remove());
   const overlay = document.createElement('div');
-  overlay.className = 'modal-overlay';
+  overlay.className = 'modal-overlay lab-modal';
   overlay.innerHTML = `
     <div class="modal" style="max-width:440px;padding:28px;position:relative;">
       <button onclick="this.closest('.modal-overlay').remove()" style="position:absolute;top:14px;right:14px;background:none;border:none;font-size:20px;cursor:pointer;color:var(--g400);line-height:1;" title="Close">✕</button>
@@ -3246,7 +3255,7 @@ function openGenerateLabLinkModal() {
         </select>
       </div>
       <div style="display:flex;gap:10px;margin-top:8px">
-        <button class="btn btn-primary btn-full" onclick="createGuestLabLink()">🔗 Generate Link</button>
+        <button class="btn btn-primary btn-full" id="lab-generate-btn" onclick="createGuestLabLink()">🔗 Generate Link</button>
         <button class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
       </div>
       <div id="lab-link-result" style="margin-top:16px;display:none;background:var(--sky);border-radius:10px;padding:14px">
@@ -3266,19 +3275,25 @@ async function createGuestLabLink() {
   const name = document.getElementById('lab-link-name')?.value.trim();
   const amount = document.getElementById('lab-link-amount')?.value.trim();
   const hours = parseInt(document.getElementById('lab-link-duration')?.value || '24');
+  const btn = document.getElementById('lab-generate-btn');
   if (!name) { toast('Please enter the guest name', 'err'); return; }
+  if (btn) { btn.disabled = true; btn.textContent = 'Generating...'; }
   try {
     const result = await api('/lab/tokens', {
       method: 'POST',
       body: JSON.stringify({ buyer_name: name, amount_paid: amount ? parseFloat(amount) : null, hours })
     });
     const link = `${window.location.origin}/lab/${result.token}`;
-    const expiry = new Date(result.expires_at).toLocaleString();
+    const expiry = result.expires_at ? new Date(result.expires_at).toLocaleString() : 'No expiry set';
     document.getElementById('lab-link-output').value = link;
     document.getElementById('lab-link-expiry').textContent = `Expires: ${expiry} | Buyer: ${name} | Paid: ${amount || '—'} RWF`;
     document.getElementById('lab-link-result').style.display = 'block';
     toast(`Link generated for ${name} ✅`);
-  } catch(e) { toast(e.message, 'err'); }
+    } catch(e) { 
+    toast(e.message, 'err'); 
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '🔗 Generate Link'; }
+  }
 }
 
 function copyLabLink() {
@@ -4315,65 +4330,6 @@ function openTutorLabDirect() {
   renderWhiteboard(pseudoId);
 }
 
-// ── Tutor generates a shareable student link for a home session ───────────────
-function openTutorLabShareModal() {
-  const overlay = document.createElement('div');
-  overlay.className = 'modal-overlay';
-  overlay.innerHTML = `
-    <div class="modal" style="max-width:420px;padding:28px;position:relative;max-height:90vh;overflow-y:auto;">
-      <button onclick="this.closest('.modal-overlay').remove()" style="position:absolute;top:14px;right:14px;background:none;border:none;font-size:20px;cursor:pointer;color:var(--g400);line-height:1;" title="Close">✕</button>
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
-        <span style="font-size:22px">⚗️</span>
-        <h3 style="font-size:17px;font-weight:800;color:var(--navy)">Share Lab with Student</h3>
-      </div>
-      <p style="font-size:12px;color:var(--g400);margin-bottom:20px">Generate a time-limited link for your student. They click it, type their name, and join instantly — no account needed.</p>
-      <div class="form-group">
-        <label class="form-label">Student Name</label>
-        <input class="input" id="tl-student-name" placeholder="e.g. Mugisha Jean">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Link Valid For</label>
-        <select class="input" id="tl-duration">
-          <option value="1">1 hour</option>
-          <option value="2">2 hours</option>
-          <option value="3" selected>3 hours</option>
-          <option value="8">Full day</option>
-          <option value="24">24 hours</option>
-        </select>
-      </div>
-      <button class="btn btn-primary btn-full" onclick="generateTutorStudentLink()">🔗 Generate Link</button>
-      <div id="tl-result" style="display:none;margin-top:16px;background:var(--sky);border-radius:10px;padding:14px">
-        <p style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:6px">✅ Share this with your student:</p>
-        <div style="display:flex;gap:8px;align-items:center">
-          <input class="input" id="tl-link-output" readonly style="font-size:11px;background:#fff;flex:1;">
-          <button class="btn btn-sm btn-gold" onclick="navigator.clipboard.writeText(document.getElementById('tl-link-output').value);toast('Link copied! 📋')">📋 Copy</button>
-        </div>
-        <p id="tl-expiry" style="font-size:11px;color:var(--g600);margin-top:6px"></p>
-        <div style="margin-top:10px;padding:10px;background:rgba(26,95,255,0.08);border-radius:8px;font-size:11px;color:var(--g600)">
-          💡 <strong>How to share:</strong> Copy the link and send via WhatsApp, SMS, or email. The student clicks it and joins immediately.
-        </div>
-      </div>
-    </div>`;
-  document.body.appendChild(overlay);
-  overlay.addEventListener('click', e => { if(e.target === overlay) overlay.remove(); });
-}
-
-async function generateTutorStudentLink() {
-  const name = document.getElementById('tl-student-name')?.value.trim();
-  const hours = parseInt(document.getElementById('tl-duration')?.value || '3');
-  if (!name) { toast('Please enter the student name', 'err'); return; }
-  try {
-    const result = await api('/lab/tokens', {
-      method: 'POST',
-      body: JSON.stringify({ buyer_name: name, hours, amount_paid: null })
-    });
-    const link = `${window.location.origin}/lab/${result.token}`;
-    document.getElementById('tl-link-output').value = link;
-    document.getElementById('tl-expiry').textContent = `Valid until: ${new Date(result.expires_at).toLocaleString()} · Single-device only`;
-    document.getElementById('tl-result').style.display = 'block';
-    toast(`Link ready for ${name} ✅`);
-  } catch(e) { toast(e.message, 'err'); }
-}
 // Concurrent session check for institution links
 function exitMajesticLab() {
   clearInterval(window._labPingInterval);

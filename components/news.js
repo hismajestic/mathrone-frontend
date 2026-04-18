@@ -855,10 +855,10 @@ async function openNewsPost(slugOrId){
             <div class="loader-center"><div class="spinner"></div></div>
           </div>
         </div>
-
-        <!-- Admin actions -->
+<!-- Admin actions -->
         <div id="admin-news-actions" style="margin-top:32px;display:flex;gap:10px"></div>
       </div>
+      <div id="modal-root"></div>
 
       <!-- Sidebar with Trending News -->
       <div class="article-sidebar">
@@ -1302,7 +1302,13 @@ async function applyNewsFormula(){
 }
 
 async function openNewsModal(postId = null){
-  document.getElementById('modal-root').innerHTML = `
+  let modalRoot = document.getElementById('modal-root')
+  if(!modalRoot){
+    modalRoot = document.createElement('div')
+    modalRoot.id = 'modal-root'
+    document.body.appendChild(modalRoot)
+  }
+  modalRoot.innerHTML = `
   <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
     <div class="modal" style="max-width:600px">
       <div class="modal-header">
@@ -1437,6 +1443,7 @@ async function openNewsModal(postId = null){
   if(postId){
     try{
       const post = await api('/news/' + postId)
+      if(!post || post.detail){ toast('Post not found','err'); document.querySelector('.modal-overlay')?.remove(); return; }
       setTimeout(() => {
         document.getElementById('news-cat').value = post.category
         document.getElementById('news-tags').value = post.tags?.join(', ') || ''
@@ -1456,8 +1463,8 @@ async function openNewsModal(postId = null){
         }
       }, 100)
     }catch(e){
-      toast('Failed to load post for editing','err')
-      document.querySelector('.modal-overlay').remove()
+      toast('Failed to load post for editing: ' + e.message,'err')
+      document.querySelector('.modal-overlay')?.remove()
     }
   }
 }

@@ -3,4 +3,5 @@
 /verify/*  /index.html   200
 /reset/*   /index.html   200
 /report/*  /index.html   200
+/lab/*     /index.html   200
 /*         /index.html   200

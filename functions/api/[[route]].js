@@ -31,8 +31,9 @@ const CACHE_RULES = [
   { pattern: /^\/shop\/products\/[^/]+$/, ttl: 120 }, // single product: 2 min
   { pattern: /^\/shop\/featured$/,        ttl: 120 }, // featured: 2 min
   { pattern: /^\/shop\/bundles$/,         ttl: 120 }, // bundles: 2 min
-  { pattern: /^\/news\/?\??/,             ttl: 60  }, // news list: 1 min
-  { pattern: /^\/news\/by-slug\//,        ttl: 120 }, // news article: 2 min
+  { pattern: /^\/news\/?(\?.*)?$/,         ttl: 60  }, // news list: 1 min (exact list only)
+  { pattern: /^\/news\/by-slug\//,         ttl: 120 }, // news article by slug: 2 min
+  { pattern: /^\/news\/[^/]+$/,            ttl: 120 }, // single news post by ID: 2 min
   { pattern: /^\/tutors\/\?/,             ttl: 300 }, // tutor directory: 5 min
   { pattern: /^\/health$/,                ttl: 30  }, // health check
 ];

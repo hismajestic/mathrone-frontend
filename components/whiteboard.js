@@ -1,36 +1,39 @@
 ﻿window._doRenderWhiteboard = async function renderWhiteboard(sessionId) {
   updatePageSEO({ title: "STEM Majestic Lab", description: "Visual STEM learning board.", url: `/whiteboard/${sessionId}`, noindex: true });
   await ensureFabric();
-  await ensureMathJax();
-  const isTutor = State.user && (State.user.role === 'tutor' || State.user.role === 'admin');
-  window._isLabHost = isTutor;
-  // Expose institution name for PDF branding (set externally before renderWhiteboard is called)
-  if (!window._wbInstitutionName) window._wbInstitutionName = '';
+      await ensureMathJax();
+      const isTutor = State.user && (State.user.role === 'tutor' || State.user.role === 'admin');
+      
+      // FIX: Do not overwrite the host status if it was already granted by a valid rental link
+      window._isLabHost = isTutor || window._isLabHost === true;
+      
+      // Expose institution name for PDF branding (set externally before renderWhiteboard is called)
+      if (!window._wbInstitutionName) window._wbInstitutionName = '';
 
-  const html = `
-    <div style="display:flex; flex-direction:column; height:100vh; width:100%; position:fixed; top:0; left:0; background:#0D1B40; z-index:9999;">
+      const html = `
+        <div style="display:flex; flex-direction:column; height:100vh; height:100dvh; width:100%; position:fixed; top:0; left:0; background:#0D1B40; z-index:9999;">
 
-      <!-- HEADER -->
-      <div style="background:linear-gradient(90deg,#0D1B40 0%,#1A3060 100%); padding:8px 18px; display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #1A5FFF; flex-shrink:0; position:relative;">
-        <div style="display:flex; align-items:center; gap:12px;">
-          <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" style="height:28px; filter:brightness(0) invert(1)"/>
-          <span style="color:#fff; font-weight:900; font-size:15px; letter-spacing:1px;">⚗️ STEM MAJESTIC LAB</span>
-          ${isTutor ? '<span style="background:#F5A623;color:#0D1B40;font-size:10px;font-weight:900;padding:2px 8px;border-radius:99px;margin-left:4px;">TUTOR � MOD</span>' : '<span style="background:#10B981;color:#fff;font-size:10px;font-weight:900;padding:2px 8px;border-radius:99px;margin-left:4px;">STUDENT</span>'}
-        </div>
-        <!-- CENTER BRAND -->
-        <div style="position:absolute;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;pointer-events:none;user-select:none;">
-          <span style="font-family:'Playfair Display',serif;font-weight:900;font-size:16px;color:#fff;letter-spacing:0.5px;white-space:nowrap;">Mathrone Academy</span>
-          <span style="font-size:9px;color:rgba(245,166,35,0.85);letter-spacing:2px;text-transform:uppercase;font-weight:700;">STEM Majestic Lab</span>
-        </div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-  <button class="btn btn-sm" onclick="toggleResourceDrawer()" style="background:#F5A623; color:#1a1a1a; font-weight:800; font-size:12px;">🧪 Labs & Sims</button>
-  
-  ${(State.user && State.user.role) ? `
-    <button class="btn btn-sm" onclick="toggleLabVideo()" id="lab-video-btn" style="background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:12px;" title="Start video call inside the lab">📹 Video Call</button>
-    <button class="btn btn-sm" onclick="toggleScreenShare()" id="share-screen-btn" style="background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:12px; display:none;" title="Share your screen with the student">🖥️ Share Screen</button>
-  ` : `
-    <button class="btn btn-sm" onclick="toggleSplitScreen()" id="lab-splitscreen-btn" style="background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:12px;" title="Open Jitsi video meeting (new tab)">📹 Video Meet ↗</button>
-  `}
+          <!-- HEADER -->
+          <div id="wb-header" style="background:linear-gradient(90deg,#0D1B40 0%,#1A3060 100%); padding:8px 18px; display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #1A5FFF; flex-shrink:0; position:relative;">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" style="height:28px; filter:brightness(0) invert(1)"/>
+              <span style="color:#fff; font-weight:900; font-size:15px; letter-spacing:1px;">⚗️ STEM MAJESTIC LAB</span>
+              ${window._isLabHost ? '<span style="background:#F5A623;color:#0D1B40;font-size:10px;font-weight:900;padding:2px 8px;border-radius:99px;margin-left:4px;">HOST · MOD</span>' : '<span style="background:#10B981;color:#fff;font-size:10px;font-weight:900;padding:2px 8px;border-radius:99px;margin-left:4px;">STUDENT</span>'}
+            </div>
+            <!-- CENTER BRAND -->
+            <div id="wb-center-brand" style="position:absolute;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;pointer-events:none;user-select:none;">
+              <span style="font-family:'Playfair Display',serif;font-weight:900;font-size:16px;color:#fff;letter-spacing:0.5px;white-space:nowrap;">Mathrone Academy</span>
+              <span style="font-size:9px;color:rgba(245,166,35,0.85);letter-spacing:2px;text-transform:uppercase;font-weight:700;">STEM Majestic Lab</span>
+            </div>
+            <div style="display:flex; gap:6px; flex-wrap:nowrap; overflow-x:auto; max-width:55vw; -webkit-overflow-scrolling:touch;">
+      <button class="btn btn-sm" onclick="toggleResourceDrawer()" style="background:#F5A623; color:#1a1a1a; font-weight:800; font-size:12px;">🧪 Labs & Sims</button>
+      
+      ${(State.user && State.user.role || window._isLabHost) ? `
+        <button class="btn btn-sm" onclick="toggleLabVideo()" id="lab-video-btn" style="background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:12px;" title="Start video call inside the lab">📹 Video Call</button>
+        <button class="btn btn-sm" onclick="toggleScreenShare()" id="share-screen-btn" style="background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:12px; display:none;" title="Share your screen with the student">🖥️ Share Screen</button>
+      ` : `
+        <button class="btn btn-sm" onclick="toggleSplitScreen()" id="lab-splitscreen-btn" style="background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:12px;" title="Open Jitsi video meeting (new tab)">📹 Video Meet ↗</button>
+      `}
 
   <button class="btn btn-sm" onclick="toggleShapesPanel()" style="background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:12px;">📐 Shapes</button>
   <button class="btn btn-sm" onclick="exitMajesticLab()" style="background:#EF4444; color:#fff; font-size:12px;">✕ Exit</button>
@@ -71,7 +74,7 @@
       </div>
 
       <!-- MAIN TOOLBAR -->
-      <div class="wb-toolbar" style="background:#1a2a50; padding:6px 12px; display:flex; align-items:center; gap:5px; flex-wrap:wrap; flex-shrink:0; border-bottom:2px solid #0D1B40;">
+      <div class="wb-toolbar" style="background:#1a2a50; padding:6px 12px; display:flex; align-items:center; gap:5px; flex-wrap:wrap; flex-shrink:0; border-bottom:2px solid #0D1B40;" id="wb-toolbar-el">
         <!-- Drawing Tools -->
         <!-- Page Management -->
         <div style="display:flex; align-items:center; gap:5px; background:rgba(0,0,0,0.3); padding:4px 8px; border-radius:8px; margin-right:8px;">
@@ -565,10 +568,23 @@ async function initWhiteboardSync(sessionId) {
   const toolbarH = toolbarEl ? toolbarEl.offsetHeight : 48;
   const statusH = statusEl ? statusEl.offsetHeight : 22;
   const usedHeight = headerH + toolbarH + statusH + 10;
-  const boardWidth = isMobile ? window.innerWidth : window.innerWidth;
-  const boardHeight = isMobile ? (window.innerHeight - usedHeight - 60) : (window.innerHeight - usedHeight);
+  const boardWidth = window.innerWidth;
+  const boardHeight = window.innerHeight - usedHeight;
   const canvas = new fabric.Canvas('wb-canvas-el', { width: boardWidth, height: boardHeight, isDrawingMode: true });
   window.wbInstance = canvas;
+
+  // Recalculate after first paint — toolbar height is only accurate post-render
+  requestAnimationFrame(() => {
+    const hEl = document.getElementById('wb-header');
+    const tEl = document.getElementById('wb-toolbar-el') || document.querySelector('.wb-toolbar');
+    const sEl = document.getElementById('wb-status');
+    const used = (hEl ? hEl.offsetHeight : 60) + (tEl ? tEl.offsetHeight : 48) + (sEl ? sEl.offsetHeight : 22) + 4;
+    const correctedH = window.innerHeight - used;
+    if (Math.abs(correctedH - boardHeight) > 4) {
+      canvas.setHeight(correctedH);
+      canvas.renderAll();
+    }
+  });
   const triggerCloudSave = () => {
     if (isTutor) {
         clearTimeout(window._saveTimeout);
@@ -1787,6 +1803,21 @@ canvas.on('path:created', triggerCloudSave);
       const sp = document.getElementById('wb-shapes-panel');
       if (sp) sp.style.transform = 'translateX(-100%)';
     }
+    // Mobile overlay
+    if (window.innerWidth < 768) {
+      let ov = document.getElementById('wb-panel-overlay');
+      if (!isOpen) {
+        if (!ov) {
+          ov = document.createElement('div');
+          ov.id = 'wb-panel-overlay';
+          ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10000;';
+          ov.onclick = () => { window.toggleResourceDrawer(); };
+          document.body.appendChild(ov);
+        }
+      } else {
+        ov?.remove();
+      }
+    }
   };
 
   // --- SHAPES PANEL ---
@@ -1797,6 +1828,21 @@ canvas.on('path:created', triggerCloudSave);
     if (!isOpen) {
       const rd = document.getElementById('wb-resource-drawer');
       if (rd) rd.style.transform = 'translateX(100%)';
+    }
+    // Mobile overlay
+    if (window.innerWidth < 768) {
+      let ov = document.getElementById('wb-panel-overlay');
+      if (!isOpen) {
+        if (!ov) {
+          ov = document.createElement('div');
+          ov.id = 'wb-panel-overlay';
+          ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10000;';
+          ov.onclick = () => { window.toggleShapesPanel(); };
+          document.body.appendChild(ov);
+        }
+      } else {
+        ov?.remove();
+      }
     }
   };
 
@@ -2087,7 +2133,7 @@ canvas.on('path:created', triggerCloudSave);
       }
 
       // Live stroke: stream drawing points to students in real-time
-      if (canvas.isDrawingMode && _liveStroke !== null && e.e.buttons === 1) {
+      if (canvas.isDrawingMode && _liveStroke !== null && (e.e.buttons === 1 || e.e.touches?.length > 0)) {
         _liveStroke.push({ x: Math.round(pt.x), y: Math.round(pt.y) });
         if (_liveStroke.length >= 3) {
           try {
