@@ -1136,14 +1136,28 @@ function applyNewsEmbed(){
   const editor = document.getElementById('news-editor')
   if(!editor) return
   let html = ''
-  if(val.startsWith('<')){
+ if(val.startsWith('<')){
     // Raw iframe/embed code — wrap it
     html = `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;margin:16px 0">${val.replace(/width=["'][^"']*["']/i,'width="100%"').replace(/height=["'][^"']*["']/i,'height="100%"').replace(/<iframe/i,'<iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:0"')}</div><p><br></p>`
   } else {
-    // Convert YouTube watch URL to embed
+    // Convert YouTube watch URL to embed with Custom Facade
     const ytMatch = val.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/)
     if(ytMatch){
-      html = `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;margin:16px 0"><iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:0" src="https://www.youtube.com/embed/${ytMatch[1]}" allowfullscreen loading="lazy"></iframe></div><p><br></p>`
+      const ytId = ytMatch[1];
+      const thumbUrl = `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`;
+      const cleanUrl = `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1&showinfo=0`;
+      const uniqueId = 'vid_' + Math.random().toString(36).substr(2, 9);
+      
+      html = `
+      <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;margin:16px 0;border-radius:12px;background:#000;">
+        <div id="cover-${uniqueId}" onclick="this.style.display='none'; document.getElementById('iframe-${uniqueId}').src='${cleanUrl}'" 
+             style="position:absolute;top:0;left:0;width:100%;height:100%;cursor:pointer;background:#000 url('${thumbUrl}') center/cover no-repeat;display:flex;align-items:center;justify-content:center;z-index:2">
+          <div style="width:64px;height:64px;background:#1A5FFF;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(26,95,255,0.4);transition:transform 0.2s" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:4px"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          </div>
+        </div>
+        <iframe id="iframe-${uniqueId}" src="" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;z-index:1" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe>
+      </div><p><br></p>`;
     } else {
       html = `<div style="margin:16px 0"><iframe src="${val}" style="width:100%;height:400px;border:1px solid var(--g200);border-radius:8px" loading="lazy"></iframe></div><p><br></p>`
     }

@@ -48,6 +48,58 @@ function _isCourseGuestAccount() {
   return (State.user.email || '').endsWith('@student.mathrone.rw')
 }
 
+window.handleCourseSearchInput = function(val) {
+  const suggestionsBox = document.getElementById('course-search-suggestions');
+  if(!suggestionsBox) return;
+  if(!val || val.length < 2) { suggestionsBox.style.display = 'none'; return; }
+  
+  const courses = window._allPublicCourses || [];
+  const q = val.toLowerCase();
+  
+  // Deep search: Title, Description, Subject, Level, and Lessons
+  const filtered = courses.filter(c => {
+    const textToSearch = [
+      c.title,
+      c.description,
+      c.subject,
+      c.level,
+      ...(c.preview_lessons || []).map(l => l.title),
+      ...(c.lessons || []).map(l => l.title)
+    ].filter(Boolean).join(' ').toLowerCase();
+    
+    return textToSearch.includes(q);
+  }).slice(0, 5);
+  
+  if(filtered.length === 0) {
+    suggestionsBox.innerHTML = '<div style="padding:12px 16px;font-size:13px;color:var(--g400)">No courses found</div>';
+    suggestionsBox.style.display = 'block';
+    return;
+  }
+  
+  suggestionsBox.innerHTML = filtered.map(c => `
+    <div onclick="navigate('course-${c.slug}')" 
+         style="padding:12px 16px;cursor:pointer;font-size:13px;font-weight:600;color:var(--navy);border-bottom:1px solid var(--g50);display:flex;align-items:center;gap:10px" 
+         onmouseover="this.style.background='var(--sky)'" 
+         onmouseout="this.style.background='#fff'">
+      <i data-lucide="search" style="width:14px;height:14px;color:var(--g400);flex-shrink:0"></i> 
+      <div style="display:flex;flex-direction:column;min-width:0">
+        <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.title}</span>
+        ${c.subject || c.level ? `<span style="font-size:11px;color:var(--g400);font-weight:400;margin-top:2px">${[c.subject, c.level].filter(Boolean).join(' • ')}</span>` : ''}
+      </div>
+    </div>
+  `).join('');
+  
+  suggestionsBox.style.display = 'block';
+  if (window.lucide) window.lucide.createIcons();
+}
+
+// Close suggestions on outside click
+document.addEventListener('click', (e) => {
+  if(!e.target.closest('#course-search-input') && !e.target.closest('#course-search-suggestions')){
+    const box = document.getElementById('course-search-suggestions');
+    if(box) box.style.display = 'none';
+  }
+});
 
 
 // ── Public: Courses Listing ─────────────────────────────────────────────────
@@ -63,12 +115,13 @@ async function renderCoursesShop() {
     </button>
     <div style="display:flex;align-items:center;gap:8px">
       ${isLoggedIn ? `
-        <button class="btn btn-ghost btn-sm" onclick="navigate('my-courses')">📚 My Courses</button>
+        <button class="btn btn-ghost btn-sm" onclick="navigate('my-courses')"><i data-lucide="book-open-check" style="width:16px;height:16px;margin-right:4px"></i> My Courses</button>
         ${isCourseGuest
-          ? `<button class="btn btn-primary btn-sm" onclick="upgradeToCourseStudent()" style="background:linear-gradient(135deg,#7c3aed,#5b21b6)">🚀 Find a Tutor & Upgrade</button>`
+          ? `<button class="btn btn-primary btn-sm" onclick="upgradeToCourseStudent()" style="background:linear-gradient(135deg,#7c3aed,#5b21b6)"><i data-lucide="rocket" style="width:16px;height:16px;margin-right:4px"></i> Find a Tutor & Upgrade</button>`
           : `<button class="btn btn-primary btn-sm" onclick="navigate('dashboard')">Dashboard</button>`}
-      ` : `
-        <button class="btn btn-ghost btn-sm" onclick="navigate('landing')">🏠 Home</button>
+    ` : `
+        <button class="btn btn-ghost btn-sm" onclick="navigate('landing')"><i data-lucide="home" style="width:16px;height:16px;margin-right:4px"></i> Home</button>
+        <button class="btn btn-ghost btn-sm" onclick="navigate('shop')"><i data-lucide="shopping-bag" style="width:16px;height:16px;margin-right:4px"></i> Go Shop</button>
         <button class="btn btn-ghost btn-sm" onclick="navigate('login')">Sign In</button>
         <button class="btn btn-primary btn-sm" onclick="navigate('register')">Sign Up</button>
       `}
@@ -100,22 +153,53 @@ async function renderCoursesShop() {
     const res = await fetch(API_URL + '/courses/public')
     if (!res.ok) throw new Error('Failed to load courses')
     const data = await res.json()
-    const courses = Array.isArray(data) ? data : (data.courses || data.data || [])
+    const allCourses = Array.isArray(data) ? data : (data.courses || data.data || [])
+    
+    // Store globally so the search function can access it safely without JSON stringify issues
+    window._allPublicCourses = allCourses;
+    
+    // Apply search filter if any
+    const searchParams = new URLSearchParams(window.location.search)
+    const query = searchParams.get('q') || ''
+    
+    let courses = allCourses;
+    if (query) {
+      const q = query.toLowerCase();
+      courses = allCourses.filter(c => {
+        // Combine all searchable text into one block for flexible matching
+        const textToSearch = [
+          c.title,
+          c.description,
+          c.subject,
+          c.level,
+          ...(c.preview_lessons || []).map(l => l.title),
+          ...(c.lessons || []).map(l => l.title)
+        ].filter(Boolean).join(' ').toLowerCase();
+        
+        return textToSearch.includes(q);
+      });
+    }
 
     const cards = courses.length ? courses.map(c => courseCard(c, isLoggedIn)).join('') : `
     <div class="empty-state" style="grid-column:1/-1">
       <div class="empty-icon" style="color:var(--g400)"><i data-lucide="book-open" style="width:48px;height:48px;stroke-width:1.5"></i></div>
-      <div class="empty-title">No courses yet</div>
-      <div class="empty-sub">Check back soon — new courses are on the way!</div>
+      <div class="empty-title">No courses found</div>
+      <div class="empty-sub">Check back soon or try a different search.</div>
     </div>`
 
     render(`
     ${nav}
     <div style="max-width:1100px;margin:0 auto;padding:24px 16px">
-      <div style="margin-bottom:24px;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px">
-        <div>
-          <h1 style="font-size:22px;font-weight:800;color:var(--navy);margin-bottom:4px;line-height:1.2"> Learn Anything, Anytime</h1>
-          <p style="font-size:13px;color:var(--g400);">Expert-led video courses designed for Rwandan students. Learn at your own pace.</p>
+      <div style="margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px">
+        <div style="flex:1;min-width:300px">
+          <h1 style="font-size:22px;font-weight:800;color:var(--navy);margin-bottom:4px;line-height:1.2;display:flex;align-items:center;gap:8px"><i data-lucide="book-open-check" style="width:24px;height:24px;color:var(--blue)"></i> Learn Anything, Anytime</h1>
+          <p style="font-size:13px;color:var(--g400);margin:0">Expert-led video courses designed for Rwandan students. Learn at your own pace.</p>
+        </div>
+        
+        <div style="position:relative;width:100%;max-width:320px">
+          <input class="input" id="course-search-input" value="${query}" placeholder="Search courses or subjects..." oninput="handleCourseSearchInput(this.value)" onkeydown="if(event.key==='Enter') { const url = new URL(window.location); url.searchParams.set('q', this.value); window.history.pushState({}, '', url); renderCoursesShop(); }" style="padding-left:40px;height:44px;border-radius:12px"/>
+          <i data-lucide="search" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--g400);width:18px;height:18px"></i>
+          <div id="course-search-suggestions" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--g200);border-radius:8px;box-shadow:0 10px 25px rgba(0,0,0,0.1);z-index:50;margin-top:4px;max-height:250px;overflow-y:auto"></div>
         </div>
       </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
@@ -139,7 +223,7 @@ function courseCard(c, isLoggedIn, isCourseGuest) {
     : `openLoginPrompt('${c.id}','${(c.title||'').replace(/'/g,"\'")}',${c.price})`
 
   return `
-  <div onclick="navigate('course-${c.slug}')"
+  <div onclick="${enrollAction}"
     style="background:#fff;border-radius:16px;border:1px solid var(--g100);overflow:hidden;cursor:pointer;transition:all .2s;display:flex;flex-direction:column"
     onmouseover="this.style.boxShadow='0 8px 30px rgba(0,0,0,0.10)';this.style.transform='translateY(-2px)'"
     onmouseout="this.style.boxShadow='none';this.style.transform='translateY(0)'">
@@ -151,8 +235,14 @@ function courseCard(c, isLoggedIn, isCourseGuest) {
       ${c.subject ? `<span style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,0.45);color:#fff;font-size:11px;font-weight:600;padding:3px 10px;border-radius:999px;backdrop-filter:blur(4px)">${c.subject}</span>` : ''}
     </div>
     <div style="padding:20px;flex:1;display:flex;flex-direction:column">
-      <h3 style="font-size:16px;font-weight:800;color:var(--navy);margin-bottom:6px;line-height:1.3">${c.title}</h3>
+       <h3 style="font-size:16px;font-weight:800;color:var(--navy);margin-bottom:6px;line-height:1.3">${c.title}</h3>
       ${c.description ? `<p style="font-size:13px;color:var(--g400);line-height:1.5;margin-bottom:12px;flex:1;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${c.description}</p>` : '<div style="flex:1"></div>'}
+      
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;font-size:12px;color:var(--g400);font-weight:600">
+        <span style="display:flex;align-items:center;gap:4px"><i data-lucide="play-square" style="width:14px;height:14px"></i> ${(c.lessons && c.lessons.length) || (c.preview_lessons && c.preview_lessons.length) || 'Video'} Lessons</span>
+        <span style="display:flex;align-items:center;gap:4px"><i data-lucide="clock" style="width:14px;height:14px"></i> Self-paced</span>
+      </div>
+
       <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto">
         <div style="font-size:20px;font-weight:900;color:var(--navy)">${c.price > 0 ? `RWF ${Number(c.price).toLocaleString()}` : '<span style="color:#059669">FREE</span>'}</div>
         <button onclick="event.stopPropagation();${enrollAction}"
@@ -185,7 +275,7 @@ async function renderCourseDetail(slug) {
     render(`
     <nav style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--g100);background:#fff;position:sticky;top:0;z-index:100">
       <button onclick="navigate('courses')" style="font-size:14px;font-weight:700;color:var(--navy);background:none;border:none;cursor:pointer">← All Courses</button>
-      ${isLoggedIn ? `<button class="btn btn-ghost btn-sm" onclick="navigate('my-courses')">📚 My Courses</button>` : `<button class="btn btn-ghost btn-sm" onclick="navigate('login')">Sign In</button>`}
+      ${isLoggedIn ? `<button class="btn btn-ghost btn-sm" onclick="navigate('my-courses')"><i data-lucide="book-open-check" style="width:16px;height:16px;margin-right:4px"></i> My Courses</button>` : `<button class="btn btn-ghost btn-sm" onclick="navigate('login')">Sign In</button>`}
     </nav>
     <div style="max-width:860px;margin:0 auto;padding:40px 16px 60px">
 
@@ -202,8 +292,8 @@ async function renderCourseDetail(slug) {
           <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
             <div style="font-size:28px;font-weight:900;color:#fbbf24">${c.price > 0 ? `RWF ${Number(c.price).toLocaleString()}` : 'FREE'}</div>
             <button onclick="${isLoggedIn ? `memberEnrollCourse('${c.id}','${(c.title||'').replace(/'/g,"\\'")}',${ c.price})` : `openCourseCheckout('${c.id}','${(c.title||'').replace(/'/g,"\\'")}',${ c.price})`}"
-              style="background:#fbbf24;color:#0f172a;border:none;padding:12px 28px;border-radius:10px;cursor:pointer;font-size:15px;font-weight:800">
-              ${c.price > 0 ? '🎓 Enroll Now' : '🎓 Get Free Access'}
+              style="background:#fbbf24;color:#0f172a;border:none;padding:12px 28px;border-radius:10px;cursor:pointer;font-size:15px;font-weight:800;display:flex;align-items:center;gap:8px">
+              <i data-lucide="graduation-cap" style="width:18px;height:18px"></i> ${c.price > 0 ? 'Enroll Now' : 'Get Free Access'}
             </button>
           </div>
         </div>
@@ -212,7 +302,7 @@ async function renderCourseDetail(slug) {
       <!-- Preview Lessons -->
       ${c.preview_lessons?.length ? `
       <div style="background:#fff;border-radius:16px;border:1px solid var(--g100);padding:clamp(16px, 4vw, 28px);margin-bottom:24px">
-        <h2 style="font-size:18px;font-weight:800;color:var(--navy);margin-bottom:16px">📋 What You'll Learn</h2>
+        <h2 style="font-size:18px;font-weight:800;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:8px"><i data-lucide="list-checks" style="width:20px;height:20px;color:var(--blue)"></i> What You'll Learn</h2>
         <div style="display:flex;flex-direction:column;gap:10px">
           ${c.preview_lessons.map((l, i) => `
           <div style="display:flex;align-items:center;gap:14px;padding:12px;background:var(--sky);border-radius:10px">
@@ -222,21 +312,38 @@ async function renderCourseDetail(slug) {
             <span style="font-size:11px;font-weight:700;color:var(--blue);background:#dbeafe;padding:2px 8px;border-radius:999px">Preview</span>
           </div>`).join('')}
         </div>
-        <div style="margin-top:16px;padding:14px;background:#fef3c7;border-radius:10px;font-size:13px;color:#92400e">
-          🔒 Full course access unlocked after enrollment
+        <div style="margin-top:16px;padding:14px;background:#fef3c7;border-radius:10px;font-size:13px;color:#92400e;display:flex;align-items:center;gap:8px">
+          <i data-lucide="lock" style="width:16px;height:16px"></i> Full course access unlocked after enrollment
         </div>
       </div>` : ''}
 
-      <!-- Course Preview Video -->
-      ${c.video_url ? `
-      <div style="margin-bottom:24px">
-        <h2 style="font-size:18px;font-weight:800;color:var(--navy);margin-bottom:12px">🎬 Course Preview</h2>
-        <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:14px;background:#000;box-shadow:0 8px 30px rgba(0,0,0,0.15)">
-          <iframe src="${c.video_url.replace('youtube.com','youtube-nocookie.com')}"
-            style="position:absolute;top:0;left:0;width:100%;height:100%;border:none"
-            allowfullscreen loading="lazy" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
-        </div>
-      </div>` : ''}
+       <!-- Course Preview Video -->
+      ${c.video_url ? (() => {
+        const ytMatch = c.video_url.match(/(?:embed\/|v=|youtu\.be\/)([\w-]{11})/);
+        const ytId = ytMatch ? ytMatch[1] : '';
+        const thumbUrl = ytId ? `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg` : '';
+        const cleanUrl = ytId ? `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1&showinfo=0` : c.video_url;
+        
+        return `
+        <div style="margin-bottom:24px">
+          <h2 style="font-size:18px;font-weight:800;color:var(--navy);margin-bottom:12px;display:flex;align-items:center;gap:8px"><i data-lucide="play-circle" style="width:20px;height:20px;color:var(--blue)"></i> Course Preview</h2>
+          <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:14px;background:#000;box-shadow:0 8px 30px rgba(0,0,0,0.15)">
+            
+            <!-- Custom Mathrone Video Cover -->
+            <div id="preview-vid-cover" onclick="this.style.display='none'; document.getElementById('preview-vid-iframe').src='${cleanUrl}'" 
+                 style="position:absolute;top:0;left:0;width:100%;height:100%;cursor:pointer;background:#000 url('${thumbUrl}') center/cover no-repeat;display:flex;align-items:center;justify-content:center;z-index:2">
+              <div style="width:64px;height:64px;background:var(--blue);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(26,95,255,0.4);transition:transform 0.2s" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:4px"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              </div>
+            </div>
+            
+            <!-- Actual Video -->
+            <iframe id="preview-vid-iframe" src=""
+              style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;z-index:1"
+              allowfullscreen loading="lazy" allow="autoplay; accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+          </div>
+        </div>`;
+      })() : ''}
 
       <!-- CTA -->
       <div style="background:linear-gradient(135deg,var(--navy),var(--blue));border-radius:16px;padding:clamp(20px, 4vw, 28px) clamp(16px, 4vw, 28px);text-align:center;color:#fff">
@@ -250,7 +357,7 @@ async function renderCourseDetail(slug) {
 
       <!-- Tutoring CTA -->
       <div style="margin-top:16px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:14px;padding:18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
-        <div style="font-size:28px">👨🏫</div>
+        <div style="background:#dcfce7;padding:10px;border-radius:50%;color:#059669;display:flex;align-items:center;justify-content:center"><i data-lucide="users" style="width:28px;height:28px"></i></div>
         <div style="flex:1;min-width:160px">
           <div style="font-size:13px;font-weight:800;color:#065f46;margin-bottom:3px">Want 1-on-1 tutoring for this subject?</div>
           <div style="font-size:12px;color:#166534;line-height:1.5">Get a personal tutor who teaches you live — online or at home in Rwanda.</div>
@@ -336,12 +443,12 @@ async function renderMyCourses() {
 
     ${isCourseGuest ? `
     <div style="background:linear-gradient(135deg,#7c3aed11,#5b21b611);border:1.5px solid #7c3aed33;border-radius:14px;padding:16px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:24px">
-      <div style="font-size:28px">🎓</div>
+      <div style="background:#ede9fe;color:#7c3aed;width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center"><i data-lucide="graduation-cap" style="width:24px;height:24px"></i></div>
       <div style="flex:1;min-width:200px">
         <div style="font-size:14px;font-weight:800;color:#5b21b6">You have a Course-Only account</div>
         <div style="font-size:12px;color:#7c3aed;margin-top:3px">Upgrade to get 1-on-1 tutoring, live sessions, and the full Mathrone experience — in one click.</div>
       </div>
-      <button onclick="upgradeToCourseStudent()" style="background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;white-space:nowrap">👨‍🏫 Find a Tutor & Upgrade</button>
+      <button onclick="upgradeToCourseStudent()" style="background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;white-space:nowrap;display:flex;align-items:center;gap:6px"><i data-lucide="users" style="width:16px;height:16px"></i> Find a Tutor & Upgrade</button>
     </div>` : ''}
 
     ${courses.length ? `
@@ -394,7 +501,7 @@ async function renderCourseLessons(courseId) {
       <button class="btn btn-ghost" onclick="navigate('my-courses')">← My Courses</button>
     </div>
     <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:20px">
-      <div style="font-size:26px">👨‍🏫</div>
+      <div style="background:#dbeafe;color:#1d4ed8;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center"><i data-lucide="users" style="width:24px;height:24px"></i></div>
       <div style="flex:1;min-width:160px">
         <div style="font-size:13px;font-weight:800;color:#1e40af;margin-bottom:3px">Want a personal tutor for this subject?</div>
         <div style="font-size:12px;color:#1d4ed8;line-height:1.5">Get live 1-on-1 sessions — online or at home in Rwanda.</div>
@@ -427,7 +534,13 @@ async function renderCourseLessons(courseId) {
 
 function openLessonPlayer(lessonId, title, videoUrl) {
   if (!videoUrl) { toast('No video available for this lesson', 'info'); return }
-  const privacyUrl = videoUrl.replace('youtube.com', 'youtube-nocookie.com')
+  
+  // Extract YouTube ID to get the high-res thumbnail
+  const ytMatch = videoUrl.match(/(?:embed\/|v=|youtu\.be\/)([\w-]{11})/);
+  const ytId = ytMatch ? ytMatch[1] : '';
+  const thumbUrl = ytId ? `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg` : '';
+  const cleanUrl = ytId ? `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1&showinfo=0&controls=1` : videoUrl;
+  
   const modal = document.getElementById('modal-root') || document.createElement('div')
   if (!modal.id) { modal.id = 'modal-root'; document.body.appendChild(modal) }
   modal.innerHTML = `
@@ -438,16 +551,25 @@ function openLessonPlayer(lessonId, title, videoUrl) {
         <button class="modal-close" onclick="document.querySelector('.modal-overlay').remove()">✕</button>
       </div>
       <div class="modal-body" style="padding:0">
-        <div style="position:relative;padding-bottom:56.25%;height:0;background:#000">
-          <iframe src="${privacyUrl}?autoplay=1"
-            style="position:absolute;top:0;left:0;width:100%;height:100%;border:none"
-            allowfullscreen allow="autoplay"></iframe>
+        <div style="position:relative;padding-bottom:56.25%;height:0;background:#000;border-radius:0 0 12px 12px;overflow:hidden">
+          
+          <!-- Custom Mathrone Video Cover -->
+          <div id="lesson-vid-cover" onclick="this.style.display='none'; document.getElementById('lesson-vid-iframe').src='${cleanUrl}'" 
+               style="position:absolute;top:0;left:0;width:100%;height:100%;cursor:pointer;background:#000 url('${thumbUrl}') center/cover no-repeat;display:flex;align-items:center;justify-content:center;z-index:2">
+            <div style="width:64px;height:64px;background:var(--blue);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(26,95,255,0.4);transition:transform 0.2s" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:4px"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            </div>
+          </div>
+          
+          <!-- Actual Video (Loads only after click) -->
+          <iframe id="lesson-vid-iframe" src=""
+            style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;z-index:1"
+            allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe>
         </div>
       </div>
     </div>
   </div>`
 }
-
 
 // ── Course-Guest Account Upgrade ─────────────────────────────────────────────
 function upgradeToCourseStudent() {
@@ -459,18 +581,18 @@ function upgradeToCourseStudent() {
   <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
     <div class="modal" style="max-width:480px">
       <div class="modal-header">
-        <span class="modal-title">🚀 Upgrade to Full Student Account</span>
+        <span class="modal-title" style="display:flex;align-items:center;gap:8px"><i data-lucide="rocket" style="width:20px;height:20px"></i> Upgrade to Full Student Account</span>
         <button class="modal-close" onclick="document.querySelector('.modal-overlay').remove()">✕</button>
       </div>
       <div class="modal-body">
         <div style="background:linear-gradient(135deg,#7c3aed,#5b21b6);border-radius:12px;padding:20px;margin-bottom:20px;color:#fff">
-          <div style="font-size:22px;margin-bottom:6px">👨‍🏫 Get a Personal Tutor</div>
+          <div style="font-size:22px;margin-bottom:6px;display:flex;align-items:center;gap:8px"><i data-lucide="users" style="width:24px;height:24px"></i> Get a Personal Tutor</div>
           <div style="font-size:14px;opacity:0.85;line-height:1.6">Your course account will be upgraded — <strong>no new email or password needed</strong>. Just fill in your details below.</div>
         </div>
         <div style="background:#f8fafc;border-radius:10px;padding:14px;margin-bottom:20px">
           <div style="font-size:12px;font-weight:800;color:var(--navy);margin-bottom:10px;text-transform:uppercase;letter-spacing:.04em">What you'll get</div>
           <div style="display:flex;flex-direction:column;gap:8px">
-            ${['📅 Book live 1-on-1 sessions with tutors','🔍 Browse and choose your perfect tutor','💬 Direct messaging with tutors','📚 Keep all your enrolled courses','📊 Full dashboard and progress tracking'].map(item => `<div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--g600)"><span>${item}</span></div>`).join('')}
+            ${['Book live 1-on-1 sessions with tutors','Browse and choose your perfect tutor','Direct messaging with tutors','Keep all your enrolled courses','Full dashboard and progress tracking'].map(item => `<div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--g600)"><i data-lucide="check-circle-2" style="width:16px;height:16px;color:var(--green)"></i> <span>${item}</span></div>`).join('')}
           </div>
         </div>
         <div class="form-group">
@@ -556,7 +678,7 @@ async function renderAdminCourses() {
 
     render(dashWrap('admin-courses', `
     <div class="page-header">
-      <div><h1 class="page-title">🎓 Courses Manager</h1><p class="page-subtitle">${courses.length} courses • ${orders.length} orders${pendingOrders ? ' • ' + pendingOrders + ' pending' : ''}</p></div>
+      <div><h1 class="page-title" style="display:flex;align-items:center;gap:8px"><i data-lucide="library" style="width:28px;height:28px;color:var(--blue)"></i> Courses Manager</h1><p class="page-subtitle">${courses.length} courses • ${orders.length} orders${pendingOrders ? ' • ' + pendingOrders + ' pending' : ''}</p></div>
       ${tab === 'courses' ? `<button class="btn btn-primary" onclick="openAddCourseModal()">+ Add Course</button>` : ''}
     </div>
     <div class="tabs" style="margin-bottom:24px">

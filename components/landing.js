@@ -238,23 +238,24 @@
     #tutors-slider:hover { animation-play-state:paused }
     @keyframes chcIn{0%{opacity:0;clip-path:circle(0% at 100% 0%)}100%{opacity:1;clip-path:circle(150% at 100% 0%)}}
     @keyframes chcGlow{0%,100%{box-shadow:-4px 4px 28px 4px rgba(245,158,11,0.2)}50%{box-shadow:-8px 8px 50px 12px rgba(245,158,11,0.5)}}
-    @keyframes dotPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(1.8)}}
-    .chc-wrap{position:absolute;top:0;right:0;width:260px;height:260px;cursor:pointer;z-index:10;overflow:hidden;border-radius:0 0 0 260px;animation:chcIn 1s cubic-bezier(.4,0,.2,1) 0.8s both,chcGlow 4s ease-in-out 2s infinite;transition:all 0.3s}
+      @keyframes dotPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(1.8)}}
+    .chc-wrap{position:absolute;top:0;right:0;width:400px;height:400px;cursor:pointer;z-index:0;overflow:hidden;border-radius:0 0 0 100%;animation:chcIn 1s cubic-bezier(.4,0,.2,1) 0.8s both,chcGlow 4s ease-in-out 2s infinite;transition:all 0.3s}
     .chc-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top}
     .chc-overlay{position:absolute;inset:0;background:linear-gradient(225deg,rgba(6,14,36,0.82) 0%,rgba(6,14,36,0.6) 55%,transparent 100%);transition:background 0.3s}
     .chc-wrap:hover .chc-overlay{background:linear-gradient(225deg,rgba(6,14,36,0.92) 0%,rgba(6,14,36,0.72) 60%,transparent 100%)}
-    .chc-border{position:absolute;inset:0;border-radius:0 0 0 260px;border:2px solid rgba(245,158,11,0.55);border-top:none;border-right:none;pointer-events:none}
-    .chc-content{position:absolute;top:16px;right:12px;width:195px;text-align:right}
-    .chc-label{font-size:10px;font-weight:800;color:#f59e0b;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;justify-content:flex-end;gap:5px}
-    .chc-dot{width:7px;height:7px;border-radius:50%;background:#f59e0b;animation:dotPulse 2s ease-in-out infinite;flex-shrink:0;display:inline-block}
-    .chc-title{font-size:13px;font-weight:800;color:#fff;line-height:1.3;margin-bottom:5px;font-family:'Playfair Display',serif}
-    .chc-sub{font-size:10px;color:rgba(255,255,255,0.7);line-height:1.55;margin-bottom:7px}
-    .chc-pills{display:flex;flex-wrap:wrap;gap:3px;justify-content:flex-end;margin-bottom:8px}
-    .chc-pill{display:inline-flex;align-items:center;gap:3px;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.35);color:#f59e0b;font-size:8.5px;font-weight:700;padding:2px 6px;border-radius:999px;white-space:nowrap}
-    .chc-cta{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:#0f172a;background:#f59e0b;padding:4px 10px;border-radius:999px}
-    @media(max-width:1100px){.chc-wrap{width:230px;height:230px;border-radius:0 0 0 230px}.chc-border{border-radius:0 0 0 230px}.chc-content{width:170px;top:14px;right:10px}}
-    @media(max-width:900px){.chc-wrap{width:195px;height:195px;border-radius:0 0 0 195px}.chc-border{border-radius:0 0 0 195px}.chc-content{width:142px;top:11px;right:9px}.chc-title{font-size:11px}.chc-sub{font-size:9px}.chc-pill{font-size:8px;padding:1px 5px}}
-    @media(max-width:700px){.chc-wrap{width:155px;height:155px;border-radius:0 0 0 155px}.chc-border{border-radius:0 0 0 155px}.chc-content{width:112px;top:9px;right:7px}.chc-title{font-size:10px}.chc-sub{display:none}.chc-pills{display:none}.chc-cta{font-size:10px;padding:3px 8px}}
+    .chc-border{position:absolute;inset:0;border-radius:0 0 0 100%;border:2px solid rgba(245,158,11,0.55);border-top:none;border-right:none;pointer-events:none}
+    .chc-content{position:absolute;top:35px;right:25px;width:300px;text-align:right}
+    .chc-label{font-size:11px;font-weight:800;color:#f59e0b;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;justify-content:flex-end;gap:6px}
+    .chc-dot{width:8px;height:8px;border-radius:50%;background:#f59e0b;animation:dotPulse 2s ease-in-out infinite;flex-shrink:0;display:inline-block}
+    .chc-title{font-size:22px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:10px;font-family:'Playfair Display',serif}
+    .chc-sub{font-size:13px;color:rgba(255,255,255,0.8);line-height:1.5;margin-bottom:16px}
+    .chc-pills{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;margin-bottom:16px}
+    .chc-pill{display:inline-flex;align-items:center;gap:4px;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.35);color:#f59e0b;font-size:10px;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap}
+    .chc-cta{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:800;color:#0f172a;background:#f59e0b;padding:8px 18px;border-radius:999px;transition:transform 0.2s}
+    .chc-wrap:hover .chc-cta{transform:scale(1.05)}
+    @media(max-width:1100px){.chc-wrap{width:360px;height:360px;border-radius:0 0 0 100%}.chc-border{border-radius:0 0 0 100%}.chc-content{width:270px;top:30px;right:20px}.chc-title{font-size:18px}.chc-sub{font-size:12px}.chc-pill{font-size:10px;padding:3px 8px}}
+    @media(max-width:900px){.chc-wrap{width:300px;height:300px;border-radius:0 0 0 100%}.chc-border{border-radius:0 0 0 100%}.chc-content{width:220px;top:20px;right:15px}.chc-title{font-size:15px;margin-bottom:6px}.chc-sub{font-size:11px;margin-bottom:10px;line-height:1.4}.chc-pills{gap:4px;margin-bottom:10px}.chc-pill{font-size:9px;padding:2px 6px}.chc-cta{font-size:12px;padding:6px 14px}}
+    @media(max-width:700px){.chc-wrap{width:220px;height:220px;border-radius:0 0 0 100%}.chc-border{border-radius:0 0 0 100%}.chc-content{width:160px;top:15px;right:12px}.chc-label{font-size:9px;margin-bottom:4px}.chc-title{font-size:12px;margin-bottom:4px}.chc-sub{display:none}.chc-pills{display:none}.chc-cta{font-size:10px;padding:4px 10px}}
     @media(max-width:600px){.chc-wrap{display:none!important;position:absolute!important;width:0!important;height:0!important;overflow:hidden!important}}
     .chc-mobile-banner{display:none}
     @media(max-width:600px){.chc-mobile-banner{display:flex;align-items:center;gap:0;background:rgba(6,14,36,0.88);border:1.5px solid rgba(245,158,11,0.45);border-radius:12px;overflow:hidden;cursor:pointer;margin-top:16px;position:relative;width:100%}}
@@ -346,7 +347,7 @@
     <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center">
       <div class="htag"> Majestic Learning. Royal Results.</div>
       <h1 class="htitle">Expert Tutoring and <span> Smart Learning Tools</span><br/>All in One Place</h1>
-      <p class="hsub">Mathrone Academy connects ambitious students with expert tutors and provides high-quality learning tools  from notebooks to educational kits for personalised success,at home or online.</p>
+      <p class="hsub">Mathrone Academy connects ambitious students with expert tutors, Prepare courses to get ready for exams and provides high-quality learning tools  from notebooks to educational kits for personalised success,at home or online.</p>
       <div class="hbtns">
         <button class="btn-hero-o" onclick="navigate('register')" style="background:#0e172b;border-color:var(--gold)"> Start Learning</button>
         <button class="btn-hero-o" onclick="navigate('register','tutor')">Become a Tutor</button>
@@ -653,7 +654,7 @@
 
   <!-- Hero -->
   <div style="background:linear-gradient(135deg,var(--navy),#1e40af);padding:64px 48px;text-align:center;color:#fff">
-    <div style="font-size:48px;margin-bottom:16px">📋</div>
+    <div style="color:var(--gold);margin-bottom:20px;display:flex;justify-content:center"><i data-lucide="clipboard-list" style="width:48px;height:48px"></i></div>
     <h1 style="font-size:36px;font-weight:800;margin-bottom:12px;font-family:'Playfair Display',serif">Terms & Conditions</h1>
     <p style="font-size:16px;opacity:0.8;max-width:600px;margin:0 auto">Please read these terms carefully before using Mathrone Academy.</p>
     <div style="font-size:13px;opacity:0.6;margin-top:12px">Last updated: March 2026 &nbsp;•&nbsp; Effective: March 2026</div>
@@ -899,7 +900,7 @@
 
     <!-- Acceptance box -->
     <div style="background:linear-gradient(135deg,var(--navy),#1e40af);border-radius:16px;padding:32px;text-align:center;color:#fff;margin-top:48px">
-      <div style="font-size:32px;margin-bottom:12px">✅</div>
+      <div style="color:var(--green);margin-bottom:16px;display:flex;justify-content:center"><i data-lucide="check-circle-2" style="width:44px;height:44px"></i></div>
       <h3 style="font-size:20px;font-weight:700;margin-bottom:8px">By using Mathrone Academy you accept these terms</h3>
       <p style="font-size:14px;opacity:0.8;margin-bottom:20px">These terms were last updated in March 2026. If you have any questions contact us before using the platform.</p>
       <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
@@ -1070,15 +1071,11 @@
 
   <!-- HERO -->
   <div class="about-hero">
-    <div style="display:inline-block;background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.9);font-size:13px;padding:6px 16px;border-radius:999px;margin-bottom:24px;border:1px solid rgba(255,255,255,0.2)">👑 Our Story</div>
+    <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.9);font-size:13px;padding:6px 16px;border-radius:999px;margin-bottom:24px;border:1px solid rgba(255,255,255,0.2)"><i data-lucide="crown" style="width:16px;height:16px"></i> Our Story</div>
     <h1 style="font-size:48px;font-weight:800;color:#fff;font-family:'Playfair Display',serif;margin-bottom:16px">About Mathrone Academy</h1>
     <p style="font-size:17px;color:rgba(255,255,255,0.75);max-width:600px;margin:0 auto">Built on the belief that every student deserves a majestic education fit for a throne.</p>
     <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:32px;margin-top:40px">
-      ${[['about-stat-tutors','22+','Expert Tutors'],['about-stat-students','105+','Students Served'],['about-stat-rating','4.8★','Average Rating'],['about-stat-sat','96%','Satisfaction Rate']].map(([id,val,label])=>`
-      <div style="text-align:center">
-        <div id="${id}" style="font-size:32px;font-weight:800;color:#fff">${val}</div>
-        <div style="font-size:12px;color:rgba(255,255,255,0.65);margin-top:4px">${label}</div>
-      </div>`).join('')}
+      <button class="btn btn-primary" style="background:var(--gold);color:#1a1a1a;font-weight:700" onclick="navigate('register')">Start Learning →</button>
     </div>
   </div>
 
@@ -1093,12 +1090,12 @@
         <p class="about-p">Our name says it all <strong>Mathrone</strong> comes from <em>Majestic Throne</em>. We want every student who learns with us to sit on the throne of their own potential.</p>
       </div>
       <div style="background:#fff;border-radius:20px;padding:32px;border:1px solid var(--g100)">
-        ${[['🎯','Our Vision','To become East Africa\'s most trusted education platform from tutoring to a full-scale academy and beyond.'],
-           ['💡','Our Approach','Personalised 1-on-1 learning, rigorous tutor vetting, and data-driven progress tracking for every student.'],
-           ['🌍','Our Reach','Starting in Rwanda, expanding across East Africa, and eventually serving students worldwide.']
+        ${[['target','Our Vision','To become East Africa\'s most trusted education platform from tutoring to a full-scale academy and beyond.'],
+           ['lightbulb','Our Approach','Personalised 1-on-1 learning, rigorous tutor vetting, and data-driven progress tracking for every student.'],
+           ['globe-2','Our Reach','Starting in Rwanda, expanding across East Africa, and eventually serving students worldwide.']
           ].map(([ic,t,d])=>`
         <div style="display:flex;gap:16px;margin-bottom:24px;align-items:flex-start">
-          <div style="font-size:24px;flex-shrink:0">${ic}</div>
+          <div style="color:var(--blue);flex-shrink:0;margin-top:2px"><i data-lucide="${ic}" style="width:26px;height:26px"></i></div>
           <div>
             <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:4px">${t}</div>
             <div style="font-size:13px;color:var(--g600);line-height:1.7">${d}</div>
@@ -1132,15 +1129,15 @@
         <h2 class="about-h2" style="text-align:center">Our Core Values</h2>
       </div>
       <div class="about-grid-3">
-        ${[['👑','Excellence','We hold every tutor and every session to the highest standard. Mediocrity has no place at Mathrone.'],
-           ['🤝','Trust','Parents and students trust us with something precious their children\'s future. We never take that lightly.'],
-           ['📊','Accountability','Every session is tracked, every result is measured. We are accountable to every student\'s progress.'],
-           ['🌱','Growth','We believe every student can grow. Our tutors are trained to unlock potential, not just teach content.'],
-           ['❤️','Care','Behind every student profile is a real child with real dreams. We care about every single one of them.'],
-           ['🔒','Safety','Our platform is safe, vetted, and monitored. Every tutor is background-checked before working with students.']
+        ${[['crown','Excellence','We hold every tutor and every session to the highest standard. Mediocrity has no place at Mathrone.'],
+           ['handshake','Trust','Parents and students trust us with something precious their children\'s future. We never take that lightly.'],
+           ['bar-chart-3','Accountability','Every session is tracked, every result is measured. We are accountable to every student\'s progress.'],
+           ['sprout','Growth','We believe every student can grow. Our tutors are trained to unlock potential, not just teach content.'],
+           ['heart','Care','Behind every student profile is a real child with real dreams. We care about every single one of them.'],
+           ['shield-check','Safety','Our platform is safe, vetted, and monitored. Every tutor is background-checked before working with students.']
           ].map(([ic,t,d])=>`
         <div class="value-card">
-          <div style="font-size:32px;margin-bottom:12px">${ic}</div>
+          <div style="margin-bottom:16px;color:var(--blue);display:flex;justify-content:center"><i data-lucide="${ic}" style="width:36px;height:36px"></i></div>
           <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:8px">${t}</div>
           <div style="font-size:13px;color:var(--g600);line-height:1.6">${d}</div>
         </div>`).join('')}
@@ -1214,7 +1211,7 @@ async function renderVerifyEmail(token){
   render(`
   <div style="min-height:100vh;background:linear-gradient(135deg,#1e3a8a,#2563eb);display:flex;align-items:center;justify-content:center;padding:20px">
     <div style="background:#fff;border-radius:20px;padding:48px;text-align:center;max-width:440px;width:100%">
-      <div style="font-size:48px;margin-bottom:16px">⏳</div>
+      <div style="color:var(--blue);margin-bottom:20px;display:flex;justify-content:center"><i data-lucide="loader-2" style="width:48px;height:48px;animation:spin 1.5s linear infinite"></i></div>
       <h2 style="color:var(--navy);margin-bottom:8px">Verifying your email...</h2>
       <p style="color:var(--g400);font-size:14px">Please wait</p>
     </div>
@@ -1230,7 +1227,7 @@ async function renderVerifyEmail(token){
     render(`
     <div style="min-height:100vh;background:linear-gradient(135deg,#1e3a8a,#2563eb);display:flex;align-items:center;justify-content:center;padding:20px">
       <div style="background:#fff;border-radius:20px;padding:48px;text-align:center;max-width:440px;width:100%">
-        <div style="font-size:48px;margin-bottom:16px">✅</div>
+        <div style="color:var(--green);margin-bottom:20px;display:flex;justify-content:center"><i data-lucide="check-circle-2" style="width:48px;height:48px"></i></div>
         <h2 style="color:var(--navy);margin-bottom:8px">Email Verified!</h2>
         <p style="color:var(--g400);font-size:14px;margin-bottom:24px">Your account is now active. You can sign in.</p>
         <button class="btn btn-primary" onclick="navigate('login')">Sign In →</button>
@@ -1240,7 +1237,7 @@ async function renderVerifyEmail(token){
     render(`
     <div style="min-height:100vh;background:linear-gradient(135deg,#1e3a8a,#2563eb);display:flex;align-items:center;justify-content:center;padding:20px">
       <div style="background:#fff;border-radius:20px;padding:48px;text-align:center;max-width:440px;width:100%">
-        <div style="font-size:48px;margin-bottom:16px">❌</div>
+        <div style="color:var(--green);margin-bottom:20px;display:flex;justify-content:center"><i data-lucide="check-circle-2" style="width:48px;height:<div style="color:var(--red);margin-bottom:20px;display:flex;justify-content:center"><i data-lucide="x-circle" style="width:48px;height:48px"></i></div>48px"></i></div>
         <h2 style="color:var(--navy);margin-bottom:8px">Invalid Link</h2>
         <p style="color:var(--g400);font-size:14px;margin-bottom:24px">This verification link is invalid or has already been used.</p>
         <button class="btn btn-primary" onclick="navigate('login')">Back to Login</button>

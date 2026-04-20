@@ -642,7 +642,7 @@ function renderWhiteboard(sessionId) {
 
         <!-- Header -->
         <div style="text-align:center;padding:40px 0 30px;color:#fff">
-          <div style="font-size:48px;margin-bottom:12px">🎓</div>
+          <div style="display:flex;justify-content:center;margin-bottom:12px"><i data-lucide="graduation-cap" style="width:48px;height:48px;color:var(--gold)"></i></div>
           <h1 style="font-size:28px;font-weight:800;margin-bottom:6px">Mathrone Academy</h1>
           <p style="font-size:16px;opacity:0.8">Student Progress Report</p>
         </div>
@@ -685,14 +685,14 @@ function renderWhiteboard(sessionId) {
         <!-- Progress Chart -->
         ${progress.filter(p=>p.marks).length >= 2 ? `
         <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:20px">
-          <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px">📈 Marks Over Time</h3>
+          <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:6px"><i data-lucide="trending-up" style="width:18px;height:18px;color:var(--blue)"></i> Marks Over Time</h3>
           <canvas id="progress-chart" height="120"></canvas>
         </div>` : ''}
 
         <!-- Feedback Records -->
         ${progress.length ? `
         <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:20px">
-          <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px">📝 Session Feedback</h3>
+          <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:6px"><i data-lucide="file-text" style="width:18px;height:18px;color:var(--blue)"></i> Session Feedback</h3>
           <div style="display:flex;flex-direction:column;gap:16px">
             ${progress.map(p=>`
             <div style="border:1px solid var(--g100);border-radius:12px;padding:16px">
@@ -704,19 +704,19 @@ function renderWhiteboard(sessionId) {
                 </div>
               </div>
               ${p.feedback?`<p style="font-size:13px;color:var(--g600);margin-bottom:8px">${p.feedback}</p>`:''}
-              ${p.strengths?`<div style="background:#f0fdf4;border-radius:8px;padding:8px;margin-bottom:6px;font-size:12px"><strong>💪 Strengths:</strong> ${p.strengths}</div>`:''}
-              ${p.improvements?`<div style="background:#fff7ed;border-radius:8px;padding:8px;font-size:12px"><strong>📈 To Improve:</strong> ${p.improvements}</div>`:''}
+              ${p.strengths?`<div style="background:#f0fdf4;border-radius:8px;padding:8px;margin-bottom:6px;font-size:12px"><strong><i data-lucide="thumbs-up" style="width:12px;height:12px;vertical-align:middle"></i> Strengths:</strong> ${p.strengths}</div>`:''}
+              ${p.improvements?`<div style="background:#fff7ed;border-radius:8px;padding:8px;font-size:12px"><strong><i data-lucide="trending-up" style="width:12px;height:12px;vertical-align:middle"></i> To Improve:</strong> ${p.improvements}</div>`:''}
             </div>`).join('')}
           </div>
         </div>` : `
         <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:20px;text-align:center;color:var(--g400)">
-          <div style="font-size:32px;margin-bottom:8px">📝</div>
+          <div style="display:flex;justify-content:center;margin-bottom:8px"><i data-lucide="file-text" style="width:32px;height:32px"></i></div>
           <div>No feedback submitted yet</div>
         </div>`}
 
         <!-- Sessions -->
         <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:20px">
-          <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px">📅 Sessions</h3>
+          <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:6px"><i data-lucide="calendar" style="width:18px;height:18px;color:var(--blue)"></i> Sessions</h3>
           ${sessions.length ? `
           <div style="overflow-x:auto">
             <table style="width:100%;border-collapse:collapse;font-size:13px">
@@ -741,10 +741,44 @@ function renderWhiteboard(sessionId) {
           </div>` : `<div style="text-align:center;color:var(--g400)">No sessions yet</div>`}
         </div>
 
-        <!-- Invoices -->
+        <!-- Progress Chart -->
+        ${progress.filter(p=>p.marks).length >= 2 ? `
+        <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:20px">
+          <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:6px"><i data-lucide="trending-up" style="width:18px;height:18px;color:var(--blue)"></i> Marks Over Time</h3>
+          <canvas id="progress-chart" height="120"></canvas>
+        </div>` : ''}
+
+        <!-- Feedback Records -->
+        ${progress.length ? `
+        <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:20px">
+          <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:6px"><i data-lucide="file-text" style="width:18px;height:18px;color:var(--blue)"></i> Session Feedback</h3>
+          <div style="display:flex;flex-direction:column;gap:16px">
+            ${progress.map(p=>`
+            <div style="border:1px solid var(--g100);border-radius:12px;padding:16px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                <span style="font-weight:700;color:var(--navy)">${p.subject}</span>
+                <div style="display:flex;gap:8px;align-items:center">
+                  ${p.marks !== null ? `<span style="background:${p.marks>=75?'#dcfce7':p.marks>=50?'#fef9c3':'#fee2e2'};color:${p.marks>=75?'#166534':p.marks>=50?'#854d0e':'#991b1b'};border-radius:999px;padding:2px 10px;font-weight:700;font-size:13px">${p.marks}%</span>` : ''}
+                  <span style="font-size:12px;color:var(--g400)">${fmtShort(p.recorded_at)}</span>
+                </div>
+              </div>
+              ${p.feedback?`<p style="font-size:13px;color:var(--g600);margin-bottom:8px">${p.feedback}</p>`:''}
+              ${p.strengths?`<div style="background:#f0fdf4;border-radius:8px;padding:8px;margin-bottom:6px;font-size:12px"><strong><i data-lucide="thumbs-up" style="width:12px;height:12px;vertical-align:middle"></i> Strengths:</strong> ${p.strengths}</div>`:''}
+              ${p.improvements?`<div style="background:#fff7ed;border-radius:8px;padding:8px;font-size:12px"><strong><i data-lucide="trending-up" style="width:12px;height:12px;vertical-align:middle"></i> To Improve:</strong> ${p.improvements}</div>`:''}
+            </div>`).join('')}
+          </div>
+        </div>` : `
+        <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:20px;text-align:center;color:var(--g400)">
+          <div style="display:flex;justify-content:center;margin-bottom:8px"><i data-lucide="file-text" style="width:32px;height:32px"></i></div>
+          <div>No feedback submitted yet</div>
+        </div>`}
+
+        <!-- Sessions -->
+        <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:20px"><!-- Invoices -->
         ${invoices.length ? `
         <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:20px">
-          <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px">💳 Payments</h3>
+          <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:6px"><i data-lucide="credit-card" style="width:18px;height:18px;color:var(--blue)"></i> Payments</h3>
+          <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:6px"><i data-lucide="calendar" style="width:18px;height:18px;color:var(--blue)"></i> Sessions</h3>
           <div style="overflow-x:auto">
             <table style="width:100%;border-collapse:collapse;font-size:13px">
               <thead><tr style="border-bottom:2px solid var(--g100)">
@@ -824,8 +858,8 @@ async function renderForum(activeCategory = null){
 
     render(dashWrap('forum', `
     <div class="page-header">
-      <div><h1 class="page-title">Community Forum 💬</h1><p class="page-subtitle">Share ideas, ask questions, connect with others</p></div>
-      <button class="btn btn-primary" onclick="openNewPostModal()">✍️ New Post</button>
+      <div><h1 class="page-title" style="display:flex;align-items:center;gap:8px"><i data-lucide="messages-square" style="width:28px;height:28px;color:var(--blue)"></i> Community Forum</h1><p class="page-subtitle">Share ideas, ask questions, connect with others</p></div>
+      <button class="btn btn-primary" onclick="openNewPostModal()"><i data-lucide="pen-square" style="width:16px;height:16px"></i> New Post</button>
     </div>
 
     <!-- Category filters -->
@@ -882,7 +916,7 @@ function openNewPostModal(){
   <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
     <div class="modal">
       <div class="modal-header">
-        <span class="modal-title">✍️ New Post</span>
+        <span class="modal-title" style="display:flex;align-items:center;gap:8px"><i data-lucide="pen-square" style="width:20px;height:20px"></i> New Post</span>
         <button class="modal-close" onclick="document.querySelector('.modal-overlay').remove()">✕</button>
       </div>
       <div class="modal-body">
@@ -1433,7 +1467,7 @@ async function submitContactForm(){
   <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
     <div class="modal">
       <div class="modal-header">
-        <span class="modal-title">📝 Session Feedback — ${subject}</span>
+        <span class="modal-title" style="display:flex;align-items:center;gap:8px"><i data-lucide="clipboard-edit" style="width:20px;height:20px"></i> Session Feedback — ${subject}</span>
         <button class="modal-close" onclick="document.querySelector('.modal-overlay').remove()">✕</button>
       </div>
       <div class="modal-body">
@@ -1446,11 +1480,11 @@ async function submitContactForm(){
           <textarea class="input" id="prog-feedback" rows="3" placeholder="How did the student perform overall?"></textarea>
         </div>
         <div class="form-group">
-          <label class="form-label">Strengths 💪</label>
+          <label class="form-label" style="display:flex;align-items:center;gap:6px"><i data-lucide="thumbs-up" style="width:14px;height:14px"></i> Strengths</label>
           <textarea class="input" id="prog-strengths" rows="2" placeholder="What did the student do well?"></textarea>
         </div>
         <div class="form-group">
-          <label class="form-label">Areas for Improvement 📈</label>
+          <label class="form-label" style="display:flex;align-items:center;gap:6px"><i data-lucide="trending-up" style="width:14px;height:14px"></i> Areas for Improvement</label>
           <textarea class="input" id="prog-improvements" rows="2" placeholder="What should the student work on?"></textarea>
         </div>
       </div>
@@ -1517,8 +1551,11 @@ async function submitProgress(sessionId){
             ? (s.tutors?.profiles?.full_name || 'Tutor')
             : (s.students?.profiles?.full_name || 'Student')
           return `
-        <div class="card" style="padding:20px;display:flex;align-items:center;gap:16px">
-          <div style="width:52px;height:52px;background:var(--sky);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">📖</div>
+        <div class="page-header">
+      <div><h1 class="page-title" style="display:flex;align-items:center;gap:8px"><i data-lucide="messages-square" style="width:28px;height:28px;color:var(--blue)"></i> Community Forum</h1><p class="page-subtitle">Share ideas, ask questions, connect with others</p></div>
+      <but<div class="card" style="padding:20px;display:flex;align-items:center;gap:16px">
+          <div style="width:52px;height:52px;background:var(--sky);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;color:var(--blue);flex-shrink:0"><i data-lucide="book-open" style="width:24px;height:24px"></i></div>ton class="btn btn-primary" onclick="openNewPostModal()"><i data-lucide="pen-square" style="width:16px;height:16px"></i> New Post</button>
+    </div>
           <div style="flex:1;min-width:0">
             <div style="font-size:16px;font-weight:700;color:var(--navy)">${s.subject}</div>
             <div style="font-size:13px;color:var(--g600);margin-top:4px">with ${other} • ${s.mode}</div>
@@ -1530,12 +1567,12 @@ async function submitProgress(sessionId){
     <!-- Active Session Controls (Video + Whiteboard) -->
     ${s.status === 'scheduled' ? `
     <div style="display:flex; gap:6px; flex-wrap: wrap; justify-content: flex-end;">
-        <button class="btn btn-primary btn-sm" onclick="renderWhiteboard('${s.id}')">🚀 Join Session (Lab + Video)</button>
-${s.mode !== 'home' ? `<button class="btn btn-ghost btn-sm" onclick="openStandaloneVideoCall('${s.id}')" style="font-size:11px;">📹 Video Only</button>` : ''}
+        <button class="btn btn-primary btn-sm" onclick="renderWhiteboard('${s.id}')"><i data-lucide="rocket" style="width:14px;height:14px"></i> Join Session (Lab + Video)</button>
+${s.mode !== 'home' ? `<button class="btn btn-ghost btn-sm" onclick="openStandaloneVideoCall('${s.id}')" style="font-size:11px;"><i data-lucide="video" style="width:14px;height:14px"></i> Video Only</button>` : ''}
     </div>
     ` : s.status === 'completed' && State.user?.role === 'tutor' ? `
     <div style="display:flex; gap:6px; flex-wrap: wrap; justify-content: flex-end;">
-        <button class="btn btn-ghost btn-sm" onclick="renderWhiteboard('${s.id}')" title="Review session notes in the Lab">⚗️ Review Notes</button>
+        <button class="btn btn-ghost btn-sm" onclick="renderWhiteboard('${s.id}')" title="Review session notes in the Lab"><i data-lucide="flask-conical" style="width:14px;height:14px"></i> Review Notes</button>
     </div>
     ` : ''}
 
@@ -1776,7 +1813,7 @@ ${s.mode !== 'home' ? `<button class="btn btn-ghost btn-sm" onclick="openStandal
     <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
       <div class="modal">
         <div class="modal-header">
-          <span class="modal-title">💬 New Message</span>
+          <span class="modal-title" style="display:flex;align-items:center;gap:8px"><i data-lucide="message-square-plus" style="width:20px;height:20px"></i> New Message</span>
           <button class="modal-close" onclick="document.querySelector('.modal-overlay').remove()">✕</button>
         </div>
         <div class="modal-body">

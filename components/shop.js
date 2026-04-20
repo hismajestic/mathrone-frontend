@@ -83,15 +83,15 @@ function openGuestOrderModal(preItems = []){
 
         <!-- EXCELLENCE: Moved CTA inside scrollable body to prevent overlap -->
         <div style="background:#E0F2FE;border-radius:12px;padding:16px;margin:20px 0;text-align:center;border:1px solid #BAE6FD">
-          <div style="font-size:14px;color:#0369A1;font-weight:600">📚 Want a Tutor for you or your child?</div>
+          <div style="font-size:14px;color:#0369A1;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px"><i data-lucide="users" style="width:16px;height:16px"></i> Want a Tutor for you or your child?</div>
           <button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="document.querySelector('.modal-overlay').remove(); navigate('register')">Sign Up as Student</button>
         </div>
 
-        <div style="background:#FFFBEB;border-radius:8px;padding:12px;font-size:12px;color:#92400E;margin-bottom:8px">
-          💡 Payment is made upon delivery.
+        <div style="background:#FFFBEB;border-radius:8px;padding:12px;font-size:12px;color:#92400E;margin-bottom:8px;display:flex;align-items:center;gap:8px">
+          <i data-lucide="lightbulb" style="width:16px;height:16px;flex-shrink:0"></i> Payment is made upon delivery.
         </div>
-        <div style="background:#F0FDF4;border-radius:8px;padding:12px;font-size:12px;color:#166534">
-          🚚 Free delivery on orders above RWF 50,000!
+        <div style="background:#F0FDF4;border-radius:8px;padding:12px;font-size:12px;color:#166534;display:flex;align-items:center;gap:8px">
+          <i data-lucide="truck" style="width:16px;height:16px;flex-shrink:0"></i> Free delivery on orders above RWF 50,000!
         </div>
       </div>
 
@@ -119,7 +119,8 @@ function updateCartButton(){
   const btn = document.getElementById('cart-nav-btn')
   if(btn){
     if(totalQty){
-      btn.textContent = `🛒 Cart (${totalQty})`
+      btn.innerHTML = `<i data-lucide="shopping-cart" style="width:16px;height:16px;margin-right:4px"></i> Cart (${totalQty})`
+      if (window.lucide) window.lucide.createIcons()
       btn.style.display = 'inline-block'
     }else{
       btn.style.display = 'none'
@@ -257,12 +258,12 @@ async function renderShop(category = 'all', search = '') {
     </button>
     <div style="display:flex;align-items:center;gap:10px">
       ${isLoggedIn ? `
-      <button class="btn btn-ghost btn-sm" onclick="navigate('wishlist')">❤️ Wishlist</button>
-      <button class="btn btn-ghost btn-sm" onclick="navigate('cart')" id="cart-nav-btn">🛒 Cart</button>
+      <button class="btn btn-ghost btn-sm" onclick="navigate('wishlist')"><i data-lucide="heart" style="width:16px;height:16px;margin-right:4px"></i> Wishlist</button>
+      <button class="btn btn-ghost btn-sm" onclick="navigate('cart')" id="cart-nav-btn"><i data-lucide="shopping-cart" style="width:16px;height:16px;margin-right:4px"></i> Cart</button>
       <button class="btn btn-primary btn-sm" onclick="navigate('dashboard')">Dashboard</button>` : `
-      <button class="btn btn-ghost btn-sm" onclick="openGuestOrderModal(_getGuestCart())" id="cart-nav-btn" style="display:none">🛒 Cart</button>
-      <button class="btn btn-ghost btn-sm" onclick="navigate('courses')">🎓 Courses</button>
-      <button class="btn btn-ghost btn-sm" onclick="navigate('landing')">🏠 Home</button>
+      <button class="btn btn-ghost btn-sm" onclick="openGuestOrderModal(_getGuestCart())" id="cart-nav-btn" style="display:none"><i data-lucide="shopping-cart" style="width:16px;height:16px;margin-right:4px"></i> Cart</button>
+      <button class="btn btn-ghost btn-sm" onclick="navigate('courses')"><i data-lucide="graduation-cap" style="width:16px;height:16px;margin-right:4px"></i> Courses</button>
+      <button class="btn btn-ghost btn-sm" onclick="navigate('landing')"><i data-lucide="home" style="width:16px;height:16px;margin-right:4px"></i> Home</button>
       <button class="btn btn-ghost btn-sm" onclick="navigate('login')">Sign In</button>
       <button class="btn btn-primary btn-sm" onclick="navigate('register')">Sign Up</button>`}
     </div>
@@ -281,7 +282,8 @@ async function renderShop(category = 'all', search = '') {
       const btn = document.getElementById('cart-nav-btn')
       if(btn){
         if(totalQty){
-          btn.textContent = `🛒 Cart (${totalQty})`
+          btn.innerHTML = `<i data-lucide="shopping-cart" style="width:16px;height:16px;margin-right:4px"></i> Cart (${totalQty})`
+          if (window.lucide) window.lucide.createIcons()
           btn.style.display = 'inline-block'
         }else if(!isLoggedIn){
           btn.style.display = 'none'
@@ -529,9 +531,9 @@ async function renderShopProduct(productId) {
       <div style="display:flex;gap:10px">
         <button class="btn btn-ghost btn-sm" onclick="navigate('shop')">← Back to Shop</button>
         ${isLoggedIn ? 
-          `<button class="btn btn-ghost btn-sm" onclick="navigate('cart')" id="cart-nav-btn">🛒 Cart</button>` : 
+          `<button class="btn btn-ghost btn-sm" onclick="navigate('cart')" id="cart-nav-btn"><i data-lucide="shopping-cart" style="width:16px;height:16px;margin-right:4px"></i> Cart</button>` : 
           `<button class="btn btn-ghost btn-sm" onclick="openGuestOrderModal(_getGuestCart())" id="cart-nav-btn" 
-             style="${_getGuestCart().length > 0 ? 'display:inline-block' : 'display:none'}">🛒 Cart (${_getGuestCart().reduce((a, b) => a + b.qty, 0)})</button>`
+             style="${_getGuestCart().length > 0 ? 'display:inline-block' : 'display:none'}"><i data-lucide="shopping-cart" style="width:16px;height:16px;margin-right:4px"></i> Cart (${_getGuestCart().reduce((a, b) => a + b.qty, 0)})</button>`
         }
       </div>
     </nav>
@@ -593,16 +595,32 @@ async function renderShopProduct(productId) {
           
           
         <!-- VIDEO UNDER BUTTONS (right column) -->
-          ${p.video_url ? `
+          ${p.video_url ? (() => {
+            const ytMatch = p.video_url.match(/(?:embed\/|v=|youtu\.be\/)([\w-]{11})/);
+            const ytId = ytMatch ? ytMatch[1] : '';
+            const thumbUrl = ytId ? `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg` : '';
+            const cleanUrl = ytId ? `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1&showinfo=0` : p.video_url;
+            
+            return `
           <div style="margin-top:16px">
             <div style="background:var(--navy);padding:10px 12px;border-radius:12px 12px 0 0;color:#fff;font-size:12px;font-weight:700;text-align:center">
               📺 WATCH PRODUCT PREVIEW
             </div>
             <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;background:#000;border-radius:0 0 12px 12px;box-shadow:var(--sh)">
-              <iframe src="${privacyVideoUrl}"
-                      style="position:absolute;top:0;left:0;width:100%;height:100%;border:none"
+              
+              <!-- Custom Mathrone Video Cover -->
+              <div id="shop-vid-cover" onclick="this.style.display='none'; document.getElementById('shop-vid-iframe').src='${cleanUrl}'" 
+                   style="position:absolute;top:0;left:0;width:100%;height:100%;cursor:pointer;background:#000 url('${thumbUrl}') center/cover no-repeat;display:flex;align-items:center;justify-content:center;z-index:2">
+                <div style="width:64px;height:64px;background:var(--blue);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(26,95,255,0.4);transition:transform 0.2s" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:4px"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                </div>
+              </div>
+              
+              <!-- Actual Video -->
+              <iframe id="shop-vid-iframe" src=""
+                      style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;z-index:1"
                       allowfullscreen
-                      loading="lazy">
+                      loading="lazy" allow="autoplay; accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
               </iframe>
            </div>
 
@@ -617,7 +635,8 @@ async function renderShopProduct(productId) {
               Chat on WhatsApp
             </a>
           </div>
-          </div>` : ''}
+          </div>`;
+          })() : ''}
 
         </div>
 
@@ -966,7 +985,7 @@ async function renderMyOrders(){
     render(dashWrap('my-orders',`
     <div class="page-header">
       <div><h1 class="page-title">📦 My Orders</h1><p class="page-subtitle">${orders.length} order${orders.length!==1?'s':''}</p></div>
-      <button class="btn btn-ghost" onclick="navigate('shop')">🛒 Shop More</button>
+      <button class="btn btn-ghost" onclick="navigate('shop')"> Shop More</button>
     </div>
     ${orders.length ? orders.map(o=>{
       const sc = statusColors[o.status] || statusColors.pending
@@ -1039,7 +1058,7 @@ async function renderAdminShop(){
     const pendingOrders = orders.filter(o=>o.status==='pending').length
     render(dashWrap('admin-shop',`
     <div class="page-header">
-      <div><h1 class="page-title">🛒 Shop Manager</h1><p class="page-subtitle">${products.length} products • ${orders.length} orders${pendingOrders?' • '+pendingOrders+' pending':''}</p></div>
+      <div><h1 class="page-title" style="display:flex;align-items:center;gap:8px"><i data-lucide="store" style="width:28px;height:28px;color:var(--blue)"></i> Shop Manager</h1><p class="page-subtitle">${products.length} products • ${orders.length} orders${pendingOrders?' • '+pendingOrders+' pending':''}</p></div>
       ${tab==='products'?`<button class="btn btn-primary" onclick="openAddProductModal()">+ Add Product</button>`:
         tab==='bundles'?`<button class="btn btn-primary" onclick="openAddBundleModal(${JSON.stringify(products).replace(/"/g,'&quot;')})">+ Add Bundle</button>`:''}
     </div>
@@ -1130,13 +1149,13 @@ async function renderGuestOrdersTab(){
         <thead><tr><th>Name</th><th>Phone</th><th>Address</th><th>Items</th><th>Total</th><th>Type</th><th>Status</th><th>Date</th><th>WhatsApp</th></tr></thead>
         <tbody>
           ${orders.map(o=>`<tr>
-            <td style="font-weight:600">${o.full_name}</td>
-            <td>${o.phone}</td>
-            <td style="font-size:12px">${o.delivery_address}</td>
-            <td style="font-size:12px">${(o.items||[]).map(i=>`${i.name} ×${i.quantity}`).join(', ')}</td>
-            <td style="font-weight:700">RWF ${Number(o.total_amount).toLocaleString()}</td>
-            <td>${o.is_wholesale?`<span style="background:#EDE9FE;color:#5B21B6;font-size:11px;padding:2px 8px;border-radius:999px;font-weight:700">📦 Wholesale</span>`:`<span style="background:var(--sky);color:var(--blue);font-size:11px;padding:2px 8px;border-radius:999px">Retail</span>`}</td>
-            <td>
+            <td data-label="Name" style="font-weight:600">${o.full_name}</td>
+            <td data-label="Phone">${o.phone}</td>
+            <td data-label="Address" style="font-size:12px">${o.delivery_address}</td>
+            <td data-label="Items" style="font-size:12px">${(o.items||[]).map(i=>`${i.name} ×${i.quantity}`).join(', ')}</td>
+            <td data-label="Total" style="font-weight:700">RWF ${Number(o.total_amount).toLocaleString()}</td>
+            <td data-label="Type">${o.is_wholesale?`<span style="background:#EDE9FE;color:#5B21B6;font-size:11px;padding:2px 8px;border-radius:999px;font-weight:700"><i data-lucide="package" style="width:12px;height:12px;margin-right:4px;vertical-align:middle"></i> Wholesale</span>`:`<span style="background:var(--sky);color:var(--blue);font-size:11px;padding:2px 8px;border-radius:999px">Retail</span>`}</td>
+            <td data-label="Status">
               <select class="input" style="font-size:12px;padding:4px 8px" onchange="updateGuestOrderStatus('${o.id}',this.value)">
                 ${['pending','confirmed','delivered','cancelled'].map(s=>`<option value="${s}" ${o.status===s?'selected':''}>${s.charAt(0).toUpperCase()+s.slice(1)}</option>`).join('')}
               </select>

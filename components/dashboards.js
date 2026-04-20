@@ -1,9 +1,9 @@
 var FORUM_CATEGORIES = [
-  { id: 'general',   icon: '💬', label: 'General Discussion' },
-  { id: 'study',     icon: '📚', label: 'Study Tips' },
-  { id: 'reviews',   icon: '⭐', label: 'Tutor Reviews' },
-  { id: 'career',    icon: '💼', label: 'Career Advice' },
-  { id: 'feedback',  icon: '📣', label: 'Platform Feedback' },
+  { id: 'general',   icon: '<i data-lucide="message-square" style="width:16px;height:16px"></i>', label: 'General Discussion' },
+  { id: 'study',     icon: '<i data-lucide="book-open" style="width:16px;height:16px"></i>', label: 'Study Tips' },
+  { id: 'reviews',   icon: '<i data-lucide="star" style="width:16px;height:16px"></i>', label: 'Tutor Reviews' },
+  { id: 'career',    icon: '<i data-lucide="briefcase" style="width:16px;height:16px"></i>', label: 'Career Advice' },
+  { id: 'feedback',  icon: '<i data-lucide="megaphone" style="width:16px;height:16px"></i>', label: 'Platform Feedback' },
 ]
  // ════════════════════════════════════════════════════════════
     // STUDENT DASHBOARD
@@ -82,7 +82,7 @@ var FORUM_CATEGORIES = [
     <!-- Assigned Tutors -->
     ${assigns.length ? `
     <div class="card" style="padding:24px;margin-bottom:24px">
-      <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px">👨‍🏫 My Assigned Tutors</h3>
+      <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:6px"><i data-lucide="users" style="width:18px;height:18px;color:var(--blue)"></i> My Assigned Tutors</h3>
       <div class="grid-2">
         ${assigns.map(a=>`
         <div style="display:flex;align-items:center;gap:14px;padding:16px;border:1px solid var(--g100);border-radius:var(--rs)">
@@ -103,12 +103,13 @@ var FORUM_CATEGORIES = [
       <strong style="margin-left:4px;cursor:pointer" onclick="navigate('tutors')">Browse tutors and submit a request →</strong>
     </div>`}
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+    <!-- Dashboard Grid (Upcoming & Progress) -->
+    <div class="grid-2">
 
       <!-- Upcoming Sessions -->
       <div class="card" style="padding:24px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-          <h3 style="font-size:16px;font-weight:700;color:var(--navy)">📅 Upcoming Sessions</h3>
+          <h3 style="font-size:16px;font-weight:700;color:var(--navy);display:flex;align-items:center;gap:6px"><i data-lucide="calendar-clock" style="width:18px;height:18px;color:var(--blue)"></i> Upcoming Sessions</h3>
           <button class="btn btn-ghost btn-sm" onclick="navigate('sessions')">View all →</button>
         </div>
         ${upcoming.length ? `
@@ -136,7 +137,7 @@ var FORUM_CATEGORIES = [
       <!-- Recent Progress -->
       <div class="card" style="padding:24px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-          <h3 style="font-size:16px;font-weight:700;color:var(--navy)">📊 Recent Progress</h3>
+          <h3 style="font-size:16px;font-weight:700;color:var(--navy);display:flex;align-items:center;gap:6px"><i data-lucide="bar-chart-2" style="width:18px;height:18px;color:var(--blue)"></i> Recent Progress</h3>
         </div>
         ${progs.length ? `
         <div style="display:flex;flex-direction:column;gap:10px">
@@ -173,14 +174,20 @@ var FORUM_CATEGORIES = [
       <div class="card" style="padding:24px;margin-top:24px;background:linear-gradient(135deg,#1e1b4b 0%,#312e81 100%)">
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
           <div>
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-              <span style="font-size:26px">🤖</span>
+            var FORUM_CATEGORIES = [
+  { id: 'general',   icon: '<i data-lucide="message-square" style="width:16px;height:16px"></i>', label: 'General Discussion' },
+  { id: 'study',     icon: '<i data-lucide="book-open" style="width:16px;height:16px"></i>', label: 'Study Tips' },
+  { id: 'reviews',   ic<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+              <div style="background:rgba(255,255,255,0.1);padding:6px;border-radius:8px;display:flex;align-items:center;justify-content:center"><i data-lucide="bot" style="width:24px;height:24px;color:#a78bfa"></i></div>
               <h3 style="font-size:17px;font-weight:900;color:#fff">AI Study Tutor</h3>
               <span style="background:#a78bfa;color:#1e1b4b;font-size:10px;font-weight:900;padding:2px 8px;border-radius:99px">POWERED BY AI</span>
             </div>
             <p style="font-size:12px;color:rgba(255,255,255,0.65);max-width:400px">Ask questions, get explanations, quiz yourself — an interactive AI tutor available 24/7.</p>
           </div>
-          <button class="btn btn-sm" onclick="navigate('quiz')" style="background:#a78bfa;color:#1e1b4b;font-weight:800">🎓 Open AI Tutor</button>
+          <button class="btn btn-sm" onclick="navigate('quiz')" style="background:#a78bfa;color:#1e1b4b;font-weight:800;display:flex;align-items:center;gap:6px"><i data-lucide="graduation-cap" style="width:16px;height:16px"></i> Open AI Tutor</button>on: '<i data-lucide="star" style="width:16px;height:16px"></i>', label: 'Tutor Reviews' },
+  { id: 'career',    icon: '<i data-lucide="briefcase" style="width:16px;height:16px"></i>', label: 'Career Advice' },
+  { id: 'feedback',  icon: '<i data-lucide="megaphone" style="width:16px;height:16px"></i>', label: 'Platform Feedback' },
+]
         </div>
       </div>`
       // Show quiz sidebar link
@@ -1600,12 +1607,12 @@ async function renderTutorDash() {
         render(dashWrap('dashboard', `
     <div class="page-header">
       <div>
-        <h1 class="page-title">Hello, ${u.full_name?.split(' ')[0]}! 👋</h1>
+        <h1 class="page-title">Hello, ${u.full_name?.split(' ')[0]}!</h1>
         <p class="page-subtitle">Your teaching dashboard</p>
       </div>
       ${statusBadge(tutor.status || 'applicant')}
     </div>
-    ${tutor.status !== 'approved' ? `<div class="alert-warn">⏳ Your application status is <strong>${tutor.status?.replace(/_/g, ' ') || 'applicant'}</strong>. You'll be notified when approved to start teaching.</div>` : ''}
+    ${tutor.status !== 'approved' ? `<div class="alert-warn"><i data-lucide="hourglass" style="width:16px;height:16px;margin-right:6px"></i> Your application status is <strong>${tutor.status?.replace(/_/g, ' ') || 'applicant'}</strong>. You'll be notified when approved to start teaching.</div>` : ''}
     <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px">
       <div class="card" style="flex:1;min-width:130px;padding:18px;display:flex;align-items:center;gap:12px">
         <div class="stat-icon" style="background:#EEF2FF;color:var(--blue);flex-shrink:0"><i data-lucide="calendar"></i></div>
@@ -1639,7 +1646,7 @@ async function renderTutorDash() {
       </div>
     </div>
     <div class="card" style="padding:24px;margin-top:24px">
-      <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px">💰 Salary & Payment</h3>
+      <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:6px"><i data-lucide="banknote" style="width:18px;height:18px;color:var(--blue)"></i> Salary & Payment</h3>
       ${tutor.salary_amount || tutor.hourly_rate ? `
       <div style="background:#f0fdf4;border-radius:10px;padding:16px;margin-bottom:16px">
         <div style="font-size:22px;font-weight:800;color:var(--green)">$${tutor.salary_amount||tutor.hourly_rate} <span style="font-size:14px;font-weight:500">/ ${tutor.salary_frequency||'hr'}</span></div>
@@ -1664,7 +1671,7 @@ async function renderTutorDash() {
     </div>
     <div class="card" style="padding:24px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-        <h3 style="font-size:16px;font-weight:700;color:var(--navy)">📅 Upcoming Sessions</h3>
+        <h3 style="font-size:16px;font-weight:700;color:var(--navy);display:flex;align-items:center;gap:6px"><i data-lucide="calendar-clock" style="width:18px;height:18px;color:var(--blue)"></i> Upcoming Sessions</h3>
         <button class="btn btn-ghost btn-sm" onclick="navigate('sessions')">View all →</button>
       </div>
       ${upcoming.length ? `
@@ -1687,7 +1694,7 @@ async function renderTutorDash() {
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
         <div>
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-            <span style="font-size:26px">⚗️</span>
+            <div style="background:rgba(255,255,255,0.1);padding:6px;border-radius:8px;display:flex;align-items:center;justify-content:center"><i data-lucide="flask-conical" style="width:24px;height:24px;color:#F5A623"></i></div>
             <h3 style="font-size:17px;font-weight:900;color:#fff;letter-spacing:0.5px">STEM Majestic Lab</h3>
             <span style="background:#F5A623;color:#0D1B40;font-size:10px;font-weight:900;padding:2px 8px;border-radius:99px">TUTOR · HOST</span>
           </div>
@@ -1700,7 +1707,7 @@ async function renderTutorDash() {
       </div>
     </div>
 <div class="card" style="padding:24px;margin-top:24px">
-      <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px">📄 Documents & CV</h3>
+      <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:6px"><i data-lucide="file-text" style="width:18px;height:18px;color:var(--blue)"></i> Documents & CV</h3>
       <p style="font-size:13px;color:var(--g400);margin-bottom:16px">Upload your CV and certificates for admin review.</p>
       <div style="display:flex;flex-direction:column;gap:12px">
         <div>
@@ -1734,7 +1741,7 @@ async function renderTutorDash() {
   <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
     <div class="modal">
       <div class="modal-header">
-        <span class="modal-title">✉️ Reply to ${name}</span>
+        <span class="modal-title" style="display:flex;align-items:center;gap:8px"><i data-lucide="mail" style="width:20px;height:20px"></i> Reply to ${name}</span>
         <button class="modal-close" onclick="document.querySelector('.modal-overlay').remove()">✕</button>
       </div>
       <div class="modal-body">
@@ -1893,7 +1900,7 @@ async function toggleQuiz(){
     <!-- Contact Messages -->
     <div class="card" style="padding:24px;margin-bottom:24px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-        <h3 style="font-size:16px;font-weight:700;color:var(--navy)">📬 Contact Messages</h3>
+        <h3 style="font-size:16px;font-weight:700;color:var(--navy);display:flex;align-items:center;gap:6px"><i data-lucide="mail" style="width:18px;height:18px;color:var(--blue)"></i> Contact Messages</h3>
       </div>
       <div id="contact-msgs-list"><div class="loader-center"><div class="spinner"></div></div></div>
     </div>
