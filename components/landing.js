@@ -1,4 +1,4 @@
-   // ════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
     // LANDING PAGE
     // ════════════════════════════════════════════════════════════
    
@@ -236,6 +236,34 @@
     }
     @keyframes slideLeft { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
     #tutors-slider:hover { animation-play-state:paused }
+    @keyframes chcIn{0%{opacity:0;clip-path:circle(0% at 100% 0%)}100%{opacity:1;clip-path:circle(150% at 100% 0%)}}
+    @keyframes chcGlow{0%,100%{box-shadow:-4px 4px 28px 4px rgba(245,158,11,0.2)}50%{box-shadow:-8px 8px 50px 12px rgba(245,158,11,0.5)}}
+    @keyframes dotPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(1.8)}}
+    .chc-wrap{position:absolute;top:0;right:0;width:260px;height:260px;cursor:pointer;z-index:10;overflow:hidden;border-radius:0 0 0 260px;animation:chcIn 1s cubic-bezier(.4,0,.2,1) 0.8s both,chcGlow 4s ease-in-out 2s infinite;transition:all 0.3s}
+    .chc-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top}
+    .chc-overlay{position:absolute;inset:0;background:linear-gradient(225deg,rgba(6,14,36,0.82) 0%,rgba(6,14,36,0.6) 55%,transparent 100%);transition:background 0.3s}
+    .chc-wrap:hover .chc-overlay{background:linear-gradient(225deg,rgba(6,14,36,0.92) 0%,rgba(6,14,36,0.72) 60%,transparent 100%)}
+    .chc-border{position:absolute;inset:0;border-radius:0 0 0 260px;border:2px solid rgba(245,158,11,0.55);border-top:none;border-right:none;pointer-events:none}
+    .chc-content{position:absolute;top:16px;right:12px;width:195px;text-align:right}
+    .chc-label{font-size:10px;font-weight:800;color:#f59e0b;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;justify-content:flex-end;gap:5px}
+    .chc-dot{width:7px;height:7px;border-radius:50%;background:#f59e0b;animation:dotPulse 2s ease-in-out infinite;flex-shrink:0;display:inline-block}
+    .chc-title{font-size:13px;font-weight:800;color:#fff;line-height:1.3;margin-bottom:5px;font-family:'Playfair Display',serif}
+    .chc-sub{font-size:10px;color:rgba(255,255,255,0.7);line-height:1.55;margin-bottom:7px}
+    .chc-pills{display:flex;flex-wrap:wrap;gap:3px;justify-content:flex-end;margin-bottom:8px}
+    .chc-pill{display:inline-flex;align-items:center;gap:3px;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.35);color:#f59e0b;font-size:8.5px;font-weight:700;padding:2px 6px;border-radius:999px;white-space:nowrap}
+    .chc-cta{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:#0f172a;background:#f59e0b;padding:4px 10px;border-radius:999px}
+    @media(max-width:1100px){.chc-wrap{width:230px;height:230px;border-radius:0 0 0 230px}.chc-border{border-radius:0 0 0 230px}.chc-content{width:170px;top:14px;right:10px}}
+    @media(max-width:900px){.chc-wrap{width:195px;height:195px;border-radius:0 0 0 195px}.chc-border{border-radius:0 0 0 195px}.chc-content{width:142px;top:11px;right:9px}.chc-title{font-size:11px}.chc-sub{font-size:9px}.chc-pill{font-size:8px;padding:1px 5px}}
+    @media(max-width:700px){.chc-wrap{width:155px;height:155px;border-radius:0 0 0 155px}.chc-border{border-radius:0 0 0 155px}.chc-content{width:112px;top:9px;right:7px}.chc-title{font-size:10px}.chc-sub{display:none}.chc-pills{display:none}.chc-cta{font-size:10px;padding:3px 8px}}
+    @media(max-width:600px){.chc-wrap{display:none!important;position:absolute!important;width:0!important;height:0!important;overflow:hidden!important}}
+    .chc-mobile-banner{display:none}
+    @media(max-width:600px){.chc-mobile-banner{display:flex;align-items:center;gap:0;background:rgba(6,14,36,0.88);border:1.5px solid rgba(245,158,11,0.45);border-radius:12px;overflow:hidden;cursor:pointer;margin-top:16px;position:relative;width:100%}}
+    .chc-mobile-banner img{width:88px;height:88px;object-fit:cover;flex-shrink:0;display:block}
+    .chc-mobile-banner-body{padding:10px 12px;flex:1}
+    .chc-mobile-banner-label{font-size:9px;font-weight:800;color:#f59e0b;letter-spacing:0.1em;text-transform:uppercase;display:flex;align-items:center;gap:5px;margin-bottom:4px}
+    .chc-mobile-banner-title{font-size:13px;font-weight:800;color:#fff;line-height:1.3;margin-bottom:5px;font-family:'Playfair Display',serif}
+    .chc-mobile-banner-pills{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:6px}
+    .chc-mobile-banner-cta{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;color:#0f172a;background:#f59e0b;padding:3px 9px;border-radius:999px}
   </style>
 
  <!-- NAV -->
@@ -287,6 +315,34 @@
       <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1400&q=80" alt="" role="presentation" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;display:block"/>
       <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(30,58,138,0.88) 0%,rgba(37,99,235,0.82) 100%)"></div>
     </div>
+    <!-- COURSES TEASER quarter circle desktop only -->
+    <div class="chc-wrap" onclick="navigate('courses')">
+      <img class="chc-bg" src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&q=80" alt="Students studying" loading="lazy"/>
+      <div class="chc-overlay"></div>
+      <div class="chc-border"></div>
+      <div class="chc-content">
+        <div class="chc-label">
+          <span class="chc-dot"></span>
+          <i data-lucide="graduation-cap" style="width:10px;height:10px;color:#f59e0b"></i>
+          <span>Online Courses</span>
+        </div>
+        <div class="chc-title">Pass National Exams at Ease</div>
+        <div class="chc-sub">REB · IGCSE · IB · French · Uni-expert video lessons for every exam.</div>
+        <div class="chc-pills">
+          <span class="chc-pill"><i data-lucide="calculator" style="width:8px;height:8px"></i>Maths</span>
+          <span class="chc-pill"><i data-lucide="flask-conical" style="width:8px;height:8px"></i>Sciences</span>
+          <span class="chc-pill"><i data-lucide="monitor" style="width:8px;height:8px"></i>Digital</span>
+          <span class="chc-pill"><i data-lucide="trending-up" style="width:8px;height:8px"></i>Business</span>
+          <span class="chc-pill"><i data-lucide="video" style="width:8px;height:8px"></i>Video Editing</span>
+          <span class="chc-pill"><i data-lucide="code-2" style="width:8px;height:8px"></i>Web Dev</span>
+          <span class="chc-pill"><i data-lucide="plus-circle" style="width:8px;height:8px"></i>Others</span>
+        </div>
+        <div class="chc-cta">
+          <i data-lucide="arrow-right" style="width:11px;height:11px"></i>
+          <span>Explore Courses</span>
+        </div>
+      </div>
+    </div>
     <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center">
       <div class="htag"> Majestic Learning. Royal Results.</div>
       <h1 class="htitle">Expert Tutoring and <span> Smart Learning Tools</span><br/>All in One Place</h1>
@@ -296,6 +352,31 @@
         <button class="btn-hero-o" onclick="navigate('register','tutor')">Become a Tutor</button>
         <button class="btn-hero-o" onclick="navigate('shop')" style="background:var(--gold);color:#1a1a1a;border-color:var(--gold)">🛒 Learning Store</button>
         <button class="btn-hero-o" onclick="navigate('news')" style="background:#0e172b;border-color:#1e3a8a">Read Updates</button>
+      </div>
+      <!-- MOBILE ONLY: courses banner shown below buttons -->
+      <div class="chc-mobile-banner" onclick="navigate('courses')">
+        <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=200&q=80" alt="Students studying" loading="lazy"/>
+        <div class="chc-mobile-banner-body">
+          <div class="chc-mobile-banner-label">
+            <span class="chc-dot"></span>
+            <i data-lucide="graduation-cap" style="width:9px;height:9px;color:#f59e0b"></i>
+            <span>Online Courses</span>
+          </div>
+          <div class="chc-mobile-banner-title">Pass National Exams at Ease</div>
+          <div class="chc-mobile-banner-pills">
+            <span class="chc-pill"><i data-lucide="calculator" style="width:8px;height:8px"></i>Maths</span>
+          <span class="chc-pill"><i data-lucide="flask-conical" style="width:8px;height:8px"></i>Sciences</span>
+          <span class="chc-pill"><i data-lucide="monitor" style="width:8px;height:8px"></i>Digital</span>
+          <span class="chc-pill"><i data-lucide="trending-up" style="width:8px;height:8px"></i>Business</span>
+          <span class="chc-pill"><i data-lucide="video" style="width:8px;height:8px"></i>Video Editing</span>
+          <span class="chc-pill"><i data-lucide="code-2" style="width:8px;height:8px"></i>Web Dev</span>
+          <span class="chc-pill"><i data-lucide="plus-circle" style="width:8px;height:8px"></i> And Many Others</span>
+          </div>
+          <div class="chc-mobile-banner-cta">
+            <i data-lucide="arrow-right" style="width:10px;height:10px"></i>
+            <span>Explore Courses</span>
+          </div>
+        </div>
       </div>
       <div class="hstats">
         <div style="text-align:center"><div class="hsnum" id="stat-tutors">0</div><div class="hslbl">Expert Tutors</div></div>
@@ -315,7 +396,7 @@
       <div class="steps-grid">
         ${[['1','clipboard-edit','Submit a Request','Tell us your subject, level, and preferred schedule. We handle the rest.'],
            ['2','target','We Match You','Our team handpicks the perfect tutor from our vetted, qualified pool.'],
-           ['3','rocket','Start Learning','Your tutor contacts you and sessions begin immediately — online or at home.']
+           ['3','rocket','Start Learning','Your tutor contacts you and sessions begin immediately-online or at home.']
           ].map(([n,ic,t,d])=>`
         <div class="step-card">
           <div class="step-num">STEP ${n}</div>
@@ -334,7 +415,7 @@
       <p class="ssub">Everything you need for a world-class learning experience</p>
       <div class="features-grid">
         ${[['check-circle-2','Vetted & Qualified Tutors','Every tutor is background-checked, interviewed, and holds verified academic qualifications.'],
-           ['calendar-clock','Flexible Scheduling','Book sessions at times that work for you — evenings, weekends, or during school hours.'],
+           ['calendar-clock','Flexible Scheduling','Book sessions at times that work for you : evenings, weekends, or during school hours.'],
            ['monitor-smartphone','Online & Home Visits','Choose between video sessions from home or in-person visits from your tutor.'],
            ['bar-chart-3','Progress Tracking','Parents receive detailed progress reports after every session with marks and feedback.'],
            ['message-square','Direct Messaging','Stay in touch with your tutor anytime through our built-in messaging platform.'],
@@ -583,7 +664,7 @@
 
     <!-- Intro -->
     <div style="background:var(--sky);border-radius:12px;padding:20px;margin-bottom:40px;border-left:4px solid var(--blue)">
-      <p style="font-size:14px;color:var(--navy);line-height:1.7;margin:0">By accessing or using the Mathrone Academy platform — including our website at <strong>mathroneacademy.pages.dev</strong>, our tutoring services, and our online store — you agree to be bound by these Terms and Conditions. If you do not agree, please do not use our services.</p>
+      <p style="font-size:14px;color:var(--navy);line-height:1.7;margin:0">By accessing or using the Mathrone Academy platform including our website at <strong>mathroneacademy.pages.dev</strong>, our tutoring services, and our online store you agree to be bound by these Terms and Conditions. If you do not agree, please do not use our services.</p>
     </div>
 
     ${[
@@ -731,7 +812,7 @@
         title:'Intellectual Property',
         content:`
         <ul>
-          <li>All content on the Mathrone Academy platform — including the logo, design, code, text, and educational materials — is the property of Mathrone Academy and protected by applicable intellectual property laws.</li>
+          <li>All content on the Mathrone Academy platform including the logo, design, code, text, and educational materials is the property of Mathrone Academy and protected by applicable intellectual property laws.</li>
           <li>Users may not reproduce, distribute, or create derivative works from platform content without prior written consent.</li>
           <li>User-generated content (forum posts, feedback) remains the property of the user, but by posting it you grant Mathrone Academy a non-exclusive licence to display and use it on the platform.</li>
           <li>The Mathrone Academy name and logo may not be used in any commercial context without written permission.</li>
@@ -863,7 +944,7 @@
     <h1 class="pp-title">Privacy Policy</h1>
     <div class="pp-date">Last updated: March 2025</div>
 
-    <p class="pp-p">At Mathrone Academy, we are committed to protecting the privacy and security of our users — students, parents, tutors, and administrators. This Privacy Policy explains how we collect, use, store, and protect your personal information when you use our platform.</p>
+    <p class="pp-p">At Mathrone Academy, we are committed to protecting the privacy and security of our users students, parents, tutors, and administrators. This Privacy Policy explains how we collect, use, store, and protect your personal information when you use our platform.</p>
 
     <h2 class="pp-h2">1. Information We Collect</h2>
     <p class="pp-p">We collect the following types of information when you register and use Mathrone Academy:</p>
@@ -893,7 +974,7 @@
     <ul class="pp-ul">
       <li>Encrypted data transmission using HTTPS/TLS.</li>
       <li>Secure authentication with hashed passwords and JWT tokens.</li>
-      <li>Role-based access control — users only see data they are authorised to access.</li>
+      <li>Role-based access control users only see data they are authorised to access.</li>
       <li>Regular security reviews and access audits.</li>
     </ul>
 
@@ -991,7 +1072,7 @@
   <div class="about-hero">
     <div style="display:inline-block;background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.9);font-size:13px;padding:6px 16px;border-radius:999px;margin-bottom:24px;border:1px solid rgba(255,255,255,0.2)">👑 Our Story</div>
     <h1 style="font-size:48px;font-weight:800;color:#fff;font-family:'Playfair Display',serif;margin-bottom:16px">About Mathrone Academy</h1>
-    <p style="font-size:17px;color:rgba(255,255,255,0.75);max-width:600px;margin:0 auto">Built on the belief that every student deserves a majestic education — fit for a throne.</p>
+    <p style="font-size:17px;color:rgba(255,255,255,0.75);max-width:600px;margin:0 auto">Built on the belief that every student deserves a majestic education fit for a throne.</p>
     <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:32px;margin-top:40px">
       ${[['about-stat-tutors','22+','Expert Tutors'],['about-stat-students','105+','Students Served'],['about-stat-rating','4.8★','Average Rating'],['about-stat-sat','96%','Satisfaction Rate']].map(([id,val,label])=>`
       <div style="text-align:center">
@@ -1007,12 +1088,12 @@
       <div>
         <div style="font-size:11px;font-weight:700;color:var(--blue);letter-spacing:0.08em;margin-bottom:12px">OUR MISSION</div>
         <h2 class="about-h2">Majestic Learning.<br/>Royal Results.</h2>
-        <p class="about-p">Mathrone Academy was founded with a single purpose — to make high-quality, personalised education accessible to every student in Rwanda and beyond.</p>
+        <p class="about-p">Mathrone Academy was founded with a single purpose to make high-quality, personalised education accessible to every student in Rwanda and beyond.</p>
         <p class="about-p">We believe that the right tutor can transform a student's life. That's why we hand-pick, vet, and continuously evaluate every tutor on our platform to ensure the highest standards of teaching excellence.</p>
-        <p class="about-p">Our name says it all — <strong>Mathrone</strong> comes from <em>Majestic Throne</em>. We want every student who learns with us to sit on the throne of their own potential.</p>
+        <p class="about-p">Our name says it all <strong>Mathrone</strong> comes from <em>Majestic Throne</em>. We want every student who learns with us to sit on the throne of their own potential.</p>
       </div>
       <div style="background:#fff;border-radius:20px;padding:32px;border:1px solid var(--g100)">
-        ${[['🎯','Our Vision','To become East Africa\'s most trusted education platform — from tutoring to a full-scale academy and beyond.'],
+        ${[['🎯','Our Vision','To become East Africa\'s most trusted education platform from tutoring to a full-scale academy and beyond.'],
            ['💡','Our Approach','Personalised 1-on-1 learning, rigorous tutor vetting, and data-driven progress tracking for every student.'],
            ['🌍','Our Reach','Starting in Rwanda, expanding across East Africa, and eventually serving students worldwide.']
           ].map(([ic,t,d])=>`
@@ -1035,10 +1116,10 @@
         <h2 class="about-h2" style="text-align:center">How Mathrone Began</h2>
       </div>
       <div style="max-width:700px;margin:0 auto">
-        <p class="about-p">Mathrone Academy was founded by <strong>Mr. Majesty</strong>, an entrepreneur who saw a major gap in Rwanda's education landscape — students struggling to find quality, trustworthy tutors, and talented teachers with no platform to reach students who needed them most.</p>
-        <p class="about-p">The name <strong>Mathrone</strong> was born from a personal conviction — combining <em>Majestic</em> and <em>Throne</em> — because Mr. Majesty believed that every student, regardless of their background, deserves to sit on the throne of academic excellence.</p>
+        <p class="about-p">Mathrone Academy was founded by <strong>Mr. Majesty</strong>, an entrepreneur who saw a major gap in Rwanda's education landscape  students struggling to find quality, trustworthy tutors, and talented teachers with no platform to reach students who needed them most.</p>
+        <p class="about-p">The name <strong>Mathrone</strong> was born from a personal conviction combining <em>Majestic</em> and <em>Throne</em>  because Mr. Majesty believed that every student, regardless of their background, deserves to sit on the throne of academic excellence.</p>
         <p class="about-p">What started as a simple tutoring matching service quickly grew into a full platform with session management, progress tracking, parent reporting, and a recruitment pipeline for Rwanda's best tutors.</p>
-        <p class="about-p">Today, Mathrone Academy is on a mission to become East Africa's leading education platform — and eventually, to open physical campuses that bring the Mathrone experience to life.</p>
+        <p class="about-p">Today, Mathrone Academy is on a mission to become East Africa's leading education platform  and eventually, to open physical campuses that bring the Mathrone experience to life.</p>
       </div>
     </div>
   </div>
@@ -1052,7 +1133,7 @@
       </div>
       <div class="about-grid-3">
         ${[['👑','Excellence','We hold every tutor and every session to the highest standard. Mediocrity has no place at Mathrone.'],
-           ['🤝','Trust','Parents and students trust us with something precious — their children\'s future. We never take that lightly.'],
+           ['🤝','Trust','Parents and students trust us with something precious their children\'s future. We never take that lightly.'],
            ['📊','Accountability','Every session is tracked, every result is measured. We are accountable to every student\'s progress.'],
            ['🌱','Growth','We believe every student can grow. Our tutors are trained to unlock potential, not just teach content.'],
            ['❤️','Care','Behind every student profile is a real child with real dreams. We care about every single one of them.'],
@@ -1092,7 +1173,7 @@
   <!-- CTA -->
   <div style="background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 100%);padding:clamp(40px,6vw,72px) clamp(16px,4vw,48px);text-align:center">
     <h2 style="font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:#fff;margin-bottom:14px">Join the Mathrone Family</h2>
-    <p style="color:rgba(255,255,255,0.7);font-size:16px;margin-bottom:32px">Whether you're a student, parent, or tutor — there's a place for you at Mathrone Academy.</p>
+    <p style="color:rgba(255,255,255,0.7);font-size:16px;margin-bottom:32px">Whether you're a student, parent, or tutor there's a place for you at Mathrone Academy.</p>
     <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
       <button class="btn-g" onclick="navigate('register')">Register as Student</button>
       <button class="btn-w" onclick="navigate('register','tutor')">Apply as Tutor</button>
