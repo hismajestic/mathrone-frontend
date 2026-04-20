@@ -2,13 +2,13 @@
 // SHOP CONSTANTS
 // ══════════════════════════════════════════════════
 var SHOP_CATEGORIES = [
-  { id: 'all',       icon: '🛒', label: 'All Products' },
-  { id: 'notebooks', icon: '📓', label: 'Notebooks & Books' },
-  { id: 'writing',   icon: '✏️', label: 'Writing Tools' },
-  { id: 'geometry',  icon: '📐', label: 'Geometry & Math' },
-  { id: 'science',   icon: '🔬', label: 'Science Equipment' },
-  { id: 'teaching',  icon: '🎓', label: 'Teaching Aids' },
-  { id: 'kits',      icon: '🎒', label: 'Student Kits' },
+  { id: 'all',       icon: '<i data-lucide="shopping-cart" style="width:16px;height:16px"></i>', label: 'All Products' },
+  { id: 'notebooks', icon: '<i data-lucide="book" style="width:16px;height:16px"></i>', label: 'Notebooks & Books' },
+  { id: 'writing',   icon: '<i data-lucide="pen-tool" style="width:16px;height:16px"></i>', label: 'Writing Tools' },
+  { id: 'geometry',  icon: '<i data-lucide="ruler" style="width:16px;height:16px"></i>', label: 'Geometry & Math' },
+  { id: 'science',   icon: '<i data-lucide="flask-conical" style="width:16px;height:16px"></i>', label: 'Science Equipment' },
+  { id: 'teaching',  icon: '<i data-lucide="graduation-cap" style="width:16px;height:16px"></i>', label: 'Teaching Aids' },
+  { id: 'kits',      icon: '<i data-lucide="backpack" style="width:16px;height:16px"></i>', label: 'Student Kits' },
 ]
 // ══════════════════════════════════════════════════
 // PUBLIC SHOP PAGE
@@ -261,7 +261,7 @@ async function renderShop(category = 'all', search = '') {
       <button class="btn btn-ghost btn-sm" onclick="navigate('cart')" id="cart-nav-btn">🛒 Cart</button>
       <button class="btn btn-primary btn-sm" onclick="navigate('dashboard')">Dashboard</button>` : `
       <button class="btn btn-ghost btn-sm" onclick="openGuestOrderModal(_getGuestCart())" id="cart-nav-btn" style="display:none">🛒 Cart</button>
-      
+      <button class="btn btn-ghost btn-sm" onclick="navigate('courses')">🎓 Courses</button>
       <button class="btn btn-ghost btn-sm" onclick="navigate('landing')">🏠 Home</button>
       <button class="btn btn-ghost btn-sm" onclick="navigate('login')">Sign In</button>
       <button class="btn btn-primary btn-sm" onclick="navigate('register')">Sign Up</button>`}
@@ -364,7 +364,7 @@ async function renderShop(category = 'all', search = '') {
           ${productCards}
         </div>` : `
         <div class="empty-state">
-          <div class="empty-icon">🛍️</div>
+          <div class="empty-icon" style="color:var(--g400)"><i data-lucide="shopping-bag" style="width:48px;height:48px;stroke-width:1.5"></i></div>
           <div class="empty-title">No products found</div>
           <div class="empty-sub">Try a different category or search term</div>
         </div>`}
@@ -449,7 +449,7 @@ function shopProductCard(p, isLoggedIn) {
               isLoggedIn ? `addToCart('${p.id}',null,'${safeName}',this)` : 
               `addToGuestCart('${p.id}','${safeName}',${p.price},1)`}"
             style="flex:1;background:var(--blue);color:#fff;border:none;padding:10px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700">
-            🛒 Add to Cart
+            <i data-lucide="shopping-cart" style="width:14px;height:14px;margin-right:4px"></i> Add to Cart
           </button>
         </div>
       </div>
@@ -468,10 +468,10 @@ async function addToCartQty(productId, bundleId, name, btn, qtyInputId){
   try{
     await api('/shop/cart',{ method:'POST', body:JSON.stringify({ product_id:productId, bundle_id:bundleId, quantity:qty }) })
     toast(`${name} ×${qty} added to cart 🛒`)
-    if(btn){ btn.textContent='✅ Added!'; setTimeout(()=>{ btn.disabled=false; btn.textContent='🛒 Add to Cart' },2000) }
+    if(btn){ btn.textContent='✅ Added!'; setTimeout(()=>{ btn.disabled=false; btn.textContent='<i data-lucide="shopping-cart" style="width:14px;height:14px;margin-right:4px"></i> Add to Cart' },2000) }
   }catch(e){
     toast(e.message,'err')
-    if(btn){ btn.disabled=false; btn.textContent='🛒 Add to Cart' }
+    if(btn){ btn.disabled=false; btn.textContent='<i data-lucide="shopping-cart" style="width:14px;height:14px;margin-right:4px"></i> Add to Cart' }
   }
 }
 
@@ -495,7 +495,7 @@ function shopBundleCard(b, isLoggedIn){
         <div style="font-size:22px;font-weight:800;color:var(--gold)">RWF ${Number(b.price).toLocaleString()}</div>
         <button onclick="${isLoggedIn?`addToCart(null,'${b.id}','${(b.name||'').replace(/'/g,"\\'")}',this)`:`addToGuestCart(null,'${(b.name||'').replace(/'/g,"\\'")}',${b.price},1)`}"
           style="background:var(--gold);color:#1a1a1a;border:none;padding:10px 18px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700">
-          🛒 Add Bundle
+          <i data-lucide="package-plus" style="width:14px;height:14px;margin-right:4px"></i> Add Bundle
         </button>
       </div>
     </div>
@@ -584,7 +584,7 @@ async function renderShopProduct(productId) {
           <div class="prod-action-btns" style="display:flex;gap:12px">
             <button onclick="${p.stock === 0 ? "toast('Out of stock','err')" : isLoggedIn ? `addToCart('${p.id}',null,'${safeName}',this)` : `addToGuestCart('${p.id}','${safeName}',${p.price},1)`}"
               style="flex:2;background:var(--blue);color:#fff;border:none;padding:10px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700">
-              🛒 Add to Cart
+              <i data-lucide="shopping-cart" style="width:14px;height:14px;margin-right:4px"></i> Add to Cart
             </button>
             
             <button onclick="${isLoggedIn ? `toggleWishlist('${p.id}','${safeName}',this)` : `toast('Sign in to save','info')`}"
@@ -725,7 +725,7 @@ async function renderCart(){
               <button onclick="updateCartItem('${i.id}',${i.quantity+1})" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--g100);background:#fff;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center">+</button>
             </div>
             <div style="font-size:16px;font-weight:800;color:var(--navy);min-width:80px;text-align:right">RWF ${Number(price*i.quantity).toLocaleString()}</div>
-            <button onclick="removeFromCart('${i.id}')" style="background:none;border:none;color:var(--g400);cursor:pointer;font-size:18px;padding:4px">🗑️</button>
+            <button onclick="removeFromCart('${i.id}')" style="background:none;border:none;color:var(--g400);cursor:pointer;font-size:18px;padding:4px"><i data-lucide="trash-2" style="width:16px;height:16px"></i></button>
           </div>`
         }).join('')}
       </div>
@@ -755,7 +755,7 @@ async function renderCart(){
       </div>
     </div>` : `
     <div class="empty-state">
-      <div class="empty-icon">🛒</div>
+      <div class="empty-icon" style="color:var(--g400)"><i data-lucide="shopping-cart" style="width:48px;height:48px;stroke-width:1.5"></i></div>
       <div class="empty-title">Your cart is empty</div>
       <div class="empty-sub">Browse our store and add items you need</div>
       <button class="btn btn-primary" style="margin-top:16px" onclick="navigate('shop')">Browse Products</button>
@@ -770,10 +770,10 @@ async function addToCart(productId, bundleId, name, btn){
   try{
     await api('/shop/cart',{ method:'POST', body:JSON.stringify({ product_id:productId, bundle_id:bundleId, quantity:1 }) })
     toast(`${name} added to cart 🛒`)
-    if(btn){ btn.textContent='✅ Added!'; setTimeout(()=>{ btn.disabled=false; btn.textContent='🛒 Add to Cart' },2000) }
+    if(btn){ btn.textContent='✅ Added!'; setTimeout(()=>{ btn.disabled=false; btn.textContent='<i data-lucide="shopping-cart" style="width:14px;height:14px;margin-right:4px"></i> Add to Cart' },2000) }
   }catch(e){
     toast(e.message,'err')
-    if(btn){ btn.disabled=false; btn.textContent='🛒 Add to Cart' }
+    if(btn){ btn.disabled=false; btn.textContent='<i data-lucide="shopping-cart" style="width:14px;height:14px;margin-right:4px"></i> Add to Cart' }
   }
 }
 
@@ -819,7 +819,7 @@ async function renderWishlist(){
       ${items.map(i=>shopProductCard(i.products, true)).join('')}
     </div>` : `
     <div class="empty-state">
-      <div class="empty-icon">❤️</div>
+      <div class="empty-icon" style="color:var(--g400)"><i data-lucide="heart" style="width:48px;height:48px;stroke-width:1.5"></i></div>
       <div class="empty-title">Your wishlist is empty</div>
       <div class="empty-sub">Save items you love for later</div>
       <button class="btn btn-primary" style="margin-top:16px" onclick="navigate('shop')">Browse Products</button>
@@ -1015,7 +1015,7 @@ async function renderMyOrders(){
       </div>`
     }).join('') : `
     <div class="empty-state">
-      <div class="empty-icon">📦</div>
+      <div class="empty-icon" style="color:var(--g400)"><i data-lucide="package" style="width:48px;height:48px;stroke-width:1.5"></i></div>
       <div class="empty-title">No orders yet</div>
       <div class="empty-sub">Your orders will appear here</div>
       <button class="btn btn-primary" style="margin-top:16px" onclick="navigate('shop')">Start Shopping</button>
@@ -1064,8 +1064,8 @@ async function renderAdminShop(){
           <div style="font-size:12px;color:var(--g400);margin-bottom:8px">${SHOP_CATEGORIES.find(c=>c.id===p.category)?.label||p.category} • Stock: ${p.stock}</div>
           <div style="font-size:16px;font-weight:800;color:var(--navy);margin-bottom:12px">RWF ${Number(p.price).toLocaleString()}</div>
           <div style="display:flex;gap:6px">
-            <button class="btn btn-ghost btn-sm" style="flex:1" onclick="openEditProductModal(${JSON.stringify(p).replace(/"/g,'&quot;')})">✏️ Edit</button>
-            <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteProduct('${p.id}','${(p.name||'').replace(/'/g,"\\'")}')">🗑️</button>
+            <button class="btn btn-ghost btn-sm" style="flex:1" onclick="openEditProductModal(${JSON.stringify(p).replace(/"/g,'&quot;')})"><i data-lucide="edit" style="width:14px;height:14px;margin-right:4px"></i> Edit</button>
+            <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteProduct('${p.id}','${(p.name||'').replace(/'/g,"\\'")}')"><i data-lucide="trash-2" style="width:16px;height:16px"></i></button>
           </div>
         </div>
       </div>`).join('')}
@@ -1104,7 +1104,7 @@ async function renderAdminShop(){
         ${(b.bundle_items||[]).map(i=>`<div style="font-size:12px;opacity:0.9">✓ ${i.products?.name||'Item'}</div>`).join('')}
         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px">
           <div style="font-size:20px;font-weight:800;color:var(--gold)">RWF ${Number(b.price).toLocaleString()}</div>
-          <button class="btn btn-ghost btn-sm" style="color:var(--red);background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2)" onclick="deleteBundle('${b.id}','${(b.name||'').replace(/'/g,"\\'")}')">🗑️</button>
+          <button class="btn btn-ghost btn-sm" style="color:var(--red);background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2)" onclick="deleteBundle('${b.id}','${(b.name||'').replace(/'/g,"\\'")}')"><i data-lucide="trash-2" style="width:16px;height:16px"></i></button>
         </div>
       </div>`).join('')}
       ${!bundles.length?`<div class="card" style="padding:40px;text-align:center;color:var(--g400)">No bundles yet</div>`:''}
@@ -1174,7 +1174,7 @@ function openAddProductModal(existing=null){
   <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
     <div class="modal" style="max-width:540px">
       <div class="modal-header">
-        <span class="modal-title">${isEdit?'✏️ Edit Product':'+ Add Product'}</span>
+        <span class="modal-title">${isEdit?'<i data-lucide="edit" style="width:14px;height:14px;margin-right:4px"></i> Edit Product':'+ Add Product'}</span>
         <button class="modal-close" onclick="document.querySelector('.modal-overlay').remove()">✕</button>
       </div>
       <div class="modal-body">

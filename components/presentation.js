@@ -69,7 +69,8 @@ function enterPresentationMode() {
   if (!slideCanvas || !annoCanvas) return;
   const firstImg = new Image();
   firstImg.onload = () => {
-    const W = window.innerWidth;
+    // VIRTUAL DOC: Use the native high-res width of the document so annotations map 1:1 across all devices
+    const W = Math.max(firstImg.naturalWidth, 1200); 
     const H = Math.round(W * firstImg.naturalHeight / firstImg.naturalWidth);
     window._docCW = W; window._docCH = H;
     slideCanvas.width = W; slideCanvas.height = H;

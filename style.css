@@ -177,59 +177,7 @@
       }
     } /* <-- CLOSING BRACE FOR THE 768px MEDIA QUERY ADDED HERE */
 
-    @media (max-width: 600px) {
-      .grid-2 {
-        grid-template-columns: 1fr; /* Stacks inputs vertically on phones */
-        gap: 10px;
-      }
-    }
-     
-    .chat-wrap {
-        flex-direction: column;
-        height: auto;
-        max-height: 80vh;
-      }
-     
-      .chat-wrap {
-        flex-direction: column;
-        height: auto;
-        max-height: 80vh;
-      }
-      /* Convert tables to cards on mobile for Admin Excellence */
- 
-    table, thead, tbody, th, td, tr { 
-      display: block; 
-    }
-    thead tr { 
-      position: absolute; 
-      top: -9999px; 
-      left: -9999px; 
-    }
-    tr { 
-      border: 1px solid var(--g200); 
-      margin-bottom: 12px; 
-      border-radius: 12px; 
-      background: #fff;
-      padding: 8px;
-    }
-    td { 
-      border: none; 
-      position: relative; 
-      padding-left: 50% !important; 
-      text-align: right;
-      min-height: 32px;
-    }
-    td:before { 
-      position: absolute; 
-      left: 12px; 
-      width: 45%; 
-      padding-right: 10px; 
-      white-space: nowrap; 
-      content: attr(data-label); 
-      font-weight: 700; 
-      color: var(--g400); 
-      text-align: left;
-    }
+   
     @media (max-width: 768px) {
   /* Header Fix */
   #wb-header { 
@@ -282,7 +230,7 @@
   .wb-dropdown-content.show { display: block; animation: fadeUp 0.2s ease; }
   
   /* Shared Mobile Tweaks */
-  #wb-resource-drawer, #wb-shapes-panel { width: 100% !important; }
+  #wb-resource-drawer, #wb-shapes-panel { width: 320px !important; max-width: 85vw !important; }
   .wb-toolbar { flex-wrap: nowrap !important; overflow-x: auto !important; padding: 8px !important; }
   .wb-btn { flex-shrink: 0 !important; }
   #wb-work-area { flex-direction: column !important; }
@@ -615,7 +563,9 @@
     .sidebar-ic {
       font-size: 17px;
       width: 20px;
-      text-align: center
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .sidebar-badge {
@@ -1687,8 +1637,8 @@
   .auth-card { padding: 24px 16px !important; }
 
   /* Modals */
-  .modal { max-width: 95vw !important; margin: 10px !important; }
-  .modal-body { max-height: 60vh !important; }
+  .modal { max-width: 95vw !important; max-height: 90vh !important; border-radius: 12px !important; margin: 10px auto !important; }
+  .modal-body { max-height: calc(90vh - 140px) !important; }
 
   /* Chat */
   .chat-wrap { flex-direction: column !important; height: auto !important; }
@@ -1723,10 +1673,10 @@
     border: 1px solid var(--g100); margin-bottom: 10px; border-radius: 8px; padding: 8px; background: #fff;
   }
   .table-wrap td { 
-    border: none; border-bottom: 1px solid var(--g50); position: relative; padding-left: 50% !important; text-align: right; 
+    border: none; border-bottom: 1px solid var(--g50); position: relative; padding-left: 45% !important; text-align: right; word-break: break-word; 
   }
   .table-wrap td:before { 
-    position: absolute; left: 12px; width: 45%; padding-right: 10px; white-space: nowrap; content: attr(data-label); font-weight: bold; color: var(--navy); text-align: left;
+    position: absolute; left: 12px; top: 10px; width: 40%; padding-right: 10px; white-space: normal; content: attr(data-label); font-weight: bold; color: var(--navy); text-align: left;
   }
 }
 
@@ -1772,26 +1722,7 @@
   position: relative;
   display: inline-block;
 }
-@media (max-width: 600px) {
-  #app div[style*="minmax(220px"] {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 12px !important;
-  }
-  #app div[style*="minmax(280px"] {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 12px !important;
-  }
-}
-@media (max-width: 600px) {
-  #app div[style*="minmax(220px"] {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 12px !important;
-  }
-  #app div[style*="minmax(280px"] {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 12px !important;
-  }
-}
+
 /* NAV LAYOUT */
 .lnav {
   display: flex;
@@ -2058,12 +1989,16 @@
   }
 }
 
-/* Hide center brand on very small screens to prevent header overlap */
-@media (max-width: 480px) {
+/* Hide center brand on mobile and tablets to prevent header overlap */
+@media (max-width: 850px) {
   #wb-center-brand { display: none !important; }
 }
-.wb-toolbar::-webkit-scrollbar { height: 4px; }
+.wb-toolbar::-webkit-scrollbar { height: 4px; display: none; }
+@media (min-width: 768px) {
+  .wb-toolbar::-webkit-scrollbar { display: block; }
+}
 .wb-toolbar::-webkit-scrollbar-thumb { background: #1A5FFF; border-radius: 10px; }
+.wb-toolbar { scrollbar-width: none; }
 /* Sidebar Drawer for Resources — new transform-based slide-in */
 #wb-resource-drawer {
   position: fixed; top: 0; right: 0; width: 340px; height: 100vh;
@@ -2119,3 +2054,26 @@
 
 /* ── Majestic Lab: host-only controls hidden for students ── */
 .host-only { display: none !important; }
+
+/* Majestic Lab: Encourage Landscape Mode on Mobile */
+#rotate-device-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: var(--navy);
+  z-index: 999999;
+  color: #fff;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+}
+
+/* Only trigger if it's a mobile device held in portrait mode */
+@media screen and (max-width: 768px) and (orientation: portrait) {
+  /* Show this overlay ONLY when inside the majestic lab */
+  body:has(#canvas-container) #rotate-device-overlay {
+    display: flex;
+  }
+}

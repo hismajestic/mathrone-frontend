@@ -62,19 +62,19 @@ var FORUM_CATEGORIES = [
     <!-- Stats -->
     <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px">
       <div class="card" style="flex:1;min-width:130px;padding:18px;display:flex;align-items:center;gap:12px">
-        <div class="stat-icon" style="background:#EEF2FF;flex-shrink:0">📅</div>
+        <div class="stat-icon" style="background:#EEF2FF;color:var(--blue);flex-shrink:0"><i data-lucide="calendar"></i></div>
         <div><div class="stat-num">${upcoming.length}</div><div class="stat-label">Upcoming</div></div>
       </div>
       <div class="card" style="flex:1;min-width:130px;padding:18px;display:flex;align-items:center;gap:12px">
-        <div class="stat-icon" style="background:#F0FDF4;flex-shrink:0">✅</div>
+        <div class="stat-icon" style="background:#F0FDF4;color:var(--green);flex-shrink:0"><i data-lucide="check-circle"></i></div>
         <div><div class="stat-num">${completed}</div><div class="stat-label">Completed</div></div>
       </div>
       <div class="card" style="flex:1;min-width:130px;padding:18px;display:flex;align-items:center;gap:12px">
-        <div class="stat-icon" style="background:#FFF7ED;flex-shrink:0">📊</div>
+        <div class="stat-icon" style="background:#FFF7ED;color:var(--orange);flex-shrink:0"><i data-lucide="bar-chart-2"></i></div>
         <div><div class="stat-num">${avgMarks !== null ? avgMarks+'%' : '—'}</div><div class="stat-label">Avg Score</div></div>
       </div>
       <div class="card" style="flex:1;min-width:130px;padding:18px;display:flex;align-items:center;gap:12px">
-        <div class="stat-icon" style="background:#FEF2F2;flex-shrink:0">🔔</div>
+        <div class="stat-icon" style="background:#FEF2F2;color:var(--red);flex-shrink:0"><i data-lucide="bell"></i></div>
         <div><div class="stat-num">${unread}</div><div class="stat-label">Notifications</div></div>
       </div>
     </div>
@@ -127,7 +127,7 @@ var FORUM_CATEGORIES = [
           </div>`).join('')}
         </div>` : `
         <div class="empty-state" style="padding:20px">
-          <div class="empty-icon">📅</div>
+          <div class="empty-icon" style="color:var(--g400)"><i data-lucide="calendar" style="width:48px;height:48px;stroke-width:1.5"></i></div>
           <div class="empty-title">No upcoming sessions</div>
           <div class="empty-sub">Your scheduled sessions will appear here</div>
         </div>`}
@@ -151,7 +151,7 @@ var FORUM_CATEGORIES = [
           </div>`).join('')}
         </div>` : `
         <div class="empty-state" style="padding:20px">
-          <div class="empty-icon">📊</div>
+          <div class="empty-icon" style="color:var(--g400)"><i data-lucide="bar-chart-2" style="width:48px;height:48px;stroke-width:1.5"></i></div>
           <div class="empty-title">No progress yet</div>
           <div class="empty-sub">Feedback from your tutor will appear here</div>
         </div>`}
@@ -687,7 +687,7 @@ async function renderAdminExam() {
         </div>
         <div style="display:flex;gap:6px;flex-shrink:0">
           <button class="btn btn-ghost btn-sm" onclick="openEditQuestionModal(${JSON.stringify(q).replace(/"/g,'&quot;')})">✏️</button>
-          <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteQuestion('${q.id}')">🗑️</button>
+          <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteQuestion('${q.id}')"><i data-lucide="trash-2" style="width:16px;height:16px"></i></button>
         </div>
       </div>`
     }).join('') : '<div class="empty-state"><div class="empty-sub">No questions yet. Add your first question!</div></div>'
@@ -705,7 +705,7 @@ async function renderAdminExam() {
             <button class="btn btn-ghost btn-sm" onclick="viewExamAnswers('${a.id}')">📄 Answers</button>
             <button class="btn btn-ghost btn-sm" style="background:#f5f3ff;color:#7c3aed;border-color:#7c3aed" onclick="aiReGradeAttempt('${a.id}')">🤖 AI Grade</button>
             <button class="btn btn-ghost btn-sm" onclick="openGradeModal('${a.id}','${(a.profiles?.full_name||'').replace(/'/g,"\\'")}',${a.score||0})">✏️ Override</button>
-            <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteAttempt('${a.id}')">🗑️</button>
+            <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteAttempt('${a.id}')"><i data-lucide="trash-2" style="width:16px;height:16px"></i></button>
           </div>
         </td>
       </tr>`
@@ -1493,8 +1493,10 @@ async function submitExam(attemptId, autoSubmit = false){
   if(!autoSubmit && !confirm('Are you sure you want to submit your exam? You cannot change your answers after submission.')) return
   try{
     window.examSubmitted = true
-    // Exit fullscreen
-    document.exitFullscreen?.().catch(() => {})
+    // Exit fullscreen safely
+    if (document.fullscreenElement) {
+      document.exitFullscreen?.().catch(() => {})
+    }
     const res = await api('/exam/submit', { method:'POST', body: JSON.stringify({ attempt_id: attemptId, auto_submitted: autoSubmit }) })
     console.log('Submit response:', res)
     if(!res) throw new Error('No response from server')
@@ -1606,19 +1608,19 @@ async function renderTutorDash() {
     ${tutor.status !== 'approved' ? `<div class="alert-warn">⏳ Your application status is <strong>${tutor.status?.replace(/_/g, ' ') || 'applicant'}</strong>. You'll be notified when approved to start teaching.</div>` : ''}
     <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px">
       <div class="card" style="flex:1;min-width:130px;padding:18px;display:flex;align-items:center;gap:12px">
-        <div class="stat-icon" style="background:#EEF2FF;flex-shrink:0">📅</div>
+        <div class="stat-icon" style="background:#EEF2FF;color:var(--blue);flex-shrink:0"><i data-lucide="calendar"></i></div>
         <div><div class="stat-num">${upcoming.length}</div><div class="stat-label">Upcoming</div></div>
       </div>
       <div class="card" style="flex:1;min-width:130px;padding:18px;display:flex;align-items:center;gap:12px">
-        <div class="stat-icon" style="background:#F0FDF4;flex-shrink:0">✅</div>
+        <div class="stat-icon" style="background:#F0FDF4;color:var(--green);flex-shrink:0"><i data-lucide="check-circle"></i></div>
         <div><div class="stat-num">${sess.filter(s=>s.status==='completed').length}</div><div class="stat-label">Completed</div></div>
       </div>
       <div class="card" style="flex:1;min-width:130px;padding:18px;display:flex;align-items:center;gap:12px">
-        <div class="stat-icon" style="background:#FFF7ED;flex-shrink:0">⭐</div>
+        <div class="stat-icon" style="background:#FFF7ED;color:var(--orange);flex-shrink:0"><i data-lucide="star"></i></div>
         <div><div class="stat-num">${(tutor.rating||0).toFixed(1)}</div><div class="stat-label">Avg Rating</div></div>
       </div>
       <div class="card" style="flex:1;min-width:130px;padding:18px;display:flex;align-items:center;gap:12px">
-        <div class="stat-icon" style="background:#F0FDF4;flex-shrink:0">💰</div>
+        <div class="stat-icon" style="background:#F0FDF4;color:var(--green);flex-shrink:0"><i data-lucide="banknote"></i></div>
         <div><div class="stat-num" style="font-size:16px">${tutor.salary_amount ? '$'+tutor.salary_amount+'/'+(tutor.salary_frequency||'hr') : tutor.hourly_rate ? '$'+tutor.hourly_rate+'/hr' : '—'}</div><div class="stat-label">Salary</div></div>
       </div>
     </div>
@@ -1679,7 +1681,7 @@ async function renderTutorDash() {
             <button class="btn btn-primary btn-sm" onclick="renderWhiteboard('${s.id}')" style="font-size:11px;">🚀 Start Session</button>
           </div>
         </div>`).join('')}
-      </div>` : `<div class="empty-state"><div class="empty-icon">📅</div><div class="empty-title">No upcoming sessions</div></div>`}
+      </div>` : `<div class="empty-state"><div class="empty-icon" style="color:var(--g400)"><i data-lucide="calendar" style="width:48px;height:48px;stroke-width:1.5"></i></div><div class="empty-title">No upcoming sessions</div></div>`}
     </div>
     <div class="card" style="padding:24px;margin-top:24px;background:linear-gradient(135deg,#0D1B40 0%,#1A3060 100%);">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
@@ -1839,10 +1841,10 @@ async function toggleQuiz(){
     </div>
     ${pending.length ? `<div class="alert-warn">📋 <strong>${pending.length} tutor application(s)</strong> awaiting review. <button class="btn btn-ghost btn-sm" style="margin-left:8px" onclick="navigate('admin-tutors')">Review now →</button></div>` : ''}
     <div class="stats-grid">
-      <div class="stat-card"><div class="stat-icon" style="background:#EEF2FF">👨‍🏫</div><div><div class="stat-num">${T.filter(t => t.status === 'approved').length}</div><div class="stat-label">Active Tutors</div><div class="stat-delta" style="color:var(--orange)">${pending.length} pending</div></div></div>
-      <div class="stat-card"><div class="stat-icon" style="background:#F0FDF4">🎓</div><div><div class="stat-num">${S.length}</div><div class="stat-label">Students</div></div></div>
-      <div class="stat-card"><div class="stat-icon" style="background:#FFF7ED">📅</div><div><div class="stat-num">${SE.filter(s => ['scheduled', 'pending'].includes(s.status)).length}</div><div class="stat-label">Upcoming Sessions</div></div></div>
-      <div class="stat-card"><div class="stat-icon" style="background:#F0FDF4">💰</div><div><div class="stat-num">$${(P.total_revenue || 0).toFixed(0)}</div><div class="stat-label">Total Revenue</div></div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#EEF2FF;color:var(--blue)"><i data-lucide="users"></i></div><div><div class="stat-num">${T.filter(t => t.status === 'approved').length}</div><div class="stat-label">Active Tutors</div><div class="stat-delta" style="color:var(--orange)">${pending.length} pending</div></div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#F0FDF4;color:var(--green)"><i data-lucide="graduation-cap"></i></div><div><div class="stat-num">${S.length}</div><div class="stat-label">Students</div></div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#FFF7ED;color:var(--orange)"><i data-lucide="calendar"></i></div><div><div class="stat-num">${SE.filter(s => ['scheduled', 'pending'].includes(s.status)).length}</div><div class="stat-label">Upcoming Sessions</div></div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#F0FDF4;color:var(--green)"><i data-lucide="banknote"></i></div><div><div class="stat-num">$${(P.total_revenue || 0).toFixed(0)}</div><div class="stat-label">Total Revenue</div></div></div>
     </div>
     <div class="grid-2" style="margin-bottom:24px">
       <div class="card" style="padding:24px">
@@ -1914,7 +1916,7 @@ async function toggleQuiz(){
               <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;margin-left:12px;align-items:flex-end">
                 <div style="font-size:11px;color:var(--g400)">${fmtShort(m.created_at)}</div>
                 <button class="btn btn-primary btn-sm" onclick="openContactReply('${m.id}','${m.full_name.replace(/'/g,"\\'")  }','${m.email}','${m.subject.replace(/'/g,"\\'")}')">Reply →</button>
-                <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteContactMessage('${m.id}')">🗑️ Delete</button>
+                <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteContactMessage('${m.id}')"><i data-lucide="trash-2" style="width:16px;height:16px"></i> Delete</button>
               </div>
             </div>
           </div>`).join('') : '<div style="color:var(--g400);font-size:13px;text-align:center;padding:20px">No contact messages yet</div>'

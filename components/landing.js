@@ -292,10 +292,10 @@
       <h1 class="htitle">Expert Tutoring and <span> Smart Learning Tools</span><br/>All in One Place</h1>
       <p class="hsub">Mathrone Academy connects ambitious students with expert tutors and provides high-quality learning tools  from notebooks to educational kits for personalised success,at home or online.</p>
       <div class="hbtns">
-        <button class="btn-hero-o" onclick="navigate('register')" style="background:#0e172b;border-color:var(--gold)">Find a Tutor and Start Learning</button>
+        <button class="btn-hero-o" onclick="navigate('register')" style="background:#0e172b;border-color:var(--gold)"> Start Learning</button>
         <button class="btn-hero-o" onclick="navigate('register','tutor')">Become a Tutor</button>
         <button class="btn-hero-o" onclick="navigate('shop')" style="background:var(--gold);color:#1a1a1a;border-color:var(--gold)">🛒 Learning Store</button>
-        <button class="btn-hero-o" onclick="navigate('news')" style="background:#0e172b;border-color:#1e3a8a">Read News  and Updates</button>
+        <button class="btn-hero-o" onclick="navigate('news')" style="background:#0e172b;border-color:#1e3a8a">Read Updates</button>
       </div>
       <div class="hstats">
         <div style="text-align:center"><div class="hsnum" id="stat-tutors">0</div><div class="hslbl">Expert Tutors</div></div>
@@ -313,13 +313,13 @@
       <h2 class="stitle">How It Works</h2>
       <p class="ssub">Three simple steps to start learning</p>
       <div class="steps-grid">
-        ${[['1','📝','Submit a Request','Tell us your subject, level, and preferred schedule. We handle the rest.'],
-           ['2','🎯','We Match You','Our team handpicks the perfect tutor from our vetted, qualified pool.'],
-           ['3','🚀','Start Learning','Your tutor contacts you and sessions begin immediately — online or at home.']
+        ${[['1','clipboard-edit','Submit a Request','Tell us your subject, level, and preferred schedule. We handle the rest.'],
+           ['2','target','We Match You','Our team handpicks the perfect tutor from our vetted, qualified pool.'],
+           ['3','rocket','Start Learning','Your tutor contacts you and sessions begin immediately — online or at home.']
           ].map(([n,ic,t,d])=>`
         <div class="step-card">
           <div class="step-num">STEP ${n}</div>
-          <div class="step-icon">${ic}</div>
+          <div class="step-icon" style="color:var(--blue)"><i data-lucide="${ic}" style="width:32px;height:32px"></i></div>
           <h3 class="step-t">${t}</h3>
           <p class="step-d">${d}</p>
         </div>`).join('')}
@@ -333,15 +333,15 @@
       <h2 class="stitle">Why Choose Mathrone?</h2>
       <p class="ssub">Everything you need for a world-class learning experience</p>
       <div class="features-grid">
-        ${[['✅','Vetted & Qualified Tutors','Every tutor is background-checked, interviewed, and holds verified academic qualifications.'],
-           ['📅','Flexible Scheduling','Book sessions at times that work for you — evenings, weekends, or during school hours.'],
-           ['🖥️','Online & Home Visits','Choose between video sessions from home or in-person visits from your tutor.'],
-           ['📊','Progress Tracking','Parents receive detailed progress reports after every session with marks and feedback.'],
-           ['💬','Direct Messaging','Stay in touch with your tutor anytime through our built-in messaging platform.'],
-           ['🔒','Safe & Secure','Encrypted platform, verified identities, and a dedicated support team watching over every interaction.']
+        ${[['check-circle-2','Vetted & Qualified Tutors','Every tutor is background-checked, interviewed, and holds verified academic qualifications.'],
+           ['calendar-clock','Flexible Scheduling','Book sessions at times that work for you — evenings, weekends, or during school hours.'],
+           ['monitor-smartphone','Online & Home Visits','Choose between video sessions from home or in-person visits from your tutor.'],
+           ['bar-chart-3','Progress Tracking','Parents receive detailed progress reports after every session with marks and feedback.'],
+           ['message-square','Direct Messaging','Stay in touch with your tutor anytime through our built-in messaging platform.'],
+           ['shield-check','Safe & Secure','Encrypted platform, verified identities, and a dedicated support team watching over every interaction.']
           ].map(([ic,t,d])=>`
         <div class="feat">
-          <div class="feat-ic">${ic}</div>
+          <div class="feat-ic" style="color:var(--blue)"><i data-lucide="${ic}" style="width:28px;height:28px"></i></div>
           <div class="feat-t">${t}</div>
           <p class="feat-d">${d}</p>
         </div>`).join('')}
@@ -399,19 +399,19 @@
   <!-- SHOP TEASER -->
   <div style="background:#fff;padding:72px 48px">
     <div style="max-width:1100px;margin:0 auto">
-      <h2 class="stitle">🛒 Buy School Supplies & Learning Materials in Rwanda</h2>
+      <h2 class="stitle"> Buy School Supplies & Learning Materials in Rwanda</h2>
       <p class="ssub">Quality notebooks, geometry sets, science equipment and stationery delivered to your door anywhere in Kigali and Rwanda.</p>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px;margin-bottom:32px">
         ${[
-          {icon:'📓', label:'Notebooks & Books'},
-          {icon:'✏️', label:'Writing Tools'},
-          {icon:'📐', label:'Geometry & Math'},
-          {icon:'🔬', label:'Science Equipment'},
-          {icon:'🎓', label:'Teaching Aids'},
-          {icon:'🎒', label:'Student Kits'},
+          {icon:'book', label:'Notebooks & Books'},
+          {icon:'pen-tool', label:'Writing Tools'},
+          {icon:'ruler', label:'Geometry & Math'},
+          {icon:'flask-conical', label:'Science Equipment'},
+          {icon:'graduation-cap', label:'Teaching Aids'},
+          {icon:'backpack', label:'Student Kits'},
         ].map(c=>`
         <div onclick="navigate('shop')" style="background:var(--sky);border-radius:16px;padding:20px;cursor:pointer;text-align:center;transition:all 0.2s;border:1px solid var(--g100)" onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='var(--sky)'">
-          <div style="font-size:32px;margin-bottom:8px">${c.icon}</div>
+          <div style="margin-bottom:12px;color:var(--blue)"><i data-lucide="${c.icon}" style="width:32px;height:32px;margin:0 auto"></i></div>
           <div style="font-size:13px;font-weight:700;color:var(--navy)">${c.label}</div>
         </div>`).join('')}
       </div>
@@ -423,12 +423,12 @@
  <!-- NEWS TEASER -->
   <div style="background:var(--sky);padding:72px 48px">
     <div style="max-width:1100px;margin:0 auto">
-      <h2 class="stitle">📰 Education News & Resources</h2>
+      <h2 class="stitle"> Education News & Resources</h2>
       <p class="ssub">Stay updated with the latest scholarships, government updates and opportunities</p>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px;margin-bottom:32px">
         ${NEWS_CATEGORIES.map(c=>`
         <div onclick="navigate('news')" style="background:#fff;border-radius:16px;padding:20px;border:1px solid var(--g100);cursor:pointer;text-align:center;transition:all 0.2s" onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#fff'">
-          <div style="font-size:28px;margin-bottom:8px">${c.icon}</div>
+          <div style="margin-bottom:12px;color:${c.color};display:flex;justify-content:center">${c.icon}</div>
           <div style="font-size:13px;font-weight:700;color:var(--navy)">${c.label}</div>
         </div>`).join('')}
       </div>
@@ -456,13 +456,13 @@
         <div>
           <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:20px">Contact details</div>
           <div style="display:flex;flex-direction:column;gap:20px">
-            ${[['📍','Office','KG 11 Ave, Kiyovu, Kigali, Rwanda'],
-               ['📞','Phone','+250 786 684 285'],
-               ['✉️','Email','hello@Mathrone.rw'],
-               ['🕐','Hours','Mon–Sat: 8am – 6pm · Sunday: Closed']
+            ${[['map-pin','Office','KG 11 Ave, Kiyovu, Kigali, Rwanda'],
+               ['phone','Phone','+250 786 684 285'],
+               ['mail','Email','hello@Mathrone.rw'],
+               ['clock','Hours','Mon–Sat: 8am – 6pm · Sunday: Closed']
               ].map(([ic,t,d])=>`
             <div style="display:flex;gap:14px;align-items:flex-start">
-              <div style="font-size:22px">${ic}</div>
+              <div style="color:var(--blue)"><i data-lucide="${ic}" style="width:24px;height:24px"></i></div>
               <div><div style="font-size:14px;font-weight:700;color:var(--navy)">${t}</div><div style="font-size:13px;color:var(--g400);margin-top:2px">${d}</div></div>
             </div>`).join('')}
             <a href="https://wa.me/250786684285" target="_blank" class="btn-wa"
@@ -495,7 +495,7 @@
     <div style="max-width:1100px;margin:0 auto">
       <div class="footer-grid">
         <div>
-          <div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:12px">🎓 Mathrone Academy</div>
+          <div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:12px"> Mathrone Academy</div>
           <div style="font-size:13px;color:rgba(255,255,255,0.5);line-height:1.7;margin-bottom:20px">Mathrone Academy connects ambitious students with expert tutors and provides high-quality learning tools from notebooks to educational kits for personalised success,at home or online.</div>
           <div style="display:flex;gap:10px;margin-top:16px">
             <a href="https://facebook.com/mathroneacademy" target="_blank" style="width:36px;height:36px;border-radius:50%;background:#1877f2;display:flex;align-items:center;justify-content:center;cursor:pointer">

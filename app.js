@@ -27,15 +27,15 @@ function getSupabase() {
 }
   
   var CATEGORIES = [
-  { id: 'academic',   icon: '📚', label: 'Academic Tutoring',      desc: 'Primary, Secondary & University subjects' },
-  { id: 'digital',    icon: '💻', label: 'Digital Skills',          desc: 'MS Office, Google Workspace, Computer basics' },
-  { id: 'creative',   icon: '🎬', label: 'Creative Skills',         desc: 'Video editing, Graphic design, Photography' },
-  { id: 'tech',       icon: '🛠️', label: 'Tech Skills',             desc: 'Web development, Social media, Data entry' },
-  { id: 'language',   icon: '🌍', label: 'Languages',               desc: 'English, French, Kinyarwanda, Swahili' },
-  { id: 'business',   icon: '💼', label: 'Business Skills',         desc: 'Entrepreneurship, Public speaking, Finance' },
-  { id: 'music',      icon: '🎵', label: 'Music & Arts',            desc: 'Guitar, Piano, Drawing, Painting' },
-  { id: 'cv',         icon: '📄', label: 'CV & Interview Skills',   desc: 'Resume writing, Interview prep, LinkedIn' },
-  { id: 'global',     icon: '🌐', label: 'Global Market Skills',    desc: 'Freelancing, Remote work, International business' },
+  { id: 'academic',   icon: '<i data-lucide="book-open" style="width:24px;height:24px"></i>', label: 'Academic Tutoring',      desc: 'Primary, Secondary & University subjects' },
+  { id: 'digital',    icon: '<i data-lucide="laptop" style="width:24px;height:24px"></i>', label: 'Digital Skills',          desc: 'MS Office, Google Workspace, Computer basics' },
+  { id: 'creative',   icon: '<i data-lucide="video" style="width:24px;height:24px"></i>', label: 'Creative Skills',         desc: 'Video editing, Graphic design, Photography' },
+  { id: 'tech',       icon: '<i data-lucide="code" style="width:24px;height:24px"></i>', label: 'Tech Skills',             desc: 'Web development, Social media, Data entry' },
+  { id: 'language',   icon: '<i data-lucide="globe" style="width:24px;height:24px"></i>', label: 'Languages',               desc: 'English, French, Kinyarwanda, Swahili' },
+  { id: 'business',   icon: '<i data-lucide="briefcase" style="width:24px;height:24px"></i>', label: 'Business Skills',         desc: 'Entrepreneurship, Public speaking, Finance' },
+  { id: 'music',      icon: '<i data-lucide="music" style="width:24px;height:24px"></i>', label: 'Music & Arts',            desc: 'Guitar, Piano, Drawing, Painting' },
+  { id: 'cv',         icon: '<i data-lucide="file-text" style="width:24px;height:24px"></i>', label: 'CV & Interview Skills',   desc: 'Resume writing, Interview prep, LinkedIn' },
+  { id: 'global',     icon: '<i data-lucide="earth" style="width:24px;height:24px"></i>', label: 'Global Market Skills',    desc: 'Freelancing, Remote work, International business' },
 ]
 const CATEGORY_SUBJECTS = {
   academic:  { label: 'Subjects You Teach *',        placeholder: 'e.g. Math, Physics, Chemistry',          hint: 'Academic subjects you are qualified to teach' },
@@ -60,12 +60,12 @@ const CATEGORY_LEVELS = {
   global:    { label: 'Experience Level *',         placeholder: 'Beginner, Intermediate, Advanced, Expert', hint: 'Skill levels you can teach' },
 }
 var NEWS_CATEGORIES = [
-  { id: 'news',        icon: '📰', label: 'Education News',      color: '#3b82f6' },
-  { id: 'scholarship', icon: '🎓', label: 'Scholarships',         color: '#8b5cf6' },
-  { id: 'government',  icon: '🏛️', label: 'Government Updates',   color: '#059669' },
-  { id: 'career',      icon: '💼', label: 'Career Opportunities', color: '#f59e0b' },
-  { id: 'abroad',      icon: '🌍', label: 'Study Abroad',         color: '#ef4444' },
-  { id: 'resources',   icon: '📚', label: 'Learning Resources',   color: '#06b6d4' },
+  { id: 'news',        icon: '<i data-lucide="newspaper" style="width:24px;height:24px"></i>', label: 'Education News',      color: '#3b82f6' },
+  { id: 'scholarship', icon: '<i data-lucide="graduation-cap" style="width:24px;height:24px"></i>', label: 'Scholarships',         color: '#8b5cf6' },
+  { id: 'government',  icon: '<i data-lucide="landmark" style="width:24px;height:24px"></i>', label: 'Government Updates',   color: '#059669' },
+  { id: 'career',      icon: '<i data-lucide="briefcase" style="width:24px;height:24px"></i>', label: 'Career Opportunities', color: '#f59e0b' },
+  { id: 'abroad',      icon: '<i data-lucide="globe-2" style="width:24px;height:24px"></i>', label: 'Study Abroad',         color: '#ef4444' },
+  { id: 'resources',   icon: '<i data-lucide="library" style="width:24px;height:24px"></i>', label: 'Learning Resources',   color: '#06b6d4' },
 ]
 const RWANDA_DISTRICTS = [
   'Bugesera','Burera','Gakenke','Gasabo','Gatsibo','Gicumbi','Gisagara',
@@ -225,10 +225,15 @@ function _get(id) { return _dataRegistry[id]; }
     // TOAST
     // ════════════════════════════════════════════════════════════
     function toast(msg, type = 'ok') {
-      const icons = { ok: '✅', err: '❌', info: 'ℹ️' }
+      // Using raw SVGs for toasts so they render instantly without relying on the DOM scanner
+      const icons = { 
+        ok: '<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"></path></svg>', 
+        err: '<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"></path></svg>', 
+        info: '<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4M12 8h.01"></path></svg>' 
+      }
       const el = document.createElement('div')
       el.className = `toast toast-${type}`
-      el.innerHTML = `<span>${icons[type] || '✅'}</span><span>${msg}</span>`
+      el.innerHTML = `<span style="display:flex;align-items:center">${icons[type] || icons.ok}</span><span>${msg}</span>`
       document.getElementById('toasts').appendChild(el)
       setTimeout(() => el.remove(), 3800)
     }
@@ -257,6 +262,11 @@ function _get(id) { return _dataRegistry[id]; }
   // 4. Safely render the new page
   document.getElementById('app').innerHTML = html; 
   window.scrollTo(0, 0); // Scroll to top of the new page automatically
+  
+  // 5. Initialize Lucide icons for the newly injected HTML
+  if (window.lucide) {
+    window.lucide.createIcons();
+  }
 }
     function toggleMenu() {
   const menu = document.getElementById("navMenu")
@@ -307,6 +317,11 @@ function scrollToContact() {
       if (p === 'public-lab') { await loadComponent('whiteboard'); return renderPublicLab(State.data.labToken) }
       if (p.startsWith('shop-product-')) { await loadComponent('shop'); return renderShopProduct(p.replace('shop-product-','')) }
       if (p === 'shop' || p.startsWith('shop')) { await loadComponent('shop'); return renderShop() }
+      if (p === 'courses') { await loadComponent('courses'); return renderCoursesShop() }
+      if (p.startsWith('course-lessons-')) { await loadComponent('courses'); return renderCourseLessons(p.replace('course-lessons-','')) }
+      if (p.startsWith('course-')) { await loadComponent('courses'); return renderCourseDetail(p.replace('course-','')) }
+      if (p === 'my-courses') { await loadComponent('courses'); return renderMyCourses() }
+      if (p === 'admin-courses') { await loadComponent('courses'); return renderAdminCourses() }
       if (!State.user) return navigate('login')
       // Authenticated routes
       await loadComponent('dashboards');
@@ -341,7 +356,7 @@ function scrollToContact() {
   const authPages = ['login', 'register', 'forgot-password', 'reset-password'];
 
   // Remember origin if not going to an auth page
-  const privateAppPages = ['dashboard','sessions','messages','profile','notifications','tutors','forum','exam','quiz','cart','wishlist','my-orders','admin-tutors','admin-students','admin-sessions','admin-payments','admin-exam','admin-shop'];
+  const privateAppPages = ['dashboard','sessions','messages','profile','notifications','tutors','forum','exam','quiz','cart','wishlist','my-orders','admin-tutors','admin-students','admin-sessions','admin-payments','admin-exam','admin-shop','my-courses','admin-courses'];
   if (!authPages.includes(page) && !privateAppPages.includes(page) && !page.startsWith('verify/') && !page.startsWith('reset/')) {
     State.lastPublicPage = page;
     State.lastPublicTab = tab;
@@ -395,6 +410,9 @@ function scrollToContact() {
         cart:            'My Shopping Cart — Mathrone Store',
         wishlist:        'My Wishlist — Mathrone Academy',
         'my-orders':     'My Orders — Mathrone Academy',
+        'courses':       'Online Courses — Mathrone Academy',
+        'my-courses':    'My Courses — Mathrone Academy',
+         'admin-courses': 'Courses Manager — Mathrone Academy',
       }
 
       // Dynamic Meta Descriptions to help Google ranking
@@ -423,7 +441,7 @@ function scrollToContact() {
 
       // Reset noindex (in case user navigated from a 404)
       document.getElementById('meta-robots-noindex')?.remove()
-      const privatePages = ['dashboard','messages','profile','sessions','notifications','cart','wishlist','my-orders','forum','exam','quiz','admin-tutors','admin-students','admin-sessions','admin-payments','admin-exam','admin-shop','login','register']
+      const privatePages = ['dashboard','messages','profile','sessions','notifications','cart','wishlist','my-orders','forum','exam','quiz','admin-tutors','admin-students','admin-sessions','admin-payments','admin-exam','admin-shop','login','register','my-courses','admin-courses']
       if (privatePages.includes(page) || page.startsWith('verify/') || page.startsWith('reset/') || page.startsWith('admin')) {
         const ni = document.createElement('meta')
         ni.id = 'meta-robots-noindex'
@@ -519,7 +537,10 @@ function scrollToContact() {
         'admin-sessions': '/admin-sessions',
         'admin-payments': '/admin-payments',
         'admin-exam': '/admin-exam',
-        'admin-shop': '/admin-shop'
+        'admin-shop': '/admin-shop',
+        'courses':        '/courses',
+        'my-courses':     '/my-courses',
+        'admin-courses':  '/admin-courses',
       };
 
       let newUrl = urlMap[page];
@@ -557,6 +578,7 @@ function openStandaloneVideoCall(sessionId) {
     + `&config.startWithAudioMuted=true`
     + `&config.disableDeepLinking=true`
     + `&config.enableWelcomePage=false`
+    + `&config.resolution=360`
     + `&userInfo.displayName=${displayName}`;
   window.open(url, '_blank');
 }   
@@ -834,13 +856,13 @@ async function renderForum(activeCategory = null){
           
               <button onclick="openPost('${p.id}')" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--g400);padding:0">💬 Comment</button>
               <button data-like="${p.id}" data-count="${p.likes||0}" onclick="event.stopPropagation();likePost('${p.id}')" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--g400);padding:0">❤️ ${p.likes||0}</button>
-              ${State.user.role==='admin'?`<button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="event.stopPropagation();deletePost('${p.id}','${p.title.replace(/'/g,"\\'")}')" >🗑️ Delete</button>`:''}
+              ${State.user.role==='admin'?`<button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="event.stopPropagation();deletePost('${p.id}','${p.title.replace(/'/g,"\\'")}')" ><i data-lucide="trash-2" style="width:16px;height:16px"></i> Delete</button>`:''}
             </div>
           </div>
         </div>
       </div>`).join('') : `
       <div class="empty-state">
-        <div class="empty-icon">💬</div>
+       <div class="empty-icon" style="color:var(--g400)"><i data-lucide="message-square" style="width:48px;height:48px;stroke-width:1.5"></i></div>
         <div class="empty-title">No posts yet</div>
         <div class="empty-sub">Be the first to start a discussion!</div>
       </div>`}
@@ -1182,50 +1204,52 @@ function fmtShort(dt) { return dt ? new Date(dt).toLocaleDateString('en-US', { m
       if (role === 'admin') {
         links = `
       <span class="sidebar-section">Overview</span>
-      <button class="sidebar-item ${active === 'dashboard' ? 'active' : ''}" onclick="navigate('dashboard')"><span class="sidebar-ic">📊</span>Dashboard</button>
+      <button class="sidebar-item ${active === 'dashboard' ? 'active' : ''}" onclick="navigate('dashboard')"><i data-lucide="layout-dashboard" class="sidebar-ic" style="width:18px;height:18px"></i>Dashboard</button>
       <span class="sidebar-section">Management</span>
-      <button class="sidebar-item ${active === 'admin-tutors' ? 'active' : ''}" onclick="navigate('admin-tutors')"><span class="sidebar-ic">👨‍🏫</span>Tutors</button>
-      <button class="sidebar-item ${active === 'admin-students' ? 'active' : ''}" onclick="navigate('admin-students')"><span class="sidebar-ic">🎓</span>Students</button>
-      <button class="sidebar-item ${active === 'admin-sessions' ? 'active' : ''}" onclick="navigate('admin-sessions')"><span class="sidebar-ic">📅</span>Sessions</button>
-      <button class="sidebar-item ${active === 'admin-exam' ? 'active' : ''}" onclick="navigate('admin-exam')"><span class="sidebar-ic">📝</span>Exam Manager</button>
-      <button class="sidebar-item ${active === 'admin-shop' ? 'active' : ''}" onclick="navigate('admin-shop')"><span class="sidebar-ic">🛒</span>Shop Manager</button>
-      <button class="sidebar-item ${active === 'admin-payments' ? 'active' : ''}" onclick="navigate('admin-payments')"><span class="sidebar-ic">💳</span>Payments</button>
+      <button class="sidebar-item ${active === 'admin-tutors' ? 'active' : ''}" onclick="navigate('admin-tutors')"><i data-lucide="users" class="sidebar-ic" style="width:18px;height:18px"></i>Tutors</button>
+      <button class="sidebar-item ${active === 'admin-students' ? 'active' : ''}" onclick="navigate('admin-students')"><i data-lucide="graduation-cap" class="sidebar-ic" style="width:18px;height:18px"></i>Students</button>
+      <button class="sidebar-item ${active === 'admin-sessions' ? 'active' : ''}" onclick="navigate('admin-sessions')"><i data-lucide="calendar" class="sidebar-ic" style="width:18px;height:18px"></i>Sessions</button>
+      <button class="sidebar-item ${active === 'admin-exam' ? 'active' : ''}" onclick="navigate('admin-exam')"><i data-lucide="file-check-2" class="sidebar-ic" style="width:18px;height:18px"></i>Exam Manager</button>
+      <button class="sidebar-item ${active === 'admin-shop' ? 'active' : ''}" onclick="navigate('admin-shop')"><i data-lucide="store" class="sidebar-ic" style="width:18px;height:18px"></i>Shop Manager</button>
+      <button class="sidebar-item ${active === 'admin-payments' ? 'active' : ''}" onclick="navigate('admin-payments')"><i data-lucide="credit-card" class="sidebar-ic" style="width:18px;height:18px"></i>Payments</button>
+      <button class="sidebar-item ${active === 'admin-courses' ? 'active' : ''}" onclick="navigate('admin-courses')"><i data-lucide="library" class="sidebar-ic" style="width:18px;height:18px"></i>Courses Manager</button>
       <span class="sidebar-section">Other</span>
-      <button class="sidebar-item ${active === 'messages' ? 'active' : ''}" onclick="navigate('messages')"><span class="sidebar-ic">💬</span>Messages</button>
-      <button class="sidebar-item ${active === 'notifications' ? 'active' : ''}" onclick="navigate('notifications')"><span class="sidebar-ic">🔔</span>Notifications</button>
-      <button class="sidebar-item ${active === 'forum' ? 'active' : ''}" onclick="navigate('forum')"><span class="sidebar-ic">💬</span>Forum</button>
-      <button class="sidebar-item ${active === 'news' ? 'active' : ''}" onclick="navigate('news')"><span class="sidebar-ic">📰</span>Education News</button>`
+      <button class="sidebar-item ${active === 'messages' ? 'active' : ''}" onclick="navigate('messages')"><i data-lucide="message-square" class="sidebar-ic" style="width:18px;height:18px"></i>Messages</button>
+      <button class="sidebar-item ${active === 'notifications' ? 'active' : ''}" onclick="navigate('notifications')"><i data-lucide="bell" class="sidebar-ic" style="width:18px;height:18px"></i>Notifications</button>
+      <button class="sidebar-item ${active === 'forum' ? 'active' : ''}" onclick="navigate('forum')"><i data-lucide="messages-square" class="sidebar-ic" style="width:18px;height:18px"></i>Forum</button>
+      <button class="sidebar-item ${active === 'news' ? 'active' : ''}" onclick="navigate('news')"><i data-lucide="newspaper" class="sidebar-ic" style="width:18px;height:18px"></i>Education News</button>`
       } else if (role === 'tutor') {
         links = `
       <span class="sidebar-section">Overview</span>
-      <button class="sidebar-item ${active === 'dashboard' ? 'active' : ''}" onclick="navigate('dashboard')"><span class="sidebar-ic">📊</span>Dashboard</button>
+      <button class="sidebar-item ${active === 'dashboard' ? 'active' : ''}" onclick="navigate('dashboard')"><i data-lucide="layout-dashboard" class="sidebar-ic" style="width:18px;height:18px"></i>Dashboard</button>
       <span class="sidebar-section">Teaching</span>
-      <button class="sidebar-item ${active === 'sessions' ? 'active' : ''}" onclick="navigate('sessions')"><span class="sidebar-ic">📅</span>My Sessions</button>
-      ${u?.tutor?.status === 'written_exam' ? `<button class="sidebar-item ${active === 'exam' ? 'active' : ''}" onclick="navigate('exam')"><span class="sidebar-ic">📝</span>Written Exam <span style="background:#ef4444;color:#fff;border-radius:999px;font-size:10px;padding:1px 6px;margin-left:4px">!</span></button>` : ''}
-      <button class="sidebar-item ${active === 'messages' ? 'active' : ''}" onclick="navigate('messages')"><span class="sidebar-ic">💬</span>Messages</button>
+      <button class="sidebar-item ${active === 'sessions' ? 'active' : ''}" onclick="navigate('sessions')"><i data-lucide="calendar" class="sidebar-ic" style="width:18px;height:18px"></i>My Sessions</button>
+      ${u?.tutor?.status === 'written_exam' ? `<button class="sidebar-item ${active === 'exam' ? 'active' : ''}" onclick="navigate('exam')"><i data-lucide="file-text" class="sidebar-ic" style="width:18px;height:18px"></i>Written Exam <span style="background:#ef4444;color:#fff;border-radius:999px;font-size:10px;padding:1px 6px;margin-left:4px">!</span></button>` : ''}
+      <button class="sidebar-item ${active === 'messages' ? 'active' : ''}" onclick="navigate('messages')"><i data-lucide="message-square" class="sidebar-ic" style="width:18px;height:18px"></i>Messages</button>
       <span class="sidebar-section">Account</span>
-      <button class="sidebar-item ${active === 'profile' ? 'active' : ''}" onclick="navigate('profile')"><span class="sidebar-ic">👤</span>Profile</button>
-      <button class="sidebar-item ${active === 'notifications' ? 'active' : ''}" onclick="navigate('notifications')"><span class="sidebar-ic">🔔</span>Notifications</button>
-      <button class="sidebar-item ${active === 'forum' ? 'active' : ''}" onclick="navigate('forum')"><span class="sidebar-ic">💬</span>Forum</button>
-      <button class="sidebar-item ${active === 'news' ? 'active' : ''}" onclick="navigate('news')"><span class="sidebar-ic">📰</span>Education News</button>`
+      <button class="sidebar-item ${active === 'profile' ? 'active' : ''}" onclick="navigate('profile')"><i data-lucide="user" class="sidebar-ic" style="width:18px;height:18px"></i>Profile</button>
+      <button class="sidebar-item ${active === 'notifications' ? 'active' : ''}" onclick="navigate('notifications')"><i data-lucide="bell" class="sidebar-ic" style="width:18px;height:18px"></i>Notifications</button>
+      <button class="sidebar-item ${active === 'forum' ? 'active' : ''}" onclick="navigate('forum')"><i data-lucide="messages-square" class="sidebar-ic" style="width:18px;height:18px"></i>Forum</button>
+      <button class="sidebar-item ${active === 'news' ? 'active' : ''}" onclick="navigate('news')"><i data-lucide="newspaper" class="sidebar-ic" style="width:18px;height:18px"></i>Education News</button>`
       } else {
         links = `
       <span class="sidebar-section">Overview</span>
-      <button class="sidebar-item ${active === 'dashboard' ? 'active' : ''}" onclick="navigate('dashboard')"><span class="sidebar-ic">🏠</span>Dashboard</button>
+      <button class="sidebar-item ${active === 'dashboard' ? 'active' : ''}" onclick="navigate('dashboard')"><i data-lucide="layout-dashboard" class="sidebar-ic" style="width:18px;height:18px"></i>Dashboard</button>
       <span class="sidebar-section">Learning</span>
-      <button class="sidebar-item ${active === 'sessions' ? 'active' : ''}" onclick="navigate('sessions')"><span class="sidebar-ic">📅</span>My Sessions</button>
-      <button class="sidebar-item ${active === 'tutors' ? 'active' : ''}" onclick="navigate('tutors')"><span class="sidebar-ic">🔍</span>Find Tutors</button>
-      <button class="sidebar-item ${active === 'messages' ? 'active' : ''}" onclick="navigate('messages')"><span class="sidebar-ic">💬</span>Messages</button>
+      <button class="sidebar-item ${active === 'sessions' ? 'active' : ''}" onclick="navigate('sessions')"><i data-lucide="calendar" class="sidebar-ic" style="width:18px;height:18px"></i>My Sessions</button>
+      <button class="sidebar-item ${active === 'tutors' ? 'active' : ''}" onclick="navigate('tutors')"><i data-lucide="search" class="sidebar-ic" style="width:18px;height:18px"></i>Find Tutors</button>
+      <button class="sidebar-item ${active === 'messages' ? 'active' : ''}" onclick="navigate('messages')"><i data-lucide="message-square" class="sidebar-ic" style="width:18px;height:18px"></i>Messages</button>
       <span class="sidebar-section">Account</span>
-      <button class="sidebar-item ${active === 'profile' ? 'active' : ''}" onclick="navigate('profile')"><span class="sidebar-ic">👤</span>Profile</button>
-      <button class="sidebar-item ${active === 'notifications' ? 'active' : ''}" onclick="navigate('notifications')"><span class="sidebar-ic">🔔</span>Notifications</button>
-      <button class="sidebar-item ${active === 'forum' ? 'active' : ''}" onclick="navigate('forum')"><span class="sidebar-ic">💬</span>Forum</button>
-      <button class="sidebar-item ${active === 'news' ? 'active' : ''}" onclick="navigate('news')"><span class="sidebar-ic">📰</span>Education News</button>
-      <button class="sidebar-item ${active === 'quiz' ? 'active' : ''}" onclick="navigate('quiz')"><span class="sidebar-ic">🤖</span>AI Tutor</button>
-      <button class="sidebar-item ${active === 'shop' ? 'active' : ''}" onclick="navigate('shop')"><span class="sidebar-ic">🛒</span>Learning Store</button>
-      <button class="sidebar-item ${active === 'cart' ? 'active' : ''}" onclick="navigate('cart')"><span class="sidebar-ic">🛒</span>My Cart</button>
-      <button class="sidebar-item ${active === 'wishlist' ? 'active' : ''}" onclick="navigate('wishlist')"><span class="sidebar-ic">❤️</span>Wishlist</button>
-      <button class="sidebar-item ${active === 'my-orders' ? 'active' : ''}" onclick="navigate('my-orders')"><span class="sidebar-ic">📦</span>My Orders</button>`
+      <button class="sidebar-item ${active === 'profile' ? 'active' : ''}" onclick="navigate('profile')"><i data-lucide="user" class="sidebar-ic" style="width:18px;height:18px"></i>Profile</button>
+      <button class="sidebar-item ${active === 'notifications' ? 'active' : ''}" onclick="navigate('notifications')"><i data-lucide="bell" class="sidebar-ic" style="width:18px;height:18px"></i>Notifications</button>
+      <button class="sidebar-item ${active === 'forum' ? 'active' : ''}" onclick="navigate('forum')"><i data-lucide="messages-square" class="sidebar-ic" style="width:18px;height:18px"></i>Forum</button>
+      <button class="sidebar-item ${active === 'news' ? 'active' : ''}" onclick="navigate('news')"><i data-lucide="newspaper" class="sidebar-ic" style="width:18px;height:18px"></i>Education News</button>
+      <button class="sidebar-item ${active === 'quiz' ? 'active' : ''}" onclick="navigate('quiz')"><i data-lucide="bot" class="sidebar-ic" style="width:18px;height:18px"></i>AI Tutor</button>
+      <button class="sidebar-item ${active === 'shop' ? 'active' : ''}" onclick="navigate('shop')"><i data-lucide="shopping-bag" class="sidebar-ic" style="width:18px;height:18px"></i>Learning Store</button>
+      <button class="sidebar-item ${active === 'cart' ? 'active' : ''}" onclick="navigate('cart')"><i data-lucide="shopping-cart" class="sidebar-ic" style="width:18px;height:18px"></i>My Cart</button>
+      <button class="sidebar-item ${active === 'wishlist' ? 'active' : ''}" onclick="navigate('wishlist')"><i data-lucide="heart" class="sidebar-ic" style="width:18px;height:18px"></i>Wishlist</button>
+      <button class="sidebar-item ${active === 'my-orders' ? 'active' : ''}" onclick="navigate('my-orders')"><i data-lucide="package" class="sidebar-ic" style="width:18px;height:18px"></i>My Orders</button>
+      <button class="sidebar-item ${active === 'my-courses' ? 'active' : ''}" onclick="navigate('my-courses')"><i data-lucide="book-open-check" class="sidebar-ic" style="width:18px;height:18px"></i>My Courses</button>`
       }
       return `
   <nav class="sidebar" id="sidebar">
@@ -1245,7 +1269,7 @@ function fmtShort(dt) { return dt ? new Date(dt).toLocaleDateString('en-US', { m
           <div style="font-size:11px;color:var(--g400);text-transform:capitalize">${u?.role || ''}</div>
         </div>
       </div>
-      <button class="sidebar-item" onclick="logout()"><span class="sidebar-ic">🚪</span>Sign Out</button>
+      <button class="sidebar-item" onclick="logout()"><i data-lucide="log-out" class="sidebar-ic" style="width:18px;height:18px"></i>Sign Out</button>
     </div>
   </nav>`
     }
@@ -1693,7 +1717,7 @@ ${s.mode !== 'home' ? `<button class="btn btn-ghost btn-sm" onclick="openStandal
             `<button class="btn btn-ghost btn-sm" onclick="requestTutor('${t.id}')">Request this Tutor</button>`}
         </div>
       </div>`).join('')}
-    </div>` : `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">No tutors found</div><div class="empty-sub">Try adjusting your filters or <a onclick="State.data.searchParams={};renderTutorSearch()" style="color:var(--blue);cursor:pointer">clear all</a></div></div>`}
+    </div>` : `<div class="empty-state"><div class="empty-icon" style="color:var(--g400)"><i data-lucide="search" style="width:48px;height:48px;stroke-width:1.5"></i></div><div class="empty-title">No tutors found</div><div class="empty-sub">Try adjusting your filters or <a onclick="State.data.searchParams={};renderTutorSearch()" style="color:var(--blue);cursor:pointer">clear all</a></div></div>`}
     <div id="modal-root"></div>
     `))
       } catch (e) { toast(e.message, 'err') }
@@ -1814,7 +1838,7 @@ function onMsgCheckChange(){
   const all = document.querySelectorAll('.msg-checkbox')
   const selectAll = document.getElementById('msg-select-all')
   if(btn) btn.style.display = checked.length > 0 ? 'block' : 'none'
-  if(btn) btn.textContent = `🗑️ Delete selected (${checked.length})`
+  if(btn) btn.textContent = `<i data-lucide="trash-2" style="width:16px;height:16px"></i> Delete selected (${checked.length})`
   if(selectAll) selectAll.indeterminate = checked.length > 0 && checked.length < all.length
   if(selectAll && checked.length === all.length && all.length > 0) selectAll.checked = true
 }
@@ -1878,13 +1902,13 @@ async function deleteSelectedMsgs(){
               <input type="checkbox" id="msg-select-all" onchange="toggleSelectAllMsgs(this.checked)" style="width:14px;height:14px;cursor:pointer"/>
               Select all
             </label>
-            <button id="msg-delete-selected-btn" class="btn btn-ghost btn-sm" style="color:var(--red);display:none;font-size:12px" onclick="deleteSelectedMsgs()">🗑️ Delete selected</button>
+            <button id="msg-delete-selected-btn" class="btn btn-ghost btn-sm" style="color:var(--red);display:none;font-size:12px" onclick="deleteSelectedMsgs()"><i data-lucide="trash-2" style="width:16px;height:16px"></i> Delete selected</button>
           </div>
           ` + msgs.map(m => {
           const sent = m.sender_id === State.user.id
           return `<div class="msg ${sent ? 'sent' : 'recv'}" style="position:relative">
               <input type="checkbox" class="msg-checkbox" data-id="${m.id}" onchange="onMsgCheckChange()" style="position:absolute;${sent?'right:calc(100% + 8px)':'left:calc(100% + 8px)'};top:50%;transform:translateY(-50%);width:14px;height:14px;cursor:pointer"/>
-              ${sent ? `<button onclick="deleteMessage('${m.id}')" style="background:none;border:none;color:var(--g300);cursor:pointer;font-size:13px;opacity:0;transition:opacity .2s;align-self:center" class="msg-del-btn" title="Delete">🗑️</button>` : ''}
+              ${sent ? `<button onclick="deleteMessage('${m.id}')" style="background:none;border:none;color:var(--g300);cursor:pointer;font-size:13px;opacity:0;transition:opacity .2s;align-self:center" class="msg-del-btn" title="Delete"><i data-lucide="trash-2" style="width:16px;height:16px"></i></button>` : ''}
               <div class="msg-bubble">${m.content}</div>
               <div class="msg-time">${fmtShort(m.created_at)}</div>
             </div>`}).join('') : `<div class="empty-state"><div class="empty-icon">💬</div><div class="empty-title">No messages yet</div><div class="empty-sub">Send the first message!</div></div>`}
@@ -1938,7 +1962,7 @@ function onNotifCheckChange(){
   const selectAll = document.getElementById('notif-select-all')
   const all = document.querySelectorAll('.notif-checkbox')
   if(btn) btn.style.display = checked.length > 0 ? 'block' : 'none'
-  if(btn) btn.textContent = `🗑️ Delete selected (${checked.length})`
+  if(btn) btn.textContent = `<i data-lucide="trash-2" style="width:16px;height:16px"></i> Delete selected (${checked.length})`
   if(selectAll) selectAll.indeterminate = checked.length > 0 && checked.length < all.length
   if(selectAll && checked.length === all.length && all.length > 0) selectAll.checked = true
 }
@@ -1971,7 +1995,7 @@ async function deleteSelectedNotifs(){
           <input type="checkbox" id="notif-select-all" onchange="toggleSelectAllNotifs(this.checked)" style="width:16px;height:16px;cursor:pointer"/>
           Select all
         </label>
-        <button id="notif-delete-selected-btn" class="btn btn-ghost btn-sm" style="color:var(--red);display:none" onclick="deleteSelectedNotifs()">🗑️ Delete selected</button>
+        <button id="notif-delete-selected-btn" class="btn btn-ghost btn-sm" style="color:var(--red);display:none" onclick="deleteSelectedNotifs()"><i data-lucide="trash-2" style="width:16px;height:16px"></i> Delete selected</button>
       </div>
       ${notifs.map(n => `
       <div style="display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--g100);background:${n.is_read ? '#fff' : 'var(--sky)'}">
@@ -1988,10 +2012,10 @@ async function deleteSelectedNotifs(){
         </div>
         <div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex-shrink:0">
           ${!n.is_read ? `<div style="width:8px;height:8px;border-radius:50%;background:var(--blue)"></div>` : ''}
-          <button onclick="deleteNotification('${n.id}')" style="background:none;border:none;color:var(--g400);cursor:pointer;font-size:15px;padding:0" title="Delete">🗑️</button>
+          <button onclick="deleteNotification('${n.id}')" style="background:none;border:none;color:var(--g400);cursor:pointer;font-size:15px;padding:0" title="Delete"><i data-lucide="trash-2" style="width:16px;height:16px"></i></button>
         </div>
       </div>`).join('')}
-    </div>` : `<div class="empty-state"><div class="empty-icon">🔔</div><div class="empty-title">No notifications</div><div class="empty-sub">You're all caught up!</div></div>`}
+    </div>` : `<div class="empty-state"><div class="empty-icon" style="color:var(--g400)"><i data-lucide="bell" style="width:48px;height:48px;stroke-width:1.5"></i></div><div class="empty-title">No notifications</div><div class="empty-sub">You're all caught up!</div></div>`}
     `))
       } catch (e) { toast(e.message, 'err') }
     }
@@ -2276,7 +2300,7 @@ async function deleteStudent(id, name){
             <td>
               <div style="display:flex;gap:6px">
                 <button class="btn btn-ghost btn-sm" onclick="openTutorModal(_get('${_reg(t)}'))">Review →</button>
-                <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteTutor('${t.id}','${(t.profiles?.full_name||'').replace(/'/g,"\\'")}')">🗑️</button>
+                <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteTutor('${t.id}','${(t.profiles?.full_name||'').replace(/'/g,"\\'")}')"><i data-lucide="trash-2" style="width:16px;height:16px"></i></button>
               </div>
             </td>
           </tr>`).join('')}
@@ -2525,19 +2549,19 @@ async function saveTutorStatus(tutorId){
     <!-- Stats -->
     <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px">
       <div class="card" style="flex:1;min-width:130px;padding:18px;display:flex;align-items:center;gap:12px">
-        <div class="stat-icon" style="background:#EEF2FF;flex-shrink:0">👥</div>
+        <div class="stat-icon" style="background:#EEF2FF;color:var(--blue);flex-shrink:0"><i data-lucide="users"></i></div>
         <div><div class="stat-num">${students.length}</div><div class="stat-label">Total Students</div></div>
       </div>
       <div class="card" style="flex:1;min-width:130px;padding:18px;display:flex;align-items:center;gap:12px">
-        <div class="stat-icon" style="background:#F0FDF4;flex-shrink:0">✅</div>
+        <div class="stat-icon" style="background:#F0FDF4;color:var(--green);flex-shrink:0"><i data-lucide="check-circle"></i></div>
         <div><div class="stat-num">${assigned.length}</div><div class="stat-label">Assigned</div></div>
       </div>
       <div class="card" style="flex:1;min-width:130px;padding:18px;display:flex;align-items:center;gap:12px">
-        <div class="stat-icon" style="background:#FFF7ED;flex-shrink:0">⚠️</div>
+        <div class="stat-icon" style="background:#FFF7ED;color:var(--orange);flex-shrink:0"><i data-lucide="alert-triangle"></i></div>
         <div><div class="stat-num">${unassigned.length}</div><div class="stat-label">Unassigned</div></div>
       </div>
       <div class="card" style="flex:1;min-width:130px;padding:18px;display:flex;align-items:center;gap:12px">
-        <div class="stat-icon" style="background:#FEF2F2;flex-shrink:0">📋</div>
+        <div class="stat-icon" style="background:#FEF2F2;color:var(--red);flex-shrink:0"><i data-lucide="clipboard-list"></i></div>
         <div><div class="stat-num">${pending.length}</div><div class="stat-label">Pending Requests</div></div>
       </div>
     </div>
@@ -2597,7 +2621,7 @@ async function saveTutorStatus(tutorId){
                 <div style="display:flex;gap:6px;flex-wrap:wrap">
                   <button class="btn btn-primary btn-sm" onclick="openAssignModal('${s.id}','${(s.profiles?.full_name||'').replace(/'/g,"\\'")}',${JSON.stringify(approved).replace(/"/g,'&quot;')},${JSON.stringify(s).replace(/"/g,'&quot;')})">Assign Tutor</button>
                   <button class="btn btn-ghost btn-sm" onclick="generateReport('${s.id}','${(s.profiles?.full_name||'').replace(/'/g,"\\'")}')">📊 Report</button>
-                  <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteStudent('${s.id}','${(s.profiles?.full_name||'').replace(/'/g,"\\'")}')">🗑️</button>
+                  <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteStudent('${s.id}','${(s.profiles?.full_name||'').replace(/'/g,"\\'")}')"><i data-lucide="trash-2" style="width:16px;height:16px"></i></button>
                 </div>
               </td>
             </tr>`).join('')}
@@ -2646,7 +2670,7 @@ async function saveTutorStatus(tutorId){
                 <div style="display:flex;gap:6px;flex-wrap:wrap">
                   <button class="btn btn-ghost btn-sm" onclick="openAssignModal('${s.id}','${(s.profiles?.full_name||'').replace(/'/g,"\\'")}',${JSON.stringify(approved).replace(/"/g,'&quot;')},${JSON.stringify(s).replace(/"/g,'&quot;')})">🔄 Change</button>
                   <button class="btn btn-ghost btn-sm" onclick="generateReport('${s.id}','${(s.profiles?.full_name||'').replace(/'/g,"\\'")}')">📊 Report</button>
-                  <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteStudent('${s.id}','${(s.profiles?.full_name||'').replace(/'/g,"\\'")}')">🗑️</button>
+                  <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteStudent('${s.id}','${(s.profiles?.full_name||'').replace(/'/g,"\\'")}')"><i data-lucide="trash-2" style="width:16px;height:16px"></i></button>
                 </div>
               </td>
             </tr>`}).join('')}}
@@ -2907,10 +2931,10 @@ async function saveTutorStatus(tutorId){
       <button class="btn btn-primary" onclick="openInvoiceModal(${JSON.stringify(students).replace(/"/g, '&quot;')})">+ Create Invoice</button>
     </div>
     <div class="stats-grid">
-      <div class="stat-card"><div class="stat-icon" style="background:#F0FDF4">💰</div><div><div class="stat-num">$${(summary.total_revenue || 0).toFixed(0)}</div><div class="stat-label">Total Revenue</div></div></div>
-      <div class="stat-card"><div class="stat-icon" style="background:#FEF3C7">⏳</div><div><div class="stat-num">$${(summary.pending_fees || 0).toFixed(0)}</div><div class="stat-label">Pending Fees</div></div></div>
-      <div class="stat-card"><div class="stat-icon" style="background:#EEF2FF">👨‍🏫</div><div><div class="stat-num">$${(summary.salary_paid || 0).toFixed(0)}</div><div class="stat-label">Salaries Paid</div></div></div>
-      <div class="stat-card"><div class="stat-icon" style="background:#F5F3FF">📈</div><div><div class="stat-num">$${(summary.net_income || 0).toFixed(0)}</div><div class="stat-label">Net Income</div></div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#F0FDF4;color:var(--green)"><i data-lucide="banknote"></i></div><div><div class="stat-num">$${(summary.total_revenue || 0).toFixed(0)}</div><div class="stat-label">Total Revenue</div></div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#FEF3C7;color:var(--orange)"><i data-lucide="hourglass"></i></div><div><div class="stat-num">$${(summary.pending_fees || 0).toFixed(0)}</div><div class="stat-label">Pending Fees</div></div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#EEF2FF;color:var(--blue)"><i data-lucide="users"></i></div><div><div class="stat-num">$${(summary.salary_paid || 0).toFixed(0)}</div><div class="stat-label">Salaries Paid</div></div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#F5F3FF;color:purple"><i data-lucide="trending-up"></i></div><div><div class="stat-num">$${(summary.net_income || 0).toFixed(0)}</div><div class="stat-label">Net Income</div></div></div>
     </div>
     <div class="tabs">
       <button class="tab-btn ${tab === 'invoices' ? 'active' : ''}" onclick="State.tab='invoices';renderAdminPayments()">Student Invoices</button>
@@ -2936,7 +2960,7 @@ async function saveTutorStatus(tutorId){
         </tbody>
       </table>
     </div>` : `
-    <div class="empty-state"><div class="empty-icon">👨‍🏫</div><div class="empty-title">Tutor Salaries</div><div class="empty-sub">Salary records will appear here</div></div>`}
+    <div class="empty-state"><div class="empty-icon" style="color:var(--g400)"><i data-lucide="users" style="width:48px;height:48px;stroke-width:1.5"></i></div><div class="empty-title">Tutor Salaries</div><div class="empty-sub">Salary records will appear here</div></div>`}
     <div id="modal-root"></div>
     `))
       } catch (e) { toast(e.message, 'err') }
@@ -2999,6 +3023,12 @@ function bootFromUrl() {
     State.page = 'news';
   } else if (clean.startsWith('news/')) {
     State.page = 'news-article/' + clean.replace('news/', '');
+   } else if (clean === 'courses') {
+  State.page = 'courses';
+} else if (clean === 'my-courses') {
+  State.page = 'my-courses';
+} else if (clean === 'admin-courses') {
+  State.page = 'admin-courses';
   } else if (clean === 'shop') {
     State.page = 'shop';
   } else if (clean.startsWith('shop/')) {
@@ -4240,8 +4270,8 @@ else if (ev.type === 'laser') {
         dot.style.left = ev.x + 'px';
         dot.style.top = ev.y + 'px';
     }
-    clearTimeout(window._docStudentLaserTimer);
-    window._docStudentLaserTimer = setTimeout(() => { if(dot) dot.style.display='none'; }, 1000);
+    clearTimeout(window._docLaserTimer);
+    window._docLaserTimer = setTimeout(() => { if(dot) dot.style.display='none'; }, 1000);
 }
       });
 }).subscribe((status) => {

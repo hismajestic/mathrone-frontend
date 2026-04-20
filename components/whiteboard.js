@@ -1,8 +1,14 @@
 ﻿window._doRenderWhiteboard = async function renderWhiteboard(sessionId) {
   updatePageSEO({ title: "STEM Majestic Lab", description: "Visual STEM learning board.", url: `/whiteboard/${sessionId}`, noindex: true });
+  
+  if (!window.fabric) {
+      document.getElementById('app').innerHTML = '<div class="loader-center" style="flex-direction:column; gap:10px;"><div class="spinner"></div><div style="color:var(--navy);font-weight:700;">Loading Majestic Lab...</div></div>';
+  }
+  
   await ensureFabric();
-      await ensureMathJax();
-      const isTutor = State.user && (State.user.role === 'tutor' || State.user.role === 'admin');
+  ensureMathJax(); // Load async in background so lab opens instantly
+  
+  const isTutor = State.user && (State.user.role === 'tutor' || State.user.role === 'admin');
       
       // FIX: Do not overwrite the host status if it was already granted by a valid rental link
       window._isLabHost = isTutor || window._isLabHost === true;
@@ -11,6 +17,12 @@
       if (!window._wbInstitutionName) window._wbInstitutionName = '';
 
       const html = `
+        <div id="rotate-device-overlay">
+          <div style="font-size:50px; margin-bottom:20px; animation: spin 2s infinite ease-in-out;">📱</div>
+          <h2 style="font-size:20px; font-weight:800; margin-bottom:10px;">Please rotate your device</h2>
+          <p style="font-size:14px; color:rgba(255,255,255,0.7);">The Majestic Lab works best in landscape mode.</p>
+          <button onclick="document.getElementById('rotate-device-overlay').style.display='none'" style="margin-top:20px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.3); color:#fff; padding:8px 16px; border-radius:8px;">Continue anyway</button>
+        </div>
         <div style="display:flex; flex-direction:column; height:100vh; height:100dvh; width:100%; position:fixed; top:0; left:0; background:#0D1B40; z-index:9999;">
 
           <!-- HEADER -->
@@ -25,19 +37,19 @@
               <span style="font-family:'Playfair Display',serif;font-weight:900;font-size:16px;color:#fff;letter-spacing:0.5px;white-space:nowrap;">Mathrone Academy</span>
               <span style="font-size:9px;color:rgba(245,166,35,0.85);letter-spacing:2px;text-transform:uppercase;font-weight:700;">STEM Majestic Lab</span>
             </div>
-            <div style="display:flex; gap:6px; flex-wrap:nowrap; overflow-x:auto; max-width:55vw; -webkit-overflow-scrolling:touch;">
-      <button class="btn btn-sm" onclick="toggleResourceDrawer()" style="background:#F5A623; color:#1a1a1a; font-weight:800; font-size:12px;">🧪 Labs & Sims</button>
-      
-      ${(State.user && State.user.role || window._isLabHost) ? `
-        <button class="btn btn-sm" onclick="toggleLabVideo()" id="lab-video-btn" style="background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:12px;" title="Start video call inside the lab">📹 Video Call</button>
-        <button class="btn btn-sm" onclick="toggleScreenShare()" id="share-screen-btn" style="background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:12px; display:none;" title="Share your screen with the student">🖥️ Share Screen</button>
-      ` : `
-        <button class="btn btn-sm" onclick="toggleSplitScreen()" id="lab-splitscreen-btn" style="background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:12px;" title="Open Jitsi video meeting (new tab)">📹 Video Meet ↗</button>
-      `}
-
-  <button class="btn btn-sm" onclick="toggleShapesPanel()" style="background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:12px;">📐 Shapes</button>
-  <button class="btn btn-sm" onclick="exitMajesticLab()" style="background:#EF4444; color:#fff; font-size:12px;">✕ Exit</button>
-</div>
+            <div style="display:flex; gap:6px; flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:2px; scrollbar-width:none;">
+              <button class="btn btn-sm" onclick="toggleShapesPanel()" style="background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:12px; flex-shrink:0; white-space:nowrap; display:flex; align-items:center; gap:6px;"><i data-lucide="shapes" style="width:14px;height:14px"></i> Shapes</button>
+              <button class="btn btn-sm" onclick="toggleResourceDrawer()" style="background:#F5A623; color:#1a1a1a; font-weight:800; font-size:12px; flex-shrink:0; white-space:nowrap; display:flex; align-items:center; gap:6px;"><i data-lucide="flask-conical" style="width:14px;height:14px"></i> Labs</button>
+              
+              ${(State.user && State.user.role || window._isLabHost) ? `
+                <button class="btn btn-sm" onclick="toggleLabVideo()" id="lab-video-btn" style="background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:12px; flex-shrink:0; white-space:nowrap; display:flex; align-items:center; gap:6px;" title="Start video call inside the lab"><i data-lucide="video" style="width:14px;height:14px"></i> Video</button>
+                <button class="btn btn-sm" onclick="toggleScreenShare()" id="share-screen-btn" style="background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:12px; display:none; flex-shrink:0; white-space:nowrap; align-items:center; gap:6px;" title="Share your screen with the student"><i data-lucide="monitor-up" style="width:14px;height:14px"></i> Share</button>
+              ` : `
+                <button class="btn btn-sm" onclick="toggleSplitScreen()" id="lab-splitscreen-btn" style="background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:12px; flex-shrink:0; white-space:nowrap; display:flex; align-items:center; gap:6px;" title="Open Jitsi video meeting (new tab)"><i data-lucide="video" style="width:14px;height:14px"></i> Meet ↗</button>
+              `}
+              
+              <button class="btn btn-sm" onclick="exitMajesticLab()" style="background:#EF4444; color:#fff; font-size:12px; flex-shrink:0; white-space:nowrap; display:flex; align-items:center; gap:6px;"><i data-lucide="log-out" style="width:14px;height:14px"></i> Exit</button>
+            </div>
       </div>
 
       <!-- RESOURCE DRAWER -->
@@ -86,38 +98,37 @@
         <button class="wb-btn host-only" onclick="downloadLabAsPDF()" style="background:#1A5FFF; color:white; margin-right:10px; font-weight:bold;">💾 Save PDF</button>
 
         <div class="tool-sep" style="width:1px; height:28px; background:rgba(255,255,255,0.2); margin:0 4px;"></div>
-        <button class="wb-btn active" id="tool-pencil" onclick="setSTEMTool('pencil')" title="Freehand Draw">✏️ Draw</button>
-        <button class="wb-btn" id="tool-select" onclick="setSTEMTool('select')" title="Select & Move">🖱️ Select</button>
-        <button class="wb-btn" id="tool-text" onclick="addSTEMText()" title="Add Text">Aa Text</button>
-        <button class="wb-btn" id="tool-eraser" onclick="setSTEMTool('eraser')" title="Eraser">🧹 Erase</button>
-        <button class="wb-btn" id="tool-line" onclick="startLineMode()" title="Draw straight line">╱ Line</button>
-        <button class="wb-btn" id="tool-laser" onclick="setSTEMTool('laser')" title="Laser Pointer">🔦 Laser</button>
-        <button class="wb-btn host-only" onclick="document.getElementById('wb-bg-upload').click()" title="Upload Worksheet/Image">🖼️ Upload</button>
+        <button class="wb-btn active" id="tool-pencil" onclick="setSTEMTool('pencil')" title="Freehand Draw"><i data-lucide="pen" style="width:14px;height:14px"></i> Draw</button>
+        <button class="wb-btn" id="tool-select" onclick="setSTEMTool('select')" title="Select & Move"><i data-lucide="mouse-pointer-2" style="width:14px;height:14px"></i> Select</button>
+        <button class="wb-btn" id="tool-text" onclick="addSTEMText()" title="Add Text"><i data-lucide="type" style="width:14px;height:14px"></i> Text</button>
+        <button class="wb-btn" id="tool-eraser" onclick="setSTEMTool('eraser')" title="Eraser"><i data-lucide="eraser" style="width:14px;height:14px"></i> Erase</button>
+        <button class="wb-btn" id="tool-line" onclick="startLineMode()" title="Draw straight line"><i data-lucide="minus" style="width:14px;height:14px;transform:rotate(-45deg)"></i> Line</button>
+        <button class="wb-btn" id="tool-laser" onclick="setSTEMTool('laser')" title="Laser Pointer"><i data-lucide="target" style="width:14px;height:14px"></i> Laser</button>
+        <button class="wb-btn host-only" onclick="document.getElementById('wb-bg-upload').click()" title="Upload Worksheet/Image"><i data-lucide="image-plus" style="width:14px;height:14px"></i> Upload</button>
         <input type="file" id="wb-bg-upload" accept="image/*" style="display:none" onchange="uploadWBBackground(this)">
-        <button class="wb-btn host-only" id="tool-present" onclick="document.getElementById('wb-doc-upload').click()" title="Present PDF, PowerPoint or Word document" style="background:rgba(245,166,35,0.25);color:#F5A623;border:1px solid rgba(245,166,35,0.4);">📄 Present Doc</button>
+        <button class="wb-btn host-only" id="tool-present" onclick="document.getElementById('wb-doc-upload').click()" title="Present PDF, PowerPoint or Word document" style="background:rgba(245,166,35,0.25);color:#F5A623;border:1px solid rgba(245,166,35,0.4);"><i data-lucide="presentation" style="width:14px;height:14px"></i> Present Doc</button>
         <input type="file" id="wb-doc-upload" accept=".pdf,.ppt,.pptx,.doc,.docx" style="display:none" onchange="openPresentationDoc(this)">
 
         <div class="tool-sep" style="width:1px; height:28px; background:rgba(255,255,255,0.2); margin:0 4px;"></div>
 
         <!-- Instruments -->
-        <button class="wb-btn" onclick="addGraduatedRuler()" title="Graduated Ruler">📏 Ruler</button>
-        <button class="wb-btn" onclick="addProtractor()" title="Dual-Sided Protractor">📐 Protractor</button>
-        <button class="wb-btn" onclick="addSetSquare()" title="Set Square">📐 Set Sq</button>
-        <button class="wb-btn" onclick="addCompass()" title="Compass symbol">🔵 Compass</button>
-        <button class="wb-btn" onclick="addGrid()" title="Graph Grid">⊞ Grid</button>
-        <button class="wb-btn" onclick="addNumberLine()" title="Number Line">↔ NumLine</button>
-        <button class="wb-btn" onclick="addMathAxes()" title="2D XY Axes">📊 XY Axes</button>
-        <button class="wb-btn" onclick="add3DAxes()" title="3D XYZ Axes">🧊 3D Axes</button>
+        <button class="wb-btn" onclick="addGraduatedRuler()" title="Graduated Ruler"><i data-lucide="ruler" style="width:14px;height:14px"></i> Ruler</button>
+        <button class="wb-btn" onclick="addProtractor()" title="Dual-Sided Protractor"><i data-lucide="circle-dashed" style="width:14px;height:14px"></i> Protractor</button>
+        <button class="wb-btn" onclick="addSetSquare()" title="Set Square"><i data-lucide="triangle-right" style="width:14px;height:14px"></i> Set Sq</button>
+        <button class="wb-btn" onclick="addCompass()" title="Compass symbol"><i data-lucide="compass" style="width:14px;height:14px"></i> Compass</button>
+        <button class="wb-btn" onclick="addGrid()" title="Graph Grid"><i data-lucide="grid-3x3" style="width:14px;height:14px"></i> Grid</button>
+        <button class="wb-btn" onclick="addNumberLine()" title="Number Line"><i data-lucide="move-horizontal" style="width:14px;height:14px"></i> NumLine</button>
+        <button class="wb-btn" onclick="addMathAxes()" title="2D XY Axes"><i data-lucide="activity" style="width:14px;height:14px"></i> XY Axes</button>
+        <button class="wb-btn" onclick="add3DAxes()" title="3D XYZ Axes"><i data-lucide="box" style="width:14px;height:14px"></i> 3D Axes</button>
 
         <div class="tool-sep" style="width:1px; height:28px; background:rgba(255,255,255,0.2); margin:0 4px;"></div>
 
         <!-- Formula & Greek -->
-        <button class="wb-btn" onclick="openFormulaEditor()" title="Formula Editor with symbol keyboard">𝑓 Formula</button>
-        <button class="wb-btn" onclick="toggleGreekPanel()" title="Insert Greek Letters" id="greek-toggle-btn">O Greek</button>
-        <button class="wb-btn" onclick="toggleSciFormulas()" title="Science Formula Library � click to place on board" id="sci-formulas-btn">📋 Formulas</button>
+        <button class="wb-btn" onclick="openFormulaEditor()" title="Formula Editor with symbol keyboard"><i data-lucide="function-square" style="width:14px;height:14px"></i> Formula</button>
+        <button class="wb-btn" onclick="toggleGreekPanel()" title="Insert Greek Letters" id="greek-toggle-btn"><i data-lucide="sigma" style="width:14px;height:14px"></i> Greek</button>
+        <button class="wb-btn" onclick="toggleSciFormulas()" title="Science Formula Library" id="sci-formulas-btn"><i data-lucide="library" style="width:14px;height:14px"></i> Formulas</button>
 
         <div class="tool-sep" style="width:1px; height:28px; background:rgba(255,255,255,0.2); margin:0 4px;"></div>
-
         <!-- Style Controls -->
         <div style="display:flex; align-items:center; gap:6px;">
           <input type="color" id="wb-color" value="#1A5FFF" onchange="updateSTEMStyle()" style="width:30px; height:30px; cursor:pointer; border:none; background:none; border-radius:4px;" title="Color">
@@ -152,10 +163,10 @@
 
         <div style="flex:1"></div>
 
-        <!-- Actions -->
-        <button class="wb-btn" onclick="undoWB()" title="Undo">↩ Undo</button>
-        <button class="wb-btn" onclick="copySelected()" title="Copy">⎘ Copy</button>
-        <button class="wb-btn btn-danger" onclick="clearWB()" style="background:rgba(239,68,68,0.2); color:#fca5a5;" title="Clear all">🗑 Clear</button>
+        <!-- Canvas Actions -->
+        <button class="wb-btn" onclick="undoWB()" title="Undo"><i data-lucide="undo-2" style="width:14px;height:14px"></i> Undo</button>
+        <button class="wb-btn" onclick="copySelected()" title="Copy"><i data-lucide="copy" style="width:14px;height:14px"></i> Copy</button>
+        <button class="wb-btn btn-danger" onclick="clearWB()" style="background:rgba(239,68,68,0.2); color:#fca5a5;" title="Clear all"><i data-lucide="trash-2" style="width:14px;height:14px"></i> Clear</button>
       </div>
 
       <!-- GREEK LETTERS PANEL (slides down below toolbar) -->
@@ -235,7 +246,7 @@
           <!-- DOCUMENT PRESENTATION OVERLAY (FULL SCREEN VERSION) -->
 <div id="doc-present-overlay" style="display:none; position:fixed; inset:0; background:#0d1b40; z-index:9998; flex-direction:column;">
   <!-- Slide nav bar -->
-  <div style="background:#0a1628; padding:6px 14px; display:flex; align-items:center; gap:8px; flex-shrink:0; border-bottom:2px solid #1A5FFF; flex-wrap:nowrap; overflow-x:auto;">
+  <div style="background:#0a1628; padding:6px 14px; display:flex; align-items:center; gap:8px; flex-shrink:0; border-bottom:2px solid #1A5FFF; flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none;">
     <span style="color:#F5A623;font-weight:900;font-size:13px;white-space:nowrap;">📄 PRESENTATION</span>
     
     <div style="display:flex;align-items:center;gap:4px;background:rgba(255,255,255,0.05);padding:2px 8px;border-radius:6px;">
@@ -275,8 +286,8 @@
   </div>
 
   <!-- Main Viewport: Scrollable -->
-  <div id="doc-viewport" style="flex:1; overflow:auto; background:#1e1e2e; padding:0; display:flex; justify-content:center; align-items:flex-start;">
-    <div id="doc-zoom-container" style="position:relative; transform-origin: top center; transition: transform 0.1s ease; display:inline-block;">
+  <div id="doc-viewport" style="flex:1; overflow:auto; background:#1e1e2e; padding:0; display:flex; justify-content:flex-start; align-items:flex-start;">
+    <div id="doc-zoom-container" style="position:relative; transform-origin: top left; transition: transform 0.1s ease; display:inline-block; margin: 0 auto;">
         <div id="doc-canvas-wrap" style="position:relative; display:block; line-height:0; box-shadow:0 20px 80px rgba(0,0,0,0.5);">
           <canvas id="doc-slide-canvas" style="display:block; background:#fff;"></canvas>
           <canvas id="doc-anno-canvas" style="position:absolute; top:0; left:0; cursor:crosshair; pointer-events:none;"></canvas>
@@ -292,8 +303,8 @@
   <div id="doc-thumb-strip" style="height:60px;background:#0a1628;border-top:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:6px;padding:4px 12px;overflow-x:auto;flex-shrink:0;"></div>
 </div>
           <!-- CANVAS -->
-          <div id="canvas-container" style="width:100%; height:100%; overflow:auto; background:#1a2a50; display:flex; justify-content:center; align-items:flex-start; padding:0; box-sizing:border-box;">
-            <div id="grid-box" style="background:#fff; box-shadow:0 8px 48px rgba(0,0,0,0.4); border-radius:4px; margin:0; flex-shrink:0; width:100%;">
+          <div id="canvas-container" style="width:100%; height:100%; overflow:auto; background:#1a2a50; display:flex; justify-content:flex-start; align-items:flex-start; padding:0; box-sizing:border-box;">
+            <div id="grid-box" style="background:#fff; box-shadow:0 8px 48px rgba(0,0,0,0.4); border-radius:4px; margin:0; flex-shrink:0; min-width:100%; width:max-content; min-height:100%;">
               <canvas id="wb-canvas-el"></canvas>
             </div>
           </div>
@@ -568,8 +579,9 @@ async function initWhiteboardSync(sessionId) {
   const toolbarH = toolbarEl ? toolbarEl.offsetHeight : 48;
   const statusH = statusEl ? statusEl.offsetHeight : 22;
   const usedHeight = headerH + toolbarH + statusH + 10;
-  const boardWidth = window.innerWidth;
-  const boardHeight = window.innerHeight - usedHeight;
+  // Fix: Force a minimum width of 1600px so mobile students can scroll and see tutor's full desktop drawings
+  const boardWidth = Math.max(window.innerWidth, 1600);
+  const boardHeight = Math.max(window.innerHeight - usedHeight, 1000);
   const canvas = new fabric.Canvas('wb-canvas-el', { width: boardWidth, height: boardHeight, isDrawingMode: true });
   window.wbInstance = canvas;
 
@@ -579,8 +591,9 @@ async function initWhiteboardSync(sessionId) {
     const tEl = document.getElementById('wb-toolbar-el') || document.querySelector('.wb-toolbar');
     const sEl = document.getElementById('wb-status');
     const used = (hEl ? hEl.offsetHeight : 60) + (tEl ? tEl.offsetHeight : 48) + (sEl ? sEl.offsetHeight : 22) + 4;
-    const correctedH = window.innerHeight - used;
-    if (Math.abs(correctedH - boardHeight) > 4) {
+    const MIN_HEIGHT = 1600;
+    const correctedH = Math.max(window.innerHeight - used, MIN_HEIGHT);
+    if (Math.abs(correctedH - canvas.height) > 4) {
       canvas.setHeight(correctedH);
       canvas.renderAll();
     }
@@ -750,8 +763,12 @@ canvas.on('path:created', triggerCloudSave);
       const tEl = document.querySelector('.wb-toolbar');
       const sEl = document.getElementById('wb-status');
       const used = (hEl ? hEl.offsetHeight : 60) + (tEl ? tEl.offsetHeight : 48) + (sEl ? sEl.offsetHeight : 22) + 10;
-      window.wbInstance.setWidth(window.innerWidth);
-      window.wbInstance.setHeight(window.innerHeight - used);
+      
+      // Maintain the virtual board minimum size during mobile resize events
+      const MIN_WIDTH = 2400; 
+      const MIN_HEIGHT = 1600;
+      window.wbInstance.setWidth(Math.max(window.innerWidth, MIN_WIDTH));
+      window.wbInstance.setHeight(Math.max(window.innerHeight - used, MIN_HEIGHT));
       window.wbInstance.renderAll();
     }
   });
@@ -1783,7 +1800,8 @@ canvas.on('path:created', triggerCloudSave);
       + `&config.startWithVideoMuted=false`
       + `&config.disableDeepLinking=true`
       + `&config.enableWelcomePage=false`
-      + `&userInfo.displayName=${displayName}`;
+    + `&config.resolution=360`
+    + `&userInfo.displayName=${displayName}`;
     window.open(jitsiUrl, '_blank');
     // Broadcast the room name so students can also join
     if (window._wbChannel) {
@@ -2111,12 +2129,14 @@ canvas.on('path:created', triggerCloudSave);
 
     // Live stroke streaming: send points while tutor is still drawing
     let _liveStroke = null;
+    let _lastCursorBroadcast = 0;
     canvas.on('mouse:down', () => { _liveStroke = []; });
     // --- UNIFIED MOUSE MOVE (Laser + Live Drawing + Cursor Sync) ---
     
     canvas.on('mouse:move', (e) => {
       const pt = canvas.getPointer(e.e);
       const isHost = State.user && (State.user.role === 'tutor' || State.user.role === 'admin');
+      const now = Date.now();
 
       if (window._activeWBTool === 'laser' && isHost) {
         let dot = document.getElementById('laser-dot');
@@ -2126,33 +2146,38 @@ canvas.on('path:created', triggerCloudSave);
            dot.style.left = (pt.x + canvasBox.offsetLeft) + 'px';
            dot.style.top = (pt.y + canvasBox.offsetTop) + 'px';
         }
-        try {
-          channel.send({ type: 'broadcast', event: 'laser-move', payload: { x: Math.round(pt.x), y: Math.round(pt.y) } });
-        } catch(err) {}
+        if (now - _lastCursorBroadcast > 40) { // Throttle laser to ~25fps
+          try {
+            channel.send({ type: 'broadcast', event: 'laser-move', payload: { x: Math.round(pt.x), y: Math.round(pt.y) } });
+          } catch(err) {}
+          _lastCursorBroadcast = now;
+        }
         return; 
       }
 
       // Live stroke: stream drawing points to students in real-time
       if (canvas.isDrawingMode && _liveStroke !== null && (e.e.buttons === 1 || e.e.touches?.length > 0)) {
         _liveStroke.push({ x: Math.round(pt.x), y: Math.round(pt.y) });
-        if (_liveStroke.length >= 3) {
+        if (_liveStroke.length >= 3 && now - _lastCursorBroadcast > 50) { // Throttle stroke to 20fps to save data
           try {
             channel.send({ type: 'broadcast', event: 'live-stroke', payload: {
-              points: _liveStroke.slice(-6), // send last 6 points to keep payload small
+              points: _liveStroke.slice(-6),
               color: canvas.freeDrawingBrush.color,
               width: canvas.freeDrawingBrush.width
             }});
           } catch(err) {}
+          _lastCursorBroadcast = now;
         }
+      } else if (now - _lastCursorBroadcast > 100) { // Throttle standard cursor to 10fps
+        try {
+          channel.send({ type: 'broadcast', event: 'cursor', payload: {
+            x: Math.round(pt.x), y: Math.round(pt.y),
+            name: (State.user?.full_name || 'User'),
+            role: (State.user?.role || 'student')
+          }});
+        } catch(err) {}
+        _lastCursorBroadcast = now;
       }
-
-      try {
-        channel.send({ type: 'broadcast', event: 'cursor', payload: {
-          x: Math.round(pt.x), y: Math.round(pt.y),
-          name: (State.user?.full_name || 'User'),
-          role: (State.user?.role || 'student')
-        }});
-      } catch(err) {}
     });
 
     canvas.on('mouse:up', () => { _liveStroke = null; });
@@ -2401,7 +2426,11 @@ async function _rtcGetMedia() {
     }
     return _localStream;
   }
-  _localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+  // Constrain video to 360p to save mobile data & prevent battery drain
+  _localStream = await navigator.mediaDevices.getUserMedia({ 
+    video: { width: { ideal: 480 }, height: { ideal: 360 } }, 
+    audio: { echoCancellation: true, noiseSuppression: true } 
+  });
   const lv = document.getElementById('lab-local-video');
   if (lv) { lv.srcObject = _localStream; lv.play().catch(()=>{}); }
   return _localStream;
@@ -2642,8 +2671,8 @@ function stopScreenShare() {
     document.addEventListener('touchmove', (e) => {
       if (!dragging) return;
       const t = e.touches[0];
-      panel.style.left = Math.max(0, e.clientX - ox) + 'px';
-      panel.style.top  = Math.max(0, t.clientY - oy) + 'px';
+      panel.style.left = Math.max(0, Math.min(window.innerWidth - 80, t.clientX - ox)) + 'px';
+      panel.style.top  = Math.max(0, Math.min(window.innerHeight - 80, t.clientY - oy)) + 'px';
     }, { passive: true });
     document.addEventListener('touchend', () => { dragging = false; });
   };
@@ -2669,6 +2698,7 @@ window.toggleLabVideoCam = () => {
 };
 
 function exitMajesticLab() {
+  if (window._isSharingScreen && typeof window.stopScreenShare === 'function') window.stopScreenShare();
   if (window._rtcStarted && typeof window.stopLabVideo === 'function') window.stopLabVideo();
   if (window.wbInstance) { try { window.wbInstance.dispose(); } catch(e){} window.wbInstance = null; }
   if (window._wbChannel) {
@@ -2928,7 +2958,11 @@ function setupDocStudentListeners(channel) {
       const ctx = window._docAnnoCtx;
       if (!annoCanvas || !ctx) return;
       const img = new Image();
-      img.onload = () => { ctx.clearRect(0, 0, annoCanvas.width, annoCanvas.height); ctx.drawImage(img, 0, 0); };
+      // Explicitly map width/height to guarantee 1:1 synchronization
+      img.onload = () => { 
+        ctx.clearRect(0, 0, annoCanvas.width, annoCanvas.height); 
+        ctx.drawImage(img, 0, 0, annoCanvas.width, annoCanvas.height); 
+      };
       img.src = msg.payload.dataUrl;
     })
     .on('broadcast', { event: 'doc-laser' }, (msg) => {

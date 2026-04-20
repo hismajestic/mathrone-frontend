@@ -8,18 +8,19 @@
   if(!input) return
   if(input.type === 'password'){
     input.type = 'text'
-    if(btn) btn.textContent = '🙈'
+    if(btn) btn.innerHTML = '<i data-lucide="eye-off" style="width:18px;height:18px;color:var(--g400)"></i>'
   } else {
     input.type = 'password'
-    if(btn) btn.textContent = '👁️'
+    if(btn) btn.innerHTML = '<i data-lucide="eye" style="width:18px;height:18px;color:var(--g400)"></i>'
   }
+  if(window.lucide) window.lucide.createIcons();
 }
     function renderLogin() {
       render(`
   <div class="auth-wrap">
     <div class="auth-card">
       <button class="auth-close-btn" onclick="closeAuth()" title="Close">✕</button>
-      <div style="font-size:32px;margin-bottom:12px;text-align:center">🎓</div>
+      <div style="margin-bottom:16px;text-align:center;color:var(--blue)"><i data-lucide="graduation-cap" style="width:48px;height:48px;margin:0 auto"></i></div>
       <h1 class="auth-title" style="text-align:center">Welcome back</h1>
       <p class="auth-sub" style="text-align:center">Sign in to your Mathrone account</p>
       <div id="login-err" class="form-error" style="margin-bottom:14px;display:none"></div>
@@ -30,7 +31,7 @@
       <div class="form-group" style="position:relative">
   <label class="form-label">Password</label>
   <input class="input" id="l-pw" type="password" placeholder="Password" style="padding-right:44px" onkeydown="if(event.key==='Enter')doLogin()"/>
-  <button type="button" onclick="togglePwVisibility('l-pw','login-pw-btn')" id="login-pw-btn" style="position:absolute;right:12px;bottom:10px;background:none;border:none;cursor:pointer;font-size:16px">👁️</button>
+  <button type="button" onclick="togglePwVisibility('l-pw','login-pw-btn')" id="login-pw-btn" style="position:absolute;right:12px;bottom:10px;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center"><i data-lucide="eye" style="width:18px;height:18px;color:var(--g400)"></i></button>
 </div>
       <div style="text-align:right;margin-top:-8px;margin-bottom:16px">
         <a onclick="renderForgotPassword()" style="font-size:13px;color:var(--blue);cursor:pointer">Forgot password?</a>
@@ -47,7 +48,7 @@
   <div class="auth-wrap">
     <div class="auth-card">
       <button class="auth-close-btn" onclick="closeAuth()" title="Close">✕</button>
-      <div style="font-size:32px;margin-bottom:12px;text-align:center">🔑</div>
+      <div style="margin-bottom:16px;text-align:center;color:var(--blue)"><i data-lucide="key" style="width:48px;height:48px;margin:0 auto"></i></div>
       <h1 class="auth-title" style="text-align:center">Reset Password</h1>
       <p class="auth-sub" style="text-align:center">Enter your email and we'll send you a reset link</p>
       <div id="fp-msg" style="display:none;padding:12px;border-radius:8px;margin-bottom:16px;text-align:center"></div>
@@ -130,10 +131,10 @@ function toggleStudentLocation(){
       <h1 class="auth-title">Create Account</h1>
       <p class="auth-sub">Join Mathrone Academy</p>
       <div class="role-tabs">
-        <button class="role-tab ${defaultRole === 'student' ? 'active' : ''}" id="rtab-student" onclick="switchRegRole('student')">🎓 I'm a Student</button>
-        <button class="role-tab ${defaultRole === 'tutor' ? 'active' : ''}" id="rtab-tutor" onclick="switchRegRole('tutor')">👨‍🏫 I'm a Tutor</button>
+        <button class="role-tab ${defaultRole === 'student' ? 'active' : ''}" id="rtab-student" onclick="switchRegRole('student')" style="display:flex;align-items:center;justify-content:center;gap:8px"><i data-lucide="graduation-cap" style="width:16px;height:16px"></i> I'm a Student</button>
+        <button class="role-tab ${defaultRole === 'tutor' ? 'active' : ''}" id="rtab-tutor" onclick="switchRegRole('tutor')" style="display:flex;align-items:center;justify-content:center;gap:8px"><i data-lucide="briefcase" style="width:16px;height:16px"></i> I'm a Tutor</button>
         <div id="reg-not-recruiting" class="alert-warn" style="display:none;margin:10px 0 0">
-          ⚠️ We are not currently recruiting new tutors. Please check back later or <a onclick="navigate('landing')" style="color:var(--blue);cursor:pointer">Contact Us</a>.
+          <i data-lucide="alert-circle" style="width:16px;height:16px;margin-right:6px"></i> We are not currently recruiting new tutors. Please check back later or <a onclick="navigate('landing')" style="color:var(--blue);cursor:pointer">Contact Us</a>.
         </div>
       </div>
       <div id="reg-form"></div>
@@ -328,7 +329,7 @@ function selectStudentCategory(id){
       if(sCatGrid){
         sCatGrid.innerHTML = CATEGORIES.map(c=>`
           <div onclick="selectStudentCategory(this.dataset.id)" data-id="${c.id}" id="scat-${c.id}" style="border:2px solid ${c.id==='academic'?'var(--blue)':'var(--g100)'};border-radius:10px;padding:10px;cursor:pointer;transition:all 0.2s">
-            <div style="font-size:18px;margin-bottom:2px">${c.icon}</div>
+            <div style="margin-bottom:6px;color:var(--blue)">${c.icon}</div>
             <div style="font-size:12px;font-weight:700;color:var(--navy)">${c.label}</div>
             <div style="font-size:11px;color:var(--g400)">${c.desc}</div>
           </div>`).join('')
@@ -359,7 +360,7 @@ function selectStudentCategory(id){
   <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:6px" id="cat-grid">
     ${CATEGORIES.map(c=>`
     <div onclick="selectCategory('${c.id}')" id="cat-${c.id}" style="border:2px solid var(--g100);border-radius:10px;padding:12px;cursor:pointer;transition:all 0.2s">
-      <div style="font-size:20px;margin-bottom:4px">${c.icon}</div>
+      <div style="margin-bottom:6px;color:var(--blue)">${c.icon}</div>
       <div style="font-size:13px;font-weight:700;color:var(--navy)">${c.label}</div>
       <div style="font-size:11px;color:var(--g400);margin-top:2px">${c.desc}</div>
     </div>`).join('')}

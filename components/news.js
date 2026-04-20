@@ -441,12 +441,12 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
       </div>
       <button class="pn-search-btn" onclick="searchNews()">Search</button>
       <div class="pn-cats">
-        <button class="pn-cat ${!activeCategory?'active':''}" onclick="renderPublicNews()">🌐 All</button>
+        <button class="pn-cat ${!activeCategory?'active':''}" onclick="renderPublicNews()"><i data-lucide="globe" style="width:16px;height:16px"></i> All</button>
         ${NEWS_CATEGORIES.map(c=>`<button class="pn-cat ${activeCategory===c.id?'active':''}" onclick="renderPublicNews('${c.id}')">${c.icon} ${c.label}</button>`).join('')}
       </div>
       <div class="pn-cat-dropdown">
         <button class="pn-cat-dropdown-btn ${activeCategory?'active':''}" id="pn-cat-btn" onclick="toggleCatDropdown()">
-          ${activeCategory ? (NEWS_CATEGORIES.find(c=>c.id===activeCategory)?.icon+' '+NEWS_CATEGORIES.find(c=>c.id===activeCategory)?.label) : '🌐 All Topics'}
+          ${activeCategory ? (NEWS_CATEGORIES.find(c=>c.id===activeCategory)?.icon+' '+NEWS_CATEGORIES.find(c=>c.id===activeCategory)?.label) : '<i data-lucide="globe" style="width:16px;height:16px"></i> All Topics'}
           <span class="pn-cat-arrow">▾</span>
         </button>
         <div class="pn-cat-menu" id="pn-cat-menu">
@@ -840,11 +840,11 @@ async function openNewsPost(slugOrId){
         <div style="margin-top:32px;padding:20px;background:var(--sky);border-radius:12px">
           <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:12px">📤 Share this article</div>
           <div style="display:flex;gap:10px;flex-wrap:wrap">
-            <a href="https://wa.me/?text=${encodeURIComponent(p.title + '\n\nhttps://mathroneacademy.pages.dev/news/' + (p.slug || p.id))}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#25d366;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600">💬 WhatsApp</a>
-            <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent('https://mathroneacademy.pages.dev/news/' + (p.slug || p.id))}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#1877f2;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600">📘 Facebook</a>
-            <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(p.title)}&url=${encodeURIComponent('https://mathroneacademy.pages.dev/news/' + (p.slug || p.id))}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#000;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600">𝕏 Twitter</a>
-            <a href="https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent('https://mathroneacademy.pages.dev/news/' + (p.slug || p.id))}&title=${encodeURIComponent(p.title)}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#0077b5;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600">💼 LinkedIn</a>
-            <button onclick="navigator.clipboard.writeText('https://mathroneacademy.pages.dev/news/${p.slug || p.id}');toast('Link copied! 📋')" style="display:inline-flex;align-items:center;gap:6px;background:var(--g100);color:var(--navy);border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600">🔗 Copy Link</button>
+            <a href="https://wa.me/?text=${encodeURIComponent(p.title + '\n\nhttps://mathroneacademy.pages.dev/news/' + (p.slug || p.id))}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#25d366;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600"><i data-lucide="message-circle" style="width:16px;height:16px"></i> WhatsApp</a>
+            <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent('https://mathroneacademy.pages.dev/news/' + (p.slug || p.id))}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#1877f2;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600"><i data-lucide="facebook" style="width:16px;height:16px"></i> Facebook</a>
+            <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(p.title)}&url=${encodeURIComponent('https://mathroneacademy.pages.dev/news/' + (p.slug || p.id))}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#000;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600"><i data-lucide="twitter" style="width:16px;height:16px"></i> Twitter</a>
+            <a href="https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent('https://mathroneacademy.pages.dev/news/' + (p.slug || p.id))}&title=${encodeURIComponent(p.title)}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#0077b5;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600"><i data-lucide="linkedin" style="width:16px;height:16px"></i> LinkedIn</a>
+            <button onclick="navigator.clipboard.writeText('https://mathroneacademy.pages.dev/news/${p.slug || p.id}');toast('Link copied!')" style="display:inline-flex;align-items:center;gap:6px;background:var(--g100);color:var(--navy);border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600"><i data-lucide="link" style="width:16px;height:16px"></i> Copy Link</button>
           </div>
         </div>
 
@@ -1390,15 +1390,15 @@ async function openNewsModal(postId = null){
               <button type="button" onclick="document.execCommand('indent')" title="Indent" style="border:1px solid var(--g200);background:#fff;padding:4px 8px;border-radius:4px;cursor:pointer">→</button>
               <button type="button" onclick="document.execCommand('outdent')" title="Outdent" style="border:1px solid var(--g200);background:#fff;padding:4px 8px;border-radius:4px;cursor:pointer">←</button>
               <span style="width:1px;height:20px;background:var(--g200);display:inline-block;margin:0 2px"></span>
-              <button type="button" onclick="document.execCommand('undo')" title="Undo (Ctrl+Z)" style="border:1px solid var(--g200);background:#fff;padding:4px 8px;border-radius:4px;cursor:pointer">↩</button>
-              <button type="button" onclick="document.execCommand('redo')" title="Redo (Ctrl+Y)" style="border:1px solid var(--g200);background:#fff;padding:4px 8px;border-radius:4px;cursor:pointer">↪</button>
+              <button type="button" onclick="document.execCommand('undo')" title="Undo (Ctrl+Z)" style="border:1px solid var(--g200);background:#fff;padding:4px 8px;border-radius:4px;cursor:pointer"><i data-lucide="undo-2" style="width:14px;height:14px"></i></button>
+              <button type="button" onclick="document.execCommand('redo')" title="Redo (Ctrl+Y)" style="border:1px solid var(--g200);background:#fff;padding:4px 8px;border-radius:4px;cursor:pointer"><i data-lucide="redo-2" style="width:14px;height:14px"></i></button>
               <span style="width:1px;height:20px;background:var(--g200);display:inline-block;margin:0 2px"></span>
-              <button type="button" onclick="insertNewsLink()" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer">🔗 Link</button>
-              <button type="button" onclick="document.getElementById('news-img-upload').click()" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer">🖼️ Image</button>
-              <button type="button" onclick="insertNewsEmbed()" title="Embed YouTube or iframe" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer">📺 Embed</button>
-              <button type="button" onclick="insertNewsTable()" title="Insert table" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer">📊 Table</button>
-              <button type="button" onclick="insertNewsFormula()" title="Insert math formula (LaTeX)" style="border:1px solid #7c3aed;background:#f5f3ff;padding:4px 10px;border-radius:4px;cursor:pointer;font-weight:600;color:#7c3aed">Σ Formula</button>
-              <button type="button" onclick="insertAdPlaceholder()" style="border:1px solid #F5A623;background:#FFF8ED;padding:4px 10px;border-radius:4px;cursor:pointer;font-weight:600;color:#b45309">📢 Ad</button>
+              <button type="button" onclick="insertNewsLink()" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;gap:4px"><i data-lucide="link" style="width:14px;height:14px"></i> Link</button>
+              <button type="button" onclick="document.getElementById('news-img-upload').click()" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;gap:4px"><i data-lucide="image-plus" style="width:14px;height:14px"></i> Image</button>
+              <button type="button" onclick="insertNewsEmbed()" title="Embed YouTube or iframe" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;gap:4px"><i data-lucide="youtube" style="width:14px;height:14px"></i> Embed</button>
+              <button type="button" onclick="insertNewsTable()" title="Insert table" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;gap:4px"><i data-lucide="table" style="width:14px;height:14px"></i> Table</button>
+              <button type="button" onclick="insertNewsFormula()" title="Insert math formula (LaTeX)" style="border:1px solid #7c3aed;background:#f5f3ff;padding:4px 10px;border-radius:4px;cursor:pointer;font-weight:600;color:#7c3aed;display:inline-flex;align-items:center;gap:4px"><i data-lucide="function-square" style="width:14px;height:14px"></i> Formula</button>
+              <button type="button" onclick="insertAdPlaceholder()" style="border:1px solid #F5A623;background:#FFF8ED;padding:4px 10px;border-radius:4px;cursor:pointer;font-weight:600;color:#b45309;display:inline-flex;align-items:center;gap:4px"><i data-lucide="megaphone" style="width:14px;height:14px"></i> Ad</button>
               <input type="file" id="news-img-upload" accept="image/*" style="display:none" onchange="insertNewsImage(this)"/>
               <input type="color" onchange="document.execCommand('foreColor',false,this.value)" title="Text color" style="border:1px solid var(--g200);border-radius:4px;width:32px;height:28px;cursor:pointer;padding:2px"/>
               <input type="color" onchange="document.execCommand('hiliteColor',false,this.value)" title="Highlight color" style="border:1px solid var(--g200);border-radius:4px;width:32px;height:28px;cursor:pointer;padding:2px;background:#ffff00"/>
