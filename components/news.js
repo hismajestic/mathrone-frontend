@@ -878,13 +878,61 @@ async function openNewsPost(slugOrId){
    
     // ── Single canonical meta update for this article ──────────────
     const articleSlug = p.slug || p.id
-    // Render any math formulas in the article body
+    
+    // Post-process the article body (Apply Video Facades & Render Math)
     setTimeout(async ()=>{
       const body = document.querySelector('.news-article-body')
-      if(body && body.querySelector('.math-formula, mjx-container, .MathJax')){
-        try{ await ensureMathJax(); await MathJax.typesetPromise([body]) }catch(e){}
-      } else if(body && (body.textContent.includes('\\(') || body.textContent.includes('$$'))){
-        try{ await ensureMathJax(); await MathJax.typesetPromise([body]) }catch(e){}
+      if(body) {
+        // 1. Upgrade all YouTube iframes to Custom Click-to-Play Facades
+        const iframes = body.querySelectorAll('iframe');
+        iframes.forEach(iframe => {
+          const src = iframe.src || '';
+          if (src.includes('youtube.com') || src.includes('youtu.be')) {
+            const ytMatch = src.match(/(?:embed\/|v=|youtu\.be\/)([\w-]{11})/);
+            if (ytMatch) {
+              const ytId = ytMatch[1];
+              const thumbUrl = `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`;
+              const cleanUrl = `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1&showinfo=0`;
+              const uniqueId = 'vid_' + Math.random().toString(36).substr(2, 9);
+              
+              const coverHtml = `
+                <div id="cover-${uniqueId}" onclick="this.style.display='none'; document.getElementById('iframe-${uniqueId}').src='${cleanUrl}'" 
+                     style="position:absolute;top:0;left:0;width:100%;height:100%;cursor:pointer;background:#000 url('${thumbUrl}') center/cover no-repeat;display:flex;align-items:center;justify-content:center;z-index:2">
+                  <div style="width:64px;height:64px;background:#1A5FFF;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(26,95,255,0.4);transition:transform 0.2s" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:4px"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                  </div>
+                </div>`;
+
+              let container = iframe.parentNode;
+              // If it's already inside a responsive wrapper, just inject the cover
+              if (container.tagName === 'DIV' && container.style.paddingBottom) {
+                container.style.borderRadius = '12px';
+                container.style.background = '#000';
+                iframe.id = `iframe-${uniqueId}`;
+                iframe.src = ''; // Stop auto-loading
+                iframe.style.zIndex = '1';
+                container.insertAdjacentHTML('afterbegin', coverHtml);
+              } else {
+                // It's a raw iframe, wrap it completely
+                const wrapper = document.createElement('div');
+                wrapper.style.cssText = 'position:relative;padding-bottom:56.25%;height:0;overflow:hidden;margin:16px 0;border-radius:12px;background:#000;';
+                iframe.id = `iframe-${uniqueId}`;
+                iframe.src = ''; // Stop auto-loading
+                iframe.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;border:0;z-index:1';
+                iframe.parentNode.insertBefore(wrapper, iframe);
+                wrapper.innerHTML = coverHtml;
+                wrapper.appendChild(iframe);
+              }
+            }
+          }
+        });
+
+        // 2. Render any math formulas in the article body
+        if(body.querySelector('.math-formula, mjx-container, .MathJax')){
+          try{ await ensureMathJax(); await MathJax.typesetPromise([body]) }catch(e){}
+        } else if(body.textContent.includes('\\(') || body.textContent.includes('$$')){
+          try{ await ensureMathJax(); await MathJax.typesetPromise([body]) }catch(e){}
+        }
       }
     }, 200)
     const articleUrl = 'https://mathroneacademy.pages.dev/news/' + articleSlug

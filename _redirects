@@ -1,7 +1,8 @@
-/news/*    /index.html   200
-/shop/*    /index.html   200
-/verify/*  /index.html   200
-/reset/*   /index.html   200
-/report/*  /index.html   200
-/lab/*     /index.html   200
+/course/*    /index.html    200
+/news/*      /index.html    200
+/shop/*      /index.html    200
+/verify/*    /index.html    200
+/reset/*     /index.html    200
+/report/*    /index.html    200
+/lab/*       /index.html    200
 /*         /index.html   200

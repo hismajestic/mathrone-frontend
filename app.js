@@ -545,12 +545,16 @@ function scrollToContact() {
 
       let newUrl = urlMap[page];
       
-      // Handle dynamic routes for News and Shop
+      // Handle dynamic routes for News, Shop, and Courses
       if (!newUrl) {
         if (page.startsWith('news-article/')) {
           newUrl = '/news/' + page.replace('news-article/', '');
         } else if (page.startsWith('shop-product-')) {
           newUrl = '/shop/' + page.replace('shop-product-', '');
+        } else if (page.startsWith('course-lessons-')) {
+          newUrl = null; // private — no public URL needed
+        } else if (page.startsWith('course-')) {
+          newUrl = '/course/' + page.replace('course-', '');
         } else if (page.startsWith('verify/')) {
           newUrl = '/verify/' + page.replace('verify/', '');
         } else if (page.startsWith('reset/')) {
@@ -1552,10 +1556,8 @@ async function submitProgress(sessionId){
             : (s.students?.profiles?.full_name || 'Student')
           return `
         <div class="page-header">
-      <div><h1 class="page-title" style="display:flex;align-items:center;gap:8px"><i data-lucide="messages-square" style="width:28px;height:28px;color:var(--blue)"></i> Community Forum</h1><p class="page-subtitle">Share ideas, ask questions, connect with others</p></div>
-      <but<div class="card" style="padding:20px;display:flex;align-items:center;gap:16px">
-          <div style="width:52px;height:52px;background:var(--sky);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;color:var(--blue);flex-shrink:0"><i data-lucide="book-open" style="width:24px;height:24px"></i></div>ton class="btn btn-primary" onclick="openNewPostModal()"><i data-lucide="pen-square" style="width:16px;height:16px"></i> New Post</button>
-    </div>
+      <div class="card" style="padding:20px;display:flex;align-items:center;gap:16px">
+          <div style="width:52px;height:52px;background:var(--sky);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;color:var(--blue);flex-shrink:0"><i data-lucide="book-open" style="width:24px;height:24px"></i></div>
           <div style="flex:1;min-width:0">
             <div style="font-size:16px;font-weight:700;color:var(--navy)">${s.subject}</div>
             <div style="font-size:13px;color:var(--g600);margin-top:4px">with ${other} • ${s.mode}</div>
@@ -1875,7 +1877,7 @@ function onMsgCheckChange(){
   const all = document.querySelectorAll('.msg-checkbox')
   const selectAll = document.getElementById('msg-select-all')
   if(btn) btn.style.display = checked.length > 0 ? 'block' : 'none'
-  if(btn) btn.textContent = `<i data-lucide="trash-2" style="width:16px;height:16px"></i> Delete selected (${checked.length})`
+  if(btn) btn.innerHTML = `<i data-lucide="trash-2" style="width:16px;height:16px"></i> Delete selected (${checked.length})`
   if(selectAll) selectAll.indeterminate = checked.length > 0 && checked.length < all.length
   if(selectAll && checked.length === all.length && all.length > 0) selectAll.checked = true
 }
@@ -1999,7 +2001,7 @@ function onNotifCheckChange(){
   const selectAll = document.getElementById('notif-select-all')
   const all = document.querySelectorAll('.notif-checkbox')
   if(btn) btn.style.display = checked.length > 0 ? 'block' : 'none'
-  if(btn) btn.textContent = `<i data-lucide="trash-2" style="width:16px;height:16px"></i> Delete selected (${checked.length})`
+  if(btn) btn.innerHTML = `<i data-lucide="trash-2" style="width:16px;height:16px"></i> Delete selected (${checked.length})`
   if(selectAll) selectAll.indeterminate = checked.length > 0 && checked.length < all.length
   if(selectAll && checked.length === all.length && all.length > 0) selectAll.checked = true
 }
@@ -3061,11 +3063,13 @@ function bootFromUrl() {
   } else if (clean.startsWith('news/')) {
     State.page = 'news-article/' + clean.replace('news/', '');
    } else if (clean === 'courses') {
-  State.page = 'courses';
-} else if (clean === 'my-courses') {
-  State.page = 'my-courses';
-} else if (clean === 'admin-courses') {
-  State.page = 'admin-courses';
+    State.page = 'courses';
+  } else if (clean === 'my-courses') {
+    State.page = 'my-courses';
+  } else if (clean === 'admin-courses') {
+    State.page = 'admin-courses';
+  } else if (clean.startsWith('course/')) {
+    State.page = 'course-' + clean.replace('course/', '');
   } else if (clean === 'shop') {
     State.page = 'shop';
   } else if (clean.startsWith('shop/')) {

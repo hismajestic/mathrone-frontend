@@ -272,6 +272,34 @@ async function renderCourseDetail(slug) {
     if (!res.ok) throw new Error('Course not found')
     const c = await res.json()
 
+    // ── SEO: update meta for this public course page ──
+    const BASE = 'https://mathroneacademy.pages.dev'
+    updatePageSEO({
+      title: c.title,
+      description: (c.description || `Learn ${c.title} on Mathrone Academy. ${c.subject ? c.subject + ' course' : ''} ${c.level ? '— ' + c.level : ''} — available online in Rwanda.`).slice(0, 160),
+      url: BASE + '/course-' + slug,
+      noindex: false,
+      schema: {
+        '@context': 'https://schema.org',
+        '@type': 'Course',
+        name: c.title,
+        description: c.description || '',
+        url: BASE + '/course-' + slug,
+        provider: { '@type': 'Organization', name: 'Mathrone Academy', url: BASE },
+        ...(c.image_url ? { image: c.image_url } : {}),
+        ...(c.price != null ? { offers: { '@type': 'Offer', price: c.price, priceCurrency: 'RWF', availability: 'https://schema.org/InStock' } } : {}),
+        ...(c.subject ? { about: { '@type': 'Thing', name: c.subject } } : {})
+      }
+    })
+    // Also update og:url and canonical for this course
+    const ogUrl = document.querySelector('meta[property="og:url"]')
+    if (ogUrl) ogUrl.setAttribute('content', BASE + '/course-' + slug)
+    const ogImg = document.querySelector('meta[property="og:image"]')
+    if (ogImg && c.image_url) ogImg.setAttribute('content', c.image_url)
+    let canon = document.querySelector('link[rel="canonical"]')
+    if (canon) canon.setAttribute('href', BASE + '/course-' + slug)
+    // ─────────────────────────────────────────────────
+
     render(`
     <nav style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--g100);background:#fff;position:sticky;top:0;z-index:100">
       <button onclick="navigate('courses')" style="font-size:14px;font-weight:700;color:var(--navy);background:none;border:none;cursor:pointer">← All Courses</button>
@@ -767,7 +795,7 @@ async function memberEnrollCourse(courseId, courseTitle, price) {
   })()
   const priceDisplay = price > 0 ? 'RWF ' + Number(price).toLocaleString() : 'FREE'
   const payNote = price > 0
-    ? 'After submitting, send your payment via MoMo or Airtel to <strong>+250 786 684 285</strong>. Admin will grant you access once payment is confirmed.'
+    ? 'After submitting, send your payment via MoMo or Airtel to <strong>+250 786 684 285</strong> and screenshot of payment message. Admin will grant you access once payment is confirmed.'
     : 'This is a free course. Submit your request and admin will grant you instant access.'
 
   modalRoot.innerHTML = `
@@ -1115,6 +1143,12 @@ function openAddLessonModal(courseId, existing = null) {
             <button onclick="insertMathFormula()" class="tb-btn" style="color:#7c3aed;font-weight:800">∑ Formula</button>
             <button onclick="document.getElementById('l-img-upload').click()" class="tb-btn" style="color:#059669">📷 Image</button>
             <button onclick="document.getElementById('l-img-url-row').style.display=document.getElementById('l-img-url-row').style.display==='none'?'flex':'none'" class="tb-btn" style="color:#059669">🌐 Image URL</button>
+            <div id="l-formula-row" style="display:none;gap:8px;align-items:center;margin-top:8px;background:#faf5ff;border:1px solid #e9d5ff;border-radius:8px;padding:8px 10px">
+              <span style="font-size:13px;color:#7c3aed;white-space:nowrap;font-weight:700">∑ LaTeX:</span>
+              <input id="l-formula-input" class="input" style="flex:1;font-family:monospace" placeholder="e.g. x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}" onkeydown="if(event.key==='Enter'){event.preventDefault();insertFormulaFromBar()}"/>
+              <button onclick="insertFormulaFromBar()" style="background:#7c3aed;color:#fff;border:none;padding:7px 14px;border-radius:7px;cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap">Insert</button>
+              <button onclick="document.getElementById('l-formula-row').style.display='none'" style="background:none;border:none;color:var(--g400);cursor:pointer;font-size:18px;line-height:1">×</button>
+            </div>
             <div style="width:1px;height:20px;background:var(--g100);margin:0 2px"></div>
             <button onclick="lfmtBlock('removeFormat')" class="tb-btn" style="color:var(--g400);font-size:11px">Clear</button>
           </div>
@@ -1290,28 +1324,33 @@ function handleEditorKeydown(e) {
 
 // ── Math formula insertion ────────────────────────────────────────────────────
 function insertMathFormula() {
-  const latex = prompt(
-    '∑ Enter your formula in LaTeX:\n\nExamples:\n  x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}\n  a^2 + b^2 = c^2\n  \\int_0^\\infty e^{-x} dx',
-    ''
-  )
-  if (!latex) return
+  const row = document.getElementById('l-formula-row')
+  if (row) {
+    row.style.display = row.style.display === 'none' ? 'flex' : 'none'
+    if (row.style.display === 'flex') {
+      const inp = document.getElementById('l-formula-input')
+      if (inp) { inp.value = ''; inp.focus() }
+    }
+  }
+}
 
+function insertFormulaFromBar() {
+  const latex = (document.getElementById('l-formula-input')?.value || '').trim()
+  if (!latex) { toast('Type a LaTeX formula first', 'err'); return }
   const ed = _ed()
   if (!ed) return
   ed.focus()
-
-  // Render with KaTeX if available, else show raw LaTeX in a styled span
   let html
   try {
     html = `<span class="math-formula" style="display:inline-block;background:#f5f3ff;border:1px solid #e9d5ff;border-radius:6px;padding:3px 10px;margin:2px 4px;font-family:serif;color:#4c1d95">${window.katex ? window.katex.renderToString(latex, {throwOnError:false}) : `\\(${latex}\\)`}</span>`
   } catch(e) {
     html = `<span style="font-family:serif;color:#4c1d95;background:#f5f3ff;padding:2px 8px;border-radius:4px">${latex}</span>`
   }
-
-  // Also store the raw LaTeX as data attribute for re-editing
   html = html.replace('<span class="math-formula"', `<span class="math-formula" data-latex="${latex.replace(/"/g,'&quot;')}"`)
   document.execCommand('insertHTML', false, html + '&nbsp;')
   syncContentToHidden()
+  document.getElementById('l-formula-input').value = ''
+  document.getElementById('l-formula-row').style.display = 'none'
 }
 
 // ── Image insertion ───────────────────────────────────────────────────────────

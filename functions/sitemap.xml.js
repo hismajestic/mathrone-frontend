@@ -36,6 +36,25 @@ export async function onRequest(context) {
       }
     }
 
+    // Public courses
+    const coursesRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/courses?select=id,title,updated_at&is_published=eq.true`,
+      {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+      }
+    )
+    const courses = await coursesRes.json()
+    if (Array.isArray(courses)) {
+      for (const c of courses) {
+        if (!c.id) continue
+        const lastmod = c.updated_at ? c.updated_at.split('T')[0] : today
+        dynamicUrls += urlTag(`${BASE}/course/${c.id}`, lastmod, 'weekly', '0.8')
+      }
+    }
+
     // Products — select all active with slug, no updated_at filter
     const shopRes = await fetch(
       `${SUPABASE_URL}/rest/v1/products?select=slug,created_at&is_active=eq.true&slug=not.is.null`,
