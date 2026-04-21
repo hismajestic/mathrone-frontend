@@ -94,20 +94,7 @@ const RWANDA_DISTRICTS = [
       return _loadedComponents[name];
     }
 
-    // ════════════════════════════════════════════════════════════
-    // COMPONENT LOADER — loads JS only when the route needs it
-    // ════════════════════════════════════════════════════════════
-    function loadComponent(name) {
-      if (_loadedComponents[name]) return _loadedComponents[name];
-      _loadedComponents[name] = new Promise((resolve, reject) => {
-        const s = document.createElement('script');
-        s.src = '/components/' + name + '.js';
-        s.onload = resolve;
-        s.onerror = reject;
-        document.head.appendChild(s);
-      });
-      return _loadedComponents[name];
-    }
+    
 
     // ════════════════════════════════════════════════════════════
     // STATE
@@ -145,8 +132,15 @@ function _get(id) { return _dataRegistry[id]; }
       setTimeout(pingBackend, 600000);
     }, 30000);
 
+    // ── Safe localStorage wrapper (Brave Shields / private-browsing compat) ──
+    const _ls = {
+      get(key)      { try { return localStorage.getItem(key)        } catch(e) { return null } },
+      set(key, val) { try { localStorage.setItem(key, val)          } catch(e) {} },
+      remove(key)   { try { localStorage.removeItem(key)            } catch(e) {} },
+    };
+
     var State = {
-      user: JSON.parse(localStorage.getItem('tc_user') || 'null'),
+      user: (function(){ try { return JSON.parse(localStorage.getItem('tc_user') || 'null') } catch(e) { return null } })(),
       page: 'landing',
       prevPage: null,
       prevTab: null,
@@ -474,7 +468,7 @@ function scrollToContact() {
         terms:   [{ name:'Home', url:'/' }, { name:'Terms & Conditions', url:'/terms' }],
       }
       if (breadcrumbMap[page]) {
-        const BASE = 'https://mathroneacademy.pages.dev'
+        const BASE = 'https://mathroneacademy.com'
         const bcSchema = document.createElement('script')
         bcSchema.id = 'breadcrumb-schema'
         bcSchema.type = 'application/ld+json'
@@ -493,12 +487,12 @@ function scrollToContact() {
 
       // Keep canonical and og:url in sync with the real URL
       const urlMap2 = {
-        landing: 'https://mathroneacademy.pages.dev/',
-        news: 'https://mathroneacademy.pages.dev/news',
-        shop: 'https://mathroneacademy.pages.dev/shop',
-        about: 'https://mathroneacademy.pages.dev/about',
-        privacy: 'https://mathroneacademy.pages.dev/privacy',
-        terms: 'https://mathroneacademy.pages.dev/terms',
+        landing: 'https://mathroneacademy.com/',
+        news: 'https://mathroneacademy.com/news',
+        shop: 'https://mathroneacademy.com/shop',
+        about: 'https://mathroneacademy.com/about',
+        privacy: 'https://mathroneacademy.com/privacy',
+        terms: 'https://mathroneacademy.com/terms',
       }
       const canonicalHref = urlMap2[page] || null
       if (canonicalHref) {

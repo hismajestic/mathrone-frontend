@@ -653,9 +653,9 @@ async function renderShopProduct(productId) {
     </div>`)
     // ── Single canonical meta update for this product ──────────────
     const productSlug = p.slug || productId
-    const productUrl  = 'https://mathroneacademy.pages.dev/shop/' + productSlug
+    const productUrl  = 'https://mathroneacademy.com/shop/' + productSlug
     const productDesc = `Buy ${p.name} in Rwanda — RWF ${Number(p.price).toLocaleString()}. ${(p.description||'').slice(0,80)} — Mathrone Academy Learning Store, Kigali.`
-    const productImg  = p.image_url || 'https://mathroneacademy.pages.dev/og-banner.jpg'
+    const productImg  = p.image_url || 'https://mathroneacademy.com/og-banner.jpg'
     const productTitle = p.name + ' | Mathrone Academy Store Rwanda'
     document.title = p.name + ' | Buy School Supplies in Rwanda — Mathrone Academy'
     document.querySelector('meta[name="description"]')?.setAttribute('content', productDesc)
@@ -679,7 +679,7 @@ productSchema.textContent = JSON.stringify({
   "name": p.name,
   "description": (p.description || p.name).replace(/\s+/g,' ').trim(),
   "image": p.image_url || '',
-  "url": 'https://mathroneacademy.pages.dev/shop/' + (p.slug||p.id),
+  "url": 'https://mathroneacademy.com/shop/' + (p.slug||p.id),
 "sku": p.slug || String(p.id),
 "brand": { "@type": "Brand", "name": "Mathrone Academy" },
 "aggregateRating": p.avg_rating ? {
@@ -691,7 +691,7 @@ productSchema.textContent = JSON.stringify({
     "@type": "Offer",
     "priceCurrency": "RWF",
     "price": p.price,
-    "url": 'https://mathroneacademy.pages.dev/shop/' + (p.slug||p.id),
+    "url": 'https://mathroneacademy.com/shop/' + (p.slug||p.id),
     "availability": p.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
     "seller": { "@type": "Organization", "name": "Mathrone Academy" }
   }

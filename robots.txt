@@ -39,4 +39,4 @@ Allow: /app.js
 Allow: /style.css
 Allow: /components/
 
-Sitemap: https://mathroneacademy.pages.dev/sitemap.xml
+Sitemap: https://mathroneacademy.com/sitemap.xml

@@ -1,7 +1,7 @@
 export async function onRequest(context) {
   const SUPABASE_URL = 'https://hdpkjomganndiiprnpok.supabase.co'
   const SUPABASE_ANON_KEY = context.env.SUPABASE_ANON_KEY
-  const BASE = 'https://mathroneacademy.pages.dev'
+  const BASE = 'https://mathroneacademy.com'
   const today = new Date().toISOString().split('T')[0]
 
   const staticPages = [

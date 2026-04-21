@@ -840,11 +840,11 @@ async function openNewsPost(slugOrId){
         <div style="margin-top:32px;padding:20px;background:var(--sky);border-radius:12px">
           <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:12px">📤 Share this article</div>
           <div style="display:flex;gap:10px;flex-wrap:wrap">
-            <a href="https://wa.me/?text=${encodeURIComponent(p.title + '\n\nhttps://mathroneacademy.pages.dev/news/' + (p.slug || p.id))}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#25d366;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600"><i data-lucide="message-circle" style="width:16px;height:16px"></i> WhatsApp</a>
-            <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent('https://mathroneacademy.pages.dev/news/' + (p.slug || p.id))}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#1877f2;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600"><i data-lucide="facebook" style="width:16px;height:16px"></i> Facebook</a>
-            <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(p.title)}&url=${encodeURIComponent('https://mathroneacademy.pages.dev/news/' + (p.slug || p.id))}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#000;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600"><i data-lucide="twitter" style="width:16px;height:16px"></i> Twitter</a>
-            <a href="https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent('https://mathroneacademy.pages.dev/news/' + (p.slug || p.id))}&title=${encodeURIComponent(p.title)}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#0077b5;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600"><i data-lucide="linkedin" style="width:16px;height:16px"></i> LinkedIn</a>
-            <button onclick="navigator.clipboard.writeText('https://mathroneacademy.pages.dev/news/${p.slug || p.id}');toast('Link copied!')" style="display:inline-flex;align-items:center;gap:6px;background:var(--g100);color:var(--navy);border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600"><i data-lucide="link" style="width:16px;height:16px"></i> Copy Link</button>
+            <a href="https://wa.me/?text=${encodeURIComponent(p.title + '\n\nhttps://mathroneacademy.com/news/' + (p.slug || p.id))}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#25d366;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600"><i data-lucide="message-circle" style="width:16px;height:16px"></i> WhatsApp</a>
+            <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent('https://mathroneacademy.com/news/' + (p.slug || p.id))}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#1877f2;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600"><i data-lucide="facebook" style="width:16px;height:16px"></i> Facebook</a>
+            <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(p.title)}&url=${encodeURIComponent('https://mathroneacademy.com/news/' + (p.slug || p.id))}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#000;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600"><i data-lucide="twitter" style="width:16px;height:16px"></i> Twitter</a>
+            <a href="https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent('https://mathroneacademy.com/news/' + (p.slug || p.id))}&title=${encodeURIComponent(p.title)}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#0077b5;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600"><i data-lucide="linkedin" style="width:16px;height:16px"></i> LinkedIn</a>
+            <button onclick="navigator.clipboard.writeText('https://mathroneacademy.com/news/${p.slug || p.id}');toast('Link copied!')" style="display:inline-flex;align-items:center;gap:6px;background:var(--g100);color:var(--navy);border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600"><i data-lucide="link" style="width:16px;height:16px"></i> Copy Link</button>
           </div>
         </div>
 
@@ -935,9 +935,9 @@ async function openNewsPost(slugOrId){
         }
       }
     }, 200)
-    const articleUrl = 'https://mathroneacademy.pages.dev/news/' + articleSlug
+    const articleUrl = 'https://mathroneacademy.com/news/' + articleSlug
     const articleDesc = p.content.replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim().slice(0,155) + '...'
-    const articleImg  = p.image_url || 'https://mathroneacademy.pages.dev/og-banner.jpg'
+    const articleImg  = p.image_url || 'https://mathroneacademy.com/og-banner.jpg'
     const fullTitle   = p.title + ' | Mathrone Academy Rwanda'
     document.title = fullTitle
     document.querySelector('meta[name="description"]')?.setAttribute('content', articleDesc)
@@ -961,7 +961,7 @@ articleSchema.textContent = JSON.stringify({
   "description": p.content.replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim().slice(0,160),
   "image": {
     "@type": "ImageObject",
-    "url": p.image_url || 'https://mathroneacademy.pages.dev/og-banner.jpg',
+    "url": p.image_url || 'https://mathroneacademy.com/og-banner.jpg',
     "width": 1200,
     "height": 630
   },
@@ -970,19 +970,19 @@ articleSchema.textContent = JSON.stringify({
   "author": {
     "@type": "Organization",
     "name": "Mathrone Academy",
-    "url": "https://mathroneacademy.pages.dev"
+    "url": "https://mathroneacademy.com"
   },
   "publisher": {
     "@type": "Organization",
     "name": "Mathrone Academy",
     "logo": {
       "@type": "ImageObject",
-      "url": "https://mathroneacademy.pages.dev/favicon.png"
+      "url": "https://mathroneacademy.com/favicon.png"
     }
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
-    "@id": 'https://mathroneacademy.pages.dev/news/' + (p.slug || p.id)
+    "@id": 'https://mathroneacademy.com/news/' + (p.slug || p.id)
   }
 })
 document.head.appendChild(articleSchema)
@@ -997,9 +997,9 @@ breadcrumbSchema.textContent = JSON.stringify({
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   "itemListElement": [
-    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://mathroneacademy.pages.dev/" },
-    { "@type": "ListItem", "position": 2, "name": "News", "item": "https://mathroneacademy.pages.dev/news" },
-    { "@type": "ListItem", "position": 3, "name": p.title, "item": "https://mathroneacademy.pages.dev/news/" + (p.slug || p.id) }
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://mathroneacademy.com/" },
+    { "@type": "ListItem", "position": 2, "name": "News", "item": "https://mathroneacademy.com/news" },
+    { "@type": "ListItem", "position": 3, "name": p.title, "item": "https://mathroneacademy.com/news/" + (p.slug || p.id) }
   ]
 })
 document.head.appendChild(breadcrumbSchema)

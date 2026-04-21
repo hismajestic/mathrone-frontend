@@ -59,7 +59,7 @@ function isRateLimited(ip) {
 // ── CORS headers ─────────────────────────────────────────────────────────
 function corsHeaders(origin) {
   const allowed = [
-    'https://mathroneacademy.pages.dev',
+    'https://mathroneacademy.com',
     'http://localhost:8080',
     'http://127.0.0.1:8080',
   ];

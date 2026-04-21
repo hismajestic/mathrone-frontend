@@ -2,7 +2,7 @@ export async function onRequest(context) {
   const { params, request } = context
   const slugOrId = params.id
   const userAgent = request.headers.get('user-agent') || ''
-  const BASE = 'https://mathroneacademy.pages.dev'
+  const BASE = 'https://mathroneacademy.com'
   const API  = 'https://mathrone-backend.onrender.com/api/v1'
 
   const isBot = /googlebot|bingbot|yandex|duckduckbot|slurp|baiduspider|whatsapp|telegram|twitterbot|facebookexternalhit|linkedinbot|slackbot|discordbot|crawler|spider|bot/i.test(userAgent)
