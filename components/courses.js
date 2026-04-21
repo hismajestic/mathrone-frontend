@@ -333,11 +333,11 @@ async function renderCourseDetail(slug) {
         <h2 style="font-size:18px;font-weight:800;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:8px"><i data-lucide="list-checks" style="width:20px;height:20px;color:var(--blue)"></i> What You'll Learn</h2>
         <div style="display:flex;flex-direction:column;gap:10px">
           ${c.preview_lessons.map((l, i) => `
-          <div style="display:flex;align-items:center;gap:14px;padding:12px;background:var(--sky);border-radius:10px">
+          <div onclick="window._currentLessons=JSON.parse('${JSON.stringify(c.preview_lessons).replace(/'/g,"\\'").replace(/"/g,'&quot;')}'); openLessonPlayer('${l.id}')" style="display:flex;align-items:center;gap:14px;padding:12px;background:var(--sky);border-radius:10px;cursor:pointer;transition:all 0.2s" onmouseover="this.style.transform='translateX(4px)'" onmouseout="this.style.transform='translateX(0)'">
             <span style="width:28px;height:28px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${l.order_num || i+1}</span>
             <span style="font-size:14px;font-weight:600;color:var(--navy);flex:1">${l.title}</span>
             ${l.duration_mins ? `<span style="font-size:12px;color:var(--g400)">${l.duration_mins} min</span>` : ''}
-            <span style="font-size:11px;font-weight:700;color:var(--blue);background:#dbeafe;padding:2px 8px;border-radius:999px">Preview</span>
+            <span style="font-size:11px;font-weight:700;color:var(--blue);background:#dbeafe;padding:2px 8px;border-radius:999px">▶ Watch Preview</span>
           </div>`).join('')}
         </div>
         <div style="margin-top:16px;padding:14px;background:#fef3c7;border-radius:10px;font-size:13px;color:#92400e;display:flex;align-items:center;gap:8px">
@@ -517,11 +517,12 @@ async function renderCourseLessons(courseId) {
   render(dashWrap('my-courses', `<div class="loader-center"><div class="spinner"></div></div>`))
 
   try {
-    const res = await fetch(API_URL + '/courses/my/' + courseId + '/lessons', {
+     const res = await fetch(API_URL + '/courses/my/' + courseId + '/lessons', {
       headers: { Authorization: 'Bearer ' + getToken() }
     })
     if (!res.ok) throw new Error('Access denied or course not found')
     const lessons = await res.json()
+    window._currentLessons = lessons
 
     render(dashWrap('my-courses', `
     <div class="page-header">
@@ -539,8 +540,8 @@ async function renderCourseLessons(courseId) {
     ${lessons.length ? `
     <div style="display:flex;flex-direction:column;gap:10px">
       ${lessons.map((l, i) => `
-      <div style="background:#fff;border-radius:12px;border:1px solid var(--g100);padding:clamp(12px, 3vw, 18px);display:flex;align-items:center;gap:clamp(10px, 3vw, 16px);cursor:pointer;transition:all .15s"
-        onclick="openLessonPlayer('${l.id}','${(l.title||'').replace(/'/g,"\\'")}','${l.video_url||''}')"
+     <div style="background:#fff;border-radius:12px;border:1px solid var(--g100);padding:clamp(12px, 3vw, 18px);display:flex;align-items:center;gap:clamp(10px, 3vw, 16px);cursor:pointer;transition:all .15s"
+        onclick="openLessonPlayer('${l.id}')"
         onmouseover="this.style.background='var(--sky)'" onmouseout="this.style.background='#fff'">
         <div style="width:36px;height:36px;border-radius:50%;background:var(--blue);color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${l.order_num || i+1}</div>
         <div style="flex:1">
@@ -560,43 +561,95 @@ async function renderCourseLessons(courseId) {
   } catch(e) { toast(e.message, 'err') }
 }
 
-function openLessonPlayer(lessonId, title, videoUrl) {
-  if (!videoUrl) { toast('No video available for this lesson', 'info'); return }
+function openLessonPlayer(lessonId) {
+  const l = window._currentLessons?.find(x => x.id === lessonId);
+  if (!l) { toast('Lesson not found', 'err'); return; }
   
-  // Extract YouTube ID to get the high-res thumbnail
-  const ytMatch = videoUrl.match(/(?:embed\/|v=|youtu\.be\/)([\w-]{11})/);
-  const ytId = ytMatch ? ytMatch[1] : '';
-  const thumbUrl = ytId ? `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg` : '';
-  const cleanUrl = ytId ? `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1&showinfo=0&controls=1` : videoUrl;
+  let videoHtml = '';
+  if (l.video_url) {
+    const ytMatch = l.video_url.match(/(?:embed\/|v=|youtu\.be\/)([\w-]{11})/);
+    const ytId = ytMatch ? ytMatch[1] : '';
+    const thumbUrl = ytId ? `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg` : '';
+    const cleanUrl = ytId ? `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1&showinfo=0&controls=1` : l.video_url;
+    
+    videoHtml = `
+    <div style="position:relative;padding-bottom:56.25%;height:0;background:#000;border-radius:0;overflow:hidden;border-bottom:1px solid var(--g100)">
+      <div id="lesson-vid-cover" onclick="this.style.display='none'; document.getElementById('lesson-vid-iframe').src='${cleanUrl}'" 
+           style="position:absolute;top:0;left:0;width:100%;height:100%;cursor:pointer;background:#000 url('${thumbUrl}') center/cover no-repeat;display:flex;align-items:center;justify-content:center;z-index:2">
+        <div style="width:64px;height:64px;background:var(--blue);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(26,95,255,0.4);transition:transform 0.2s" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:4px"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        </div>
+      </div>
+      <iframe id="lesson-vid-iframe" src=""
+        style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;z-index:1"
+        allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe>
+    </div>`;
+  }
+
+  // Rich Text Content Html
+  let contentHtml = '';
+  if (l.content) {
+    contentHtml = `<div class="news-article-body" style="padding:20px; font-size:15px; color:var(--navy); line-height:1.7;">${l.content}</div>`;
+  }
   
+  // Notes Html
+  let notesHtml = '';
+  if (l.notes) {
+    notesHtml = `<div style="padding:20px; background:var(--sky); border-top:1px solid var(--g100);">
+      <h4 style="font-size:14px; font-weight:800; color:var(--blue); margin-bottom:10px; text-transform:uppercase; letter-spacing:0.05em;">📋 Key Notes</h4>
+      <div style="font-size:14px; color:var(--navy); line-height:1.7; white-space:pre-line;">${l.notes}</div>
+    </div>`;
+  }
+
+  // Resources Html
+  let resHtml = '';
+  if (l.resources && l.resources.length > 0) {
+     resHtml = `<div style="padding:20px; border-top:1px solid var(--g100);">
+       <h4 style="font-size:14px; font-weight:800; color:var(--navy); margin-bottom:12px;">🔗 Lesson Resources</h4>
+       <div style="display:flex; flex-direction:column; gap:8px;">
+         ${l.resources.map(r => `
+           <a href="${r.url}" target="_blank" style="display:flex; align-items:center; gap:10px; padding:12px; background:#f8fafc; border:1px solid var(--g100); border-radius:8px; text-decoration:none; color:var(--blue); font-weight:600; transition:all 0.2s;" onmouseover="this.style.background='var(--sky)'" onmouseout="this.style.background='#f8fafc'">
+             <span style="font-size:20px;">${r.type === 'pdf' ? '📄' : r.type === 'doc' ? '📝' : '🔗'}</span>
+             <span>${r.label || 'View Resource'}</span>
+           </a>
+         `).join('')}
+       </div>
+     </div>`;
+  }
+
+  // Free Preview CTA (Shown ONLY if it is marked as a Free Preview)
+  let ctaHtml = '';
+  if (l.is_free_preview) {
+     ctaHtml = `<div style="padding:24px 20px; background:linear-gradient(135deg, var(--navy), var(--blue)); color:#fff; text-align:center; border-radius:0 0 12px 12px; margin-top:auto;">
+       <div style="font-size:28px; margin-bottom:12px;">🚀</div>
+       <h3 style="font-size:20px; font-weight:800; margin-bottom:10px; color:#fff;">Ready to master this topic?</h3>
+       <p style="font-size:14px; opacity:0.9; margin-bottom:20px; max-width:500px; margin-left:auto; margin-right:auto;">This free lesson is just the beginning! Unlock our full premium courses to get complete access to advanced topics, interactive quizzes, and 1-on-1 tutor support.</p>
+       <button onclick="document.querySelector('.modal-overlay').remove(); navigate('courses')" class="btn btn-primary" style="background:var(--gold); color:#1a1a1a; font-weight:800; padding:12px 24px; font-size:15px; border:none;">Browse Premium Courses →</button>
+     </div>`;
+  }
+
   const modal = document.getElementById('modal-root') || document.createElement('div')
   if (!modal.id) { modal.id = 'modal-root'; document.body.appendChild(modal) }
   modal.innerHTML = `
   <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
-    <div class="modal" style="max-width:800px; width:100%; margin:auto;">
-      <div class="modal-header">
-        <span class="modal-title">▶ ${title}</span>
+    <div class="modal" style="max-width:800px; width:100%; margin:auto; max-height:90vh; display:flex; flex-direction:column;">
+      <div class="modal-header" style="flex-shrink:0;">
+        <span class="modal-title" style="font-size:16px;">▶ ${l.title}</span>
         <button class="modal-close" onclick="document.querySelector('.modal-overlay').remove()">✕</button>
       </div>
-      <div class="modal-body" style="padding:0">
-        <div style="position:relative;padding-bottom:56.25%;height:0;background:#000;border-radius:0 0 12px 12px;overflow:hidden">
-          
-          <!-- Custom Mathrone Video Cover -->
-          <div id="lesson-vid-cover" onclick="this.style.display='none'; document.getElementById('lesson-vid-iframe').src='${cleanUrl}'" 
-               style="position:absolute;top:0;left:0;width:100%;height:100%;cursor:pointer;background:#000 url('${thumbUrl}') center/cover no-repeat;display:flex;align-items:center;justify-content:center;z-index:2">
-            <div style="width:64px;height:64px;background:var(--blue);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(26,95,255,0.4);transition:transform 0.2s" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:4px"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-            </div>
-          </div>
-          
-          <!-- Actual Video (Loads only after click) -->
-          <iframe id="lesson-vid-iframe" src=""
-            style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;z-index:1"
-            allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe>
-        </div>
+      <div class="modal-body" style="padding:0; overflow-y:auto; flex:1; display:flex; flex-direction:column;">
+        ${videoHtml}
+        ${contentHtml}
+        ${notesHtml}
+        ${resHtml}
+        ${ctaHtml}
+        ${!videoHtml && !contentHtml && !notesHtml && !resHtml && !ctaHtml ? `<div style="padding:40px; text-align:center; color:var(--g400);">No content available for this lesson.</div>` : ''}
       </div>
     </div>
-  </div>`
+  </div>`;
+  
+  // Trigger MathJax if there are formulas
+  setTimeout(() => { if(window.MathJax) MathJax.typesetPromise() }, 100);
 }
 
 // ── Course-Guest Account Upgrade ─────────────────────────────────────────────
@@ -1155,6 +1208,7 @@ function openAddLessonModal(courseId, existing = null) {
             <button onclick="lfmtBlock('insertOrderedList')" title="Numbered list" class="tb-btn">1. List</button>
             <button onclick="lfmtBlock('formatBlock','blockquote')" title="Quote / example" class="tb-btn">" Quote</button>
             <div style="width:1px;height:20px;background:var(--g100);margin:0 2px"></div>
+            <button onclick="insertLessonLink()" class="tb-btn" style="color:var(--blue)">🔗 Link</button>
             <button onclick="insertMathFormula()" class="tb-btn" style="color:#7c3aed;font-weight:800">∑ Formula</button>
             <button onclick="document.getElementById('l-img-upload').click()" class="tb-btn" style="color:#059669">📷 Image</button>
             <button onclick="document.getElementById('l-img-url-row').style.display=document.getElementById('l-img-url-row').style.display==='none'?'flex':'none'" class="tb-btn" style="color:#059669">🌐 Image URL</button>
@@ -1368,11 +1422,76 @@ function insertFormulaFromBar() {
   document.getElementById('l-formula-row').style.display = 'none'
 }
 
-// ── Image insertion ───────────────────────────────────────────────────────────
+function insertLessonLink(){
+  const sel = window.getSelection()
+  const selectedText = sel && sel.toString() ? sel.toString() : ''
+  const savedRange = sel && sel.rangeCount ? sel.getRangeAt(0).cloneRange() : null
+
+  const modal = document.createElement('div')
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99999;display:flex;align-items:center;justify-content:center'
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:12px;padding:24px;width:420px;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
+      <div style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px">🔗 Insert Link</div>
+      <div class="form-group">
+        <label class="form-label">Link Text</label>
+        <input class="input" id="l-link-text" value="${selectedText}" placeholder="e.g. Read more here"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">URL *</label>
+        <input class="input" id="l-link-url" placeholder="https://" type="url"/>
+      </div>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+          <input type="checkbox" id="l-link-newtab" checked/> Open in new tab
+        </label>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+        <button onclick="this.closest('div[style*=fixed]').remove()" class="btn btn-ghost">Cancel</button>
+        <button onclick="applyLessonLink()" class="btn btn-primary">Insert Link</button>
+      </div>
+    </div>`
+  document.body.appendChild(modal)
+  window._savedLessonLinkRange = savedRange
+  setTimeout(() => document.getElementById('l-link-url')?.focus(), 50)
+}
+
+function applyLessonLink(){
+  const url = document.getElementById('l-link-url')?.value?.trim()
+  const text = document.getElementById('l-link-text')?.value?.trim()
+  const newTab = document.getElementById('l-link-newtab')?.checked
+  if(!url){ toast('Please enter a URL','err'); return }
+  const editor = document.getElementById('l-content-editor')
+  if(!editor) return
+  editor.focus()
+  if(window._savedLessonLinkRange){
+    const sel = window.getSelection()
+    sel.removeAllRanges()
+    sel.addRange(window._savedLessonLinkRange)
+  }
+  const a = document.createElement('a')
+  a.href = url
+  a.textContent = text || url
+  if(newTab){ a.target = '_blank'; a.rel = 'noopener noreferrer' }
+  a.style.color = '#1A5FFF'
+  a.style.textDecoration = 'underline'
+  const sel2 = window.getSelection()
+  if(sel2 && sel2.rangeCount){
+    const range = sel2.getRangeAt(0)
+    range.deleteContents()
+    range.insertNode(a)
+    range.setStartAfter(a)
+    range.collapse(true)
+    sel2.removeAllRanges()
+    sel2.addRange(range)
+  }
+  syncContentToHidden()
+  document.querySelector('div[style*="position:fixed"][style*="99999"]')?.remove()
+  window._savedLessonLinkRange = null
+}
+
 function insertContentImage() {
   document.getElementById('l-img-upload')?.click()
 }
-
 function insertImageFromUrlBar() {
   const url = document.getElementById('l-img-url-input')?.value?.trim()
   if (!url) { toast('Paste an image URL first', 'err'); return }
