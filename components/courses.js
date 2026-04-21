@@ -790,13 +790,17 @@ async function approveCourseOrder(orderId, btn) {
 
 // ── Logged-in student: request enrollment ────────────────────────────────────
 async function memberEnrollCourse(courseId, courseTitle, price) {
+  if (!price || Number(price) <= 0) {
+    return submitEnrollmentRequest(courseId, courseTitle, 0);
+  }
+
   const modalRoot = document.getElementById('modal-root') || (() => {
     const d = document.createElement('div'); d.id = 'modal-root'; document.body.appendChild(d); return d
   })()
   const priceDisplay = price > 0 ? 'RWF ' + Number(price).toLocaleString() : 'FREE'
   const payNote = price > 0
     ? 'After submitting, send your payment via MoMo or Airtel to <strong>+250 786 684 285</strong> and screenshot of payment message. Admin will grant you access once payment is confirmed.'
-    : 'This is a free course. Submit your request and admin will grant you instant access.'
+    : 'This is a free course. Submit your request to enroll immediately.'
 
   modalRoot.innerHTML = `
   <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
@@ -818,7 +822,7 @@ async function memberEnrollCourse(courseId, courseTitle, price) {
       <div class="modal-footer">
         <button class="btn btn-ghost" onclick="document.querySelector('.modal-overlay').remove()">Cancel</button>
         <button class="btn btn-primary" id="enroll-submit-btn" onclick="submitEnrollmentRequest('${courseId}','${courseTitle.replace(/'/g,"\'")}',${price})">
-          ${price > 0 ? '✅ Submit Enrollment Request' : '✅ Request Free Access'}
+          ${price > 0 ? '✅ Submit Enrollment Request' : '✅ Enroll Now'}
         </button>
       </div>
     </div>
@@ -827,17 +831,28 @@ async function memberEnrollCourse(courseId, courseTitle, price) {
 
 async function submitEnrollmentRequest(courseId, courseTitle, price) {
   const btn = document.getElementById('enroll-submit-btn')
-  if (btn) { btn.disabled = true; btn.textContent = 'Submitting...' }
+  if (btn) { btn.disabled = true; btn.textContent = price > 0 ? 'Submitting...' : 'Enrolling...' }
+  
+  if (!price || Number(price) <= 0) {
+    toast('Enrolling in free course... ⏳', 'info')
+  }
+
   try {
     await api('/courses/request-enrollment', {
       method: 'POST',
       body: JSON.stringify({ course_id: courseId })
     })
     document.querySelector('.modal-overlay')?.remove()
-    toast('Enrollment request submitted! Admin will grant access shortly. 🎓')
+    
+    if (price > 0) {
+      toast('Enrollment request submitted! Admin will grant access shortly. 🎓')
+    } else {
+      toast('Successfully enrolled! 🎓')
+      navigate('my-courses')
+    }
   } catch(e) {
     toast(e.message, 'err')
-    if (btn) { btn.disabled = false; btn.textContent = price > 0 ? '✅ Submit Enrollment Request' : '✅ Request Free Access' }
+    if (btn) { btn.disabled = false; btn.textContent = price > 0 ? '✅ Submit Enrollment Request' : '✅ Enroll Now' }
   }
 }
 

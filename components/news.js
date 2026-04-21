@@ -472,7 +472,7 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
 
   <!-- SUBSCRIBE -->
   <div class="pn-subscribe">
-    <div style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;color:#fff;margin-bottom:8px">📬 Stay Updated</div>
+    <div style="font-family:'Playfair Display',serif;font-size:0.5 rem;font-weight:700;color:#f5c943;margin-bottom:8px">Subscribe to Stay Updated</div>
     <p style="font-size:15px;color:rgba(255,255,255,0.85);margin-bottom:1.5rem">Get notified about new scholarships, education updates, and career opportunities</p>
     <div style="display:flex;gap:10px;max-width:420px;margin:0 auto">
       <input type="email" id="subscribe-email" placeholder="Enter your email address" style="flex:1;padding:11px 14px;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;outline:none"/>
@@ -657,7 +657,7 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
 
           <section>
             <div class="pn-section-hdr">
-              <h2 class="pn-section-title">${activeCategory ? (NEWS_CATEGORIES.find(c=>c.id===activeCategory)?.label||'Latest') : '📰 Latest Articles'}</h2>
+              <h2 class="pn-section-title">${activeCategory ? (NEWS_CATEGORIES.find(c=>c.id===activeCategory)?.label||'Latest') : 'Latest Articles'}</h2>
               <button class="pn-view-all" onclick="renderPublicNews()">View all →</button>
             </div>
             ${posts.length ? `

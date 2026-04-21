@@ -584,6 +584,11 @@ async function initWhiteboardSync(sessionId) {
   const boardHeight = Math.max(window.innerHeight - usedHeight, 1000);
   const canvas = new fabric.Canvas('wb-canvas-el', { width: boardWidth, height: boardHeight, isDrawingMode: true });
   window.wbInstance = canvas;
+  canvas.allowTouchScrolling = true;
+
+  if (isMobile) {
+      setTimeout(() => setSTEMTool('select'), 100);
+  }
 
   // Recalculate after first paint — toolbar height is only accurate post-render
   requestAnimationFrame(() => {
@@ -779,8 +784,7 @@ canvas.on('path:created', triggerCloudSave);
 // -- TABLET / STYLUS SUPPORT (Huion H640P, Wacom, XP-Pen, etc.) ----------
   (() => {
     const upperCanvas = canvas.upperCanvasEl;
-    // Enable pointer events for stylus pressure
-    upperCanvas.style.touchAction = 'none';
+    // Pointer events stylus pressure handled via touchAction dynamically
 
     let _stylusDown = false;
     upperCanvas.addEventListener('pointerdown', (e) => {
@@ -1516,6 +1520,10 @@ canvas.on('path:created', triggerCloudSave);
     canvas.isDrawingMode = (tool === 'pencil');
     canvas.selection = (tool === 'select');
     
+    if (canvas.upperCanvasEl) {
+        canvas.upperCanvasEl.style.touchAction = canvas.isDrawingMode ? 'none' : 'auto';
+    }
+    
     // Laser Pointer Visibility Logic
     let dot = document.getElementById('laser-dot');
     if (!dot) {
@@ -2221,51 +2229,37 @@ canvas.on('path:created', triggerCloudSave);
     channel
     .on('broadcast', { event: 'rtc-call-started' }, async (msg) => {
       if (_rtcIsMe(msg)) return;
-
-      const iAmHost = (State.user && (State.user.role === 'tutor' || State.user.role === 'admin')) || window._isLabHost;
       window._rtcRemoteName = msg.payload.name;
-
-      if (msg.payload.isReply) {
-        if (_rtcStarted && iAmHost && !_rtcPeer) {
-          setTimeout(async () => {
-            try { await _rtcStartAsHost(); } catch(e) { console.error('Offer error:', e); }
-          }, 1200);
-        }
-        return;
-      }
-
-      if (_rtcStarted) {
-        _rtcSend('rtc-call-started', {
-          name: State.user?.full_name || window._wbGuestName || (iAmHost ? 'Tutor' : 'Student'),
-          isHost: iAmHost,
-          isReply: true
-        });
-        if (iAmHost && !_rtcPeer) {
-          setTimeout(async () => {
-            try { await _rtcStartAsHost(); } catch(e) { console.error('Offer error:', e); }
-          }, 1200);
-        }
-        return;
-      }
-
+      
+      if (_rtcStarted) return; // already in a call
+      
+      window._rtcIncomingCall = true;
       const btn = document.getElementById('lab-video-btn');
-      if (btn) { btn.textContent = '📹 Join Call'; btn.style.background = 'rgba(16,185,129,0.7)'; }
+      if (btn) { btn.textContent = '📞 Answer Call'; btn.style.background = 'rgba(16,185,129,0.7)'; btn.style.animation = 'rtcPulse 2s infinite'; }
 
       document.getElementById('rtc-call-notif')?.remove();
       const notif = document.createElement('div');
       notif.id = 'rtc-call-notif';
       notif.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#0D1B40;color:#fff;padding:16px 24px;border-radius:12px;z-index:99999;font-size:14px;font-weight:700;display:flex;gap:12px;align-items:center;box-shadow:0 8px 32px rgba(0,0,0,0.5);border:2px solid #10B981;';
-      notif.innerHTML = `📹 <strong>${msg.payload.name}</strong> is calling... <button onclick="document.getElementById('rtc-call-notif')?.remove();window.toggleLabVideo();" style="background:#10B981;color:#fff;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-weight:800;font-size:13px;">Answer 📞</button> <button onclick="document.getElementById('rtc-call-notif')?.remove()" style="background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:8px;padding:8px 12px;cursor:pointer;">Ignore</button>`;
+      notif.innerHTML = `📹 <strong>${msg.payload.name}</strong> is calling... <button onclick="document.getElementById('rtc-call-notif')?.remove();window.toggleLabVideo();" style="background:#10B981;color:#fff;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-weight:800;font-size:13px;">Answer 📞</button> <button onclick="document.getElementById('rtc-call-notif')?.remove();window._rtcIncomingCall=false;" style="background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:8px;padding:8px 12px;cursor:pointer;">Ignore</button>`;
       document.body.appendChild(notif);
       setTimeout(() => notif.remove(), 30000);
     })
+    .on('broadcast', { event: 'rtc-call-answered' }, async (msg) => {
+      if (_rtcIsMe(msg)) return;
+      if (_rtcStarted && window._rtcIsCaller) {
+        setTimeout(async () => {
+          if (!_rtcPeer) {
+            try { await _rtcStartAsCaller(); } catch(e) { console.error('Offer error:', e); }
+          }
+        }, 500);
+      }
+    })
     .on('broadcast', { event: 'rtc-offer' }, async (msg) => {
       if (_rtcIsMe(msg)) return;
-      const iAmHost = (State.user && (State.user.role === 'tutor' || State.user.role === 'admin')) || window._isLabHost;
-      if (iAmHost) return; 
       _rtcPendingOffer = msg.payload.sdp;
       if (_rtcStarted) {
-        try { await _rtcAnswerOffer(_rtcPendingOffer, window._rtcRemoteName || 'Tutor'); _rtcPendingOffer = null; }
+        try { await _rtcAnswerOffer(_rtcPendingOffer, window._rtcRemoteName || 'Partner'); _rtcPendingOffer = null; }
         catch(e) { toast('Could not connect: ' + e.message, 'err'); }
       }
     })
@@ -2294,17 +2288,7 @@ canvas.on('path:created', triggerCloudSave);
     .on('broadcast', { event: 'rtc-end' }, (msg) => {
       if (_rtcIsMe(msg)) return;
       if (_rtcStarted) {
-        _rtcCleanPeer();
-        if (_localStream) { _localStream.getTracks().forEach(t => t.stop()); _localStream = null; }
-        const lv = document.getElementById('lab-local-video');
-        if (lv) lv.srcObject = null;
-        const rv = document.getElementById('lab-remote-video');
-        if (rv) rv.srcObject = null;
-        _rtcStarted = false;
-        _rtcSetBtn(false);
-        _rtcHidePanel();
-        const btn2 = document.getElementById('lab-video-btn');
-        if (btn2) { btn2.textContent = '📹 Video Call'; btn2.style.background = 'rgba(255,255,255,0.12)'; btn2.style.animation = ''; btn2.style.boxShadow = ''; }
+        window.stopLabVideo(true);
         toast('The other party ended the call.', 'info');
       }
     })
@@ -2323,7 +2307,8 @@ canvas.on('path:created', triggerCloudSave);
 var _rtcPeer = null;
 var _localStream = null;
 var _rtcStarted = false;
-var _rtcIsHost = false;
+window._rtcIsCaller = false;
+window._rtcIncomingCall = false;
 var STUN = { 
   iceServers: [
     { urls: 'stun:stun.l.google.com:19302' },
@@ -2504,9 +2489,9 @@ function _rtcMakePeer(remoteName) {
   return _rtcPeer;
 }
 
-async function _rtcStartAsHost() {
+async function _rtcStartAsCaller() {
   const stream = await _rtcGetMedia();
-  const peer = _rtcMakePeer('Student');
+  const peer = _rtcMakePeer(window._rtcRemoteName || 'Partner');
   stream.getTracks().forEach(t => peer.addTrack(t, stream));
 
   const offer = await peer.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: true });
@@ -2535,36 +2520,27 @@ async function _rtcAnswerOffer(sdp, hostName) {
 window.toggleLabVideo = async () => {
   if (_rtcStarted) { window.stopLabVideo(); return; }
 
-  _rtcIsHost = !!(State.user && (State.user.role === 'tutor' || State.user.role === 'admin')) || !!window._isLabHost;
-
   try {
     await _rtcGetMedia();
     _rtcShowPanel();
     _rtcStarted = true;
     _rtcSetBtn(true);
 
-    _rtcSend('rtc-call-started', {
-      name: State.user?.full_name || window._wbGuestName || (_rtcIsHost ? 'Tutor' : 'Student'),
-      isHost: _rtcIsHost,
-      isReply: !!window._rtcRemoteName
-    });
-
-    if (!_rtcIsHost && _rtcPendingOffer) {
-      const offerToProcess = _rtcPendingOffer;
-      _rtcPendingOffer = null;
-      try {
-        await _rtcAnswerOffer(offerToProcess, window._rtcRemoteName || 'Tutor');
-      } catch(e) { console.error('Answer error:', e); }
+    if (window._rtcIncomingCall) {
+      window._rtcIncomingCall = false;
+      _rtcSend('rtc-call-answered', { name: State.user?.full_name || window._wbGuestName || 'User' });
+      
+      if (_rtcPendingOffer) {
+        const offerToProcess = _rtcPendingOffer;
+        _rtcPendingOffer = null;
+        try {
+          await _rtcAnswerOffer(offerToProcess, window._rtcRemoteName || 'Partner');
+        } catch(e) { console.error('Answer error:', e); }
+      }
+    } else {
+      window._rtcIsCaller = true;
+      _rtcSend('rtc-call-started', { name: State.user?.full_name || window._wbGuestName || 'User' });
     }
-
-    if (_rtcIsHost && window._rtcRemoteName && !_rtcPendingOffer) {
-      setTimeout(async () => {
-        if (!_rtcPeer) {
-          try { await _rtcStartAsHost(); } catch(e) { console.error('Offer error:', e); }
-        }
-      }, 1500);
-    }
-
   } catch(e) {
     toast('Camera/mic error: ' + e.message, 'err');
     _rtcStarted = false; _rtcSetBtn(false);
@@ -2573,7 +2549,7 @@ window.toggleLabVideo = async () => {
   }
 };
 
-window.stopLabVideo = () => {
+window.stopLabVideo = (isRemote = false) => {
   const wasStarted = _rtcStarted;
   _rtcCleanPeer();
   if (_localStream) { _localStream.getTracks().forEach(t => t.stop()); _localStream = null; }
@@ -2582,12 +2558,14 @@ window.stopLabVideo = () => {
   const rv = document.getElementById('lab-remote-video');
   if (rv) rv.srcObject = null;
   _rtcStarted = false;
+  window._rtcIsCaller = false;
+  window._rtcIncomingCall = false;
   _rtcSetBtn(false);
   _rtcHidePanel();
   document.getElementById('rtc-call-notif')?.remove();
   const btn = document.getElementById('lab-video-btn');
   if (btn) { btn.textContent = '📹 Video Call'; btn.style.background = 'rgba(255,255,255,0.12)'; btn.style.animation = ''; btn.style.boxShadow = ''; }
-  if (wasStarted) { _rtcSend('rtc-end', {}); toast('Video call ended.', 'info'); }
+  if (wasStarted && !isRemote) { _rtcSend('rtc-end', {}); toast('Video call ended.', 'info'); }
 };
 
 window._isSharingScreen = false;
