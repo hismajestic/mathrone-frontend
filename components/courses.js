@@ -310,7 +310,7 @@ async function renderCourseDetail(slugParam) {
     }
 
     // ── SEO: update meta for this public course page ──
-    const BASE = 'https://mathroneacademy.com'
+    const BASE = 'https://mathroneacademy.pages.dev'
     updatePageSEO({
       title: c.title,
       description: (c.description || `Learn ${c.title} on Mathrone Academy. ${c.subject ? c.subject + ' course' : ''} ${c.level ? '— ' + c.level : ''} — available online in Rwanda.`).slice(0, 160),
@@ -344,14 +344,32 @@ async function renderCourseDetail(slugParam) {
     </nav>
     <div style="max-width:860px;margin:0 auto;padding:40px 16px 60px">
 
-      
+      <!-- Hero -->
+      <div style="background:linear-gradient(135deg,#0f172a,#1e3a8a);border-radius:20px;padding:clamp(20px, 5vw, 40px) clamp(16px, 5vw, 36px);margin-bottom:24px;color:#fff;overflow:hidden;position:relative">
+        ${c.image_url ? `<img src="${c.image_url}" alt="" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.12"/>` : ''}
+        <div style="position:relative">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+            ${c.level ? `<span style="background:rgba(255,255,255,0.15);color:#fff;font-size:12px;font-weight:700;padding:4px 12px;border-radius:999px">${c.level}</span>` : ''}
+            ${c.subject ? `<span style="background:rgba(255,255,255,0.15);color:#fff;font-size:12px;font-weight:700;padding:4px 12px;border-radius:999px">${c.subject}</span>` : ''}
+          </div>
+          <h1 style="font-size:28px;font-weight:900;margin-bottom:12px;line-height:1.2">${c.title}</h1>
+          <p style="font-size:15px;opacity:0.8;line-height:1.6;margin-bottom:24px;max-width:580px">${c.description || ''}</p>
+          <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+            <div style="font-size:28px;font-weight:900;color:#fbbf24">${c.price > 0 ? `RWF ${Number(c.price).toLocaleString()}` : 'FREE'}</div>
+            <button onclick="${isLoggedIn ? `memberEnrollCourse('${c.id}','${(c.title||'').replace(/'/g,"\\'")}',${ c.price})` : `openCourseCheckout('${c.id}','${(c.title||'').replace(/'/g,"\\'")}',${ c.price})`}"
+              style="background:#fbbf24;color:#0f172a;border:none;padding:12px 28px;border-radius:10px;cursor:pointer;font-size:15px;font-weight:800;display:flex;align-items:center;gap:8px">
+              <i data-lucide="graduation-cap" style="width:18px;height:18px"></i> ${c.price > 0 ? 'Enroll Now' : 'Get Free Access'}
+            </button>
+          </div>
+        </div>
+      </div>
 
       <!-- Lessons List -->
-      ${displayLessons.length ? `
+      ${(c.lessons && c.lessons.length) || (c.preview_lessons && c.preview_lessons.length) ? `
       <div style="background:#fff;border-radius:16px;border:1px solid var(--g100);padding:clamp(16px, 4vw, 28px);margin-bottom:24px">
-        <h2 style="font-size:18px;font-weight:800;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:8px"><i data-lucide="list-checks" style="width:20px;height:20px;color:var(--blue)"></i> ${query ? "Lessons Matching Your Search" : "What You'll Learn"}</h2>
+        <h2 style="font-size:18px;font-weight:800;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:8px"><i data-lucide="list-checks" style="width:20px;height:20px;color:var(--blue)"></i> What You'll Learn</h2>
         <div style="display:flex;flex-direction:column;gap:10px">
-          ${displayLessons.map((l, i) => {
+          ${(c.lessons || c.preview_lessons).map((l, i) => {
             const isPreview = l.is_free_preview || c.preview_lessons?.find(pl => pl.id === l.id);
             const clickAction = isPreview 
               ? `window._currentLessons=JSON.parse('${JSON.stringify(c.preview_lessons || c.lessons).replace(/'/g,"\\'").replace(/"/g,'&quot;')}'); openLessonPlayer('${l.id}')` 

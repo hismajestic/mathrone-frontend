@@ -110,6 +110,25 @@ function _reg(data) {
 function _get(id) { return _dataRegistry[id]; }
     const _apiCache = {};
     const _inflight = {}; // deduplicate simultaneous identical requests
+    // ── Skeleton screen helper ───────────────────────────────────────────
+    function skeletonCards(count = 8, aspect = '1/1') {
+      return Array(count).fill(0).map(() => `
+        <div style="background:#fff;border:1px solid #e8ecf0;border-radius:12px;overflow:hidden;animation:skeletonPulse 1.4s ease-in-out infinite">
+          <div style="aspect-ratio:${aspect};background:linear-gradient(90deg,#f0f2f5 25%,#e2e5ea 50%,#f0f2f5 75%);background-size:200% 100%;animation:skeletonShimmer 1.4s ease-in-out infinite"></div>
+          <div style="padding:14px;display:flex;flex-direction:column;gap:8px">
+            <div style="height:12px;background:#f0f2f5;border-radius:4px;width:60%"></div>
+            <div style="height:10px;background:#f0f2f5;border-radius:4px;width:90%"></div>
+            <div style="height:10px;background:#f0f2f5;border-radius:4px;width:75%"></div>
+            <div style="height:32px;background:#f0f2f5;border-radius:8px;margin-top:8px"></div>
+          </div>
+        </div>`).join('')
+    }
+
+    // No-op — we use native loading="lazy" which browsers handle optimally
+    function observeLazyImages() {}
+
+    
+
     async function cachedFetch(url, ttlMs = 60000) {
       const now = Date.now();
       if (_apiCache[url] && now - _apiCache[url].ts < ttlMs) return _apiCache[url].data;
@@ -3176,6 +3195,19 @@ async function boot() {
 window.addEventListener('DOMContentLoaded', () => {
   try {
     boot();
+    // After boot, silently preload components AND pre-fetch critical data
+    // so first navigation to shop/news/courses is instant
+    setTimeout(() => {
+      ['landing','auth','dashboards','shop','courses','news'].forEach(name => {
+        loadComponent(name).catch(() => {});
+      });
+      // Pre-warm backend + pre-fill cache for the most-visited pages
+      cachedFetch(API_URL + '/shop/products', 60000).catch(() => {});
+      cachedFetch(API_URL + '/shop/featured', 120000).catch(() => {});
+      cachedFetch(API_URL + '/shop/bundles', 120000).catch(() => {});
+      cachedFetch(API_URL + '/news/?featured=true&limit=6', 120000).catch(() => {});
+      cachedFetch(API_URL + '/courses/public', 120000).catch(() => {});
+    }, 1500);
   } catch(e) {
     console.error('Boot error:', e);
     navigate('landing');

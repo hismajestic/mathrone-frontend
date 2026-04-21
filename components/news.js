@@ -514,11 +514,18 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
   window.addEventListener('scroll', onNewsScroll, { passive: true })
 
   // Load content
+  // Show skeleton immediately
+  const skeletonGrid = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;padding:24px 16px">
+    ${skeletonCards(6, '16/9')}
+  </div>`
+  render(`<div style="max-width:1200px;margin:0 auto">${skeletonGrid}</div>`)
+
   try{
+    const newsBase = API_URL + '/news/?' + (activeCategory ? `category=${activeCategory}&` : '') + (searchQuery ? `search=${encodeURIComponent(searchQuery)}` : '')
     const [allPosts, featuredPosts, popularPosts] = await Promise.all([
-      fetch(API_URL + '/news/?' + (activeCategory ? `category=${activeCategory}&` : '') + (searchQuery ? `search=${encodeURIComponent(searchQuery)}` : '')).then(r=>r.json()),
-      fetch(API_URL + '/news/?featured=true&limit=6').then(r=>r.json()),
-      fetch(API_URL + '/news/?popular=true&limit=4' + (activeCategory ? `&category=${activeCategory}` : '')).then(r=>r.json())
+      cachedFetch(newsBase, 60000),
+      cachedFetch(API_URL + '/news/?featured=true&limit=6', 120000),
+      cachedFetch(API_URL + '/news/?popular=true&limit=4' + (activeCategory ? `&category=${activeCategory}` : ''), 120000)
     ])
 
     const posts = allPosts.filter(p => !p.is_featured)

@@ -311,29 +311,100 @@ async function renderShop(category = 'all', search = '') {
     ${nav}
     <div style="max-width:1200px;margin:0 auto;padding:32px 0">
 
-      <!-- Search bar -->
-      <div style="display:grid; grid-template-columns: 1fr auto; gap: 8px; margin-bottom: 20px; padding: 0 8px;">
-        <div style="position:relative; grid-column: 1 / -1;">
-          <input class="input" id="shop-search" placeholder="Search products..." value="${search}"
-            onkeydown="if(event.key==='Enter')renderShop(document.getElementById('shop-cat-select')?.value||'all',this.value)"
-            style="padding-left:36px; height:44px; width:100%"/>
-          <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px">🔍</span>
-        </div>
-        <select class="input" id="shop-cat-select" style="height:44px; font-size:13px;" onchange="renderShop(this.value,document.getElementById('shop-search')?.value||'')">
-          ${SHOP_CATEGORIES.map(c=>`<option value="${c.id}" ${category===c.id?'selected':''}>${c.icon} ${c.label.split(' ')[0]}</option>`).join('')}
-        </select>
-        <button class="btn btn-primary" style="height:44px; padding:0 20px;" onclick="renderShop(document.getElementById('shop-cat-select')?.value||'all',document.getElementById('shop-search')?.value||'')">Search</button>
-      </div>
+      <div class="shop-layout-grid" style="display:grid; grid-template-columns: 250px 1fr; gap: 30px; align-items: start; padding: 0 16px;">
+        
+        <!-- Left Sidebar -->
+        <aside class="shop-sidebar" style="display:flex; flex-direction:column; gap:20px;">
+          <!-- Categories Box -->
+          <div style="border:1px solid var(--g100); border-radius:8px; overflow:hidden; background:#fff;">
+            <div style="background:var(--navy); color:#fff; padding:12px 16px; font-weight:700; font-size:15px;">Categories</div>
+            <div style="display:flex; flex-direction:column;">
+              ${SHOP_CATEGORIES.map(c=>`
+              <button onclick="renderShop('${c.id}')" style="text-align:left; padding:10px 16px; background:${category===c.id?'var(--sky)':'#fff'}; color:${category===c.id?'var(--blue)':'var(--g600)'}; border:none; border-bottom:1px solid var(--g50); cursor:pointer; font-size:13px; font-weight:${category===c.id?'700':'500'}; transition:all 0.2s; display:flex; justify-content:space-between; align-items:center;">
+                <span style="display:flex; align-items:center; gap:8px;">${c.icon} ${c.label}</span>
+                ${category===c.id?'<span style="font-size:10px;">⊟</span>':'<span style="font-size:10px;color:var(--g200);">⊞</span>'}
+              </button>`).join('')}
+            </div>
+          </div>
+          
+          <!-- Refine Search Box (Mock UI) -->
+          <div style="border:1px solid var(--g100); border-radius:8px; overflow:hidden; background:#fff;">
+            <div style="background:var(--navy); color:#fff; padding:12px 16px; font-weight:700; font-size:15px;">Refine Search</div>
+            <div style="padding:16px;">
+              <div style="font-weight:700; font-size:13px; color:var(--navy); margin-bottom:10px;">Color</div>
+              <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:var(--g600); margin-bottom:6px; cursor:pointer;"><input type="checkbox"> Green</label>
+              <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:var(--g600); margin-bottom:6px; cursor:pointer;"><input type="checkbox"> Red</label>
+              <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:var(--g600); margin-bottom:6px; cursor:pointer;"><input type="checkbox"> Yellow</label>
+              <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:var(--g600); margin-bottom:6px; cursor:pointer;"><input type="checkbox"> Blue</label>
+            </div>
+          </div>
+        </aside>
 
-      <!-- Category pills -->
-      <div style="display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;padding:0 8px 10px; -webkit-overflow-scrolling:touch;scrollbar-width:none">
-        ${SHOP_CATEGORIES.map(c=>`
-        <button onclick="renderShop('${c.id}')" style="white-space:nowrap;padding:8px 16px;border-radius:999px;border:2px solid ${category===c.id?'var(--blue)':'var(--g100)'};background:${category===c.id?'var(--blue)':'#fff'};color:${category===c.id?'#fff':'var(--navy)'};cursor:pointer;font-size:13px;font-weight:600;transition:all .2s">
-          ${c.icon} ${c.label}
-        </button>`).join('')}
-      </div>
+        <!-- Main Content -->
+        <div class="shop-main-content" style="display:flex; flex-direction:column; min-width:0;">
+          
+          ${!window._shopBannerHidden ? `
+          <style>
+            @keyframes slideShopProducts {
+              0% { transform: translateX(0); }
+              100% { transform: translateX(-33.33%); }
+            }
+          </style>
+          <!-- Top Banner -->
+          <div id="shop-top-banner" style="background:var(--sky); border-radius:8px; padding:40px 30px; margin-bottom:24px; position:relative; overflow:hidden; display:flex; align-items:center; transition: all 0.5s ease-in-out; max-height: 500px; opacity: 1;">
+            <div style="position:relative; z-index:2; max-width:60%;">
+              <h2 style="font-size:28px; font-weight:800; color:var(--navy); line-height:1.2; margin-bottom:12px; font-family:'Playfair Display',serif;">Buy Learning Materials</h2>
+              <p style="font-size:13px; color:var(--g600); margin-bottom:20px;">Quality learning materials to empower your education journey.</p>
+              <button class="btn btn-primary" onclick="window._shopBannerHidden=true; const b=document.getElementById('shop-top-banner'); b.style.maxHeight='0'; b.style.paddingTop='0'; b.style.paddingBottom='0'; b.style.marginBottom='0'; b.style.opacity='0'; setTimeout(()=>b.style.display='none', 500);" style="background:var(--blue); border-color:var(--blue);">Buy now </button>
+            </div>
+            
+            <!-- Sliding Diffused Products -->
+            <div style="position:absolute; right:0; top:0; bottom:0; width:65%; overflow:hidden; pointer-events:none; z-index:0; -webkit-mask-image: linear-gradient(to right, transparent 0%, black 40%); mask-image: linear-gradient(to right, transparent 0%, black 40%);">
+              <div style="display:flex; height:100%; align-items:center; gap:30px; animation: slideShopProducts 20s linear infinite; width:max-content; padding-left:30px;">
+                 ${(() => {
+                    const bImgs = products.filter(p => p.image_url).slice(0,5).map(p => p.image_url);
+                    // Fallback to a default image if store has no images yet
+                    const safeImgs = bImgs.length ? bImgs : ['https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png'];
+                    // Triplicate array to ensure a perfectly seamless infinite scroll loop
+                    return [...safeImgs, ...safeImgs, ...safeImgs].map(url => `<img src="${url}" style="height:110px; max-width:140px; object-fit:contain; filter:drop-shadow(0 15px 25px rgba(0,0,0,0.08)); mix-blend-mode: multiply;" />`).join('');
+                 })()}
+              </div>
+            </div>
+          </div>
+          ` : ''}
+          <!-- Search & Sort Bar -->
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:20px; padding-bottom:16px; border-bottom:1px solid var(--g100);">
+            <div style="display:flex; align-items:center; gap:8px; flex:1; min-width:260px;">
+              <div style="position:relative; flex:1;">
+                <input class="input" id="shop-search" placeholder="Search products..." value="${search}"
+                  onkeydown="if(event.key==='Enter')renderShop('${category}',this.value)"
+                  style="padding-left:36px; height:40px; min-height:40px; font-size:13px; border-color:var(--g200);"/>
+                <i data-lucide="search" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); width:16px; height:16px; color:var(--g400);"></i>
+              </div>
+              <button class="btn btn-primary" style="height:40px; min-height:40px; padding:0 16px; font-size:13px; background:var(--navy); border-color:var(--navy);" onclick="renderShop('${category}',document.getElementById('shop-search')?.value||'')">Search</button>
+            </div>
+            
+            <div style="display:flex; align-items:center; gap:16px; font-size:12px; color:var(--g600);">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <label>Sort By:</label>
+                <select class="input" style="height:32px; min-height:32px; padding:0 8px; font-size:12px; width:auto; border-color:var(--g200);">
+                  <option>Default</option>
+                  <option>Name (A-Z)</option>
+                  <option>Price (Low &gt; High)</option>
+                </select>
+              </div>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <label>Show:</label>
+                <select class="input" style="height:32px; min-height:32px; padding:0 8px; font-size:12px; width:auto; border-color:var(--g200);">
+                  <option>9</option>
+                  <option>15</option>
+                  <option>25</option>
+                </select>
+              </div>
+            </div>
+          </div>
 
-      <!-- Featured products -->
+          <!-- Featured products -->
       ${category === 'all' && !search && featuredCards ? `
       <div style="margin-bottom:48px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
@@ -359,7 +430,7 @@ async function renderShop(category = 'all', search = '') {
       <!-- All products -->
       <div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-          <h2 style="font-size:22px;font-weight:800;color:var(--navy)">${category==='all'&&!search?'Learning Materials & School Supplies in Rwanda':'Search Results'} <span style="font-size:14px;font-weight:400;color:var(--g400)">(${products.length})</span></h2>
+          <h2 style="font-size:22px;font-weight:800;color:var(--navy)">${category==='all'&&!search?'Learning Materials & School Supplies':'Search Results'} <span style="font-size:14px;font-weight:400;color:var(--g400)">(${products.length})</span></h2>
         </div>
         ${products.length ? `
         <div class="shop-grid">
@@ -371,7 +442,10 @@ async function renderShop(category = 'all', search = '') {
           <div class="empty-sub">Try a different category or search term</div>
         </div>`}
       </div>
-    </div>
+      
+        </div> <!-- End shop-main-content -->
+      </div> <!-- End shop-layout-grid -->
+    </div> <!-- End max-width wrapper -->
 
     <!-- Footer -->
     <div style="background:#0f172a;padding:24px 48px;display:flex;justify-content:space-between;align-items:center;margin-top:48px;flex-wrap:wrap;gap:10px">
@@ -416,45 +490,67 @@ async function renderRelatedProducts(productId, category, isLoggedIn) {
 function shopProductCard(p, isLoggedIn) {
   if (!p) return ''
   const safeName = (p.name || '').replace(/'/g, "\\'");
+  const isOutOfStock = p.stock === 0;
+  const memberPrice = Number(p.price * 0.97).toLocaleString();
+  const basePrice = Number(p.price).toLocaleString();
+  const displayPrice = isLoggedIn ? memberPrice : basePrice;
 
   return `
-  <div style="background:#fff; border:1px solid var(--g100); border-radius:6px; overflow:hidden; display:flex; flex-direction:column; transition:all .2s;">
-    
-    <a href="/shop/${p.slug||p.id}" style="display:block;position:relative;aspect-ratio:1/1;background:#fff;overflow:hidden;cursor:pointer;border-bottom:1px solid var(--g100)" onclick="navigate('shop-product-${p.slug||p.id}', null, event)">
-      ${p.image_url ? `<img src="${p.image_url}" alt="Buy ${p.name} in Rwanda - Mathrone Academy Learning Store" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:contain;padding:12px"/>` : 
-        `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:56px">🛍️</div>`}
+  <div style="background:#fff;border:1px solid #e8ecf0;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .2s,transform .2s;cursor:pointer"
+       onmouseover="this.style.boxShadow='0 8px 32px rgba(0,0,0,0.10)';this.style.transform='translateY(-2px)'"
+       onmouseout="this.style.boxShadow='none';this.style.transform='translateY(0)'">
+
+    <!-- Image — fixed 200px height, consistent across all cards -->
+    <a href="/shop/${p.slug||p.id}" onclick="navigate('shop-product-${p.slug||p.id}', null, event)"
+       style="display:block;position:relative;aspect-ratio:1/1;background:#f8fafc;overflow:hidden;flex-shrink:0;border-bottom:1px solid #f0f2f5">
+      ${p.image_url
+        ? `<img src="${p.image_url}" alt="${p.name}" loading="lazy" decoding="async"
+               style="width:100%;height:100%;object-fit:contain;padding:16px;transition:transform .3s"
+               onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'"/>`
+        : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:52px;color:#cbd5e1">🛍️</div>`}
+      ${isOutOfStock ? `<div style="position:absolute;top:10px;left:10px;background:#ef4444;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;letter-spacing:0.05em">OUT OF STOCK</div>` : ''}
+      ${p.is_featured ? `<div style="position:absolute;top:10px;right:10px;background:#f59e0b;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px">⭐ FEATURED</div>` : ''}
     </a>
 
-    <div style="padding:16px;flex:1;display:flex;flex-direction:column">
-      <div style="font-size:14px;font-weight:800;color:var(--navy);margin-bottom:4px;cursor:pointer" onclick="navigate('shop-product-${p.slug||p.id}')">${p.name}</div>
-      ${p.description ? `<div style="font-size:12px;color:var(--g600);line-height:1.4;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${p.description}</div>` : ''}
-      <a href="/shop/${p.slug||p.id}" onclick="navigate('shop-product-${p.slug||p.id}', null, event)" style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--blue);text-decoration:none;margin-bottom:12px;padding:4px 10px;background:var(--sky);border-radius:999px;border:1px solid var(--sky2);transition:background .2s" onmouseover="this.style.background='var(--sky2)'" onmouseout="this.style.background='var(--sky)'">
-        View full details →
-      </a>
+    <!-- Body -->
+    <div style="padding:14px 16px;flex:1;display:flex;flex-direction:column;gap:6px">
 
-      <div style="margin-top:auto">
-        <div style="margin-bottom:12px">
-          <div style="font-size:14px;font-weight:800;color:var(--navy)">RWF ${isLoggedIn ? Number(p.price * 0.97).toLocaleString() : Number(p.price).toLocaleString()}</div>
-          
-          <!-- Only show discount badge and original price to members -->
-          ${isLoggedIn ? `
-            <div style="display:flex;gap:6px;align-items:center">
-              <span style="font-size:11px;color:var(--g400);text-decoration:line-through">RWF ${Number(p.price).toLocaleString()}</span>
-              <span style="font-size:10px;background:#dcfce7;color:#065f46;padding:1px 4px;border-radius:4px;font-weight:700">MEMBER -3%</span>
-            </div>` : 
-            ``
-          }
-        </div>
-        
-        <div style="display:flex;gap:6px">
-          <button onclick="${p.stock === 0 ? "toast('Out of stock','err')" : 
-              isLoggedIn ? `addToCart('${p.id}',null,'${safeName}',this)` : 
-              `addToGuestCart('${p.id}','${safeName}',${p.price},1)`}"
-            style="flex:1;background:var(--blue);color:#fff;border:none;padding:10px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700">
-            <i data-lucide="shopping-cart" style="width:14px;height:14px;margin-right:4px"></i> Add to Cart
-          </button>
-        </div>
+      <!-- Category tag -->
+      ${p.category ? `<div style="font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:0.08em">${p.category}</div>` : ''}
+
+      <!-- Name — clamped to 2 lines so all cards stay same height -->
+      <div onclick="navigate('shop-product-${p.slug||p.id}')"
+           style="font-size:14px;font-weight:700;color:#0f172a;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:40px">
+        ${p.name}
       </div>
+
+      <!-- Description — 2 lines max -->
+      ${p.description ? `
+      <div style="font-size:12px;color:#64748b;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">
+        ${p.description}
+      </div>` : ''}
+
+      <!-- Spacer pushes price+button to bottom -->
+      <div style="flex:1"></div>
+
+      <!-- Price -->
+      <div style="display:flex;align-items:baseline;gap:8px;margin-top:8px">
+        <span style="font-size:16px;font-weight:800;color:#0f172a">RWF ${displayPrice}</span>
+        ${isLoggedIn ? `
+          <span style="font-size:11px;color:#94a3b8;text-decoration:line-through">RWF ${basePrice}</span>
+          <span style="font-size:10px;background:#dcfce7;color:#065f46;padding:2px 6px;border-radius:4px;font-weight:700;white-space:nowrap">-3% member</span>
+        ` : ''}
+      </div>
+
+      <!-- CTA button -->
+      <button onclick="${isOutOfStock ? "toast('Out of stock','err')" :
+          isLoggedIn ? `addToCart('${p.id}',null,'${safeName}',this)` :
+          `addToGuestCart('${p.id}','${safeName}',${p.price},1)`}"
+        style="margin-top:10px;width:100%;background:${isOutOfStock ? '#e2e8f0' : 'var(--blue)'};color:${isOutOfStock ? '#94a3b8' : '#fff'};border:none;padding:11px;border-radius:8px;cursor:${isOutOfStock ? 'not-allowed' : 'pointer'};font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;transition:background .15s"
+        ${isOutOfStock ? 'disabled' : `onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='var(--blue)'"`}>
+        <i data-lucide="shopping-cart" style="width:14px;height:14px"></i>
+        ${isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
+      </button>
     </div>
   </div>`
 }
@@ -477,6 +573,24 @@ async function addToCartQty(productId, bundleId, name, btn, qtyInputId){
   }
 }
 
+
+function setCardQty(inputId, qty){
+  const input = document.getElementById(inputId)
+  if(input) input.value = qty
+}
+
+async function addToCartQty(productId, bundleId, name, btn, qtyInputId){
+  const qty = parseInt(document.getElementById(qtyInputId)?.value) || 1
+  if(btn){ btn.disabled=true; btn.textContent='Adding...' }
+  try{
+    await api('/shop/cart',{ method:'POST', body:JSON.stringify({ product_id:productId, bundle_id:bundleId, quantity:qty }) })
+    toast(`${name} ×${qty} added to cart 🛒`)
+    if(btn){ btn.textContent='✅ Added!'; setTimeout(()=>{ btn.disabled=false; btn.textContent='Add to Cart' },2000) }
+  }catch(e){
+    toast(e.message,'err')
+    if(btn){ btn.disabled=false; btn.textContent='Add to Cart' }
+  }
+}
 
 function shopBundleCard(b, isLoggedIn){
   const items = (b.bundle_items||[])
@@ -568,29 +682,58 @@ async function renderShopProduct(productId) {
         <!-- PRODUCT INFO COLUMN -->
         <div class="prod-info-column" style="display:flex;flex-direction:column;">
           <a href="/shop" onclick="navigate('shop', null, event)" style="font-size:12px;font-weight:700;color:var(--blue);text-transform:uppercase;margin-bottom:8px;display:block;text-decoration:none">${SHOP_CATEGORIES.find(c => c.id === p.category)?.label || p.category}</a>
-          <h1 class="prod-title" style="font-size:20px;font-weight:800;color:var(--navy);margin-bottom:12px">${p.name}</h1>
+          <h1 class="prod-title" style="font-size:24px;font-weight:800;color:var(--navy);margin-bottom:12px;font-family:'Playfair Display',serif;">${p.name}</h1>
           
-          <div style="margin-bottom:20px">
-            <div style="font-size:16px;font-weight:800;color:var(--navy)">RWF ${isLoggedIn ? Number(p.price * 0.97).toLocaleString() : Number(p.price).toLocaleString()}</div>
+          <!-- Ratings (Matching UI) -->
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px; border-bottom:1px solid var(--g100); padding-bottom:16px;">
+            <div style="color:var(--gold); font-size:14px;">★★★★☆</div>
+            <a href="#" style="font-size:12px; color:var(--g600); text-decoration:none;">1 reviews</a>
+            <span style="color:var(--g200);">|</span>
+            <a href="#" style="font-size:12px; color:var(--g600); text-decoration:none; display:flex; align-items:center; gap:4px;"><i data-lucide="edit-3" style="width:12px;height:12px"></i> Write a review</a>
+          </div>
+
+          <!-- Meta Info -->
+          <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px; font-size:13px; color:var(--g600);">
+            <div><strong>Brand:</strong> Mathrone Supplies</div>
+            <div><strong>Product Code:</strong> ${p.slug || p.id.substring(0,8)}</div>
+            <div><strong>Availability:</strong> <span style="color:${p.stock > 0 ? 'var(--blue)' : 'var(--red)'}; font-weight:600;">${p.stock > 0 ? 'In Stock' : 'Out of Stock'}</span></div>
+          </div>
+
+          <div style="border-top:1px solid var(--g100); padding-top:20px; margin-bottom:20px;">
+            <div style="font-size:24px;font-weight:800;color:var(--navy)">RWF ${isLoggedIn ? Number(p.price * 0.97).toLocaleString() : Number(p.price).toLocaleString()}</div>
             ${isLoggedIn ? 
-              `<div style="color:var(--green);font-size:14px;font-weight:700">✅ Member Discount Applied (-3%)</div>` : 
-              `<div style="color:var(--g600);font-size:13px">Sign in to get a member discount. <a onclick="navigate('register')" style="color:var(--blue);cursor:pointer;font-weight:700">Register</a> or <a onclick="navigate('login')" style="color:var(--blue);cursor:pointer;font-weight:700">Sign In</a>.</div>`
+              `<div style="color:var(--g400);font-size:12px;text-decoration:line-through;margin-bottom:4px;">Ex Tax: RWF ${Number(p.price).toLocaleString()}</div>
+               <div style="color:var(--green);font-size:12px;font-weight:700">✅ Member Discount Applied (-3%)</div>` : 
+              `<div style="color:var(--g400);font-size:12px;margin-bottom:4px;">Ex Tax: RWF ${Number(p.price).toLocaleString()}</div>
+               <div style="color:var(--g600);font-size:11px;margin-top:6px;">Sign in to get a member discount. <a onclick="navigate('register')" style="color:var(--blue);cursor:pointer;font-weight:700">Register</a> or <a onclick="navigate('login')" style="color:var(--blue);cursor:pointer;font-weight:700">Sign In</a>.</div>`
             }
           </div>
 
-          <p style="font-size:16px;color:var(--g600);line-height:1.6;margin-bottom:20px">${p.description || ''}</p>
+          <p style="font-size:14px;color:var(--g600);line-height:1.6;margin-bottom:24px">${p.description || ''}</p>
 
-          <div style="font-size:14px;color:${p.stock > 0 ? 'var(--green)' : 'var(--red)'};font-weight:700;margin-bottom:10px">
-             ${p.stock > 0 ? `✅ In Stock (${p.stock} units)` : '❌ Out of Stock'}
-          </div>
-          <div class="prod-action-btns" style="display:flex;gap:12px">
-            <button onclick="${p.stock === 0 ? "toast('Out of stock','err')" : isLoggedIn ? `addToCart('${p.id}',null,'${safeName}',this)` : `addToGuestCart('${p.id}','${safeName}',${p.price},1)`}"
-              style="flex:2;background:var(--blue);color:#fff;border:none;padding:10px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700">
-              <i data-lucide="shopping-cart" style="width:14px;height:14px;margin-right:4px"></i> Add to Cart
+          <div class="prod-action-btns" style="display:flex; align-items:center; gap:12px; margin-bottom:24px; padding-bottom:24px; border-bottom:1px solid var(--g100); flex-wrap:wrap;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:13px; font-weight:700; color:var(--navy);">Qty</span>
+              <input type="number" value="1" min="1" id="prod-qty-input" style="width:60px; height:40px; border:1px solid var(--g200); border-radius:4px; text-align:center; font-family:inherit; outline:none;" />
+            </div>
+            
+            <button onclick="${p.stock === 0 ? "toast('Out of stock','err')" : isLoggedIn ? `addToCartQty('${p.id}',null,'${safeName}',this,'prod-qty-input')` : `addToGuestCart('${p.id}','${safeName}',${p.price},parseInt(document.getElementById('prod-qty-input').value||1))`}"
+              style="background:var(--blue);color:#fff;border:none;padding:0 24px;height:40px;border-radius:4px;cursor:pointer;font-size:14px;font-weight:700;transition:background .2s;" onmouseover="this.style.background='var(--blue2)'" onmouseout="this.style.background='var(--blue)'">
+              Add To Cart
             </button>
             
-            <button onclick="${isLoggedIn ? `toggleWishlist('${p.id}','${safeName}',this)` : `toast('Sign in to save','info')`}"
-              style="flex:1;background:#fff;border:2px solid var(--g100);padding:10px;border-radius:8px;cursor:pointer;font-size:15px" id="wish-${p.id}">🤍</button>
+            <div style="display:flex; gap:6px;">
+              <button onclick="${isLoggedIn ? `toggleWishlist('${p.id}','${safeName}',this)` : `toast('Sign in to save','info')`}"
+                style="background:var(--navy);color:#fff;border:none;width:40px;height:40px;border-radius:4px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:background .2s;" onmouseover="this.style.background='#1E2845'" onmouseout="this.style.background='var(--navy)'" id="wish-${p.id}">🤍</button>
+              <button onclick="toast('Compare feature coming soon!','info')" style="background:var(--navy);color:#fff;border:none;width:40px;height:40px;border-radius:4px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:background .2s;" onmouseover="this.style.background='#1E2845'" onmouseout="this.style.background='var(--navy)'" title="Compare">🔄</button>
+            </div>
+          </div>
+          
+          <!-- Social Share Row -->
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+            <button style="background:#1877F2; color:#fff; border:none; padding:4px 8px; border-radius:3px; font-size:11px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:4px;"><i data-lucide="thumbs-up" style="width:12px;height:12px"></i> Like 0</button>
+            <button style="background:#1DA1F2; color:#fff; border:none; padding:4px 8px; border-radius:3px; font-size:11px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:4px;"><i data-lucide="twitter" style="width:12px;height:12px"></i> Tweet</button>
+            <button style="background:#F26522; color:#fff; border:none; padding:4px 8px; border-radius:3px; font-size:11px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:4px;">+ Share</button>
           </div>
           
           
