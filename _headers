@@ -16,18 +16,18 @@
   Cache-Control: public, no-cache, must-revalidate
   Vary: Accept-Encoding
 
-# App JS and CSS — versioned by deploy, cache 1 year
+# App JS and CSS — revalidate on every deploy via ETags
 /app.js
-  Cache-Control: public, max-age=31536000, immutable
+  Cache-Control: public, max-age=0, must-revalidate
   Vary: Accept-Encoding
 
 /style.css
-  Cache-Control: public, max-age=31536000, immutable
+  Cache-Control: public, max-age=0, must-revalidate
   Vary: Accept-Encoding
 
 # Component scripts
 /components/*.js
-  Cache-Control: public, max-age=31536000, immutable
+  Cache-Control: public, max-age=0, must-revalidate
   Vary: Accept-Encoding
 
 # Service Worker — never cache, must always be fresh
