@@ -19,7 +19,7 @@ export async function onRequest(context) {
 
     const title = `${product.name} | Mathrone Academy Store`;
     const image = product.image_url || 'https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png';
-    const url = `https://mathroneacademy.pages.dev/shop/${productSlug}`;
+    const url = `https://mathroneacademy.com/shop/${productSlug}`;
     
     // Clean up the description
     const plainText = (product.description || product.name).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
