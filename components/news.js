@@ -518,15 +518,54 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
   const skeletonGrid = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;padding:24px 16px">
     ${skeletonCards(6, '16/9')}
   </div>`
-  render(`<div style="max-width:1200px;margin:0 auto">${skeletonGrid}</div>`)
+  // Only replace the content area, not the full page
+  const contentEl = document.getElementById('pn-content')
+  if (contentEl) {
+    contentEl.innerHTML = `<div style="max-width:1200px;margin:0 auto;padding-top:16px">${skeletonGrid}</div>`
+  } else {
+    render(`
+      <div style="background:var(--navy);height:56px;border-radius:0;margin-bottom:0"></div>
+      <div style="max-width:1200px;margin:0 auto;padding-top:16px">${skeletonGrid}</div>
+    `)
+  }
 
   try{
     const newsBase = API_URL + '/news/?' + (activeCategory ? `category=${activeCategory}&` : '') + (searchQuery ? `search=${encodeURIComponent(searchQuery)}` : '')
-    const [allPosts, featuredPosts, popularPosts] = await Promise.all([
-      cachedFetch(newsBase, 60000),
-      cachedFetch(API_URL + '/news/?featured=true&limit=6', 120000),
-      cachedFetch(API_URL + '/news/?popular=true&limit=4' + (activeCategory ? `&category=${activeCategory}` : ''), 120000)
-    ])
+    // Try localStorage stale cache first for instant render, then refresh in background
+    const LS_KEY = 'news_cache_v1'
+    const LS_TTL = 5 * 60 * 1000 // 5 minutes
+    let stale = null
+    try {
+      const stored = localStorage.getItem(LS_KEY)
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        if (Date.now() - parsed.ts < LS_TTL) stale = parsed
+      }
+    } catch(e) {}
+
+    let allPosts, featuredPosts, popularPosts
+    if (stale && !activeCategory && !searchQuery) {
+      // Use cached data instantly, refresh silently in background
+      allPosts = stale.allPosts
+      featuredPosts = stale.featuredPosts
+      popularPosts = stale.popularPosts
+      Promise.all([
+        cachedFetch(newsBase, 60000),
+        cachedFetch(API_URL + '/news/?featured=true&limit=6', 120000),
+        cachedFetch(API_URL + '/news/?popular=true&limit=4', 120000)
+      ]).then(([a, f, p]) => {
+        try { localStorage.setItem(LS_KEY, JSON.stringify({ ts: Date.now(), allPosts: a, featuredPosts: f, popularPosts: p })) } catch(e) {}
+      }).catch(() => {})
+    } else {
+      ;[allPosts, featuredPosts, popularPosts] = await Promise.all([
+        cachedFetch(newsBase, 60000),
+        cachedFetch(API_URL + '/news/?featured=true&limit=6', 120000),
+        cachedFetch(API_URL + '/news/?popular=true&limit=4' + (activeCategory ? `&category=${activeCategory}` : ''), 120000)
+      ])
+      if (!activeCategory && !searchQuery) {
+        try { localStorage.setItem(LS_KEY, JSON.stringify({ ts: Date.now(), allPosts, featuredPosts, popularPosts })) } catch(e) {}
+      }
+    }
 
     const posts = allPosts.filter(p => !p.is_featured)
     // Populate ticker with real post titles
@@ -1020,9 +1059,13 @@ document.head.appendChild(breadcrumbSchema)
     }
   }
 
-  // Load related articles
+  // Load related + trending in parallel
+  const [relatedResult, trendingResult] = await Promise.allSettled([
+    api('/news/' + p.id + '/related'),
+    api('/news?popular=true&limit=5')
+  ])
   try{
-    const related = await api('/news/' + p.id + '/related')
+    const related = relatedResult.status === 'fulfilled' ? relatedResult.value : []
     const relatedEl = document.getElementById('related-articles-content')
     if(relatedEl && related.length){
       relatedEl.innerHTML = `
@@ -1044,9 +1087,9 @@ document.head.appendChild(breadcrumbSchema)
     document.getElementById('related-articles-content').innerHTML = '<p style="color:var(--g400);font-style:italic">Failed to load related articles</p>'
   }
 
-  // Load trending news for sidebar (using popular recent news)
+// Load trending news for sidebar (using popular recent news)
   try{
-    const trending = await api('/news?popular=true&limit=5')
+    const trending = trendingResult.status === 'fulfilled' ? trendingResult.value : []
     const trendingEl = document.getElementById('trending-news')
     if(trendingEl && trending.length){
       trendingEl.innerHTML = trending.map(t => `

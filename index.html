@@ -342,7 +342,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--g50);color:var(--g800);ov
 
 <div id="toasts"></div>
 <div id="app">
-  <div class="loader-center"><div class="spinner"></div></div>
+  <div class="loader-center" id="initial-loader">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:16px;">
+      <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png"
+           alt="Mathrone Academy" style="height:48px;width:auto;opacity:0.9;" fetchpriority="high"/>
+      <div class="spinner"></div>
+      <span style="font-size:12px;color:#94a3b8;font-family:sans-serif;">Loading Mathrone Academy…</span>
+    </div>
+  </div>
 </div>
 
 <script type="application/ld+json">
@@ -355,11 +362,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--g50);color:var(--g800);ov
 }
 </script>
 
-<script src="/app.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/lucide@0.383.0/dist/umd/lucide.min.js" defer></script>
-
-<!-- Supabase — explicit UMD build, loaded once -->
+<!-- Supabase must load before app.js -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer></script>
+<script src="/app.js" defer></script>
+<!-- Lucide loads last — icons render after app boots, no blocking -->
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.383.0/dist/umd/lucide.min.js" defer></script>
 <script>
 // ── Lazy library loader ──────────────────────────────────────
 const _libLoaded = {};
@@ -417,9 +424,7 @@ async function ensureCropper() {
 <!-- Register Service Worker for offline cache + instant repeat visits -->
 <script>
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function() {
-    navigator.serviceWorker.register('/sw.js').catch(function(){});
-  });
+  navigator.serviceWorker.register('/sw.js').catch(function(){});
 }
 </script>
 </body>
