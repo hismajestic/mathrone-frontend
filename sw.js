@@ -4,7 +4,7 @@
 // new JS/CSS. Cloudflare Pages auto-serves the new sw.js (no-cache header)
 // and the activate handler deletes the old cache automatically.
 // ─────────────────────────────────────────────────────────────────────────
-const CACHE = 'mathrone-v12';
+const CACHE = 'mathrone-v13';
 
 const PRECACHE = [
   '/',
@@ -58,10 +58,10 @@ self.addEventListener('fetch', function(e) {
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith('/api/')) return;
 
-  // Cache-First for JS, CSS, fonts, images
-  var isStatic = /\.(js|css|png|jpg|jpeg|webp|svg|woff2|woff|ico)$/.test(url.pathname);
+  // Cache-First for fonts only — these never change
+  var isFont = /\.(woff2|woff)$/.test(url.pathname);
 
-  if (isStatic) {
+  if (isFont) {
     e.respondWith(
       caches.match(req).then(function(cached) {
         return cached || fetch(req).then(function(res) {
@@ -71,6 +71,24 @@ self.addEventListener('fetch', function(e) {
           }
           return res;
         });
+      })
+    );
+    return;
+  }
+
+  // Network-First for JS, CSS, images — respects _headers cache rules
+  var isStatic = /\.(js|css|png|jpg|jpeg|webp|svg|ico)$/.test(url.pathname);
+
+  if (isStatic) {
+    e.respondWith(
+      fetch(req).then(function(res) {
+        if (res && res.status === 200) {
+          var clone = res.clone();
+          caches.open(CACHE).then(function(c) { c.put(req, clone); });
+        }
+        return res;
+      }).catch(function() {
+        return caches.match(req);
       })
     );
     return;
