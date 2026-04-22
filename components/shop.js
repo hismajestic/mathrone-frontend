@@ -37,17 +37,19 @@ function openGuestOrderModal(preItems = []){
       </div>
       
       <div class="modal-body">
-        <div style="background:var(--sky);border-radius:10px;padding:14px;margin-bottom:20px" id="guest-cart-items">
+       <div style="background:var(--sky);border-radius:10px;padding:14px;margin-bottom:20px" id="guest-cart-items">
           <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:8px">Your Items:</div>
           ${preItems.map(i=>`
-          <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px dashed var(--g200)">
-            <span style="flex:1;padding-right:10px">${i.name}</span>
-            <div style="display:flex;align-items:center;gap:8px">
-              <button onclick="updateGuestCartQty('${i.id}', ${(i.qty||1)-1})" style="width:24px;height:24px;border-radius:50%;border:1px solid var(--g200);background:#fff;cursor:pointer;">-</button>
-              <span style="font-weight:700;min-width:15px;text-align:center">${i.qty||1}</span>
-              <button onclick="updateGuestCartQty('${i.id}', ${(i.qty||1)+1})" style="width:24px;height:24px;border-radius:50%;border:1px solid var(--g200);background:#fff;cursor:pointer;">+</button>
+          <div style="display:flex;flex-direction:column;font-size:13px;padding:8px 0;border-bottom:1px dashed var(--g200);gap:6px">
+            <div style="font-weight:600;line-height:1.4;">${i.name}</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div style="display:flex;align-items:center;gap:8px">
+                <button type="button" onclick="updateGuestCartQty('${i.id}', ${(i.qty||1)-1})" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--g200);background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;">-</button>
+                <span style="font-weight:700;min-width:16px;text-align:center;font-size:14px;">${i.qty||1}</span>
+                <button type="button" onclick="updateGuestCartQty('${i.id}', ${(i.qty||1)+1})" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--g200);background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;">+</button>
+              </div>
+              <span style="font-weight:800;text-align:right;color:var(--navy);">RWF ${Number(i.price*(i.qty||1)).toLocaleString()}</span>
             </div>
-            <span style="font-weight:700;min-width:90px;text-align:right">RWF ${Number(i.price*(i.qty||1)).toLocaleString()}</span>
           </div>`).join('')}
           <div style="margin-top:12px;display:flex;justify-content:space-between;font-weight:800;font-size:16px;color:var(--navy)" id="guest-cart-total">
             <span>Total</span>
@@ -119,9 +121,9 @@ function updateCartButton(){
   const btn = document.getElementById('cart-nav-btn')
   if(btn){
     if(totalQty){
-      btn.innerHTML = `<i data-lucide="shopping-cart" style="width:16px;height:16px;margin-right:4px"></i> Cart (${totalQty})`
+      btn.innerHTML = `<i data-lucide="shopping-cart" style="width:16px;height:16px;margin-right:4px"></i> <span class="sn-text">Cart (${totalQty})</span>`
       if (window.lucide) window.lucide.createIcons()
-      btn.style.display = 'inline-block'
+      btn.style.display = 'inline-flex'
     }else{
       btn.style.display = 'none'
     }
@@ -141,14 +143,16 @@ function updateGuestCartQty(id, newQty){
     }
     // Update items
     const itemsHtml = _getGuestCart().map(i=>`
-    <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;padding:4px 0">
-      <span style="flex:1">${i.name}</span>
-      <div style="display:flex;align-items:center;gap:8px">
-        <button onclick="updateGuestCartQty('${i.id}', ${i.qty-1})" style="width:20px;height:20px;border-radius:50%;border:1px solid var(--g100);background:#fff;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center">-</button>
-        <span style="font-weight:700;min-width:20px;text-align:center">${i.qty}</span>
-        <button onclick="updateGuestCartQty('${i.id}', ${i.qty+1})" style="width:20px;height:20px;border-radius:50%;border:1px solid var(--g100);background:#fff;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center">+</button>
+    <div style="display:flex;flex-direction:column;font-size:13px;padding:8px 0;border-bottom:1px dashed var(--g200);gap:6px">
+      <div style="font-weight:600;line-height:1.4;">${i.name}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:8px">
+          <button type="button" onclick="updateGuestCartQty('${i.id}', ${i.qty-1})" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--g200);background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;">-</button>
+          <span style="font-weight:700;min-width:16px;text-align:center;font-size:14px;">${i.qty}</span>
+          <button type="button" onclick="updateGuestCartQty('${i.id}', ${i.qty+1})" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--g200);background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;">+</button>
+        </div>
+        <span style="font-weight:800;text-align:right;color:var(--navy);">RWF ${Number(i.price*i.qty).toLocaleString()}</span>
       </div>
-      <span style="font-weight:700;min-width:80px;text-align:right">RWF ${Number(i.price*i.qty).toLocaleString()}</span>
     </div>`).join('')
     const itemsContainer = document.getElementById('guest-cart-items')
     if(itemsContainer){
@@ -251,21 +255,30 @@ async function submitGuestOrder(preItems){
 async function renderShop(category = 'all', search = '') {
   const isLoggedIn = !!(State.user && localStorage.getItem('tc_access'))
   const nav = `
-  <nav style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--g100);background:#fff;position:sticky;top:0;z-index:100;gap:8px">
-    <button onclick="navigate('landing')" style="display:flex;align-items:center;gap:6px;background:none;border:none;cursor:pointer;padding:0">
+   <style>
+    @media (max-width: 768px) {
+      .sn-hide { display: none !important; }
+      .sn-text { display: none !important; }
+      .sn-btn { padding: 8px 10px !important; font-size: 13px !important; min-width: auto !important; }
+      .sn-nav { padding: 8px !important; }
+      .sn-brand span { display: none !important; }
+    }
+  </style>
+  <nav class="sn-nav" style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--g100);background:#fff;position:sticky;top:0;z-index:100;gap:8px">
+    <button onclick="navigate('landing')" class="sn-brand" style="display:flex;align-items:center;gap:6px;background:none;border:none;cursor:pointer;padding:0">
       <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" alt="Mathrone Academy logo" loading="lazy" decoding="async" style="height:28px;width:auto"/>
       <span style="font-size:14px;font-weight:800;color:var(--navy);white-space:nowrap">Mathrone</span>
     </button>
-    <div style="display:flex;align-items:center;gap:10px">
+    <div style="display:flex;align-items:center;gap:6px">
       ${isLoggedIn ? `
-      <button class="btn btn-ghost btn-sm" onclick="navigate('wishlist')"><i data-lucide="heart" style="width:16px;height:16px;margin-right:4px"></i> Wishlist</button>
-      <button class="btn btn-ghost btn-sm" onclick="navigate('cart')" id="cart-nav-btn"><i data-lucide="shopping-cart" style="width:16px;height:16px;margin-right:4px"></i> Cart</button>
-      <button class="btn btn-primary btn-sm" onclick="navigate('dashboard')">Dashboard</button>` : `
-      <button class="btn btn-ghost btn-sm" onclick="openGuestOrderModal(_getGuestCart())" id="cart-nav-btn" style="display:none"><i data-lucide="shopping-cart" style="width:16px;height:16px;margin-right:4px"></i> Cart</button>
-      <button class="btn btn-ghost btn-sm" onclick="navigate('courses')"><i data-lucide="graduation-cap" style="width:16px;height:16px;margin-right:4px"></i> Courses</button>
-      <button class="btn btn-ghost btn-sm" onclick="navigate('landing')"><i data-lucide="home" style="width:16px;height:16px;margin-right:4px"></i> Home</button>
-      <button class="btn btn-ghost btn-sm" onclick="navigate('login')">Sign In</button>
-      <button class="btn btn-primary btn-sm" onclick="navigate('register')">Sign Up</button>`}
+      <button class="btn btn-ghost btn-sm sn-btn sn-hide" onclick="navigate('wishlist')"><i data-lucide="heart" style="width:16px;height:16px;margin-right:4px"></i> <span class="sn-text">Wishlist</span></button>
+      <button class="btn btn-ghost btn-sm sn-btn" onclick="navigate('cart')" id="cart-nav-btn"><i data-lucide="shopping-cart" style="width:16px;height:16px;margin-right:4px"></i> <span class="sn-text">Cart</span></button>
+      <button class="btn btn-primary btn-sm sn-btn" onclick="navigate('dashboard')">Dashboard</button>` : `
+      <button class="btn btn-ghost btn-sm sn-btn" onclick="openGuestOrderModal(_getGuestCart())" id="cart-nav-btn" style="display:none"><i data-lucide="shopping-cart" style="width:16px;height:16px;margin-right:4px"></i> <span class="sn-text">Cart</span></button>
+      <button class="btn btn-ghost btn-sm sn-btn" onclick="navigate('courses')"><i data-lucide="graduation-cap" style="width:16px;height:16px;margin-right:4px"></i> <span class="sn-text">Courses</span></button>
+      <button class="btn btn-ghost btn-sm sn-btn" onclick="navigate('landing')"><i data-lucide="home" style="width:16px;height:16px;margin-right:4px"></i> <span class="sn-text">Home</span></button>
+      <button class="btn btn-primary btn-sm sn-btn" onclick="navigate('login')"><i data-lucide="log-in" style="width:16px;height:16px;margin-right:4px"></i> <span class="sn-text">Sign In</span></button>
+      <button class="btn btn-ghost btn-sm sn-btn sn-hide" onclick="navigate('register')">Sign Up</button>`}
     </div>
   </nav>`
 
@@ -282,9 +295,9 @@ async function renderShop(category = 'all', search = '') {
       const btn = document.getElementById('cart-nav-btn')
       if(btn){
         if(totalQty){
-          btn.innerHTML = `<i data-lucide="shopping-cart" style="width:16px;height:16px;margin-right:4px"></i> Cart (${totalQty})`
+          btn.innerHTML = `<i data-lucide="shopping-cart" style="width:16px;height:16px;margin-right:4px"></i> <span class="sn-text">Cart (${totalQty})</span>`
           if (window.lucide) window.lucide.createIcons()
-          btn.style.display = 'inline-block'
+          btn.style.display = 'inline-flex'
         }else if(!isLoggedIn){
           btn.style.display = 'none'
         }
