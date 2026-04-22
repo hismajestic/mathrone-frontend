@@ -8,6 +8,7 @@ export async function onRequest(context) {
     { loc: '/',        changefreq: 'weekly',  priority: '1.0', lastmod: today },
     { loc: '/news',    changefreq: 'daily',   priority: '0.9', lastmod: today },
     { loc: '/shop',    changefreq: 'weekly',  priority: '0.8', lastmod: today },
+    { loc: '/courses',  changefreq: 'weekly',  priority: '0.8', lastmod: today },
     { loc: '/tutors',  changefreq: 'weekly',  priority: '0.8', lastmod: today },
     { loc: '/about',   changefreq: 'monthly', priority: '0.7', lastmod: today },
     { loc: '/terms',   changefreq: 'yearly',  priority: '0.4', lastmod: today },
