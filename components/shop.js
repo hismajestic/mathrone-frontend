@@ -218,7 +218,7 @@ async function submitGuestOrder(preItems){
   // Show confirmation + CTA
   render(`
   <nav style="display:flex;align-items:center;justify-content:space-between;padding:14px 48px;border-bottom:1px solid var(--g100);background:#fff">
-    <button onclick="navigate('shop')" style="background:none;border:none;cursor:pointer;font-size:16px;font-weight:700;color:var(--navy)">← Back to Store</button>
+    <a href="/shop" onclick="navigate('shop', null, event)" style="background:none;border:none;cursor:pointer;font-size:16px;font-weight:700;color:var(--navy);text-decoration:none">← Back to Store</a>
   </nav>
   <div style="max-width:540px;margin:80px auto;text-align:center;padding:24px">
     <div style="font-size:64px;margin-bottom:16px">🎉</div>
@@ -327,20 +327,66 @@ async function renderShop(category = 'all', search = '') {
             </div>
           </div>
           
-          <!-- Refine Search Box (Mock UI) -->
-          <div style="border:1px solid var(--g100); border-radius:8px; overflow:hidden; background:#fff;">
-            <div style="background:var(--navy); color:#fff; padding:12px 16px; font-weight:700; font-size:15px;">Refine Search</div>
-            <div style="padding:16px;">
-              <div style="font-weight:700; font-size:13px; color:var(--navy); margin-bottom:10px;">Color</div>
-              <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:var(--g600); margin-bottom:6px; cursor:pointer;"><input type="checkbox"> Green</label>
-              <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:var(--g600); margin-bottom:6px; cursor:pointer;"><input type="checkbox"> Red</label>
-              <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:var(--g600); margin-bottom:6px; cursor:pointer;"><input type="checkbox"> Yellow</label>
-              <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:var(--g600); margin-bottom:6px; cursor:pointer;"><input type="checkbox"> Blue</label>
+          <!-- Trust Badges -->
+          <div style="border:1px solid var(--g100);border-radius:8px;overflow:hidden;background:#fff;">
+            <div style="background:var(--navy);color:#fff;padding:12px 16px;font-weight:700;font-size:15px;">Why Shop With Us</div>
+            <div style="padding:12px;display:flex;flex-direction:column;gap:0;">
+              <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 4px;border-bottom:1px solid var(--g50);">
+                <i data-lucide="badge-check" style="width:18px;height:18px;flex-shrink:0;color:#1d4ed8;margin-top:1px"></i>
+                <div>
+                  <div style="font-size:12px;font-weight:700;color:var(--navy);">Genuine Products</div>
+                  <div style="font-size:11px;color:var(--g400);margin-top:1px;">All items are quality-checked before listing</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 4px;border-bottom:1px solid var(--g50);">
+                <i data-lucide="truck" style="width:18px;height:18px;flex-shrink:0;color:#1d4ed8;margin-top:1px"></i>
+                <div>
+                  <div style="font-size:12px;font-weight:700;color:var(--navy);">Kigali Delivery</div>
+                  <div style="font-size:11px;color:var(--g400);margin-top:1px;">Fast delivery across Kigali & Rwanda</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 4px;border-bottom:1px solid var(--g50);">
+                <i data-lucide="lock" style="width:18px;height:18px;flex-shrink:0;color:#1d4ed8;margin-top:1px"></i>
+                <div>
+                  <div style="font-size:12px;font-weight:700;color:var(--navy);">Secure Checkout</div>
+                  <div style="font-size:11px;color:var(--g400);margin-top:1px;">Your payment and data are protected</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 4px;">
+                <i data-lucide="refresh-ccw" style="width:18px;height:18px;flex-shrink:0;color:#1d4ed8;margin-top:1px"></i>
+                <div>
+                  <div style="font-size:12px;font-weight:700;color:var(--navy);">Easy Returns</div>
+                  <div style="font-size:11px;color:var(--g400);margin-top:1px;">Not satisfied? We'll make it right</div>
+                </div>
+              </div>
             </div>
+          </div>
+
+          <!-- WhatsApp CTA -->
+          <div style="border:1px solid #d1fae5;border-radius:8px;background:#f0fdf4;padding:16px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+              <i data-lucide="message-circle" style="width:18px;height:18px;color:#065f46;flex-shrink:0"></i>
+              <span style="font-size:13px;font-weight:700;color:#065f46;">Need Help?</span>
+            </div>
+            <p style="font-size:11px;color:#047857;line-height:1.5;margin-bottom:12px;">Have a question about a product? Ask us on WhatsApp before you buy.</p>
+            <a href="https://wa.me/250786684285" target="_blank"
+               style="display:flex;align-items:center;justify-content:center;gap:6px;background:#25d366;color:#fff;text-decoration:none;padding:9px 12px;border-radius:8px;font-size:12px;font-weight:700;transition:background .15s;"
+               onmouseover="this.style.background='#1ebe5d'" onmouseout="this.style.background='#25d366'">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              Chat on WhatsApp
+            </a>
           </div>
         </aside>
 
         <!-- Main Content -->
+        <!-- Mobile Category Pills -->
+        <div class="shop-mobile-cats" style="overflow-x:auto;gap:8px;padding:0 4px 12px;scrollbar-width:none;-ms-overflow-style:none;flex-wrap:nowrap;">
+          ${SHOP_CATEGORIES.map(c=>`
+          <button onclick="renderShop('${c.id}')" style="white-space:nowrap;padding:6px 14px;border-radius:999px;border:1.5px solid ${category===c.id?'var(--blue)':'var(--g200)'};background:${category===c.id?'var(--sky)':'#fff'};color:${category===c.id?'var(--blue)':'var(--g600)'};font-size:12px;font-weight:${category===c.id?'700':'500'};cursor:pointer;flex-shrink:0;">
+            ${c.icon} ${c.label}
+          </button>`).join('')}
+        </div>
+
         <div class="shop-main-content" style="display:flex; flex-direction:column; min-width:0;">
           
           ${!window._shopBannerHidden ? `
@@ -351,22 +397,20 @@ async function renderShop(category = 'all', search = '') {
             }
           </style>
           <!-- Top Banner -->
-          <div id="shop-top-banner" style="background:var(--sky); border-radius:8px; padding:40px 30px; margin-bottom:24px; position:relative; overflow:hidden; display:flex; align-items:center; transition: all 0.5s ease-in-out; max-height: 500px; opacity: 1;">
-            <div style="position:relative; z-index:2; max-width:60%;">
-              <h2 style="font-size:28px; font-weight:800; color:var(--navy); line-height:1.2; margin-bottom:12px; font-family:'Playfair Display',serif;">Buy Learning Materials</h2>
-              <p style="font-size:13px; color:var(--g600); margin-bottom:20px;">Quality learning materials to empower your education journey.</p>
-              <button class="btn btn-primary" onclick="window._shopBannerHidden=true; const b=document.getElementById('shop-top-banner'); b.style.maxHeight='0'; b.style.paddingTop='0'; b.style.paddingBottom='0'; b.style.marginBottom='0'; b.style.opacity='0'; setTimeout(()=>b.style.display='none', 500);" style="background:var(--blue); border-color:var(--blue);">Buy now </button>
+          <div id="shop-top-banner" style="background:var(--navy); border-radius:8px; padding:40px 30px; margin-bottom:24px; position:relative; overflow:hidden; display:flex; align-items:center; transition: all 0.5s ease-in-out; max-height: 500px; opacity: 1; min-height:160px;">
+            <div style="position:relative; z-index:2; max-width:55%;">
+              <h2 style="font-size:28px; font-weight:800; color:#fff; line-height:1.2; margin-bottom:12px; font-family:'Playfair Display',serif;">Buy Learning Materials</h2>
+              <p style="font-size:13px; color:rgba(255,255,255,0.65); margin-bottom:20px;">Quality learning materials to empower your education journey.</p>
+              <button class="btn btn-primary" onclick="window._shopBannerHidden=true; const b=document.getElementById('shop-top-banner'); b.style.maxHeight='0'; b.style.paddingTop='0'; b.style.paddingBottom='0'; b.style.marginBottom='0'; b.style.opacity='0'; setTimeout(()=>b.style.display='none', 500);" style="background:var(--blue); border-color:var(--blue);">Shop Now</button>
             </div>
             
             <!-- Sliding Diffused Products -->
-            <div style="position:absolute; right:0; top:0; bottom:0; width:65%; overflow:hidden; pointer-events:none; z-index:0; -webkit-mask-image: linear-gradient(to right, transparent 0%, black 40%); mask-image: linear-gradient(to right, transparent 0%, black 40%);">
-              <div style="display:flex; height:100%; align-items:center; gap:30px; animation: slideShopProducts 20s linear infinite; width:max-content; padding-left:30px;">
+            <div style="position:absolute; right:0; top:0; bottom:0; width:55%; overflow:hidden; pointer-events:none; z-index:0; -webkit-mask-image: linear-gradient(to right, transparent 0%, black 35%); mask-image: linear-gradient(to right, transparent 0%, black 35%);">
+              <div style="display:flex; height:100%; align-items:stretch; gap:0; animation: slideShopProducts 20s linear infinite; width:max-content;">
                  ${(() => {
                     const bImgs = products.filter(p => p.image_url).slice(0,5).map(p => p.image_url);
-                    // Fallback to a default image if store has no images yet
                     const safeImgs = bImgs.length ? bImgs : ['https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png'];
-                    // Triplicate array to ensure a perfectly seamless infinite scroll loop
-                    return [...safeImgs, ...safeImgs, ...safeImgs].map(url => `<img src="${url}" style="height:110px; max-width:140px; object-fit:contain; filter:drop-shadow(0 15px 25px rgba(0,0,0,0.08)); mix-blend-mode: multiply;" />`).join('');
+                    return [...safeImgs, ...safeImgs, ...safeImgs].map(url => `<div style="height:100%;width:180px;flex-shrink:0;display:flex;align-items:center;justify-content:center;padding:16px;border-right:1px solid rgba(255,255,255,0.08);"><img src="${url}" style="width:100%;height:100%;object-fit:contain;opacity:0.85;" /></div>`).join('');
                  })()}
               </div>
             </div>
@@ -502,10 +546,10 @@ function shopProductCard(p, isLoggedIn) {
 
     <!-- Image — fixed 200px height, consistent across all cards -->
     <a href="/shop/${p.slug||p.id}" onclick="navigate('shop-product-${p.slug||p.id}', null, event)"
-       style="display:block;position:relative;aspect-ratio:1/1;background:#f8fafc;overflow:hidden;flex-shrink:0;border-bottom:1px solid #f0f2f5">
+       style="display:block;position:relative;width:100%;padding-top:100%;background:#f8fafc;overflow:hidden;flex-shrink:0;border-bottom:1px solid #f0f2f5">
       ${p.image_url
         ? `<img src="${p.image_url}" alt="${p.name}" loading="lazy" decoding="async"
-               style="width:100%;height:100%;object-fit:contain;padding:16px;transition:transform .3s"
+               style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;padding:16px;transition:transform .3s"
                onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'"/>`
         : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:52px;color:#cbd5e1">🛍️</div>`}
       ${isOutOfStock ? `<div style="position:absolute;top:10px;left:10px;background:#ef4444;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;letter-spacing:0.05em">OUT OF STOCK</div>` : ''}
@@ -513,7 +557,7 @@ function shopProductCard(p, isLoggedIn) {
     </a>
 
     <!-- Body -->
-    <div style="padding:14px 16px;flex:1;display:flex;flex-direction:column;gap:6px">
+    <div style="padding:12px 14px;flex:1;display:flex;flex-direction:column;gap:0">
 
       <!-- Category tag -->
       ${p.category ? `<div style="font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:0.08em">${p.category}</div>` : ''}
@@ -526,16 +570,23 @@ function shopProductCard(p, isLoggedIn) {
 
       <!-- Description — 2 lines max -->
       ${p.description ? `
-      <div style="font-size:12px;color:#64748b;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">
+      <div style="font-size:12px;color:#64748b;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-height:34px;margin-top:1px">
         ${p.description}
       </div>` : ''}
+
+      <!-- View Details — pill style, above price -->
+      <a href="/shop/${p.slug||p.id}" onclick="navigate('shop-product-${p.slug||p.id}', null, event)"
+         style="display:inline-flex;align-items:center;gap:3px;padding:4px 12px;border-radius:999px;border:1.5px solid #bfdbfe;background:#eff6ff;font-size:11px;font-weight:600;color:#1d4ed8;text-decoration:none;width:fit-content;transition:background .15s;margin-top:4px"
+         onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
+        View full details →
+      </a>
 
       <!-- Spacer pushes price+button to bottom -->
       <div style="flex:1"></div>
 
       <!-- Price -->
-      <div style="display:flex;align-items:baseline;gap:8px;margin-top:8px">
-        <span style="font-size:16px;font-weight:800;color:#0f172a">RWF ${displayPrice}</span>
+      <div style="display:flex;align-items:baseline;gap:8px;margin-top:4px">
+        <span style="font-size:15px;font-weight:800;color:#0f172a">RWF ${displayPrice}</span>
         ${isLoggedIn ? `
           <span style="font-size:11px;color:#94a3b8;text-decoration:line-through">RWF ${basePrice}</span>
           <span style="font-size:10px;background:#dcfce7;color:#065f46;padding:2px 6px;border-radius:4px;font-weight:700;white-space:nowrap">-3% member</span>
@@ -546,11 +597,13 @@ function shopProductCard(p, isLoggedIn) {
       <button onclick="${isOutOfStock ? "toast('Out of stock','err')" :
           isLoggedIn ? `addToCart('${p.id}',null,'${safeName}',this)` :
           `addToGuestCart('${p.id}','${safeName}',${p.price},1)`}"
-        style="margin-top:10px;width:100%;background:${isOutOfStock ? '#e2e8f0' : 'var(--blue)'};color:${isOutOfStock ? '#94a3b8' : '#fff'};border:none;padding:11px;border-radius:8px;cursor:${isOutOfStock ? 'not-allowed' : 'pointer'};font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;transition:background .15s"
+        style="margin-top:6px;width:100%;background:${isOutOfStock ? '#e2e8f0' : 'var(--blue)'};color:${isOutOfStock ? '#94a3b8' : '#fff'};border:none;padding:8px;border-radius:8px;cursor:${isOutOfStock ? 'not-allowed' : 'pointer'};font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px;transition:background .15s"
         ${isOutOfStock ? 'disabled' : `onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='var(--blue)'"`}>
         <i data-lucide="shopping-cart" style="width:14px;height:14px"></i>
         ${isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
       </button>
+
+      
     </div>
   </div>`
 }
@@ -684,13 +737,7 @@ async function renderShopProduct(productId) {
           <a href="/shop" onclick="navigate('shop', null, event)" style="font-size:12px;font-weight:700;color:var(--blue);text-transform:uppercase;margin-bottom:8px;display:block;text-decoration:none">${SHOP_CATEGORIES.find(c => c.id === p.category)?.label || p.category}</a>
           <h1 class="prod-title" style="font-size:24px;font-weight:800;color:var(--navy);margin-bottom:12px;font-family:'Playfair Display',serif;">${p.name}</h1>
           
-          <!-- Ratings (Matching UI) -->
-          <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px; border-bottom:1px solid var(--g100); padding-bottom:16px;">
-            <div style="color:var(--gold); font-size:14px;">★★★★☆</div>
-            <a href="#" style="font-size:12px; color:var(--g600); text-decoration:none;">1 reviews</a>
-            <span style="color:var(--g200);">|</span>
-            <a href="#" style="font-size:12px; color:var(--g600); text-decoration:none; display:flex; align-items:center; gap:4px;"><i data-lucide="edit-3" style="width:12px;height:12px"></i> Write a review</a>
-          </div>
+          
 
           <!-- Meta Info -->
           <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px; font-size:13px; color:var(--g600);">
@@ -702,10 +749,8 @@ async function renderShopProduct(productId) {
           <div style="border-top:1px solid var(--g100); padding-top:20px; margin-bottom:20px;">
             <div style="font-size:24px;font-weight:800;color:var(--navy)">RWF ${isLoggedIn ? Number(p.price * 0.97).toLocaleString() : Number(p.price).toLocaleString()}</div>
             ${isLoggedIn ? 
-              `<div style="color:var(--g400);font-size:12px;text-decoration:line-through;margin-bottom:4px;">Ex Tax: RWF ${Number(p.price).toLocaleString()}</div>
-               <div style="color:var(--green);font-size:12px;font-weight:700">✅ Member Discount Applied (-3%)</div>` : 
-              `<div style="color:var(--g400);font-size:12px;margin-bottom:4px;">Ex Tax: RWF ${Number(p.price).toLocaleString()}</div>
-               <div style="color:var(--g600);font-size:11px;margin-top:6px;">Sign in to get a member discount. <a onclick="navigate('register')" style="color:var(--blue);cursor:pointer;font-weight:700">Register</a> or <a onclick="navigate('login')" style="color:var(--blue);cursor:pointer;font-weight:700">Sign In</a>.</div>`
+              `<div style="color:var(--green);font-size:12px;font-weight:700;margin-top:4px;">Member Discount Applied (-3%)</div>` : 
+              `<div style="color:var(--g600);font-size:11px;margin-top:6px;">Sign in to get a member discount. <a onclick="navigate('register')" style="color:var(--blue);cursor:pointer;font-weight:700">Register</a> or <a onclick="navigate('login')" style="color:var(--blue);cursor:pointer;font-weight:700">Sign In</a>.</div>`
             }
           </div>
 
@@ -724,16 +769,29 @@ async function renderShopProduct(productId) {
             
             <div style="display:flex; gap:6px;">
               <button onclick="${isLoggedIn ? `toggleWishlist('${p.id}','${safeName}',this)` : `toast('Sign in to save','info')`}"
-                style="background:var(--navy);color:#fff;border:none;width:40px;height:40px;border-radius:4px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:background .2s;" onmouseover="this.style.background='#1E2845'" onmouseout="this.style.background='var(--navy)'" id="wish-${p.id}">🤍</button>
-              <button onclick="toast('Compare feature coming soon!','info')" style="background:var(--navy);color:#fff;border:none;width:40px;height:40px;border-radius:4px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:background .2s;" onmouseover="this.style.background='#1E2845'" onmouseout="this.style.background='var(--navy)'" title="Compare">🔄</button>
+                style="background:var(--navy);color:#fff;border:none;width:40px;height:40px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;" onmouseover="this.style.background='#1E2845'" onmouseout="this.style.background='var(--navy)'" id="wish-${p.id}">
+                <i data-lucide="heart" style="width:16px;height:16px"></i>
+              </button>
             </div>
           </div>
           
           <!-- Social Share Row -->
           <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
-            <button style="background:#1877F2; color:#fff; border:none; padding:4px 8px; border-radius:3px; font-size:11px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:4px;"><i data-lucide="thumbs-up" style="width:12px;height:12px"></i> Like 0</button>
-            <button style="background:#1DA1F2; color:#fff; border:none; padding:4px 8px; border-radius:3px; font-size:11px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:4px;"><i data-lucide="twitter" style="width:12px;height:12px"></i> Tweet</button>
-            <button style="background:#F26522; color:#fff; border:none; padding:4px 8px; border-radius:3px; font-size:11px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:4px;">+ Share</button>
+            <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(p.name)}&url=${encodeURIComponent('https://mathroneacademy.com/shop/'+p.slug)}" target="_blank"
+               style="background:#000;color:#fff;border:none;padding:6px 12px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;text-decoration:none;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              Post
+            </a>
+            <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent('https://mathroneacademy.com/shop/'+p.slug)}" target="_blank"
+               style="background:#1877F2;color:#fff;border:none;padding:6px 12px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;text-decoration:none;">
+              <i data-lucide="facebook" style="width:11px;height:11px"></i>
+              Share
+            </a>
+            <a href="https://wa.me/?text=${encodeURIComponent(p.name+' - RWF '+Number(p.price).toLocaleString()+'\nhttps://mathroneacademy.com/shop/'+p.slug)}" target="_blank"
+               style="background:#25d366;color:#fff;border:none;padding:6px 12px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;text-decoration:none;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              WhatsApp
+            </a>
           </div>
           
           
@@ -811,6 +869,22 @@ async function renderShopProduct(productId) {
     document.querySelector('meta[name="twitter:image"]')?.setAttribute('content', productImg)
     document.querySelector('link[rel="canonical"]')?.setAttribute('href', productUrl)
 
+const existingBreadcrumb = document.getElementById('breadcrumb-schema')
+if(existingBreadcrumb) existingBreadcrumb.remove()
+const breadcrumbSchema = document.createElement('script')
+breadcrumbSchema.id = 'breadcrumb-schema'
+breadcrumbSchema.type = 'application/ld+json'
+breadcrumbSchema.textContent = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://mathroneacademy.com" },
+    { "@type": "ListItem", "position": 2, "name": "Shop", "item": "https://mathroneacademy.com/shop" },
+    { "@type": "ListItem", "position": 3, "name": p.name, "item": 'https://mathroneacademy.com/shop/' + (p.slug||p.id) }
+  ]
+})
+document.head.appendChild(breadcrumbSchema)
+
 const existingSchema = document.getElementById('product-schema')
 if(existingSchema) existingSchema.remove()
 const productSchema = document.createElement('script')
@@ -825,11 +899,7 @@ productSchema.textContent = JSON.stringify({
   "url": 'https://mathroneacademy.com/shop/' + (p.slug||p.id),
 "sku": p.slug || String(p.id),
 "brand": { "@type": "Brand", "name": "Mathrone Academy" },
-"aggregateRating": p.avg_rating ? {
-  "@type": "AggregateRating",
-  "ratingValue": Number(p.avg_rating).toFixed(1),
-  "reviewCount": p.rating_count || 1
-} : undefined,
+
   "offers": {
     "@type": "Offer",
     "priceCurrency": "RWF",

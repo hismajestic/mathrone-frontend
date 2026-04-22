@@ -9,6 +9,7 @@
 <!-- ② Preconnect to external origins before any requests fire -->
 <link rel="preconnect" href="https://hdpkjomganndiiprnpok.supabase.co" crossorigin/>
 <link rel="preconnect" href="https://fonts.bunny.net" crossorigin/>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin/>
 
 <!-- ③ Preload critical resources — LCP logo gets fetchpriority=high -->
 <link rel="preload" href="/style.css" as="style"/>
@@ -16,6 +17,7 @@
 <link rel="preload" href="/components/landing.js" as="script" crossorigin="anonymous"/>
 <link rel="preload" href="/components/auth.js" as="script" crossorigin="anonymous"/>
 <link rel="preload" href="/assets/fonts.css" as="style"/>
+<link rel="preload" href="/assets/fonts/dm-sans-400.woff2" as="font" type="font/woff2" crossorigin/>
 <link rel="preload" href="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" as="image" fetchpriority="high"/>
 
 <!-- ④ Inline critical CSS — renders spinner with zero extra request -->
@@ -89,8 +91,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--g50);color:var(--g800);ov
 <meta name="twitter:image:alt" content="Mathrone Academy — Expert Tutoring in Rwanda"/>
 
 <!-- Favicon -->
-<link rel="icon" type="image/png" sizes="64x64" href="/favicon.png"/>
-<link rel="apple-touch-icon" sizes="192x192" href="/favicon.png"/>
+<link rel="icon" type="image/jpg" sizes="64x64" href="/favicon.jpg"/>
+<link rel="apple-touch-icon" sizes="192x192" href="/favicon.jpg"/>
 
 <!-- Schema.org: EducationalOrganization -->
 <script type="application/ld+json">
@@ -356,11 +358,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--g50);color:var(--g800);ov
 <script src="/app.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/lucide@0.383.0/dist/umd/lucide.min.js" defer></script>
 
-<!-- Only Supabase loads for everyone. All other libs load on-demand. -->
+<!-- Supabase — explicit UMD build, loaded once -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer></script>
-
-<!-- Only Supabase loads for everyone. All other libs load on-demand. -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 <script>
 // ── Lazy library loader ──────────────────────────────────────
 const _libLoaded = {};

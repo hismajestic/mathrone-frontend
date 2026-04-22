@@ -271,12 +271,19 @@
       }
     }
     
+    .shop-mobile-cats {
+      display: none;
+    }
+
     @media (max-width: 900px) {
       .shop-layout-grid {
         grid-template-columns: 1fr !important;
       }
       .shop-sidebar {
-        display: none !important; /* Hide sidebar on mobile to save space */
+        display: none !important;
+      }
+      .shop-mobile-cats {
+        display: flex !important;
       }
     }
     .btn-primary {

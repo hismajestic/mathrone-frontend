@@ -4,7 +4,7 @@
 // new JS/CSS. Cloudflare Pages auto-serves the new sw.js (no-cache header)
 // and the activate handler deletes the old cache automatically.
 // ─────────────────────────────────────────────────────────────────────────
-const CACHE = 'mathrone-v8';
+const CACHE = 'mathrone-v9';
 
 const PRECACHE = [
   '/',
@@ -16,10 +16,6 @@ const PRECACHE = [
   '/assets/fonts.css',
   '/components/landing.js',
   '/components/auth.js',
-  '/components/dashboards.js',
-  '/components/shop.js',
-  '/components/courses.js',
-  '/components/news.js',
 ];
 
 // Install: precache all critical files

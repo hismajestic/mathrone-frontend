@@ -1,0 +1,26 @@
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "terser app.js -o app.js --compress --mangle && terser components/landing.js -o components/landing.js --compress --mangle && terser components/auth.js -o components/auth.js --compress --mangle && terser components/courses.js -o components/courses.js --compress --mangle && terser components/dashboards.js -o components/dashboards.js --compress --mangle && terser components/news.js -o components/news.js --compress --mangle && terser components/shop.js -o components/shop.js --compress --mangle && terser components/whiteboard.js -o components/whiteboard.js --compress --mangle && csso style.css --output style.css"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hismajestic/mathrone-frontend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/hismajestic/mathrone-frontend/issues"
+  },
+  "homepage": "https://github.com/hismajestic/mathrone-frontend#readme",
+  "devDependencies": {
+    "csso-cli": "^4.0.2",
+    "terser": "^5.46.1"
+  }
+}
