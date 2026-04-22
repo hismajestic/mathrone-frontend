@@ -7,39 +7,111 @@ async function insertNewsImage(input){
   toast('Uploading image...')
   const form = new FormData()
   form.append('file', file)
-  
-  console.log('Token:', getToken()?.slice(0,20))
+  let uploadedUrl = null
   try{
     const res = await fetch(API_URL + '/news/upload-image', {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + getToken() },
       body: form
     })
-    
     const data = await res.json()
-  
     if(!res.ok) throw new Error(data.detail||'Upload failed')
-   
-    const editor = document.getElementById('news-editor')
-    if(editor){
-      const img = document.createElement('img')
-      img.src = data.url
-      img.style.cssText = 'max-width:100%;height:auto;border-radius:8px;margin:8px 0;display:block'
-      editor.appendChild(img)
-      toast('Image uploaded! ✅')
-
-// Auto-populate the image URL field for card thumbnail
-const imageUrlField = document.getElementById('news-image')
-if(imageUrlField && !imageUrlField.value){
-  imageUrlField.value = data.url
-}
-    } else {
-      console.log('Editor not found!')
-    }
+    uploadedUrl = data.url
+    const imageUrlField = document.getElementById('news-image')
+    if(imageUrlField && !imageUrlField.value) imageUrlField.value = data.url
   }catch(e){
     toast(e.message,'err')
+    input.value = ''
+    return
   }
   input.value = ''
+
+  // Show layout picker
+  const picker = document.createElement('div')
+  picker.id = 'img-layout-picker'
+  picker.style.cssText = 'position:fixed;inset:0;background:rgba(13,27,64,0.6);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center'
+  picker.innerHTML = `
+    <div style="background:#fff;border-radius:14px;padding:28px 28px 22px;box-shadow:0 24px 64px rgba(13,27,64,0.24);width:480px;max-width:94vw">
+      <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:#0D1B40;margin-bottom:4px">Choose Image Layout</div>
+      <div style="font-size:13px;color:#8A98B8;margin-bottom:20px">How should the image sit in your article?</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px">
+        <button onclick="_insertImageWithLayout('${uploadedUrl}','full')"
+          style="border:2px solid #E5E2DA;border-radius:10px;padding:16px 10px 12px;cursor:pointer;background:#fff;display:flex;flex-direction:column;align-items:center;gap:10px"
+          onmouseover="this.style.borderColor='#1A5FFF';this.style.background='#f5f8ff'"
+          onmouseout="this.style.borderColor='#E5E2DA';this.style.background='#fff'">
+          <div style="width:100%;height:52px;background:#E8EEFF;border-radius:6px;display:flex;align-items:center;justify-content:center">
+            <div style="width:80%;height:32px;background:#1A5FFF;border-radius:4px;opacity:0.7"></div>
+          </div>
+          <div style="width:100%;display:flex;flex-direction:column;gap:4px">
+            <div style="height:4px;background:#D1D5DB;border-radius:2px"></div>
+            <div style="height:4px;background:#D1D5DB;border-radius:2px;width:80%"></div>
+            <div style="height:4px;background:#D1D5DB;border-radius:2px;width:60%"></div>
+          </div>
+          <span style="font-size:12px;font-weight:700;color:#1E2845">Full Width</span>
+        </button>
+        <button onclick="_insertImageWithLayout('${uploadedUrl}','left')"
+          style="border:2px solid #E5E2DA;border-radius:10px;padding:16px 10px 12px;cursor:pointer;background:#fff;display:flex;flex-direction:column;align-items:center;gap:10px"
+          onmouseover="this.style.borderColor='#1A5FFF';this.style.background='#f5f8ff'"
+          onmouseout="this.style.borderColor='#E5E2DA';this.style.background='#fff'">
+          <div style="width:100%;height:52px;display:flex;gap:5px">
+            <div style="width:45%;background:#1A5FFF;border-radius:5px;opacity:0.7;flex-shrink:0"></div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:4px;justify-content:center">
+              <div style="height:4px;background:#D1D5DB;border-radius:2px"></div>
+              <div style="height:4px;background:#D1D5DB;border-radius:2px"></div>
+              <div style="height:4px;background:#D1D5DB;border-radius:2px;width:70%"></div>
+            </div>
+          </div>
+          <div style="width:100%;display:flex;flex-direction:column;gap:4px">
+            <div style="height:4px;background:#D1D5DB;border-radius:2px"></div>
+            <div style="height:4px;background:#D1D5DB;border-radius:2px;width:85%"></div>
+          </div>
+          <span style="font-size:12px;font-weight:700;color:#1E2845">Image Left</span>
+        </button>
+        <button onclick="_insertImageWithLayout('${uploadedUrl}','right')"
+          style="border:2px solid #E5E2DA;border-radius:10px;padding:16px 10px 12px;cursor:pointer;background:#fff;display:flex;flex-direction:column;align-items:center;gap:10px"
+          onmouseover="this.style.borderColor='#1A5FFF';this.style.background='#f5f8ff'"
+          onmouseout="this.style.borderColor='#E5E2DA';this.style.background='#fff'">
+          <div style="width:100%;height:52px;display:flex;gap:5px">
+            <div style="flex:1;display:flex;flex-direction:column;gap:4px;justify-content:center">
+              <div style="height:4px;background:#D1D5DB;border-radius:2px"></div>
+              <div style="height:4px;background:#D1D5DB;border-radius:2px"></div>
+              <div style="height:4px;background:#D1D5DB;border-radius:2px;width:70%"></div>
+            </div>
+            <div style="width:45%;background:#1A5FFF;border-radius:5px;opacity:0.7;flex-shrink:0"></div>
+          </div>
+          <div style="width:100%;display:flex;flex-direction:column;gap:4px">
+            <div style="height:4px;background:#D1D5DB;border-radius:2px"></div>
+            <div style="height:4px;background:#D1D5DB;border-radius:2px;width:85%"></div>
+          </div>
+          <span style="font-size:12px;font-weight:700;color:#1E2845">Image Right</span>
+        </button>
+      </div>
+      <div style="text-align:right">
+        <button onclick="document.getElementById('img-layout-picker').remove()"
+          style="border:none;background:none;color:#8A98B8;font-size:13px;cursor:pointer;padding:6px 10px;border-radius:6px"
+          onmouseover="this.style.background='#f1f3f7'" onmouseout="this.style.background='none'">Cancel</button>
+      </div>
+    </div>`
+  document.body.appendChild(picker)
+}
+
+function _insertImageWithLayout(url, layout){
+  document.getElementById('img-layout-picker')?.remove()
+  const editor = document.getElementById('news-editor')
+  if(!editor){ toast('Editor not found','err'); return }
+  if(layout === 'left' || layout === 'right'){
+    const float = layout === 'left' ? 'left' : 'right'
+    const margin = layout === 'left' ? '4px 18px 12px 0' : '4px 0 12px 18px'
+    const html = `<div style="overflow:hidden;margin:12px 0"><img src="${url}" style="float:${float};width:42%;max-width:280px;height:auto;border-radius:8px;margin:${margin}" /><p style="margin:0;min-height:80px;line-height:1.8">Write your text here — it will wrap alongside the image.</p><div style="clear:both"></div></div><p><br></p>`
+    editor.focus()
+    document.execCommand('insertHTML', false, html)
+  } else {
+    const img = document.createElement('img')
+    img.src = url
+    img.style.cssText = 'max-width:100%;height:auto;border-radius:8px;margin:8px 0;display:block'
+    editor.appendChild(img)
+  }
+  toast('Image inserted! \u2705')
 }
 
 let _activeResizeImg = null
@@ -169,6 +241,21 @@ document.addEventListener('click', function(e){
   ){
     removeResizeHandles()
   }
+})
+
+document.addEventListener('keydown', function(e){
+  if(e.key !== 'Delete' && e.key !== 'Backspace') return
+  const wrapper = document.querySelector('#news-editor .img-resize-wrapper')
+  if(!wrapper) return
+  // An image is selected in the editor — delete it
+  e.preventDefault()
+  const parent = wrapper.parentElement
+  wrapper.remove()
+  // Clean up empty parent block left behind (e.g. empty <p> from float layout)
+  if(parent && parent.id !== 'news-editor' && parent.textContent.trim() === '' && !parent.querySelector('img')){
+    parent.remove()
+  }
+  _activeResizeImg = null
 })
 
 function resizeSelectedImg(width, align=null){
@@ -1180,6 +1267,103 @@ function applyNewsLink(){
 
 async function openNewsModalAsync(postId = null){
   await openNewsModal(postId)
+  // Attach paste handler so pasted images also go through the layout picker
+  const editor = document.getElementById('news-editor')
+  if(editor && !editor._pasteHandlerAdded){
+    editor._pasteHandlerAdded = true
+    editor.addEventListener('paste', async function(e){
+      const items = Array.from(e.clipboardData?.items || [])
+      const imgItem = items.find(i => i.type.startsWith('image/'))
+      if(!imgItem) return
+      e.preventDefault()
+      const file = imgItem.getAsFile()
+      if(!file) return
+      if(file.size > 5*1024*1024){ toast('Image must be under 5MB','err'); return }
+      toast('Uploading pasted image...')
+      const form = new FormData()
+      form.append('file', file)
+      try{
+        const res = await fetch(API_URL + '/news/upload-image', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + getToken() },
+          body: form
+        })
+        const data = await res.json()
+        if(!res.ok) throw new Error(data.detail||'Upload failed')
+        const imageUrlField = document.getElementById('news-image')
+        if(imageUrlField && !imageUrlField.value) imageUrlField.value = data.url
+        // Reuse same layout picker
+        const picker = document.createElement('div')
+        picker.id = 'img-layout-picker'
+        picker.style.cssText = 'position:fixed;inset:0;background:rgba(13,27,64,0.6);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center'
+        picker.innerHTML = `
+          <div style="background:#fff;border-radius:14px;padding:28px 28px 22px;box-shadow:0 24px 64px rgba(13,27,64,0.24);width:480px;max-width:94vw">
+            <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:#0D1B40;margin-bottom:4px">Choose Image Layout</div>
+            <div style="font-size:13px;color:#8A98B8;margin-bottom:20px">How should the image sit in your article?</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px">
+              <button onclick="_insertImageWithLayout('${data.url}','full')"
+                style="border:2px solid #E5E2DA;border-radius:10px;padding:16px 10px 12px;cursor:pointer;background:#fff;display:flex;flex-direction:column;align-items:center;gap:10px"
+                onmouseover="this.style.borderColor='#1A5FFF';this.style.background='#f5f8ff'"
+                onmouseout="this.style.borderColor='#E5E2DA';this.style.background='#fff'">
+                <div style="width:100%;height:52px;background:#E8EEFF;border-radius:6px;display:flex;align-items:center;justify-content:center">
+                  <div style="width:80%;height:32px;background:#1A5FFF;border-radius:4px;opacity:0.7"></div>
+                </div>
+                <div style="width:100%;display:flex;flex-direction:column;gap:4px">
+                  <div style="height:4px;background:#D1D5DB;border-radius:2px"></div>
+                  <div style="height:4px;background:#D1D5DB;border-radius:2px;width:80%"></div>
+                  <div style="height:4px;background:#D1D5DB;border-radius:2px;width:60%"></div>
+                </div>
+                <span style="font-size:12px;font-weight:700;color:#1E2845">Full Width</span>
+              </button>
+              <button onclick="_insertImageWithLayout('${data.url}','left')"
+                style="border:2px solid #E5E2DA;border-radius:10px;padding:16px 10px 12px;cursor:pointer;background:#fff;display:flex;flex-direction:column;align-items:center;gap:10px"
+                onmouseover="this.style.borderColor='#1A5FFF';this.style.background='#f5f8ff'"
+                onmouseout="this.style.borderColor='#E5E2DA';this.style.background='#fff'">
+                <div style="width:100%;height:52px;display:flex;gap:5px">
+                  <div style="width:45%;background:#1A5FFF;border-radius:5px;opacity:0.7;flex-shrink:0"></div>
+                  <div style="flex:1;display:flex;flex-direction:column;gap:4px;justify-content:center">
+                    <div style="height:4px;background:#D1D5DB;border-radius:2px"></div>
+                    <div style="height:4px;background:#D1D5DB;border-radius:2px"></div>
+                    <div style="height:4px;background:#D1D5DB;border-radius:2px;width:70%"></div>
+                  </div>
+                </div>
+                <div style="width:100%;display:flex;flex-direction:column;gap:4px">
+                  <div style="height:4px;background:#D1D5DB;border-radius:2px"></div>
+                  <div style="height:4px;background:#D1D5DB;border-radius:2px;width:85%"></div>
+                </div>
+                <span style="font-size:12px;font-weight:700;color:#1E2845">Image Left</span>
+              </button>
+              <button onclick="_insertImageWithLayout('${data.url}','right')"
+                style="border:2px solid #E5E2DA;border-radius:10px;padding:16px 10px 12px;cursor:pointer;background:#fff;display:flex;flex-direction:column;align-items:center;gap:10px"
+                onmouseover="this.style.borderColor='#1A5FFF';this.style.background='#f5f8ff'"
+                onmouseout="this.style.borderColor='#E5E2DA';this.style.background='#fff'">
+                <div style="width:100%;height:52px;display:flex;gap:5px">
+                  <div style="flex:1;display:flex;flex-direction:column;gap:4px;justify-content:center">
+                    <div style="height:4px;background:#D1D5DB;border-radius:2px"></div>
+                    <div style="height:4px;background:#D1D5DB;border-radius:2px"></div>
+                    <div style="height:4px;background:#D1D5DB;border-radius:2px;width:70%"></div>
+                  </div>
+                  <div style="width:45%;background:#1A5FFF;border-radius:5px;opacity:0.7;flex-shrink:0"></div>
+                </div>
+                <div style="width:100%;display:flex;flex-direction:column;gap:4px">
+                  <div style="height:4px;background:#D1D5DB;border-radius:2px"></div>
+                  <div style="height:4px;background:#D1D5DB;border-radius:2px;width:85%"></div>
+                </div>
+                <span style="font-size:12px;font-weight:700;color:#1E2845">Image Right</span>
+              </button>
+            </div>
+            <div style="text-align:right">
+              <button onclick="document.getElementById('img-layout-picker').remove()"
+                style="border:none;background:none;color:#8A98B8;font-size:13px;cursor:pointer;padding:6px 10px;border-radius:6px"
+                onmouseover="this.style.background='#f1f3f7'" onmouseout="this.style.background='none'">Cancel</button>
+            </div>
+          </div>`
+        document.body.appendChild(picker)
+      }catch(e){
+        toast(e.message,'err')
+      }
+    })
+  }
 }
 function insertAdPlaceholder() {
   const editor = document.getElementById('news-editor')
@@ -1458,62 +1642,64 @@ async function openNewsModal(postId = null){
         </div>
         <div class="form-group">
           <label class="form-label">Content *</label>
-          <div style="border:1px solid var(--g200);border-radius:8px;overflow:hidden">
-            <div style="background:#f8fafc;padding:8px;border-bottom:1px solid var(--g200);display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+          <div style="border:1px solid var(--g200);border-radius:8px;overflow:clip;display:flex;flex-direction:column">
+            <div style="position:sticky;top:0;z-index:20;background:#f8fafc;border-radius:8px 8px 0 0;border-bottom:1px solid var(--g200)">
               <!-- Row 1: Block format + font + size + fullscreen -->
-              <select onchange="document.execCommand('formatBlock',false,this.value);this.value=''" style="border:1px solid var(--g200);background:#fff;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:13px">
-                <option value="">Paragraph</option>
-                <option value="h1">Heading 1</option>
-                <option value="h2">Heading 2</option>
-                <option value="h3">Heading 3</option>
-                <option value="blockquote">Blockquote</option>
-                <option value="pre">Code Block</option>
-              </select>
-              <select onchange="document.execCommand('fontName',false,this.value);this.value=''" style="border:1px solid var(--g200);background:#fff;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:13px">
-                <option value="">Font</option>
-                <option value="Arial">Arial</option>
-                <option value="Georgia">Georgia</option>
-                <option value="Times New Roman">Times New Roman</option>
-                <option value="Courier New">Courier New</option>
-                <option value="Verdana">Verdana</option>
-              </select>
-              <select onchange="document.execCommand('fontSize',false,this.value);this.value=''" style="border:1px solid var(--g200);background:#fff;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:13px">
-                <option value="">Size</option>
-                <option value="1">Small</option>
-                <option value="3">Normal</option>
-                <option value="5">Large</option>
-                <option value="7">Huge</option>
-              </select>
-              <button id="news-fs-btn" type="button" onclick="toggleNewsEditorFullscreen()" title="Fullscreen editor" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:12px;margin-left:auto">⛶ Fullscreen</button>
-            </div>
-            <div style="background:#f8fafc;padding:6px 8px;border-bottom:1px solid var(--g200);display:flex;gap:5px;flex-wrap:wrap;align-items:center">
+              <div style="padding:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+                <select onchange="document.execCommand('formatBlock',false,this.value);this.value=''" style="border:1px solid var(--g200);background:#fff;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:13px">
+                  <option value="">Paragraph</option>
+                  <option value="h1">Heading 1</option>
+                  <option value="h2">Heading 2</option>
+                  <option value="h3">Heading 3</option>
+                  <option value="blockquote">Blockquote</option>
+                  <option value="pre">Code Block</option>
+                </select>
+                <select onchange="document.execCommand('fontName',false,this.value);this.value=''" style="border:1px solid var(--g200);background:#fff;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:13px">
+                  <option value="">Font</option>
+                  <option value="Arial">Arial</option>
+                  <option value="Georgia">Georgia</option>
+                  <option value="Times New Roman">Times New Roman</option>
+                  <option value="Courier New">Courier New</option>
+                  <option value="Verdana">Verdana</option>
+                </select>
+                <select onchange="document.execCommand('fontSize',false,this.value);this.value=''" style="border:1px solid var(--g200);background:#fff;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:13px">
+                  <option value="">Size</option>
+                  <option value="1">Small</option>
+                  <option value="3">Normal</option>
+                  <option value="5">Large</option>
+                  <option value="7">Huge</option>
+                </select>
+                <button id="news-fs-btn" type="button" onclick="toggleNewsEditorFullscreen()" title="Fullscreen editor" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:12px;margin-left:auto">⛶ Fullscreen</button>
+              </div>
               <!-- Row 2: Inline formatting -->
-              <button type="button" onclick="document.execCommand('bold')" title="Bold (Ctrl+B)" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;font-weight:700;cursor:pointer">B</button>
-              <button type="button" onclick="document.execCommand('italic')" title="Italic (Ctrl+I)" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;font-style:italic;cursor:pointer">I</button>
-              <button type="button" onclick="document.execCommand('underline')" title="Underline (Ctrl+U)" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;text-decoration:underline;cursor:pointer">U</button>
-              <button type="button" onclick="document.execCommand('strikeThrough')" title="Strikethrough" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;text-decoration:line-through;cursor:pointer">S</button>
-              <span style="width:1px;height:20px;background:var(--g200);display:inline-block;margin:0 2px"></span>
-              <button type="button" onclick="document.execCommand('justifyLeft')" title="Align left" style="border:1px solid var(--g200);background:#fff;padding:4px 8px;border-radius:4px;cursor:pointer">⬅</button>
-              <button type="button" onclick="document.execCommand('justifyCenter')" title="Center" style="border:1px solid var(--g200);background:#fff;padding:4px 8px;border-radius:4px;cursor:pointer">☰</button>
-              <button type="button" onclick="document.execCommand('justifyRight')" title="Align right" style="border:1px solid var(--g200);background:#fff;padding:4px 8px;border-radius:4px;cursor:pointer">➡</button>
-              <span style="width:1px;height:20px;background:var(--g200);display:inline-block;margin:0 2px"></span>
-              <button type="button" onclick="document.execCommand('insertUnorderedList')" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer">• List</button>
-              <button type="button" onclick="document.execCommand('insertOrderedList')" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer">1. List</button>
-              <button type="button" onclick="document.execCommand('indent')" title="Indent" style="border:1px solid var(--g200);background:#fff;padding:4px 8px;border-radius:4px;cursor:pointer">→</button>
-              <button type="button" onclick="document.execCommand('outdent')" title="Outdent" style="border:1px solid var(--g200);background:#fff;padding:4px 8px;border-radius:4px;cursor:pointer">←</button>
-              <span style="width:1px;height:20px;background:var(--g200);display:inline-block;margin:0 2px"></span>
-              <button type="button" onclick="document.execCommand('undo')" title="Undo (Ctrl+Z)" style="border:1px solid var(--g200);background:#fff;padding:4px 8px;border-radius:4px;cursor:pointer"><i data-lucide="undo-2" style="width:14px;height:14px"></i></button>
-              <button type="button" onclick="document.execCommand('redo')" title="Redo (Ctrl+Y)" style="border:1px solid var(--g200);background:#fff;padding:4px 8px;border-radius:4px;cursor:pointer"><i data-lucide="redo-2" style="width:14px;height:14px"></i></button>
-              <span style="width:1px;height:20px;background:var(--g200);display:inline-block;margin:0 2px"></span>
-              <button type="button" onclick="insertNewsLink()" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;gap:4px"><i data-lucide="link" style="width:14px;height:14px"></i> Link</button>
-              <button type="button" onclick="document.getElementById('news-img-upload').click()" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;gap:4px"><i data-lucide="image-plus" style="width:14px;height:14px"></i> Image</button>
-              <button type="button" onclick="insertNewsEmbed()" title="Embed YouTube or iframe" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;gap:4px"><i data-lucide="youtube" style="width:14px;height:14px"></i> Embed</button>
-              <button type="button" onclick="insertNewsTable()" title="Insert table" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;gap:4px"><i data-lucide="table" style="width:14px;height:14px"></i> Table</button>
-              <button type="button" onclick="insertNewsFormula()" title="Insert math formula (LaTeX)" style="border:1px solid #7c3aed;background:#f5f3ff;padding:4px 10px;border-radius:4px;cursor:pointer;font-weight:600;color:#7c3aed;display:inline-flex;align-items:center;gap:4px"><i data-lucide="function-square" style="width:14px;height:14px"></i> Formula</button>
-              <button type="button" onclick="insertAdPlaceholder()" style="border:1px solid #F5A623;background:#FFF8ED;padding:4px 10px;border-radius:4px;cursor:pointer;font-weight:600;color:#b45309;display:inline-flex;align-items:center;gap:4px"><i data-lucide="megaphone" style="width:14px;height:14px"></i> Ad</button>
-              <input type="file" id="news-img-upload" accept="image/*" style="display:none" onchange="insertNewsImage(this)"/>
-              <input type="color" onchange="document.execCommand('foreColor',false,this.value)" title="Text color" style="border:1px solid var(--g200);border-radius:4px;width:32px;height:28px;cursor:pointer;padding:2px"/>
-              <input type="color" onchange="document.execCommand('hiliteColor',false,this.value)" title="Highlight color" style="border:1px solid var(--g200);border-radius:4px;width:32px;height:28px;cursor:pointer;padding:2px;background:#ffff00"/>
+              <div style="padding:6px 8px;border-top:1px solid var(--g200);display:flex;gap:5px;flex-wrap:wrap;align-items:center">
+                <button type="button" onclick="document.execCommand('bold')" title="Bold (Ctrl+B)" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;font-weight:700;cursor:pointer">B</button>
+                <button type="button" onclick="document.execCommand('italic')" title="Italic (Ctrl+I)" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;font-style:italic;cursor:pointer">I</button>
+                <button type="button" onclick="document.execCommand('underline')" title="Underline (Ctrl+U)" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;text-decoration:underline;cursor:pointer">U</button>
+                <button type="button" onclick="document.execCommand('strikeThrough')" title="Strikethrough" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;text-decoration:line-through;cursor:pointer">S</button>
+                <span style="width:1px;height:20px;background:var(--g200);display:inline-block;margin:0 2px"></span>
+                <button type="button" onclick="document.execCommand('justifyLeft')" title="Align left" style="border:1px solid var(--g200);background:#fff;padding:4px 8px;border-radius:4px;cursor:pointer">⬅</button>
+                <button type="button" onclick="document.execCommand('justifyCenter')" title="Center" style="border:1px solid var(--g200);background:#fff;padding:4px 8px;border-radius:4px;cursor:pointer">☰</button>
+                <button type="button" onclick="document.execCommand('justifyRight')" title="Align right" style="border:1px solid var(--g200);background:#fff;padding:4px 8px;border-radius:4px;cursor:pointer">➡</button>
+                <span style="width:1px;height:20px;background:var(--g200);display:inline-block;margin:0 2px"></span>
+                <button type="button" onclick="document.execCommand('insertUnorderedList')" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer">• List</button>
+                <button type="button" onclick="document.execCommand('insertOrderedList')" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer">1. List</button>
+                <button type="button" onclick="document.execCommand('indent')" title="Indent" style="border:1px solid var(--g200);background:#fff;padding:4px 8px;border-radius:4px;cursor:pointer">→</button>
+                <button type="button" onclick="document.execCommand('outdent')" title="Outdent" style="border:1px solid var(--g200);background:#fff;padding:4px 8px;border-radius:4px;cursor:pointer">←</button>
+                <span style="width:1px;height:20px;background:var(--g200);display:inline-block;margin:0 2px"></span>
+                <button type="button" onclick="document.execCommand('undo')" title="Undo (Ctrl+Z)" style="border:1px solid var(--g200);background:#fff;padding:4px 8px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/></svg></button>
+                <button type="button" onclick="document.execCommand('redo')" title="Redo (Ctrl+Y)" style="border:1px solid var(--g200);background:#fff;padding:4px 8px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5v0A5.5 5.5 0 0 0 9.5 20H13"/></svg></button>
+                <span style="width:1px;height:20px;background:var(--g200);display:inline-block;margin:0 2px"></span>
+                <button type="button" onclick="insertNewsLink()" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;gap:4px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Link</button>
+                <button type="button" onclick="document.getElementById('news-img-upload').click()" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;gap:4px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/><line x1="16" x2="22" y1="5" y2="5"/><line x1="19" x2="19" y1="2" y2="8"/></svg> Image</button>
+                <button type="button" onclick="insertNewsEmbed()" title="Embed YouTube or iframe" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;gap:4px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"/><path d="m10 15 5-3-5-3z"/></svg> Embed</button>
+                <button type="button" onclick="insertNewsTable()" title="Insert table" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;gap:4px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/></svg> Table</button>
+                <button type="button" onclick="insertNewsFormula()" title="Insert math formula (LaTeX)" style="border:1px solid #7c3aed;background:#f5f3ff;padding:4px 10px;border-radius:4px;cursor:pointer;font-weight:600;color:#7c3aed;display:inline-flex;align-items:center;gap:4px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="12" x="2" y="6" rx="2"/><path d="m7 12 2 2 6-6"/><path d="M17 10h.01"/><path d="M17 14h.01"/></svg> Formula</button>
+                <button type="button" onclick="insertAdPlaceholder()" style="border:1px solid #F5A623;background:#FFF8ED;padding:4px 10px;border-radius:4px;cursor:pointer;font-weight:600;color:#b45309;display:inline-flex;align-items:center;gap:4px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 19-9-9 19-2-8-8-2z"/></svg> Ad</button>
+                <input type="file" id="news-img-upload" accept="image/*" style="display:none" onchange="insertNewsImage(this)"/>
+                <input type="color" onchange="document.execCommand('foreColor',false,this.value)" title="Text color" style="border:1px solid var(--g200);border-radius:4px;width:32px;height:28px;cursor:pointer;padding:2px"/>
+                <input type="color" onchange="document.execCommand('hiliteColor',false,this.value)" title="Highlight color" style="border:1px solid var(--g200);border-radius:4px;width:32px;height:28px;cursor:pointer;padding:2px;background:#ffff00"/>
+              </div>
             </div>
             <div id="news-editor" contenteditable="true" style="min-height:200px;padding:12px;font-size:14px;outline:none;line-height:1.8" placeholder="Write your post content here..." oninput="updateNewsWordCount()"></div>
             <div style="background:#f8fafc;padding:4px 12px;border-top:1px solid var(--g200);font-size:11px;color:var(--g400);display:flex;justify-content:space-between;align-items:center">
