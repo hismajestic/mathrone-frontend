@@ -4,7 +4,7 @@
 // new JS/CSS. Cloudflare Pages auto-serves the new sw.js (no-cache header)
 // and the activate handler deletes the old cache automatically.
 // ─────────────────────────────────────────────────────────────────────────
-const CACHE = 'mathrone-v15';
+const CACHE = 'mathrone-v16';
 
 const PRECACHE = [
   '/',
