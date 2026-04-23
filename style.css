@@ -1602,6 +1602,70 @@
 ═══════════════════════════════════════ */
 @media (max-width: 768px) {
 
+  /* Course detail action card */
+  .course-action-card {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 16px !important;
+    text-align: left !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+  .cac-price-wrap { margin: 0 !important; }
+  .cac-price-wrap div:first-child { font-size: 11px !important; margin-bottom: 2px !important; }
+  .cac-price-wrap div:last-child { font-size: 20px !important; margin-bottom: 0 !important; }
+  .cac-btn { 
+    width: auto !important; 
+    padding: 10px 16px !important; 
+    font-size: 14px !important; 
+    flex-shrink: 0 !important;
+  }
+
+  /* Shop filter bar */
+  .shop-filter-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+    padding-bottom: 12px !important;
+    margin-bottom: 16px !important;
+  }
+  .shop-search-row {
+    min-width: 100% !important;
+    gap: 6px !important;
+  }
+  .shop-search-row .input {
+    height: 36px !important;
+    min-height: 36px !important;
+    font-size: 13px !important;
+  }
+  .shop-search-btn {
+    height: 36px !important;
+    min-height: 36px !important;
+    padding: 0 12px !important;
+    font-size: 13px !important;
+  }
+  .shop-sort-row {
+    justify-content: space-between !important;
+    width: 100% !important;
+    gap: 10px !important;
+  }
+  .shop-sort-row > div {
+    flex: 1;
+  }
+  .shop-sort-row label {
+    font-size: 11px !important;
+    white-space: nowrap;
+  }
+  .shop-sort-row select {
+    flex: 1;
+    width: 100% !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    font-size: 12px !important;
+    padding: 0 6px !important;
+  }
+
   @media (max-width: 768px) {
   .mobile-topbar { display: flex !important; }
   #sidebar-close-btn { display: block !important; }

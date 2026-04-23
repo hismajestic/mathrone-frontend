@@ -381,11 +381,13 @@ async function renderCourseDetail(slugParam) {
         </div>
         
         <!-- Action Card -->
-        <div style="background:#fff;border:1px solid var(--g200);padding:24px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.06);text-align:center;min-width:240px;flex-shrink:0;">
-          <div style="font-size:13px;color:var(--g400);margin-bottom:4px;font-weight:600;text-transform:uppercase;">Course Price</div>
-          <div style="font-size:28px;font-weight:900;color:var(--navy);margin-bottom:16px;">${c.price > 0 ? `RWF ${Number(c.price).toLocaleString()}` : '<span style="color:#10b981">FREE</span>'}</div>
+        <div class="course-action-card" style="background:#fff;border:1px solid var(--g200);padding:24px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.06);text-align:center;min-width:240px;flex-shrink:0;">
+          <div class="cac-price-wrap">
+            <div style="font-size:13px;color:var(--g400);margin-bottom:4px;font-weight:600;text-transform:uppercase;">Course Price</div>
+            <div style="font-size:28px;font-weight:900;color:var(--navy);margin-bottom:16px;">${c.price > 0 ? `RWF ${Number(c.price).toLocaleString()}` : '<span style="color:#10b981">FREE</span>'}</div>
+          </div>
           
-          <button onclick="${isLoggedIn ? `memberEnrollCourse('${c.id}','${(c.title||'').replace(/'/g,"\\'")}',${c.price})` : `openLoginPrompt('${c.id}','${(c.title||'').replace(/'/g,"\\'")}',${c.price})`}"
+          <button class="cac-btn" onclick="${isLoggedIn ? `memberEnrollCourse('${c.id}','${(c.title||'').replace(/'/g,"\\'")}',${c.price})` : `openLoginPrompt('${c.id}','${(c.title||'').replace(/'/g,"\\'")}',${c.price})`}"
             style="width:100%;background:var(--blue);color:#fff;border:none;padding:14px 24px;border-radius:8px;cursor:pointer;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;transition:background 0.2s;"
             onmouseover="this.style.background='var(--blue2)'" onmouseout="this.style.background='var(--blue)'">
             <i data-lucide="graduation-cap" style="width:18px;height:18px"></i> ${c.price > 0 ? 'Enroll Now' : 'Get Free Access'}

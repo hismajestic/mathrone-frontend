@@ -430,18 +430,18 @@ async function renderShop(category = 'all', search = '') {
           </div>
           ` : ''}
           <!-- Search & Sort Bar -->
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:20px; padding-bottom:16px; border-bottom:1px solid var(--g100);">
-            <div style="display:flex; align-items:center; gap:8px; flex:1; min-width:260px;">
+          <div class="shop-filter-bar" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:20px; padding-bottom:16px; border-bottom:1px solid var(--g100);">
+            <div class="shop-search-row" style="display:flex; align-items:center; gap:8px; flex:1; min-width:260px;">
               <div style="position:relative; flex:1;">
                 <input class="input" id="shop-search" placeholder="Search products..." value="${search}"
                   onkeydown="if(event.key==='Enter')renderShop('${category}',this.value)"
                   style="padding-left:36px; height:40px; min-height:40px; font-size:13px; border-color:var(--g200);"/>
                 <i data-lucide="search" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); width:16px; height:16px; color:var(--g400);"></i>
               </div>
-              <button class="btn btn-primary" style="height:40px; min-height:40px; padding:0 16px; font-size:13px; background:var(--navy); border-color:var(--navy);" onclick="renderShop('${category}',document.getElementById('shop-search')?.value||'')">Search</button>
+              <button class="btn btn-primary shop-search-btn" style="height:40px; min-height:40px; padding:0 16px; font-size:13px; background:var(--navy); border-color:var(--navy);" onclick="renderShop('${category}',document.getElementById('shop-search')?.value||'')">Search</button>
             </div>
             
-            <div style="display:flex; align-items:center; gap:16px; font-size:12px; color:var(--g600);">
+            <div class="shop-sort-row" style="display:flex; align-items:center; gap:16px; font-size:12px; color:var(--g600);">
               <div style="display:flex; align-items:center; gap:6px;">
                 <label>Sort By:</label>
                 <select class="input" style="height:32px; min-height:32px; padding:0 8px; font-size:12px; width:auto; border-color:var(--g200);">
