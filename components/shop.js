@@ -324,7 +324,7 @@ async function renderShop(category = 'all', search = '') {
       <div class="shop-layout-grid" style="display:grid; grid-template-columns: 250px 1fr; gap: 30px; align-items: start; padding: 0 16px;">
         
         <!-- Left Sidebar -->
-        <aside class="shop-sidebar" style="display:flex; flex-direction:column; gap:20px;">
+        <aside class="shop-sidebar" style="display:flex; flex-direction:column; gap:20px; position:sticky; top:70px;">
           <!-- Categories Box -->
           <div style="border:1px solid var(--g100); border-radius:8px; overflow:hidden; background:#fff;">
             <div style="background:var(--navy); color:#fff; padding:12px 16px; font-weight:700; font-size:15px;">Categories</div>
@@ -389,6 +389,7 @@ async function renderShop(category = 'all', search = '') {
         </aside>
 
         <!-- Main Content -->
+        <div class="shop-main-content" style="display:flex; flex-direction:column; min-width:0;">
         <!-- Mobile Category Pills -->
         <div class="shop-mobile-cats" style="overflow-x:auto;gap:8px;padding:0 4px 12px;scrollbar-width:none;-ms-overflow-style:none;flex-wrap:nowrap;">
           ${SHOP_CATEGORIES.map(c=>`
@@ -396,8 +397,6 @@ async function renderShop(category = 'all', search = '') {
             ${c.icon} ${c.label}
           </button>`).join('')}
         </div>
-
-        <div class="shop-main-content" style="display:flex; flex-direction:column; min-width:0;">
           
           ${!window._shopBannerHidden ? `
           <style>
@@ -498,6 +497,7 @@ async function renderShop(category = 'all', search = '') {
       </div>
       
         </div> <!-- End shop-main-content -->
+        </div> <!-- End right column wrapper -->
       </div> <!-- End shop-layout-grid -->
     </div> <!-- End max-width wrapper -->
 
