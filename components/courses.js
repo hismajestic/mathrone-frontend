@@ -211,8 +211,8 @@ async function renderCoursesShop() {
     <div class="m-courses-container" style="max-width:1100px;margin:0 auto;padding:24px 16px">
       <div class="m-courses-header" style="margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px">
         <div style="flex:1;min-width:300px">
-          <h1 style="font-size:22px;font-weight:800;color:var(--navy);margin-bottom:4px;line-height:1.2;display:flex;align-items:center;gap:8px"><i data-lucide="book-open-check" style="width:24px;height:24px;color:var(--blue)"></i> Learn Anything, Anytime</h1>
-          <p style="font-size:13px;color:var(--g400);margin:0">Expert-led video courses designed for Rwandan students. Learn at your own pace.</p>
+          <h1 style="font-size:22px;font-weight:800;color:var(--navy);margin-bottom:4px;line-height:1.2;display:flex;align-items:center;gap:8px"><i data-lucide="book-open-check" style="width:24px;height:24px;color:var(--blue)"></i> Your Academic Safety Net</h1>
+          <p style="font-size:13px;color:var(--g400);margin:0">Teacher unavailable or need a better explanation? Keep your grades up with expert-led video courses aligned to the Rwandan curriculum.</p>
         </div>
         
         <div style="position:relative;width:100%;max-width:320px">
@@ -619,34 +619,44 @@ async function renderCourseLessons(courseId) {
       <button onclick="navigate('tutors')" style="background:var(--blue);color:#fff;border:none;padding:9px 16px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap">Find a Tutor →</button>
     </div>
     ${lessons.length ? `
-    <div style="display:flex;flex-direction:column;gap:10px">
-      ${lessons.map((l, i) => `
-      <div onclick="openLessonPlayer('${l.id}')" style="background:#fff;border:1px solid #e5e7eb;border-radius:4px;overflow:hidden;margin-bottom:16px;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,0.05);transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-        <div style="display:flex;align-items:center;">
-          <div style="width:clamp(120px, 30vw, 160px);aspect-ratio:16/9;background:#f3f4f6;flex-shrink:0;position:relative;">
-             <div style="display:flex;align-items:center;justify-content:center;height:100%;background:#1e3a8a;color:#fff;font-size:24px;font-weight:800;">${l.order_num || i+1}</div>
-             <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.1);">
-               <i data-lucide="play-circle" style="width:32px;height:32px;color:#fff;opacity:0.9"></i>
-             </div>
-          </div>
-          <div style="padding:16px;flex:1;display:flex;flex-direction:column;justify-content:center;">
-            <h3 style="font-size:15px;font-weight:700;color:#111827;margin-bottom:4px;line-height:1.3;">${l.title}</h3>
-            <p style="font-size:12px;color:#6b7280;margin-bottom:6px;">Mathrone Academy, Instructor</p>
-            <div style="display:flex;gap:4px;color:#10b981;font-size:12px;">
-              ★ ★ ★ ★ ★ <span style="color:#9ca3af;margin-left:4px;">${l.duration_mins ? `${l.duration_mins} min` : 'Video Lesson'}</span>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      ${(() => {
+        let currentModule = null;
+        return lessons.map((l, i) => {
+          let moduleHeader = '';
+          if (l.module_title && l.module_title !== currentModule) {
+            currentModule = l.module_title;
+            moduleHeader = `<div style="font-size:14px;font-weight:800;color:var(--navy);text-transform:uppercase;letter-spacing:0.05em;margin:16px 0 8px;padding-bottom:4px;border-bottom:2px solid var(--g100)">${l.module_title}</div>`;
+          }
+          return `
+          ${moduleHeader}
+          <div onclick="openLessonPlayer('${l.id}')" style="background:#fff;border:1px solid #e5e7eb;border-radius:4px;overflow:hidden;margin-bottom:8px;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,0.05);transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+            <div style="display:flex;align-items:center;">
+              <div style="width:clamp(120px, 30vw, 160px);aspect-ratio:16/9;background:#f3f4f6;flex-shrink:0;position:relative;">
+                 <div style="display:flex;align-items:center;justify-content:center;height:100%;background:#1e3a8a;color:#fff;font-size:24px;font-weight:800;">${l.order_num || i+1}</div>
+                 <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.1);">
+                   <i data-lucide="play-circle" style="width:32px;height:32px;color:#fff;opacity:0.9"></i>
+                 </div>
+              </div>
+              <div style="padding:16px;flex:1;display:flex;flex-direction:column;justify-content:center;">
+                <h3 style="font-size:15px;font-weight:700;color:#111827;margin-bottom:4px;line-height:1.3;">${l.title}</h3>
+                <p style="font-size:12px;color:#6b7280;margin-bottom:6px;">Mathrone Academy, Instructor</p>
+                <div style="display:flex;gap:4px;color:#10b981;font-size:12px;">
+                  ★ ★ ★ ★ ★ <span style="color:#9ca3af;margin-left:4px;">${l.duration_mins ? `${l.duration_mins} min` : 'Video Lesson'}</span>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-        <div style="background:#374151;padding:10px 16px;">
-          <div style="display:flex;align-items:center;gap:12px;">
-            <div style="width:100%;height:4px;background:#4b5563;border-radius:2px;overflow:hidden;position:relative;">
-               <!-- Progress bar faked slightly for visual completion based on lesson index -->
-               <div style="width:${i===0?'100%':i===1?'40%':'0%'};height:100%;background:#10b981;border-radius:2px;"></div>
+            <div style="background:#374151;padding:10px 16px;">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div style="width:100%;height:4px;background:#4b5563;border-radius:2px;overflow:hidden;position:relative;">
+                   <div style="width:${i===0?'100%':i===1?'40%':'0%'};height:100%;background:#10b981;border-radius:2px;"></div>
+                </div>
+                <span style="font-size:11px;color:#9ca3af;white-space:nowrap;">${i===0?'Completed':i===1?'In progress':'Not started'}</span>
+              </div>
             </div>
-            <span style="font-size:11px;color:#9ca3af;white-space:nowrap;">${i===0?'Completed':i===1?'In progress':'Not started'}</span>
-          </div>
-        </div>
-      </div>`).join('')}
+          </div>`;
+        }).join('');
+      })()}
     </div>` : `
     <div class="empty-state">
       <div class="empty-icon">🎬</div>
@@ -714,6 +724,20 @@ function openLessonPlayer(lessonId) {
      </div>`;
   }
 
+  // AI Tutor CTA (Only for logged-in users)
+  let aiHtml = '';
+  if (State.user) {
+    aiHtml = `
+    <div style="margin:20px;background:linear-gradient(135deg,#faf5ff,#f3e8ff);border:1px solid #e9d5ff;border-radius:12px;padding:16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <div style="background:#d8b4fe;padding:12px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i data-lucide="bot" style="width:24px;height:24px;color:#4c1d95"></i></div>
+      <div style="flex:1;min-width:200px">
+        <div style="font-size:14px;font-weight:800;color:#4c1d95;margin-bottom:4px">Still confused about this topic?</div>
+        <div style="font-size:12px;color:#6b21a8;line-height:1.5">Our AI Study Tutor is online 24/7. Ask it to explain differently, give you a real-world example, or quiz you!</div>
+      </div>
+      <button onclick="document.querySelector('.modal-overlay').remove(); navigate('quiz')" style="background:#7c3aed;color:#fff;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;white-space:nowrap;box-shadow:0 4px 12px rgba(124,58,237,0.3);width:100%;max-width:200px;text-align:center;">Ask AI Tutor →</button>
+    </div>`;
+  }
+
   // Free Preview CTA (Shown ONLY if it is marked as a Free Preview)
   let ctaHtml = '';
   if (l.is_free_preview) {
@@ -730,17 +754,25 @@ function openLessonPlayer(lessonId) {
   modal.innerHTML = `
   <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
     <div class="modal" style="max-width:800px; width:100%; margin:auto; max-height:90vh; display:flex; flex-direction:column;">
-      <div class="modal-header" style="flex-shrink:0;">
+      <div class="modal-header" style="flex-shrink:0; flex-wrap:wrap; gap:8px;">
         <span class="modal-title" style="font-size:16px;">▶ ${l.title}</span>
-        <button class="modal-close" onclick="document.querySelector('.modal-overlay').remove()">✕</button>
+        <div style="display:flex;align-items:center;gap:12px;margin-left:auto">
+          ${l.video_url ? `
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--g600);cursor:pointer;background:var(--sky);padding:4px 10px;border-radius:999px" title="Hide video to save internet data">
+            <input type="checkbox" onchange="document.getElementById('lesson-video-wrapper').style.display = this.checked ? 'none' : 'block'" style="accent-color:var(--blue)">
+            <span>📉 Data Saver Mode</span>
+          </label>` : ''}
+          <button class="modal-close" style="margin:0;" onclick="document.querySelector('.modal-overlay').remove()">✕</button>
+        </div>
       </div>
       <div class="modal-body" style="padding:0; overflow-y:auto; flex:1; display:flex; flex-direction:column;">
         ${videoHtml}
         ${contentHtml}
         ${notesHtml}
         ${resHtml}
+        ${aiHtml}
         ${ctaHtml}
-        ${!videoHtml && !contentHtml && !notesHtml && !resHtml && !ctaHtml ? `<div style="padding:40px; text-align:center; color:var(--g400);">No content available for this lesson.</div>` : ''}
+        ${!videoHtml && !contentHtml && !notesHtml && !resHtml && !aiHtml && !ctaHtml ? `<div style="padding:40px; text-align:center; color:var(--g400);">No content available for this lesson.</div>` : ''}
       </div>
     </div>
   </div>`;
@@ -949,8 +981,17 @@ async function memberEnrollCourse(courseId, courseTitle, price) {
   })()
   const priceDisplay = price > 0 ? 'RWF ' + Number(price).toLocaleString() : 'FREE'
   const payNote = price > 0
-    ? 'After submitting, send your payment via MoMo or Airtel to <strong>+250 786 684 285</strong> and screenshot of payment message. Admin will grant you access once payment is confirmed.'
-    : 'This is a free course. Submit your request to enroll immediately.'
+    ? `
+      <div style="font-weight:800;color:var(--navy);margin-bottom:8px;">How to pay via MoMo/Airtel:</div>
+      <ol style="padding-left:16px;margin-bottom:12px;display:flex;flex-direction:column;gap:6px">
+        <li>Dial <strong>*182*8*1*178251#</strong> 
+        <li>Or send money directly to <strong>0786 684 285</strong> (Mathrone Academy)</li>
+        <li>Click "Submit Request" below.</li>
+        <li>Send a screenshot of your payment message to our WhatsApp.</li>
+      </ol>
+      <div>Once confirmed, admin will instantly unlock the course for you.</div>
+      `
+    : 'This is a free course. Click below to enroll and start learning immediately.'
 
   modalRoot.innerHTML = `
   <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
@@ -1098,10 +1139,14 @@ function openAddCourseModal(existing = null) {
               style="position:absolute;top:0;left:0;width:100%;height:100%;border:none" allowfullscreen loading="lazy"></iframe>
           </div>` : ''}
         </div>
-        <div class="form-group">
+        <div class="form-group" style="display:flex;gap:16px;flex-wrap:wrap;border-top:1px solid var(--g100);padding-top:16px">
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px">
             <input type="checkbox" id="c-published" ${existing?.is_published ? 'checked' : ''} style="width:16px;height:16px"/>
-            ✅ Publish this course (visible to public)
+            ✅ Publish course
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px">
+            <input type="checkbox" id="c-examprep" ${existing?.is_exam_prep ? 'checked' : ''} style="width:16px;height:16px"/>
+            📝 National Exam Prep / Past Papers
           </label>
         </div>
       </div>
@@ -1132,6 +1177,7 @@ function _getCourseFormData() {
     image_url:    document.getElementById('c-image')?.value?.trim() || null,
     video_url:    document.getElementById('c-video')?.value?.trim() || null,
     is_published: document.getElementById('c-published')?.checked || false,
+    is_exam_prep: document.getElementById('c-examprep')?.checked || false,
   }
 }
 
@@ -1239,10 +1285,15 @@ function openAddLessonModal(courseId, existing = null) {
         <div id="ltab-panel-0">
           <div class="form-group">
             <label class="form-label">Lesson Title *</label>
-            <input class="input" id="l-title" value="${existing?.title || ''}" placeholder="e.g. Solving Quadratic Equations"/>
-          </div>
-          <div class="grid-2">
-            <div class="form-group">
+          <input class="input" id="l-title" value="${existing?.title || ''}" placeholder="e.g. Solving Quadratic Equations"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Unit / Module Name (optional)</label>
+          <input class="input" id="l-module" value="${existing?.module_title || ''}" placeholder="e.g. Unit 1: Algebra"/>
+          <div style="font-size:11px;color:var(--g400);margin-top:4px">Lessons with the same module name will be grouped together automatically.</div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
               <label class="form-label">Duration (minutes)</label>
               <input class="input" type="number" id="l-duration" value="${existing?.duration_mins || 0}" min="0"/>
             </div>
@@ -1690,6 +1741,7 @@ function _getLessonFormData() {
   syncContentToHidden()
   return {
     title:          document.getElementById('l-title')?.value?.trim(),
+    module_title:   document.getElementById('l-module')?.value?.trim() || null,
     video_url:      document.getElementById('l-video')?.value?.trim() || null,
     duration_mins:  parseInt(document.getElementById('l-duration')?.value) || 0,
     order_num:      parseInt(document.getElementById('l-order')?.value) || 1,

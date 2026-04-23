@@ -313,12 +313,12 @@
   <!-- HERO -->
   <section class="hero">
     <div style="position:absolute;inset:0;z-index:0">
-      <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1400&q=80" alt="" role="presentation" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;display:block"/>
+      <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1000&q=75&fm=webp" alt="" role="presentation" fetchpriority="high" decoding="async" style="width:100%;height:100%;object-fit:cover;display:block"/>
       <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(30,58,138,0.88) 0%,rgba(37,99,235,0.82) 100%)"></div>
     </div>
     <!-- COURSES TEASER quarter circle desktop only -->
     <div class="chc-wrap" onclick="navigate('courses')">
-      <img class="chc-bg" src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&q=80" alt="Students studying" loading="lazy"/>
+      <img class="chc-bg" src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&q=75&fm=webp" alt="Students studying" fetchpriority="high"/>
       <div class="chc-overlay"></div>
       <div class="chc-border"></div>
       <div class="chc-content">
@@ -346,8 +346,8 @@
     </div>
     <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center">
       <div class="htag"> Majestic Learning. Royal Results.</div>
-      <h1 class="htitle">Expert Tutoring and <span> Smart Learning Tools</span><br/>All in One Place</h1>
-      <p class="hsub">Mathrone Academy connects ambitious students with expert tutors, Prepare courses to get ready for exams and provides high-quality learning tools  from notebooks to educational kits for personalised success,at home or online.</p>
+      <h1 class="htitle">Never Fall Behind in Class <span>Ever Again</span></h1>
+      <p class="hsub">Teacher absent? Missed a topic? Or just need a better explanation? Mathrone Academy is your academic safety net. Access expert 1-on-1 tutors, REB-aligned video courses, and an AI Tutor to guarantee your success and provides high-quality learning tools  from notebooks to educational kits for personalised success,at home or online..</p>
       <div class="hbtns">
         <button class="btn-hero-o" onclick="navigate('register')" style="background:#0e172b;border-color:var(--gold)"> Start Learning</button>
         <button class="btn-hero-o" onclick="navigate('register','tutor')">Become a Tutor</button>
@@ -624,9 +624,8 @@
   // Run after render
   setTimeout(async ()=>{
     try{
-      console.log('Fetching stats from:', API_URL + '/auth/stats')
-      const stats = await fetch(API_URL + '/auth/stats').then(r=>r.json())
-      console.log('Stats:', stats)
+      // Cache stats for 10 minutes (600,000 ms) so navigating back to home is instant
+      const stats = await cachedFetch(API_URL + '/auth/stats', 600000)
       animateCount('stat-tutors',   stats.tutors   || 22, 2000, '+', false)
       animateCount('stat-students', stats.students || 102, 2000, '+', false)
       animateCount('stat-rating',   stats.rating   || 4.8, 2000, '★', true)

@@ -1110,13 +1110,18 @@ function openCheckoutModal(items, total){
         <div class="form-group" id="order-payment-phone-wrap" style="display:none">
           <label class="form-label">Mobile Money Number</label>
           <input class="input" id="order-payment-phone" placeholder="078XXXXXXX"/>
+          <div style="margin-top:8px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px;font-size:12px;color:#166534">
+            <strong>MoMoPay Code: 178251</strong><br/>
+            You can pay in advance or upon delivery. If paying now, dial *182*8*1*178251# and show the message to our delivery agent.
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label">Notes (optional)</label>
           <textarea class="input" id="order-notes" rows="2" placeholder="Any special instructions..."></textarea>
         </div>
-        <div style="background:#FEF3C7;border-radius:8px;padding:12px;font-size:13px;color:#92400E">
-          💡 Payment is made upon delivery. Our team will contact you to confirm your order.
+        <div style="background:#FEF3C7;border-radius:8px;padding:12px;font-size:13px;color:#92400E;display:flex;gap:8px">
+          <span style="font-size:16px">💡</span>
+          <span>Our team will contact you at the number provided to confirm delivery details.</span>
         </div>
       </div>
       <div class="modal-footer">

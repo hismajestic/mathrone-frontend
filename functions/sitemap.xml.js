@@ -39,7 +39,7 @@ export async function onRequest(context) {
 
     // Public courses
     const coursesRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/courses?select=id,title,updated_at&is_published=eq.true`,
+      `${SUPABASE_URL}/rest/v1/courses?select=id,slug,updated_at&is_published=eq.true`,
       {
         headers: {
           apikey: SUPABASE_ANON_KEY,
@@ -52,7 +52,8 @@ export async function onRequest(context) {
       for (const c of courses) {
         if (!c.id) continue
         const lastmod = c.updated_at ? c.updated_at.split('T')[0] : today
-        dynamicUrls += urlTag(`${BASE}/course/${c.id}`, lastmod, 'weekly', '0.8')
+        const urlIdentifier = c.slug || c.id
+        dynamicUrls += urlTag(`${BASE}/course/${urlIdentifier}`, lastmod, 'weekly', '0.8')
       }
     }
 

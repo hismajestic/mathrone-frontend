@@ -5,6 +5,8 @@ Allow: /shop/
 Allow: /news
 Allow: /news/
 Allow: /tutors
+Allow: /courses
+Allow: /course/
 Allow: /about
 Allow: /privacy
 Allow: /terms

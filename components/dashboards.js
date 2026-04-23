@@ -11,18 +11,27 @@ var FORUM_CATEGORIES = [
     async function renderStudentDash() {
   render(dashWrap('dashboard', `<div class="loader-center"><div class="spinner"></div></div>`))
   try {
-    const [me, sessions, assignments, notifs, progress] = await Promise.allSettled([
+    const [me, sessions, assignments, notifs, progress, pubCourses] = await Promise.allSettled([
       api('/auth/me'),
       api('/sessions/my'),
       api('/students/assignments'),
       api('/notifications/'),
-      api('/progress/student/' + State.user.id)
+      api('/progress/student/' + State.user.id),
+      api('/courses/public')
     ])
+    
     const u        = me.value || State.user
     const student  = u.student || {}
     const sess     = sessions.value || []
     const assigns  = assignments.value || []
     const progs    = progress.value || []
+    
+    // Extract courses and filter by student's school level
+    const allC = pubCourses.status === 'fulfilled' ? (Array.isArray(pubCourses.value) ? pubCourses.value : pubCourses.value.courses || pubCourses.value.data || []) : []
+    let recommended = allC.filter(c => c.level && student.school_level && c.level.includes(student.school_level))
+    if (recommended.length === 0) recommended = allC.slice(0, 3) // Fallback to latest if no exact match
+    else recommended = recommended.slice(0, 3)
+
     const upcoming = sess.filter(s => ['scheduled','pending'].includes(s.status)).slice(0,3)
     const completed= sess.filter(s => s.status === 'completed').length
     const unread   = (notifs.value || []).filter(n => !n.is_read).length
@@ -102,6 +111,35 @@ var FORUM_CATEGORIES = [
       ⚠️ No tutor assigned yet. 
       <strong style="margin-left:4px;cursor:pointer" onclick="navigate('tutors')">Browse tutors and submit a request →</strong>
     </div>`}
+
+    <!-- Recommended Courses -->
+    ${recommended.length ? `
+    <div class="card" style="padding:24px;margin-bottom:24px;border:1px solid #bfdbfe;background:linear-gradient(to right, #ffffff, #eff6ff)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+        <h3 style="font-size:16px;font-weight:800;color:var(--navy);display:flex;align-items:center;gap:6px">
+          <i data-lucide="book-open-check" style="width:20px;height:20px;color:var(--blue)"></i> Recommended for ${student.school_level || 'You'}
+        </h3>
+        <button class="btn btn-primary btn-sm" onclick="navigate('courses')">View All Courses →</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px">
+        ${recommended.map(c => `
+        <div style="background:#fff;border:1px solid var(--g200);border-radius:12px;overflow:hidden;cursor:pointer;transition:all 0.2s" onclick="navigate('course-${c.slug||c.id}')" onmouseover="this.style.boxShadow='0 8px 24px rgba(0,0,0,0.08)';this.style.borderColor='var(--blue)'" onmouseout="this.style.boxShadow='none';this.style.borderColor='var(--g200)'">
+          <div style="height:110px;background:var(--sky);position:relative">
+             ${c.image_url ? `<img src="${c.image_url}" style="width:100%;height:100%;object-fit:cover"/>` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:32px">📚</div>`}
+             ${c.is_exam_prep ? `<span style="position:absolute;bottom:8px;left:8px;background:#fef3c7;color:#b45309;padding:3px 8px;border-radius:4px;font-size:9px;font-weight:800;letter-spacing:0.05em">📝 EXAM PREP</span>` : ''}
+          </div>
+          <div style="padding:14px">
+            <div style="font-size:13px;font-weight:800;color:var(--navy);margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.3">${c.title}</div>
+            <div style="font-size:11px;color:var(--g600);display:flex;justify-content:space-between">
+              <span>${c.subject || 'General'}</span>
+              <span style="font-weight:700;color:${c.price>0?'var(--navy)':'var(--green)'}">${c.price>0?'RWF '+Number(c.price).toLocaleString():'FREE'}</span>
+            </div>
+          </div>
+        </div>
+        `).join('')}
+      </div>
+    </div>
+    ` : ''}
 
     <!-- Dashboard Grid (Upcoming & Progress) -->
     <div class="grid-2">

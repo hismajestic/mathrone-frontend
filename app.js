@@ -647,6 +647,7 @@ function renderWhiteboard(sessionId) {
     const progress = data.progress || []
     const sessions = data.sessions || []
     const invoices = data.invoices || []
+    const courses  = data.courses || [] // New: Retrieve enrolled courses
 
     const completed = sessions.filter(s=>s.status==='completed').length
     const avgMarks  = progress.filter(p=>p.marks).length
@@ -791,7 +792,49 @@ function renderWhiteboard(sessionId) {
         </div>`}
 
         <!-- Sessions -->
-        <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:20px"><!-- Invoices -->
+        <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:20px">
+          <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:6px"><i data-lucide="calendar" style="width:18px;height:18px;color:var(--blue)"></i> Tutoring Sessions</h3>
+          ${sessions.length ? `
+          <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;font-size:13px">
+              <thead><tr style="border-bottom:2px solid var(--g100)">
+                <th style="text-align:left;padding:8px;color:var(--g400)">Subject</th>
+                <th style="text-align:left;padding:8px;color:var(--g400)">Tutor</th>
+                <th style="text-align:left;padding:8px;color:var(--g400)">Date</th>
+                <th style="text-align:left;padding:8px;color:var(--g400)">Status</th>
+              </tr></thead>
+              <tbody>
+                ${sessions.map(s=>`
+                <tr style="border-bottom:1px solid var(--g100)">
+                  <td style="padding:8px;font-weight:600">${s.subject}</td>
+                  <td style="padding:8px">${s.tutors?.profiles?.full_name||'—'}</td>
+                  <td style="padding:8px">${fmtShort(s.scheduled_at)}</td>
+                  <td style="padding:8px">${statusBadge(s.status)}</td>
+                </tr>`).join('')}
+              </tbody>
+            </table>
+          </div>` : `<div style="text-align:center;color:var(--g400)">No sessions yet</div>`}
+        </div>
+
+        <!-- Enrolled Courses -->
+        ${courses.length ? `
+        <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:20px">
+          <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:6px"><i data-lucide="book-open-check" style="width:18px;height:18px;color:var(--blue)"></i> Self-Paced Courses</h3>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            ${courses.map(c => `
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;border:1px solid var(--g100);border-radius:12px;background:var(--g50)">
+              <div>
+                <div style="font-weight:800;color:var(--navy);font-size:14px">${c.title || c.courses?.title || 'Course'}</div>
+                <div style="font-size:12px;color:var(--g600);margin-top:2px">Enrolled: ${fmtShort(c.enrolled_at || c.created_at)}</div>
+              </div>
+              <div style="text-align:right">
+                <span style="background:#dcfce7;color:#166534;font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px">Active</span>
+              </div>
+            </div>`).join('')}
+          </div>
+        </div>` : ''}
+
+        <!-- Invoices -->
         ${invoices.length ? `
         <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:20px">
           <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:6px"><i data-lucide="credit-card" style="width:18px;height:18px;color:var(--blue)"></i> Payments</h3>
@@ -1672,11 +1715,14 @@ ${s.mode !== 'home' ? `<button class="btn btn-ghost btn-sm" onclick="openStandal
       </div>
       <div class="form-group">
         <label class="form-label">Mode</label>
-        <select class="input" id="req-mode">
+        <select class="input" id="req-mode" onchange="document.getElementById('req-home-warn').style.display = this.value.includes('home') || this.value === 'blended' ? 'block' : 'none'">
           <option value="online" ${student.preferred_mode === 'online' ? 'selected' : ''}>Online</option>
           <option value="home" ${student.preferred_mode === 'home' ? 'selected' : ''}>Home Visit</option>
-          <option value="blended">Blended (Both)</option>
+          <option value="blended" ${student.preferred_mode === 'blended' ? 'selected' : ''}>Blended (Both)</option>
         </select>
+        <div id="req-home-warn" style="display:${student.preferred_mode && student.preferred_mode !== 'online' ? 'block' : 'none'}; font-size:11px;color:#92400e;background:#fef3c7;padding:10px;border-radius:6px;margin-top:8px;line-height:1.4">
+          🏠 <strong>Note:</strong> Home visits may include a small transport fee depending on the tutor's distance from your location in <strong>${student.home_location || 'your district'}</strong>.
+        </div>
       </div>
       <div class="form-group">
         <label class="form-label">Notes (optional)</label>
@@ -2799,7 +2845,10 @@ async function saveTutorStatus(tutorId){
         <div class="form-group"><label class="form-label">Select Tutor *</label>
           <select class="input" id="assign-tutor">
             <option value="">Choose a tutor...</option>
-            ${tutors.map(t => `<option value="${t.id}">${t.profiles?.full_name} — ${(t.subjects || []).join(', ')}</option>`).join('')}
+            ${tutors.map(t => {
+              const modes = (t.teaching_modes || []).map(m => m.toUpperCase()).join('/');
+              return `<option value="${t.id}">${t.profiles?.full_name} [${modes}] — ${(t.subjects || []).join(', ')}</option>`;
+            }).join('')}
           </select>
         </div>
         <div class="form-group"><label class="form-label">Subject *</label>
