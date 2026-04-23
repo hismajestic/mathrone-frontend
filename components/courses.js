@@ -127,22 +127,41 @@ async function renderCoursesShop() {
   const isCourseGuest = _isCourseGuestAccount()
 
   const nav = `
-  <nav style="display:flex;align-items:center;justify-content:space-between;padding:10px 20px;border-bottom:1px solid var(--g100);background:#fff;position:sticky;top:0;z-index:100;gap:8px">
-    <button onclick="navigate('landing')" style="display:flex;align-items:center;gap:6px;background:none;border:none;cursor:pointer;padding:0">
+  <style>
+    .courses-nav-buttons {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    @media (max-width: 768px) {
+      .c-nav-text { display: none !important; }
+      .courses-nav-buttons .btn {
+        padding: 8px !important;
+        min-width: 38px !important;
+        width: 38px !important;
+        height: 38px !important;
+        justify-content: center !important;
+      }
+      .courses-nav-buttons i { margin-right: 0 !important; }
+      .c-nav-brand-text { display: none !important; }
+    }
+  </style>
+  <nav style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--g100);background:#fff;position:sticky;top:0;z-index:100;gap:8px">
+    <button onclick="navigate('landing')" style="display:flex;align-items:center;gap:6px;background:none;border:none;cursor:pointer;padding:0;flex-shrink:0;">
       <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" alt="Mathrone" loading="lazy" style="height:28px;width:auto"/>
-      <span style="font-size:14px;font-weight:800;color:var(--navy)">Mathrone</span>
+      <span class="c-nav-brand-text" style="font-size:14px;font-weight:800;color:var(--navy)">Mathrone</span>
     </button>
-    <div style="display:flex;align-items:center;gap:8px">
+    <div class="courses-nav-buttons">
       ${isLoggedIn ? `
-        <button class="btn btn-ghost btn-sm" onclick="navigate('my-courses')"><i data-lucide="book-open-check" style="width:16px;height:16px;margin-right:4px"></i> My Courses</button>
+        <button class="btn btn-ghost btn-sm" onclick="navigate('my-courses')" title="My Courses"><i data-lucide="book-open-check" style="width:16px;height:16px;margin-right:4px"></i> <span class="c-nav-text">My Courses</span></button>
         ${isCourseGuest
-          ? `<button class="btn btn-primary btn-sm" onclick="upgradeToCourseStudent()" style="background:linear-gradient(135deg,#7c3aed,#5b21b6)"><i data-lucide="rocket" style="width:16px;height:16px;margin-right:4px"></i> Find a Tutor & Upgrade</button>`
-          : `<button class="btn btn-primary btn-sm" onclick="navigate('dashboard')">Dashboard</button>`}
+          ? `<button class="btn btn-primary btn-sm" onclick="upgradeToCourseStudent()" style="background:linear-gradient(135deg,#7c3aed,#5b21b6)" title="Find a Tutor & Upgrade"><i data-lucide="rocket" style="width:16px;height:16px;margin-right:4px"></i> <span class="c-nav-text">Find Tutor & Upgrade</span></button>`
+          : `<button class="btn btn-primary btn-sm" onclick="navigate('dashboard')" title="Dashboard"><i data-lucide="layout-dashboard" style="width:16px;height:16px;margin-right:4px"></i> <span class="c-nav-text">Dashboard</span></button>`}
     ` : `
-        <button class="btn btn-ghost btn-sm" onclick="navigate('landing')"><i data-lucide="home" style="width:16px;height:16px;margin-right:4px"></i> Home</button>
-        <button class="btn btn-ghost btn-sm" onclick="navigate('shop')"><i data-lucide="shopping-bag" style="width:16px;height:16px;margin-right:4px"></i> Go Shop</button>
-        <button class="btn btn-ghost btn-sm" onclick="navigate('login')">Sign In</button>
-        <button class="btn btn-primary btn-sm" onclick="navigate('register')">Sign Up</button>
+        <button class="btn btn-ghost btn-sm" onclick="navigate('landing')" title="Home"><i data-lucide="home" style="width:16px;height:16px;margin-right:4px"></i> <span class="c-nav-text">Home</span></button>
+        <button class="btn btn-ghost btn-sm" onclick="navigate('shop')" title="Shop"><i data-lucide="shopping-bag" style="width:16px;height:16px;margin-right:4px"></i> <span class="c-nav-text">Shop</span></button>
+        <button class="btn btn-ghost btn-sm" onclick="navigate('login')" title="Sign In"><i data-lucide="log-in" style="width:16px;height:16px;margin-right:4px"></i> <span class="c-nav-text">Sign In</span></button>
+        <button class="btn btn-primary btn-sm" onclick="navigate('register')" title="Sign Up"><i data-lucide="user-plus" style="width:16px;height:16px;margin-right:4px"></i> <span class="c-nav-text">Sign Up</span></button>
       `}
     </div>
   </nav>`
@@ -363,9 +382,9 @@ async function renderCourseDetail(slugParam) {
     // ─────────────────────────────────────────────────
 
     render(`
-    <nav style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--g100);background:#fff;position:sticky;top:0;z-index:100">
-      <button onclick="navigate('courses')" style="font-size:14px;font-weight:700;color:var(--navy);background:none;border:none;cursor:pointer">← All Courses</button>
-      ${isLoggedIn ? `<button class="btn btn-ghost btn-sm" onclick="navigate('my-courses')"><i data-lucide="book-open-check" style="width:16px;height:16px;margin-right:4px"></i> My Courses</button>` : `<button class="btn btn-ghost btn-sm" onclick="navigate('login')">Sign In</button>`}
+    <nav style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--g100);background:#fff;position:sticky;top:0;z-index:100;gap:8px;flex-wrap:wrap;">
+      <button onclick="navigate('courses')" style="font-size:14px;font-weight:700;color:var(--navy);background:none;border:none;cursor:pointer;white-space:nowrap;padding:4px 0;">← All Courses</button>
+      ${isLoggedIn ? `<button class="btn btn-ghost btn-sm" onclick="navigate('my-courses')" style="padding:8px 12px;font-size:13px;"><i data-lucide="book-open-check" style="width:16px;height:16px;margin-right:4px"></i> My Courses</button>` : `<button class="btn btn-ghost btn-sm" onclick="navigate('login')" style="padding:8px 12px;font-size:13px;">Sign In</button>`}
     </nav>
     <div style="max-width:860px;margin:0 auto;padding:40px 16px 60px">
 

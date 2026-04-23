@@ -116,16 +116,33 @@ function addToGuestCart(id, name, price, qty=1){
   toast('Added to cart!');
 }
 
-function updateCartButton(){
-  const totalQty = _getGuestCart().reduce((sum,i)=>sum + i.qty, 0)
-  const btn = document.getElementById('cart-nav-btn')
-  if(btn){
-    if(totalQty){
-      btn.innerHTML = `<i data-lucide="shopping-cart" style="width:16px;height:16px;margin-right:4px"></i> <span class="sn-text">Cart (${totalQty})</span>`
-      if (window.lucide) window.lucide.createIcons()
-      btn.style.display = 'inline-flex'
-    }else{
-      btn.style.display = 'none'
+async function updateCartButton(){
+  const btn = document.getElementById('cart-nav-btn');
+  if(!btn) return;
+  
+  let totalQty = 0;
+  const isLoggedIn = !!(State.user && localStorage.getItem('tc_access'));
+  
+  if (isLoggedIn) {
+    try {
+      const cart = await api('/shop/cart');
+      totalQty = cart.reduce((sum, i) => sum + i.quantity, 0);
+    } catch(e) {}
+  } else {
+    totalQty = _getGuestCart().reduce((sum, i) => sum + i.qty, 0);
+  }
+  
+  if (totalQty > 0) {
+    btn.innerHTML = `<i data-lucide="shopping-cart" style="width:16px;height:16px;margin-right:4px"></i> <span class="sn-text">Cart (${totalQty})</span>`;
+    if (window.lucide) window.lucide.createIcons();
+    btn.style.display = 'inline-flex';
+  } else {
+    if (isLoggedIn) {
+      btn.innerHTML = `<i data-lucide="shopping-cart" style="width:16px;height:16px;margin-right:4px"></i> <span class="sn-text">Cart (0)</span>`;
+      if (window.lucide) window.lucide.createIcons();
+      btn.style.display = 'inline-flex';
+    } else {
+      btn.style.display = 'none';
     }
   }
 }
@@ -221,7 +238,7 @@ async function submitGuestOrder(preItems){
 
   // Show confirmation + CTA
   render(`
-  <nav style="display:flex;align-items:center;justify-content:space-between;padding:14px 48px;border-bottom:1px solid var(--g100);background:#fff">
+  <nav style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--g100);background:#fff">
     <a href="/shop" onclick="navigate('shop', null, event)" style="background:none;border:none;cursor:pointer;font-size:16px;font-weight:700;color:var(--navy);text-decoration:none">← Back to Store</a>
   </nav>
   <div style="max-width:540px;margin:80px auto;text-align:center;padding:24px">
@@ -282,28 +299,8 @@ async function renderShop(category = 'all', search = '') {
     </div>
   </nav>`
 
-  // Load cart count
-  setTimeout(async ()=>{
-    try{
-      let totalQty = 0
-      if(isLoggedIn){
-        const cart = await api('/shop/cart')
-        totalQty = cart.reduce((sum,i)=>sum + i.quantity, 0)
-      }else{
-        totalQty = _getGuestCart().reduce((sum,i)=>sum + i.qty, 0)
-      }
-      const btn = document.getElementById('cart-nav-btn')
-      if(btn){
-        if(totalQty){
-          btn.innerHTML = `<i data-lucide="shopping-cart" style="width:16px;height:16px;margin-right:4px"></i> <span class="sn-text">Cart (${totalQty})</span>`
-          if (window.lucide) window.lucide.createIcons()
-          btn.style.display = 'inline-flex'
-        }else if(!isLoggedIn){
-          btn.style.display = 'none'
-        }
-      }
-    }catch(e){}
-  }, 300)
+  // Load cart count dynamically
+  setTimeout(() => updateCartButton(), 300);
 
   try {
     const productsUrl = API_URL + '/shop/products?' + new URLSearchParams({
@@ -505,7 +502,7 @@ async function renderShop(category = 'all', search = '') {
     </div> <!-- End max-width wrapper -->
 
     <!-- Footer -->
-    <div style="background:#0f172a;padding:24px 48px;display:flex;justify-content:space-between;align-items:center;margin-top:48px;flex-wrap:wrap;gap:10px">
+    <div style="background:#0f172a;padding:24px 16px;display:flex;justify-content:space-between;align-items:center;margin-top:48px;flex-wrap:wrap;gap:10px">
       <div style="font-size:13px;color:rgba(255,255,255,0.5)">© 2026 Mathrone Academy Learning Store</div>
       <button onclick="navigate('landing')" style="font-size:13px;color:rgba(255,255,255,0.5);background:none;border:none;cursor:pointer">← Back to Home</button>
     </div>
@@ -632,29 +629,11 @@ async function addToCartQty(productId, bundleId, name, btn, qtyInputId){
   try{
     await api('/shop/cart',{ method:'POST', body:JSON.stringify({ product_id:productId, bundle_id:bundleId, quantity:qty }) })
     toast(`${name} ×${qty} added to cart 🛒`)
+    updateCartButton()
     if(btn){ btn.textContent='✅ Added!'; setTimeout(()=>{ btn.disabled=false; btn.textContent='<i data-lucide="shopping-cart" style="width:14px;height:14px;margin-right:4px"></i> Add to Cart' },2000) }
   }catch(e){
     toast(e.message,'err')
     if(btn){ btn.disabled=false; btn.textContent='<i data-lucide="shopping-cart" style="width:14px;height:14px;margin-right:4px"></i> Add to Cart' }
-  }
-}
-
-
-function setCardQty(inputId, qty){
-  const input = document.getElementById(inputId)
-  if(input) input.value = qty
-}
-
-async function addToCartQty(productId, bundleId, name, btn, qtyInputId){
-  const qty = parseInt(document.getElementById(qtyInputId)?.value) || 1
-  if(btn){ btn.disabled=true; btn.textContent='Adding...' }
-  try{
-    await api('/shop/cart',{ method:'POST', body:JSON.stringify({ product_id:productId, bundle_id:bundleId, quantity:qty }) })
-    toast(`${name} ×${qty} added to cart 🛒`)
-    if(btn){ btn.textContent='✅ Added!'; setTimeout(()=>{ btn.disabled=false; btn.textContent='Add to Cart' },2000) }
-  }catch(e){
-    toast(e.message,'err')
-    if(btn){ btn.disabled=false; btn.textContent='Add to Cart' }
   }
 }
 
@@ -703,23 +682,23 @@ async function renderShopProduct(productId) {
 
     render(`
     <!-- STICKY NAV -->
-    <nav style="display:flex;align-items:center;justify-content:space-between;padding:14px 48px;border-bottom:1px solid var(--g100);background:#fff;position:sticky;top:0;z-index:100">
-      <a href="/shop" onclick="navigate('shop', null, event)" style="display:flex;align-items:center;gap:8px;text-decoration:none">
-        <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" alt="Mathrone Academy logo"loading="lazy" decoding="async" style="height:34px;width:auto"/>
-        <span style="font-size:16px;font-weight:700;color:var(--navy)">Mathrone Store</span>
+    <nav style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--g100);background:#fff;position:sticky;top:0;z-index:100;gap:8px;flex-wrap:wrap;">
+      <a href="/shop" onclick="navigate('shop', null, event)" style="display:flex;align-items:center;gap:8px;text-decoration:none;flex-shrink:0;">
+        <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" alt="Mathrone Academy logo"loading="lazy" decoding="async" style="height:28px;width:auto"/>
+        <span style="font-size:14px;font-weight:700;color:var(--navy)">Mathrone Store</span>
       </a>
-      <div style="display:flex;gap:10px">
-        <button class="btn btn-ghost btn-sm" onclick="navigate('shop')">← Back to Shop</button>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+        <button class="btn btn-ghost btn-sm sn-btn" onclick="navigate('shop')">← <span class="sn-text">Shop</span></button>
         ${isLoggedIn ? 
-          `<button class="btn btn-ghost btn-sm" onclick="navigate('cart')" id="cart-nav-btn"><i data-lucide="shopping-cart" style="width:16px;height:16px;margin-right:4px"></i> Cart</button>` : 
-          `<button class="btn btn-ghost btn-sm" onclick="openGuestOrderModal(_getGuestCart())" id="cart-nav-btn" 
-             style="${_getGuestCart().length > 0 ? 'display:inline-block' : 'display:none'}"><i data-lucide="shopping-cart" style="width:16px;height:16px;margin-right:4px"></i> Cart (${_getGuestCart().reduce((a, b) => a + b.qty, 0)})</button>`
+          `<button class="btn btn-ghost btn-sm sn-btn" onclick="navigate('cart')" id="cart-nav-btn"><i data-lucide="shopping-cart" style="width:16px;height:16px;margin-right:4px"></i> <span class="sn-text">Cart</span></button>` : 
+          `<button class="btn btn-ghost btn-sm sn-btn" onclick="openGuestOrderModal(_getGuestCart())" id="cart-nav-btn" 
+             style="${_getGuestCart().length > 0 ? 'display:inline-flex' : 'display:none'}"><i data-lucide="shopping-cart" style="width:16px;height:16px;margin-right:4px"></i> <span class="sn-text">Cart (${_getGuestCart().reduce((a, b) => a + b.qty, 0)})</span></button>`
         }
       </div>
     </nav>
 
 <!-- Visible Breadcrumbs -->
-<div style="max-width:1400px; margin: 10px auto; padding: 0; font-size: 13px; color: var(--g400);">
+<div style="max-width:1400px; margin: 10px auto; padding: 0 16px; font-size: 13px; color: var(--g400);">
   <a href="/" onclick="navigate('landing', null, event)" style="cursor:pointer; color:var(--blue)">Home</a> / 
   <a href="/shop" onclick="navigate('shop', null, event)" style="cursor:pointer; color:var(--blue)">Shop</a> / 
   <span style="color:var(--g600)">${p.name}</span>
@@ -769,23 +748,21 @@ async function renderShopProduct(productId) {
 
           <p style="font-size:14px;color:var(--g600);line-height:1.6;margin-bottom:24px">${p.description || ''}</p>
 
-          <div class="prod-action-btns" style="display:flex; align-items:center; gap:12px; margin-bottom:24px; padding-bottom:24px; border-bottom:1px solid var(--g100); flex-wrap:wrap;">
+          <div class="prod-action-btns" style="display:flex; align-items:center; gap:12px; margin-bottom:24px; padding-bottom:24px; border-bottom:1px solid var(--g100); flex-wrap:wrap; width:100%;">
             <div style="display:flex; align-items:center; gap:8px;">
               <span style="font-size:13px; font-weight:700; color:var(--navy);">Qty</span>
-              <input type="number" value="1" min="1" id="prod-qty-input" style="width:60px; height:40px; border:1px solid var(--g200); border-radius:4px; text-align:center; font-family:inherit; outline:none;" />
+              <input type="number" value="1" min="1" id="prod-qty-input" style="width:60px; height:40px; min-height:40px; border:1px solid var(--g200); border-radius:4px; text-align:center; font-family:inherit; outline:none; padding:0;" />
             </div>
             
             <button onclick="${p.stock === 0 ? "toast('Out of stock','err')" : isLoggedIn ? `addToCartQty('${p.id}',null,'${safeName}',this,'prod-qty-input')` : `addToGuestCart('${p.id}','${safeName}',${p.price},parseInt(document.getElementById('prod-qty-input').value||1))`}"
-              style="background:var(--blue);color:#fff;border:none;padding:0 24px;height:40px;border-radius:4px;cursor:pointer;font-size:14px;font-weight:700;transition:background .2s;" onmouseover="this.style.background='var(--blue2)'" onmouseout="this.style.background='var(--blue)'">
-              Add To Cart
+              style="flex:1; min-width:140px; background:var(--blue);color:#fff;border:none;padding:0 16px;height:40px;min-height:40px;border-radius:4px;cursor:pointer;font-size:14px;font-weight:700;transition:background .2s;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:6px;" onmouseover="this.style.background='var(--blue2)'" onmouseout="this.style.background='var(--blue)'">
+              <i data-lucide="shopping-cart" style="width:16px;height:16px"></i> Add To Cart
             </button>
             
-            <div style="display:flex; gap:6px;">
-              <button onclick="${isLoggedIn ? `toggleWishlist('${p.id}','${safeName}',this)` : `toast('Sign in to save','info')`}"
-                style="background:var(--navy);color:#fff;border:none;width:40px;height:40px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;" onmouseover="this.style.background='#1E2845'" onmouseout="this.style.background='var(--navy)'" id="wish-${p.id}">
-                <i data-lucide="heart" style="width:16px;height:16px"></i>
-              </button>
-            </div>
+            <button onclick="${isLoggedIn ? `toggleWishlist('${p.id}','${safeName}',this)` : `toast('Sign in to save','info')`}"
+              style="background:var(--navy);color:#fff;border:none;width:40px;height:40px;min-height:40px;min-width:40px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;flex-shrink:0;" onmouseover="this.style.background='#1E2845'" onmouseout="this.style.background='var(--navy)'" id="wish-${p.id}">
+              <i data-lucide="heart" style="width:16px;height:16px"></i>
+            </button>
           </div>
           
           <!-- Social Share Row -->
@@ -926,6 +903,7 @@ document.head.appendChild(productSchema)
     // Update URL for refresh support
     history.pushState({ page: 'shop-product-' + productSlug, tab: null }, document.title, '/shop/' + productSlug)
   renderRelatedProducts(productId, p.category, isLoggedIn)
+  setTimeout(() => updateCartButton(), 300);
   }catch(e){ toast(e.message,'err'); navigate('shop') }
   
 }
@@ -1015,6 +993,7 @@ async function addToCart(productId, bundleId, name, btn){
   try{
     await api('/shop/cart',{ method:'POST', body:JSON.stringify({ product_id:productId, bundle_id:bundleId, quantity:1 }) })
     toast(`${name} added to cart 🛒`)
+    updateCartButton()
     if(btn){ btn.textContent='✅ Added!'; setTimeout(()=>{ btn.disabled=false; btn.textContent='<i data-lucide="shopping-cart" style="width:14px;height:14px;margin-right:4px"></i> Add to Cart' },2000) }
   }catch(e){
     toast(e.message,'err')
