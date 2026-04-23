@@ -2101,3 +2101,108 @@
     display: flex;
   }
 }
+
+/* ═══════════════════════════════════════
+   MOBILE SHOP CARDS (Alibaba Style)
+═══════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Remove outer paddings to bleed to the edge */
+  .m-shop-container { padding: 16px 0 !important; }
+  .shop-layout-grid { padding: 0 !important; gap: 0 !important; }
+  
+  /* Add padding only to the headers/bars so they don't hit the screen edge */
+  .shop-main-content > div > div:first-child,
+  .shop-main-content > div[style*="justify-content:space-between"] {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  /* Make grid tighter and seamless */
+  .shop-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 2px !important; /* Thin line between cards */
+    background: #e8ecf0; /* Acts as the border separating the cards */
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Product Card overrides */
+  .m-shop-card {
+    border-radius: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  
+  /* Image wrapper and image overrides */
+  .m-shop-img-wrap {
+    background: #fff !important; /* Changed to white to blend seamlessly */
+    border-bottom: none !important;
+  }
+  .m-shop-img {
+    padding: 4px !important; /* Tiny breathing room so it doesn't touch the glass */
+    object-fit: contain !important; /* Guarantees 0% detail loss (no cropping) */
+    background: #fff !important; 
+  }
+
+  /* Content body overrides */
+  .m-shop-body {
+    padding: 8px 8px 12px 8px !important; /* Tighter spacing matching the reference */
+    background: #fff;
+  }
+}
+/* ═══════════════════════════════════════
+   MOBILE COURSE CARDS (Swipeable Carousel)
+═══════════════════════════════════════ */
+@media (max-width: 768px) {
+  .m-courses-container { padding: 16px 0 !important; overflow: hidden !important; }
+  .m-courses-header { padding-left: 16px; padding-right: 16px; }
+  
+  /* Creates the horizontal scrolling row */
+  .m-courses-grid {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    gap: 16px !important;
+    background: transparent !important;
+    padding: 4px 16px 24px 16px !important;
+    margin: 0 !important;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Hides scrollbar in Firefox */
+  }
+  
+  /* Hides scrollbar in Chrome/Safari */
+  .m-courses-grid::-webkit-scrollbar {
+    display: none; 
+  }
+  
+  .m-course-card {
+    flex: 0 0 85% !important; /* 85% width lets the edge of the next card peek in */
+    border-radius: 12px !important;
+    border: 1px solid #e8ecf0 !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06) !important;
+    scroll-snap-align: center; /* Snaps the card perfectly to the middle of the screen */
+  }
+
+  .m-course-img-wrap {
+    height: 160px !important; 
+  }
+  
+  .m-course-body {
+    padding: 16px !important;
+  }
+  
+  /* Restore full sizing since cards are wide again */
+  .m-course-body > div[onclick*="navigate"] { font-size: 16px !important; }
+  .m-course-body > div:nth-child(2) { font-size: 12px !important; margin-bottom: 8px !important; }
+  .m-course-body > a { font-size: 11px !important; padding: 4px 12px !important; margin-bottom: 12px !important; }
+  
+  .m-course-body > div[style*="border-top"] { 
+    flex-direction: row !important; 
+    align-items: center !important; 
+    padding-top: 12px !important;
+  }
+  .m-course-body > div[style*="border-top"] > div:last-child { font-size: 18px !important; }
+  
+  .m-course-body button { font-size: 14px !important; padding: 10px !important; }
+}

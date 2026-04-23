@@ -322,7 +322,7 @@ async function renderShop(category = 'all', search = '') {
 
     render(`
     ${nav}
-    <div style="max-width:1200px;margin:0 auto;padding:32px 0">
+    <div class="m-shop-container" style="max-width:1200px;margin:0 auto;padding:32px 0">
 
       <div class="shop-layout-grid" style="display:grid; grid-template-columns: 250px 1fr; gap: 30px; align-items: start; padding: 0 16px;">
         
@@ -553,15 +553,15 @@ function shopProductCard(p, isLoggedIn) {
   const displayPrice = isLoggedIn ? memberPrice : basePrice;
 
   return `
-  <div style="background:#fff;border:1px solid #e8ecf0;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .2s,transform .2s;cursor:pointer"
+  <div class="m-shop-card" style="background:#fff;border:1px solid #e8ecf0;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .2s,transform .2s;cursor:pointer"
        onmouseover="this.style.boxShadow='0 8px 32px rgba(0,0,0,0.10)';this.style.transform='translateY(-2px)'"
        onmouseout="this.style.boxShadow='none';this.style.transform='translateY(0)'">
 
     <!-- Image — fixed 200px height, consistent across all cards -->
     <a href="/shop/${p.slug||p.id}" onclick="navigate('shop-product-${p.slug||p.id}', null, event)"
-       style="display:block;position:relative;width:100%;padding-top:100%;background:#f8fafc;overflow:hidden;flex-shrink:0;border-bottom:1px solid #f0f2f5">
+       class="m-shop-img-wrap" style="display:block;position:relative;width:100%;padding-top:100%;background:#f8fafc;overflow:hidden;flex-shrink:0;border-bottom:1px solid #f0f2f5">
       ${p.image_url
-        ? `<img src="${p.image_url}" alt="${p.name}" loading="lazy" decoding="async"
+        ? `<img class="m-shop-img" src="${p.image_url}" alt="${p.name}" loading="lazy" decoding="async"
                style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;padding:16px;transition:transform .3s"
                onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'"/>`
         : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:52px;color:#cbd5e1">🛍️</div>`}
@@ -570,14 +570,14 @@ function shopProductCard(p, isLoggedIn) {
     </a>
 
     <!-- Body -->
-    <div style="padding:12px 14px;flex:1;display:flex;flex-direction:column;gap:0">
+    <div class="m-shop-body" style="padding:12px 14px;flex:1;display:flex;flex-direction:column;gap:0">
 
       <!-- Category tag -->
       ${p.category ? `<div style="font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:0.08em">${p.category}</div>` : ''}
 
-      <!-- Name — clamped to 2 lines so all cards stay same height -->
+      <!-- Name — clamped to 2 lines -->
       <div onclick="navigate('shop-product-${p.slug||p.id}')"
-           style="font-size:14px;font-weight:700;color:#0f172a;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:40px">
+           style="font-size:14px;font-weight:700;color:#0f172a;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:2px;">
         ${p.name}
       </div>
 

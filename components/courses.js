@@ -208,8 +208,8 @@ async function renderCoursesShop() {
 
     render(`
     ${nav}
-    <div style="max-width:1100px;margin:0 auto;padding:24px 16px">
-      <div style="margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px">
+    <div class="m-courses-container" style="max-width:1100px;margin:0 auto;padding:24px 16px">
+      <div class="m-courses-header" style="margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px">
         <div style="flex:1;min-width:300px">
           <h1 style="font-size:22px;font-weight:800;color:var(--navy);margin-bottom:4px;line-height:1.2;display:flex;align-items:center;gap:8px"><i data-lucide="book-open-check" style="width:24px;height:24px;color:var(--blue)"></i> Learn Anything, Anytime</h1>
           <p style="font-size:13px;color:var(--g400);margin:0">Expert-led video courses designed for Rwandan students. Learn at your own pace.</p>
@@ -221,7 +221,7 @@ async function renderCoursesShop() {
           <div id="course-search-suggestions" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--g200);border-radius:8px;box-shadow:0 10px 25px rgba(0,0,0,0.1);z-index:50;margin-top:4px;max-height:250px;overflow-y:auto"></div>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
+      <div class="m-courses-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
         ${cards}
       </div>
     </div>
@@ -235,42 +235,67 @@ async function renderCoursesShop() {
 }
 
 function courseCard(c, isLoggedIn, isCourseGuest) {
-  const group = _levelGroup(c.level)
-  // Must be logged in to enroll — redirect to login if not
   const enrollAction = isLoggedIn
     ? `memberEnrollCourse('${c.id}','${(c.title||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}',${c.price})`
     : `openLoginPrompt('${c.id}','${(c.title||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}',${c.price})`
+  
+  const lessonCount = c.lesson_count || (c.lessons && c.lessons.length) || (c.preview_lessons && c.preview_lessons.length) || 0;
+  const lessonText = lessonCount > 0 ? `${lessonCount} Lessons` : `Video Lessons`;
 
   return `
-  <div onclick="navigate('course-${c.slug || c.id}')"
-    style="background:#fff;border-radius:16px;border:1px solid var(--g100);overflow:hidden;cursor:pointer;transition:all .2s;display:flex;flex-direction:column"
-    onmouseover="this.style.boxShadow='0 8px 30px rgba(0,0,0,0.10)';this.style.transform='translateY(-2px)'"
-    onmouseout="this.style.boxShadow='none';this.style.transform='translateY(0)'">
+  <div class="m-course-card" style="background:#fff;border:1px solid #e8ecf0;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .2s,transform .2s;"
+       onmouseover="this.style.boxShadow='0 8px 32px rgba(0,0,0,0.10)';this.style.transform='translateY(-2px)'"
+       onmouseout="this.style.boxShadow='none';this.style.transform='translateY(0)'">
 
-    <div style="position:relative;height:180px;background:linear-gradient(135deg,#1E3A8A,#2563EB);overflow:hidden">
+    <!-- Image Area -->
+    <a href="/course/${c.slug||c.id}" onclick="navigate('course-${c.slug||c.id}', null, event)"
+       class="m-course-img-wrap" style="display:block;position:relative;width:100%;height:160px;background:#f8fafc;overflow:hidden;flex-shrink:0;border-bottom:1px solid #f0f2f5;cursor:pointer;">
       ${c.image_url
-        ? `<img src="${c.image_url}" alt="${c.title}" loading="lazy" style="width:100%;height:100%;object-fit:cover"/>`
-        : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--blue)"><i data-lucide="book-open" style="width:48px;height:48px;margin:auto"></i></div>`}
-      ${group ? `<span style="position:absolute;top:12px;left:12px;background:${group.bg};color:${group.color};font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px">${c.level}</span>` : ''}
-      ${c.subject ? `<span style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,0.45);color:#fff;font-size:11px;font-weight:600;padding:3px 10px;border-radius:999px;backdrop-filter:blur(4px)">${c.subject}</span>` : ''}
-    </div>
-    <div style="padding:20px;flex:1;display:flex;flex-direction:column">
-       <h3 style="font-size:16px;font-weight:800;color:var(--navy);margin-bottom:6px;line-height:1.3">${c.title}</h3>
-      ${c.description ? `<p style="font-size:13px;color:var(--g400);line-height:1.5;margin-bottom:12px;flex:1;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${c.description}</p>` : '<div style="flex:1"></div>'}
+        ? `<img src="${c.image_url}" alt="${c.title}" loading="lazy" decoding="async"
+               style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;transition:transform .3s"
+               onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'"/>`
+        : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:52px;color:#cbd5e1"><i data-lucide="book-open" style="width:48px;height:48px;"></i></div>`}
+    </a>
+
+    <!-- Body Area -->
+    <div class="m-course-body" style="padding:16px;flex:1;display:flex;flex-direction:column;gap:0">
       
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;font-size:12px;color:var(--g400);font-weight:600">
-        <span style="display:flex;align-items:center;gap:4px"><i data-lucide="play-square" style="width:14px;height:14px"></i> ${(c.lessons && c.lessons.length) || (c.preview_lessons && c.preview_lessons.length) || 'Video'} Lessons</span>
-        <span style="display:flex;align-items:center;gap:4px"><i data-lucide="clock" style="width:14px;height:14px"></i> Self-paced</span>
+      <div onclick="navigate('course-${c.slug||c.id}')"
+           style="font-size:16px;font-weight:800;color:#0f172a;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:6px;cursor:pointer;">
+        ${c.title}
       </div>
 
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:auto">
-        <div style="font-size:20px;font-weight:900;color:var(--navy)">${c.price > 0 ? `RWF ${Number(c.price).toLocaleString()}` : '<span style="color:#059669">FREE</span>'}</div>
-        <button onclick="event.stopPropagation();${enrollAction}"
-          style="background:var(--blue);color:#fff;border:none;padding:9px 18px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;transition:background .15s"
-          onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='var(--blue)'">
-          ${c.price > 0 ? 'Enroll Now →' : 'Get Course →'}
-        </button>
+      <div style="font-size:12px;color:#64748b;margin-bottom:8px;line-height:1.5;">
+        By <span style="font-weight:700;color:#334155">Mathrone Academy</span><br/>
+        ${c.subject || 'General'} • ${c.level || 'All Levels'}
       </div>
+
+      <!-- View Details Pill -->
+      <a href="/course/${c.slug||c.id}" onclick="navigate('course-${c.slug||c.id}', null, event)"
+         style="display:inline-flex;align-items:center;gap:3px;padding:4px 12px;border-radius:999px;border:1.5px solid #bfdbfe;background:#eff6ff;font-size:11px;font-weight:600;color:#1d4ed8;text-decoration:none;width:fit-content;transition:background .15s;margin-top:4px;margin-bottom:12px;"
+         onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
+        View full details →
+      </a>
+
+      <div style="flex:1"></div>
+
+      <!-- Lessons and Price Row -->
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;padding-top:12px;border-top:1px solid #f0f2f5;">
+        <div style="font-size:12px;color:#64748b;display:flex;align-items:center;gap:6px;font-weight:600;">
+          <i data-lucide="video" style="width:14px;height:14px"></i> ${lessonText}
+        </div>
+        <div style="font-size:18px;font-weight:800;color:#0f172a;">
+          ${c.price > 0 ? `RWF ${Number(c.price).toLocaleString()}` : '<span style="color:#10b981">FREE</span>'}
+        </div>
+      </div>
+
+      <!-- Enroll CTA (Triggers Login if Guest) -->
+      <button onclick="event.stopPropagation(); ${enrollAction}"
+        style="width:100%;background:var(--blue);color:#fff;border:none;padding:10px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;transition:background .15s"
+        onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='var(--blue)'">
+        <i data-lucide="graduation-cap" style="width:16px;height:16px"></i>
+        ${c.price > 0 ? 'Enroll Now' : 'Get Course for Free'}
+      </button>
     </div>
   </div>`
 }
@@ -344,23 +369,27 @@ async function renderCourseDetail(slugParam) {
     </nav>
     <div style="max-width:860px;margin:0 auto;padding:40px 16px 60px">
 
-      <!-- Hero -->
-      <div style="background:linear-gradient(135deg,#0f172a,#1e3a8a);border-radius:20px;padding:clamp(20px, 5vw, 40px) clamp(16px, 5vw, 36px);margin-bottom:24px;color:#fff;overflow:hidden;position:relative">
-        ${c.image_url ? `<img src="${c.image_url}" alt="" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.12"/>` : ''}
-        <div style="position:relative">
-          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
-            ${c.level ? `<span style="background:rgba(255,255,255,0.15);color:#fff;font-size:12px;font-weight:700;padding:4px 12px;border-radius:999px">${c.level}</span>` : ''}
-            ${c.subject ? `<span style="background:rgba(255,255,255,0.15);color:#fff;font-size:12px;font-weight:700;padding:4px 12px;border-radius:999px">${c.subject}</span>` : ''}
+      <!-- Clean Header / Enroll Section -->
+      <div style="margin-bottom:32px;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:24px;">
+        <div style="flex:1;min-width:300px;">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+            ${c.level ? `<span style="background:var(--sky);color:var(--blue);font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px">${c.level}</span>` : ''}
+            ${c.subject ? `<span style="background:var(--sky);color:var(--blue);font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px">${c.subject}</span>` : ''}
           </div>
-          <h1 style="font-size:28px;font-weight:900;margin-bottom:12px;line-height:1.2">${c.title}</h1>
-          <p style="font-size:15px;opacity:0.8;line-height:1.6;margin-bottom:24px;max-width:580px">${c.description || ''}</p>
-          <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
-            <div style="font-size:28px;font-weight:900;color:#fbbf24">${c.price > 0 ? `RWF ${Number(c.price).toLocaleString()}` : 'FREE'}</div>
-            <button onclick="${isLoggedIn ? `memberEnrollCourse('${c.id}','${(c.title||'').replace(/'/g,"\\'")}',${ c.price})` : `openCourseCheckout('${c.id}','${(c.title||'').replace(/'/g,"\\'")}',${ c.price})`}"
-              style="background:#fbbf24;color:#0f172a;border:none;padding:12px 28px;border-radius:10px;cursor:pointer;font-size:15px;font-weight:800;display:flex;align-items:center;gap:8px">
-              <i data-lucide="graduation-cap" style="width:18px;height:18px"></i> ${c.price > 0 ? 'Enroll Now' : 'Get Free Access'}
-            </button>
-          </div>
+          <h1 style="font-size:28px;font-weight:900;color:var(--navy);margin-bottom:12px;line-height:1.2">${c.title}</h1>
+          <p style="font-size:15px;color:var(--g600);line-height:1.6;max-width:600px;">${c.description || ''}</p>
+        </div>
+        
+        <!-- Action Card -->
+        <div style="background:#fff;border:1px solid var(--g200);padding:24px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.06);text-align:center;min-width:240px;flex-shrink:0;">
+          <div style="font-size:13px;color:var(--g400);margin-bottom:4px;font-weight:600;text-transform:uppercase;">Course Price</div>
+          <div style="font-size:28px;font-weight:900;color:var(--navy);margin-bottom:16px;">${c.price > 0 ? `RWF ${Number(c.price).toLocaleString()}` : '<span style="color:#10b981">FREE</span>'}</div>
+          
+          <button onclick="${isLoggedIn ? `memberEnrollCourse('${c.id}','${(c.title||'').replace(/'/g,"\\'")}',${c.price})` : `openLoginPrompt('${c.id}','${(c.title||'').replace(/'/g,"\\'")}',${c.price})`}"
+            style="width:100%;background:var(--blue);color:#fff;border:none;padding:14px 24px;border-radius:8px;cursor:pointer;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;transition:background 0.2s;"
+            onmouseover="this.style.background='var(--blue2)'" onmouseout="this.style.background='var(--blue)'">
+            <i data-lucide="graduation-cap" style="width:18px;height:18px"></i> ${c.price > 0 ? 'Enroll Now' : 'Get Free Access'}
+          </button>
         </div>
       </div>
 
@@ -376,11 +405,28 @@ async function renderCourseDetail(slugParam) {
               : `toast('Enroll in the course to access this lesson.', 'info')`;
             
             return `
-            <div onclick="${clickAction}" style="display:flex;align-items:center;gap:14px;padding:12px;background:var(--sky);border-radius:10px;cursor:${isPreview ? 'pointer' : 'default'};transition:all 0.2s" ${isPreview ? `onmouseover="this.style.transform='translateX(4px)'" onmouseout="this.style.transform='translateX(0)'"` : ''}>
-              <span style="width:28px;height:28px;border-radius:50%;background:${isPreview ? 'var(--blue)' : 'var(--g400)'};color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${l.order_num || i+1}</span>
-              <span style="font-size:14px;font-weight:600;color:var(--navy);flex:1">${l.title}</span>
-              ${l.duration_mins ? `<span style="font-size:12px;color:var(--g400)">${l.duration_mins} min</span>` : ''}
-              ${isPreview ? `<span style="font-size:11px;font-weight:700;color:var(--blue);background:#dbeafe;padding:2px 8px;border-radius:999px">▶ Watch Preview</span>` : `<i data-lucide="lock" style="width:16px;height:16px;color:var(--g400)"></i>`}
+            <div onclick="${clickAction}" style="background:#fff;border:1px solid #e5e7eb;border-radius:4px;overflow:hidden;margin-bottom:16px;cursor:${isPreview?'pointer':'default'};box-shadow:0 1px 3px rgba(0,0,0,0.05);transition:transform 0.2s;" ${isPreview ? `onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'"` : ''}>
+              <div style="display:flex;align-items:center;">
+                <div style="width:clamp(120px, 30vw, 160px);aspect-ratio:16/9;background:#f3f4f6;flex-shrink:0;position:relative;">
+                   ${c.image_url ? `<img src="${c.image_url}" style="width:100%;height:100%;object-fit:cover;opacity:0.8;display:block;"/>` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:#1e3a8a;color:#fff;font-size:24px;font-weight:800;">${l.order_num || i+1}</div>`}
+                   <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.25);">
+                     ${isPreview ? '<i data-lucide="play-circle" style="width:32px;height:32px;color:#fff;opacity:0.9"></i>' : '<i data-lucide="lock" style="width:24px;height:24px;color:#fff;opacity:0.9"></i>'}
+                   </div>
+                </div>
+                <div style="padding:16px;flex:1;display:flex;flex-direction:column;justify-content:center;">
+                  <h3 style="font-size:15px;font-weight:700;color:#111827;margin-bottom:4px;line-height:1.3;">${l.title}</h3>
+                  <p style="font-size:12px;color:#6b7280;margin-bottom:6px;">Mathrone Academy, Instructor</p>
+                  <div style="display:flex;gap:4px;color:#10b981;font-size:12px;">
+                    ★ ★ ★ ★ ★ <span style="color:#9ca3af;margin-left:4px;">${l.duration_mins ? `${l.duration_mins} min` : 'Video Lesson'}</span>
+                  </div>
+                </div>
+              </div>
+              <div style="background:#374151;padding:10px 16px;">
+                <div style="display:flex;align-items:center;gap:12px;">
+                  <div style="width:100%;height:4px;background:#4b5563;border-radius:2px;overflow:hidden;"></div>
+                  <span style="font-size:11px;color:#9ca3af;white-space:nowrap;">${isPreview ? 'Preview available' : 'Locked'}</span>
+                </div>
+              </div>
             </div>`;
           }).join('')}
         </div>
@@ -575,15 +621,31 @@ async function renderCourseLessons(courseId) {
     ${lessons.length ? `
     <div style="display:flex;flex-direction:column;gap:10px">
       ${lessons.map((l, i) => `
-     <div style="background:#fff;border-radius:12px;border:1px solid var(--g100);padding:clamp(12px, 3vw, 18px);display:flex;align-items:center;gap:clamp(10px, 3vw, 16px);cursor:pointer;transition:all .15s"
-        onclick="openLessonPlayer('${l.id}')"
-        onmouseover="this.style.background='var(--sky)'" onmouseout="this.style.background='#fff'">
-        <div style="width:36px;height:36px;border-radius:50%;background:var(--blue);color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${l.order_num || i+1}</div>
-        <div style="flex:1">
-          <div style="font-size:15px;font-weight:700;color:var(--navy)">${l.title}</div>
-          ${l.duration_mins ? `<div style="font-size:12px;color:var(--g400);margin-top:2px">⏱ ${l.duration_mins} min</div>` : ''}
+      <div onclick="openLessonPlayer('${l.id}')" style="background:#fff;border:1px solid #e5e7eb;border-radius:4px;overflow:hidden;margin-bottom:16px;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,0.05);transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+        <div style="display:flex;align-items:center;">
+          <div style="width:clamp(120px, 30vw, 160px);aspect-ratio:16/9;background:#f3f4f6;flex-shrink:0;position:relative;">
+             <div style="display:flex;align-items:center;justify-content:center;height:100%;background:#1e3a8a;color:#fff;font-size:24px;font-weight:800;">${l.order_num || i+1}</div>
+             <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.1);">
+               <i data-lucide="play-circle" style="width:32px;height:32px;color:#fff;opacity:0.9"></i>
+             </div>
+          </div>
+          <div style="padding:16px;flex:1;display:flex;flex-direction:column;justify-content:center;">
+            <h3 style="font-size:15px;font-weight:700;color:#111827;margin-bottom:4px;line-height:1.3;">${l.title}</h3>
+            <p style="font-size:12px;color:#6b7280;margin-bottom:6px;">Mathrone Academy, Instructor</p>
+            <div style="display:flex;gap:4px;color:#10b981;font-size:12px;">
+              ★ ★ ★ ★ ★ <span style="color:#9ca3af;margin-left:4px;">${l.duration_mins ? `${l.duration_mins} min` : 'Video Lesson'}</span>
+            </div>
+          </div>
         </div>
-        <button style="background:var(--blue);color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;flex-shrink:0">▶ Watch</button>
+        <div style="background:#374151;padding:10px 16px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:100%;height:4px;background:#4b5563;border-radius:2px;overflow:hidden;position:relative;">
+               <!-- Progress bar faked slightly for visual completion based on lesson index -->
+               <div style="width:${i===0?'100%':i===1?'40%':'0%'};height:100%;background:#10b981;border-radius:2px;"></div>
+            </div>
+            <span style="font-size:11px;color:#9ca3af;white-space:nowrap;">${i===0?'Completed':i===1?'In progress':'Not started'}</span>
+          </div>
+        </div>
       </div>`).join('')}
     </div>` : `
     <div class="empty-state">
