@@ -545,7 +545,8 @@ function shopProductCard(p, isLoggedIn) {
   if (!p) return ''
   const safeName = (p.name || '').replace(/'/g, "\\'");
   const isOutOfStock = p.stock === 0;
-  const memberPrice = Number(p.price * 0.97).toLocaleString();
+  const discPct = (p.member_discount_pct != null ? p.member_discount_pct : 3) / 100;
+  const memberPrice = Number(p.price * (1 - discPct)).toLocaleString();
   const basePrice = Number(p.price).toLocaleString();
   const displayPrice = isLoggedIn ? memberPrice : basePrice;
 
@@ -599,7 +600,7 @@ function shopProductCard(p, isLoggedIn) {
         <span style="font-size:15px;font-weight:800;color:#0f172a">RWF ${displayPrice}</span>
         ${isLoggedIn ? `
           <span style="font-size:11px;color:#94a3b8;text-decoration:line-through">RWF ${basePrice}</span>
-          <span style="font-size:10px;background:#dcfce7;color:#065f46;padding:2px 6px;border-radius:4px;font-weight:700;white-space:nowrap">-3% member</span>
+          <span style="font-size:10px;background:#dcfce7;color:#065f46;padding:2px 6px;border-radius:4px;font-weight:700;white-space:nowrap">-${p.member_discount_pct != null ? p.member_discount_pct : 3}% member</span>
         ` : ''}
       </div>
 
@@ -630,10 +631,10 @@ async function addToCartQty(productId, bundleId, name, btn, qtyInputId){
     await api('/shop/cart',{ method:'POST', body:JSON.stringify({ product_id:productId, bundle_id:bundleId, quantity:qty }) })
     toast(`${name} ×${qty} added to cart 🛒`)
     updateCartButton()
-    if(btn){ btn.textContent='✅ Added!'; setTimeout(()=>{ btn.disabled=false; btn.textContent='<i data-lucide="shopping-cart" style="width:14px;height:14px;margin-right:4px"></i> Add to Cart' },2000) }
+    if(btn){ btn.innerHTML='✅ Added!'; setTimeout(()=>{ btn.disabled=false; btn.innerHTML='<i data-lucide="shopping-cart" style="width:14px;height:14px;margin-right:4px"></i> Add to Cart'; if(window.lucide) lucide.createIcons() },2000) }
   }catch(e){
     toast(e.message,'err')
-    if(btn){ btn.disabled=false; btn.textContent='<i data-lucide="shopping-cart" style="width:14px;height:14px;margin-right:4px"></i> Add to Cart' }
+    if(btn){ btn.disabled=false; btn.innerHTML='<i data-lucide="shopping-cart" style="width:14px;height:14px;margin-right:4px"></i> Add to Cart'; if(window.lucide) lucide.createIcons() }
   }
 }
 
@@ -741,7 +742,7 @@ async function renderShopProduct(productId) {
           <div style="border-top:1px solid var(--g100); padding-top:20px; margin-bottom:20px;">
             <div style="font-size:24px;font-weight:800;color:var(--navy)">RWF ${isLoggedIn ? Number(p.price * 0.97).toLocaleString() : Number(p.price).toLocaleString()}</div>
             ${isLoggedIn ? 
-              `<div style="color:var(--green);font-size:12px;font-weight:700;margin-top:4px;">Member Discount Applied (-3%)</div>` : 
+              `<div style="color:var(--green);font-size:12px;font-weight:700;margin-top:4px;">Member Discount Applied (-${p.member_discount_pct != null ? p.member_discount_pct : 3}%)</div>` : 
               `<div style="color:var(--g600);font-size:11px;margin-top:6px;">Sign in to get a member discount. <a onclick="navigate('register')" style="color:var(--blue);cursor:pointer;font-weight:700">Register</a> or <a onclick="navigate('login')" style="color:var(--blue);cursor:pointer;font-weight:700">Sign In</a>.</div>`
             }
           </div>
@@ -960,7 +961,7 @@ async function renderCart(){
           <span style="font-weight:600">RWF ${Number(total).toLocaleString()}</span>
         </div>
         <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:14px">
-          <span style="color:var(--g400)">Member discount (3%)</span>
+          <span style="color:var(--g400)">Member discount</span>
           <span style="color:var(--green);font-weight:600">- RWF ${Number(total*0.03).toLocaleString()}</span>
         </div>
         <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:14px">
@@ -994,10 +995,10 @@ async function addToCart(productId, bundleId, name, btn){
     await api('/shop/cart',{ method:'POST', body:JSON.stringify({ product_id:productId, bundle_id:bundleId, quantity:1 }) })
     toast(`${name} added to cart 🛒`)
     updateCartButton()
-    if(btn){ btn.textContent='✅ Added!'; setTimeout(()=>{ btn.disabled=false; btn.textContent='<i data-lucide="shopping-cart" style="width:14px;height:14px;margin-right:4px"></i> Add to Cart' },2000) }
+    if(btn){ btn.innerHTML='✅ Added!'; setTimeout(()=>{ btn.disabled=false; btn.innerHTML='<i data-lucide="shopping-cart" style="width:14px;height:14px;margin-right:4px"></i> Add to Cart'; if(window.lucide) lucide.createIcons() },2000) }
   }catch(e){
     toast(e.message,'err')
-    if(btn){ btn.disabled=false; btn.textContent='<i data-lucide="shopping-cart" style="width:14px;height:14px;margin-right:4px"></i> Add to Cart' }
+    if(btn){ btn.disabled=false; btn.innerHTML='<i data-lucide="shopping-cart" style="width:14px;height:14px;margin-right:4px"></i> Add to Cart'; if(window.lucide) lucide.createIcons() }
   }
 }
 
@@ -1123,7 +1124,12 @@ async function placeOrder(items, total){
   const payPhone = document.getElementById('order-payment-phone')?.value?.trim()
   const notes    = document.getElementById('order-notes')?.value?.trim()
   const btn      = document.getElementById('place-order-btn')
-  const discountedTotal = total * 0.97
+  // Weighted discount: each item uses its own member_discount_pct
+  const discountedTotal = cartItems.reduce((sum, item) => {
+    const pct = (item.products?.member_discount_pct != null ? item.products.member_discount_pct : 3) / 100
+    const itemTotal = (item.products?.price || 0) * (item.quantity || 1)
+    return sum + itemTotal * (1 - pct)
+  }, 0)
 
   if(!address){ toast('Delivery address is required','err'); return }
   if(!phone){   toast('Delivery phone is required','err');   return }
@@ -1146,7 +1152,7 @@ async function placeOrder(items, total){
       body: JSON.stringify({
         items:            orderItems,
         total_amount: discountedTotal,
-        discount_amount: total * 0.03,
+        discount_amount: total - discountedTotal,
         is_free_delivery: total >= 50000,
         payment_method:   payment,
         payment_phone:    payPhone || null,
@@ -1484,6 +1490,14 @@ function openAddProductModal(existing=null){
           </label>
         </div>
         <div style="border-top:1px solid var(--g100);padding-top:16px;margin-top:8px">
+          <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:12px">🏷️ Member Discount</div>
+          <div class="form-group">
+            <label class="form-label">Member Discount % <span style="color:var(--g400);font-weight:400">(shown to logged-in users)</span></label>
+            <input class="input" id="prod-discount-pct" type="number" min="0" max="100" step="0.5" value="${existing?.member_discount_pct ?? 3}" placeholder="e.g. 3"/>
+            <div style="font-size:11px;color:var(--g400);margin-top:4px">Set to 0 to disable member discount for this product.</div>
+          </div>
+        </div>
+        <div style="border-top:1px solid var(--g100);padding-top:16px;margin-top:8px">
           <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:12px">📦 Wholesale Settings</div>
           <div class="form-group">
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px">
@@ -1599,7 +1613,8 @@ async function saveNewProduct(){
   const wholesale       = document.getElementById('prod-wholesale')?.checked || false
   const wholesaleLabel  = document.getElementById('prod-wholesale-label')?.value?.trim() || 'Box'
   const wholesaleMin    = parseInt(document.getElementById('prod-wholesale-min')?.value) || 6
-  const wholesalePrice  = parseFloat(document.getElementById('prod-wholesale-price')?.value) || null
+  const wholesalePrice    = parseFloat(document.getElementById('prod-wholesale-price')?.value) || null
+  const memberDiscountPct = parseFloat(document.getElementById('prod-discount-pct')?.value) ?? 3
   if(!name || !cat || isNaN(price)){ toast('Name, category and price are required','err'); return }
   const slug = name.toLowerCase().trim().replace(/[^a-z0-9\s-]/g,'').replace(/\s+/g,'-')
   try{
@@ -1608,7 +1623,8 @@ async function saveNewProduct(){
       description:desc, full_description:fullDesc,
       image_url:img, extra_images:_extraImages, video_url:videoUrl,
       is_featured:feat, wholesale_enabled:wholesale,
-      wholesale_label:wholesaleLabel, wholesale_min_qty:wholesaleMin, wholesale_price:wholesalePrice
+      wholesale_label:wholesaleLabel, wholesale_min_qty:wholesaleMin, wholesale_price:wholesalePrice,
+      member_discount_pct: memberDiscountPct
     }) })
     document.querySelector('.modal-overlay')?.remove()
     toast('Product added ✅')
@@ -1630,7 +1646,8 @@ async function saveEditProduct(id){
   const wholesale       = document.getElementById('prod-wholesale')?.checked || false
   const wholesaleLabel  = document.getElementById('prod-wholesale-label')?.value?.trim() || 'Box'
   const wholesaleMin    = parseInt(document.getElementById('prod-wholesale-min')?.value) || 6
-  const wholesalePrice  = parseFloat(document.getElementById('prod-wholesale-price')?.value) || null
+  const wholesalePrice    = parseFloat(document.getElementById('prod-wholesale-price')?.value) || null
+  const memberDiscountPct = parseFloat(document.getElementById('prod-discount-pct')?.value) ?? 3
   if(!name || !cat || isNaN(price)){ toast('Name, category and price are required','err'); return }
   const slug = name.toLowerCase().trim().replace(/[^a-z0-9\s-]/g,'').replace(/\s+/g,'-')
   try{
@@ -1639,7 +1656,8 @@ async function saveEditProduct(id){
       description:desc, full_description:fullDesc,
       image_url:img, extra_images:_extraImages, video_url:videoUrl,
       is_featured:feat, wholesale_enabled:wholesale,
-      wholesale_label:wholesaleLabel, wholesale_min_qty:wholesaleMin, wholesale_price:wholesalePrice
+      wholesale_label:wholesaleLabel, wholesale_min_qty:wholesaleMin, wholesale_price:wholesalePrice,
+      member_discount_pct: memberDiscountPct
     }) })
     document.querySelector('.modal-overlay')?.remove()
     toast('Product updated ✅')
