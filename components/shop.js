@@ -928,28 +928,32 @@ async function renderCart(){
       <button class="btn btn-ghost" onclick="navigate('shop')">← Continue Shopping</button>
     </div>
     ${items.length ? `
-    <div style="display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start">
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start" class="cart-grid">
       <div>
         ${items.map(i=>{
           const item = i.products || i.bundles || {}
           const price = item.price || 0
           return `
-          <div class="card" style="padding:20px;margin-bottom:12px;display:flex;gap:16px;align-items:center">
-            <div style="width:72px;height:72px;border-radius:10px;background:var(--sky);flex-shrink:0;overflow:hidden">
-              ${item.image_url?`<img src="${item.image_url}" alt="${item.name||'Cart item'}"loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover"/>`:`<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:28px">${i.bundle_id?'📦':'🛍️'}</div>`}
+          <div class="card" id="cart-row-${i.id}" data-price="${price}" style="padding:16px;margin-bottom:12px">
+            <div style="display:flex;gap:14px;align-items:center">
+              <div style="width:68px;height:68px;border-radius:10px;background:var(--sky);flex-shrink:0;overflow:hidden">
+                ${item.image_url?`<img src="${item.image_url}" alt="${item.name||'Cart item'}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover"/>`:`<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:26px">${i.bundle_id?'📦':'🛍️'}</div>`}
+              </div>
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:700;color:var(--navy);font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.name||'—'}</div>
+                <div style="font-size:12px;color:var(--g400);margin-top:2px">${i.bundle_id?'Bundle':'Product'}</div>
+                <div style="font-size:15px;font-weight:800;color:var(--navy);margin-top:4px">RWF ${Number(price).toLocaleString()}</div>
+              </div>
+              <button onclick="removeFromCart('${i.id}')" style="background:none;border:none;color:var(--g300);cursor:pointer;padding:4px;flex-shrink:0" title="Remove"><i data-lucide="trash-2" style="width:16px;height:16px"></i></button>
             </div>
-            <div style="flex:1;min-width:0">
-              <div style="font-weight:700;color:var(--navy);font-size:15px">${item.name||'—'}</div>
-              <div style="font-size:12px;color:var(--g400);margin-top:2px">${i.bundle_id?'Bundle':'Product'}</div>
-              <div style="font-size:16px;font-weight:800;color:var(--navy);margin-top:6px">RWF ${Number(price).toLocaleString()}</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:12px;border-top:1px solid var(--g100)">
+              <div style="display:flex;align-items:center;gap:10px">
+                <button onclick="updateCartItem('${i.id}',${i.quantity-1})" style="width:32px;height:32px;border-radius:50%;border:1px solid var(--g200);background:#fff;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;font-weight:700">−</button>
+                <span class="cart-qty-display" style="font-weight:800;min-width:24px;text-align:center;font-size:15px">${i.quantity}</span>
+                <button onclick="updateCartItem('${i.id}',${i.quantity+1})" style="width:32px;height:32px;border-radius:50%;border:1px solid var(--g200);background:#fff;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;font-weight:700">+</button>
+              </div>
+              <div class="cart-row-total" style="font-size:16px;font-weight:800;color:var(--navy)">RWF ${Number(price*i.quantity).toLocaleString()}</div>
             </div>
-            <div style="display:flex;align-items:center;gap:8px">
-              <button onclick="updateCartItem('${i.id}',${i.quantity-1})" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--g100);background:#fff;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center">−</button>
-              <span style="font-weight:700;min-width:20px;text-align:center">${i.quantity}</span>
-              <button onclick="updateCartItem('${i.id}',${i.quantity+1})" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--g100);background:#fff;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center">+</button>
-            </div>
-            <div style="font-size:16px;font-weight:800;color:var(--navy);min-width:80px;text-align:right">RWF ${Number(price*i.quantity).toLocaleString()}</div>
-            <button onclick="removeFromCart('${i.id}')" style="background:none;border:none;color:var(--g400);cursor:pointer;font-size:18px;padding:4px"><i data-lucide="trash-2" style="width:16px;height:16px"></i></button>
           </div>`
         }).join('')}
       </div>
@@ -957,20 +961,20 @@ async function renderCart(){
       <div class="card" style="padding:24px;position:sticky;top:80px">
         <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px">Order Summary</h3>
         <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:14px">
-          <span style="color:var(--g400)">Subtotal (${totalQty} items)</span>
-          <span style="font-weight:600">RWF ${Number(total).toLocaleString()}</span>
+          <span id="summary-qty" style="color:var(--g400)">Subtotal (${totalQty} item${totalQty!==1?'s':''})</span>
+          <span id="summary-subtotal" style="font-weight:600">RWF ${Number(total).toLocaleString()}</span>
         </div>
         <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:14px">
           <span style="color:var(--g400)">Member discount</span>
-          <span style="color:var(--green);font-weight:600">- RWF ${Number(total*0.03).toLocaleString()}</span>
+          <span id="summary-discount" style="color:var(--green);font-weight:600">- RWF ${Number(total*0.03).toLocaleString()}</span>
         </div>
         <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:14px">
           <span style="color:var(--g400)">Delivery</span>
-          <span style="color:${total>=50000?'var(--green)':'var(--orange)'};font-weight:600">${total>=50000?'Free':'To be negotiated'}</span>
+          <span id="summary-delivery" style="color:${total>=50000?'var(--green)':'var(--orange)'};font-weight:600">${total>=50000?'Free':'To be negotiated'}</span>
         </div>
         <div style="display:flex;justify-content:space-between;padding-top:12px;border-top:1px solid var(--g100);margin-bottom:20px">
           <span style="font-weight:700;font-size:16px">Total</span>
-          <span style="font-weight:800;font-size:20px;color:var(--navy)">RWF ${Number(total*0.97).toLocaleString()}</span>
+          <span id="summary-total" style="font-weight:800;font-size:20px;color:var(--navy)">RWF ${Number(total*0.97).toLocaleString()}</span>
         </div>
         <button class="btn btn-primary btn-full" onclick="openCheckoutModal(${JSON.stringify(items).replace(/"/g,'&quot;')},${total})">
           Proceed to Checkout →
@@ -1003,18 +1007,50 @@ async function addToCart(productId, bundleId, name, btn){
 }
 
 async function updateCartItem(itemId, qty){
+  if(qty <= 0){ removeFromCart(itemId); return }
+  // Optimistic UI — update DOM instantly, sync in background
+  const row = document.getElementById(`cart-row-${itemId}`)
+  if(row){
+    const pricePerUnit = parseFloat(row.dataset.price)
+    row.querySelector('.cart-qty-display').textContent = qty
+    row.querySelector('.cart-row-total').textContent = `RWF ${Number(pricePerUnit * qty).toLocaleString()}`
+    _recalcOrderSummary()
+  }
   try{
     await api(`/shop/cart/${itemId}`,{ method:'PATCH', body:JSON.stringify({ quantity:qty }) })
-    renderCart()
-  }catch(e){ toast(e.message,'err') }
+  }catch(e){ toast(e.message,'err'); renderCart() }
 }
 
 async function removeFromCart(itemId){
+  // Optimistic UI — remove row instantly
+  const row = document.getElementById(`cart-row-${itemId}`)
+  if(row){ row.style.transition='opacity 0.2s'; row.style.opacity='0'; setTimeout(()=>row.remove(),200); _recalcOrderSummary() }
   try{
     await api(`/shop/cart/${itemId}`,{ method:'DELETE' })
     toast('Removed from cart')
-    renderCart()
-  }catch(e){ toast(e.message,'err') }
+    updateCartButton()
+  }catch(e){ toast(e.message,'err'); renderCart() }
+}
+
+function _recalcOrderSummary(){
+  const rows = document.querySelectorAll('[data-price]')
+  let total = 0
+  let totalQty = 0
+  rows.forEach(r => {
+    const qty = parseInt(r.querySelector('.cart-qty-display')?.textContent || 0)
+    const price = parseFloat(r.dataset.price || 0)
+    total += price * qty
+    totalQty += qty
+  })
+  const discountedTotal = total * 0.97
+  const discount = total - discountedTotal
+  const el = id => document.getElementById(id)
+  if(el('summary-subtotal'))  el('summary-subtotal').textContent  = `RWF ${Number(total).toLocaleString()}`
+  if(el('summary-discount'))  el('summary-discount').textContent  = `- RWF ${Number(discount).toLocaleString()}`
+  if(el('summary-delivery'))  { el('summary-delivery').textContent = total >= 50000 ? 'Free' : 'To be negotiated'; el('summary-delivery').style.color = total >= 50000 ? 'var(--green)' : 'var(--orange)' }
+  if(el('summary-total'))     el('summary-total').textContent     = `RWF ${Number(discountedTotal).toLocaleString()}`
+  if(el('summary-qty'))       el('summary-qty').textContent       = `Subtotal (${totalQty} item${totalQty!==1?'s':''})`
+  if(el('cart-page-qty'))     el('cart-page-qty').textContent     = `${totalQty} item${totalQty!==1?'s':''}`
 }
 
 async function toggleWishlist(productId, name, btn){
