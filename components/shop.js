@@ -1161,9 +1161,9 @@ async function placeOrder(items, total){
   const notes    = document.getElementById('order-notes')?.value?.trim()
   const btn      = document.getElementById('place-order-btn')
   // Weighted discount: each item uses its own member_discount_pct
-  const discountedTotal = cartItems.reduce((sum, item) => {
+  const discountedTotal = items.reduce((sum, item) => {
     const pct = (item.products?.member_discount_pct != null ? item.products.member_discount_pct : 3) / 100
-    const itemTotal = (item.products?.price || 0) * (item.quantity || 1)
+    const itemTotal = (item.products?.price || item.bundles?.price || 0) * (item.quantity || 1)
     return sum + itemTotal * (1 - pct)
   }, 0)
 
