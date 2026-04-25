@@ -268,10 +268,10 @@ function courseCard(c, isLoggedIn, isCourseGuest) {
 
     <!-- Image Area -->
     <a href="/course/${c.slug||c.id}" onclick="navigate('course-${c.slug||c.id}', null, event)"
-       class="m-course-img-wrap" style="display:block;position:relative;width:100%;height:160px;background:#f8fafc;overflow:hidden;flex-shrink:0;border-bottom:1px solid #f0f2f5;cursor:pointer;">
+       class="m-course-img-wrap" style="display:block;position:relative;width:100%;height:160px;background:#1E2845;overflow:hidden;flex-shrink:0;border-bottom:1px solid #f0f2f5;cursor:pointer;">
       ${c.image_url
         ? `<img src="${c.image_url}" alt="${c.title}" loading="lazy" decoding="async"
-               style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;transition:transform .3s"
+               style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;object-position:center;background-color:#1E2845;transition:transform .3s"
                onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'"/>`
         : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:52px;color:#cbd5e1"><i data-lucide="book-open" style="width:48px;height:48px;"></i></div>`}
     </a>
@@ -280,7 +280,7 @@ function courseCard(c, isLoggedIn, isCourseGuest) {
     <div class="m-course-body" style="padding:16px;flex:1;display:flex;flex-direction:column;gap:0">
       
       <div onclick="navigate('course-${c.slug||c.id}')"
-           style="font-size:16px;font-weight:800;color:#0f172a;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:6px;cursor:pointer;">
+           style="font-size:16px;font-weight:800;color:#0f172a;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:6px;cursor:pointer;word-break:break-word;overflow-wrap:break-word;">
         ${c.title}
       </div>
 
@@ -395,8 +395,8 @@ async function renderCourseDetail(slugParam) {
             ${c.level ? `<span style="background:var(--sky);color:var(--blue);font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px">${c.level}</span>` : ''}
             ${c.subject ? `<span style="background:var(--sky);color:var(--blue);font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px">${c.subject}</span>` : ''}
           </div>
-          <h1 style="font-size:28px;font-weight:900;color:var(--navy);margin-bottom:12px;line-height:1.2">${c.title}</h1>
-          <p style="font-size:15px;color:var(--g600);line-height:1.6;max-width:600px;">${c.description || ''}</p>
+          <h1 style="font-size:28px;font-weight:900;color:var(--navy);margin-bottom:12px;line-height:1.2;word-break:break-word;overflow-wrap:break-word;">${c.title}</h1>
+          <p style="font-size:15px;color:var(--g600);line-height:1.6;max-width:600px;word-break:break-word;overflow-wrap:break-word;">${c.description || ''}</p>
         </div>
         
         <!-- Action Card -->
@@ -415,23 +415,20 @@ async function renderCourseDetail(slugParam) {
       </div>
 
       <!-- Lessons List -->
-      ${(c.lessons && c.lessons.length) || (c.preview_lessons && c.preview_lessons.length) ? `
+      ${displayLessons && displayLessons.length ? `
       <div style="background:#fff;border-radius:16px;border:1px solid var(--g100);padding:clamp(16px, 4vw, 28px);margin-bottom:24px">
         <h2 style="font-size:18px;font-weight:800;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:8px"><i data-lucide="list-checks" style="width:20px;height:20px;color:var(--blue)"></i> What You'll Learn</h2>
         <div style="display:flex;flex-direction:column;gap:10px">
-          ${(c.lessons || c.preview_lessons).map((l, i) => {
-            const isPreview = l.is_free_preview || c.preview_lessons?.find(pl => pl.id === l.id);
-            const clickAction = isPreview 
-              ? `window._currentLessons=JSON.parse('${JSON.stringify(c.preview_lessons || c.lessons).replace(/'/g,"\\'").replace(/"/g,'&quot;')}'); openLessonPlayer('${l.id}')` 
-              : `toast('Enroll in the course to access this lesson.', 'info')`;
-            
+          ${displayLessons.map((l, i) => {
+            const clickAction = `toast('Enroll in the course to access full lessons.', 'info')`;
+            const displayImg = l.image_url || c.image_url;
             return `
-            <div onclick="${clickAction}" style="background:#fff;border:1px solid #e5e7eb;border-radius:4px;overflow:hidden;margin-bottom:16px;cursor:${isPreview?'pointer':'default'};box-shadow:0 1px 3px rgba(0,0,0,0.05);transition:transform 0.2s;" ${isPreview ? `onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'"` : ''}>
+            <div onclick="${clickAction}" style="background:#fff;border:1px solid #e5e7eb;border-radius:4px;overflow:hidden;margin-bottom:16px;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,0.05);transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
               <div style="display:flex;align-items:center;">
-                <div style="width:clamp(120px, 30vw, 160px);aspect-ratio:16/9;background:#f3f4f6;flex-shrink:0;position:relative;">
-                   ${c.image_url ? `<img src="${c.image_url}" style="width:100%;height:100%;object-fit:cover;opacity:0.8;display:block;"/>` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:#1e3a8a;color:#fff;font-size:24px;font-weight:800;">${l.order_num || i+1}</div>`}
-                   <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.25);">
-                     ${isPreview ? '<i data-lucide="play-circle" style="width:32px;height:32px;color:#fff;opacity:0.9"></i>' : '<i data-lucide="lock" style="width:24px;height:24px;color:#fff;opacity:0.9"></i>'}
+                <div style="width:clamp(120px, 30vw, 160px);aspect-ratio:16/9;background:#1E2845;flex-shrink:0;position:relative;overflow:hidden;border-radius:4px 0 0 4px;">
+                   ${displayImg ? `<img src="${displayImg}" style="width:100%;height:100%;object-fit:contain;object-position:center;opacity:0.9;display:block;background:#1E2845;"/>` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:#1e3a8a;color:#fff;font-size:24px;font-weight:800;">${l.order_num || i+1}</div>`}
+                   <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.4);">
+                     <i data-lucide="lock" style="width:24px;height:24px;color:#fff;opacity:0.9"></i>
                    </div>
                 </div>
                 <div style="padding:16px;flex:1;display:flex;flex-direction:column;justify-content:center;">
@@ -445,7 +442,7 @@ async function renderCourseDetail(slugParam) {
               <div style="background:#374151;padding:10px 16px;">
                 <div style="display:flex;align-items:center;gap:12px;">
                   <div style="width:100%;height:4px;background:#4b5563;border-radius:2px;overflow:hidden;"></div>
-                  <span style="font-size:11px;color:#9ca3af;white-space:nowrap;">${isPreview ? 'Preview available' : 'Locked'}</span>
+                  <span style="font-size:11px;color:#9ca3af;white-space:nowrap;">Locked</span>
                 </div>
               </div>
             </div>`;
@@ -588,14 +585,14 @@ async function renderMyCourses() {
         onclick="navigate('course-lessons-${c.id}')"
         onmouseover="this.style.boxShadow='0 4px 20px rgba(0,0,0,0.08)'"
         onmouseout="this.style.boxShadow='none'">
-        <div style="height:140px;background:linear-gradient(135deg,#1E3A8A,#2563EB);position:relative;overflow:hidden">
-          ${c.image_url ? `<img src="${c.image_url}" alt="${c.title}" loading="lazy" style="width:100%;height:100%;object-fit:cover;opacity:0.85"/>` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:48px">🎓</div>`}
+        <div style="height:140px;background:#1E2845;position:relative;overflow:hidden">
+          ${c.image_url ? `<img src="${c.image_url}" alt="${c.title}" loading="lazy" style="width:100%;height:100%;object-fit:contain;object-position:center;opacity:0.95"/>` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:linear-gradient(135deg,#1E3A8A,#2563EB);font-size:48px">🎓</div>`}
           <div style="position:absolute;bottom:10px;left:12px;background:rgba(0,0,0,0.5);color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:999px;backdrop-filter:blur(4px)">✅ Enrolled</div>
           ${c.level ? `<div style="position:absolute;top:10px;right:12px;background:rgba(255,255,255,0.9);color:var(--navy);font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px">${c.level}</div>` : ''}
         </div>
         <div style="padding:16px">
           <div style="font-size:15px;font-weight:800;color:var(--navy);margin-bottom:6px">${c.title}</div>
-          ${c.description ? `<div style="font-size:12px;color:var(--g400);line-height:1.5;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${c.description}</div>` : ''}
+          ${c.description ? `<div style="font-size:12px;color:var(--g400);line-height:1.5;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;overflow-wrap:break-word;">${c.description}</div>` : ''}
           <button style="width:100%;background:var(--blue);color:#fff;border:none;padding:9px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700">
             ▶ Continue Learning
           </button>
@@ -653,9 +650,12 @@ async function renderCourseLessons(courseId) {
           ${moduleHeader}
           <div onclick="openLessonPlayer('${l.id}')" style="background:#fff;border:1px solid #e5e7eb;border-radius:4px;overflow:hidden;margin-bottom:8px;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,0.05);transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
             <div style="display:flex;align-items:center;">
-              <div style="width:clamp(120px, 30vw, 160px);aspect-ratio:16/9;background:#f3f4f6;flex-shrink:0;position:relative;">
-                 <div style="display:flex;align-items:center;justify-content:center;height:100%;background:#1e3a8a;color:#fff;font-size:24px;font-weight:800;">${l.order_num || i+1}</div>
-                 <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.1);">
+              <div style="width:clamp(120px, 30vw, 160px);aspect-ratio:16/9;background:#1E2845;flex-shrink:0;position:relative;overflow:hidden;">
+                 ${l.image_url 
+                   ? `<img src="${l.image_url}" style="width:100%;height:100%;object-fit:contain;object-position:center;display:block;background:#1E2845;"/>` 
+                   : `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:#1e3a8a;color:#fff;font-size:24px;font-weight:800;">${l.order_num || i+1}</div>`
+                 }
+                 <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.25);">
                    <i data-lucide="play-circle" style="width:32px;height:32px;color:#fff;opacity:0.9"></i>
                  </div>
               </div>
@@ -894,6 +894,44 @@ async function submitCourseAccountUpgrade() {
     toast(e.message || 'Upgrade failed. Please try again.', 'err')
     if (btn) { btn.disabled = false; btn.textContent = '🚀 Upgrade My Account →' }
   }
+}
+
+// ── Admin: Image Upload Helper ───────────────────────────────────────────────
+window.handleCourseImageUploadAPI = async function(fileInput, targetInputId) {
+  const file = fileInput.files[0];
+  if (!file) return;
+  
+  // Refresh token if function exists, to prevent 401 errors
+  if (typeof refreshAccessToken === 'function') await refreshAccessToken();
+  
+  const fd = new FormData();
+  fd.append('file', file);
+  
+  try {
+    toast('Uploading image...', 'info');
+    
+    // MUST use raw fetch. The api() wrapper forces application/json which causes 422 errors.
+    const res = await fetch(API_URL + '/courses/admin/upload-image', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + getToken() }, // Let browser set Content-Type
+      body: fd
+    });
+    
+    const data = await res.json();
+    
+    if (!res.ok) {
+      let errMsg = 'Upload failed';
+      if (data.detail && typeof data.detail === 'string') errMsg = data.detail;
+      else if (data.detail) errMsg = JSON.stringify(data.detail);
+      throw new Error(errMsg);
+    }
+    
+    document.getElementById(targetInputId).value = data.url;
+    toast('Image uploaded ✅', 'ok');
+  } catch(e) {
+    toast(e.message || 'Upload failed due to network error.', 'err');
+  }
+  fileInput.value = '';
 }
 
 // ── Admin: Courses Manager ───────────────────────────────────────────────────
@@ -1146,7 +1184,11 @@ function openAddCourseModal(existing = null) {
         </div>
         <div class="form-group">
           <label class="form-label">Cover Image URL</label>
-          <input class="input" id="c-image" value="${existing?.image_url || ''}" placeholder="https://..."/>
+          <div style="display:flex;gap:8px">
+            <input class="input" id="c-image" value="${existing?.image_url || ''}" placeholder="https://..." style="flex:1"/>
+            <button type="button" class="btn btn-secondary" onclick="document.getElementById('c-image-file').click()" style="white-space:nowrap;">Upload</button>
+            <input type="file" id="c-image-file" accept="image/*" style="display:none" onchange="handleCourseImageUploadAPI(this, 'c-image')"/>
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label">🎬 Course Preview Video (YouTube)</label>
@@ -1229,6 +1271,7 @@ async function manageLessons(courseId, courseTitle) {
   render(dashWrap('admin-courses', `<div class="loader-center"><div class="spinner"></div></div>`))
   try {
     const lessons = await api('/courses/my/' + courseId + '/lessons')
+    window._adminCurrentLessons = lessons; // Store globally for the edit button
     render(dashWrap('admin-courses', `
     <div class="page-header">
       <div><h1 class="page-title">📋 Lessons — ${courseTitle}</h1><p class="page-subtitle">${lessons.length} lesson${lessons.length !== 1 ? 's' : ''}</p></div>
@@ -1250,11 +1293,11 @@ async function manageLessons(courseId, courseTitle) {
             ${l.notes ? `<span style="font-size:11px;color:var(--g400)">📋 Notes</span>` : ''}
             ${(l.quiz && l.quiz.length) ? `<span style="font-size:11px;color:#7c3aed">🧠 ${l.quiz.length} quiz Q</span>` : ''}
             ${(l.resources && l.resources.length) ? `<span style="font-size:11px;color:#059669">🔗 ${l.resources.length} resource${l.resources.length>1?'s':''}</span>` : ''}
-            ${l.is_free_preview ? `<span style="font-size:11px;font-weight:700;color:#d97706;background:#fef3c7;padding:1px 6px;border-radius:999px">🔓 Free Preview</span>` : ''}
+            ${l.image_url ? `<span style="font-size:11px;font-weight:700;color:#059669;background:#dcfce7;padding:1px 6px;border-radius:999px">🖼️ Thumbnail</span>` : ''}
           </div>
         </div>
         <div style="display:flex;gap:6px;flex-shrink:0">
-          <button class="btn btn-ghost btn-sm" onclick="openAddLessonModal('${courseId}', ${JSON.stringify(l).replace(/"/g,'&quot;')})">✏️ Edit</button>
+          <button class="btn btn-ghost btn-sm" onclick="openAddLessonModal('${courseId}', '${l.id}')">✏️ Edit</button>
           <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteLessonAdmin('${courseId}','${l.id}','${(l.title||'').replace(/'/g,"\\'")}','${courseTitle.replace(/'/g,"\\'")}')">🗑️</button>
         </div>
       </div>`).join('')}
@@ -1269,8 +1312,18 @@ async function manageLessons(courseId, courseTitle) {
 // Uses Quill.js for rich text, KaTeX for math, and native file inputs for media.
 // Loaded from CDN only when the modal opens — no page-load cost.
 
-function openAddLessonModal(courseId, existing = null) {
-  const isEdit = !!existing
+function openAddLessonModal(courseId, existingIdOrObj = null) {
+  let existing = existingIdOrObj;
+  if (typeof existing === 'string') {
+    if (existing.startsWith('dr_')) {
+      existing = _get(existing);
+    } else if (window._adminCurrentLessons) {
+      existing = window._adminCurrentLessons.find(x => x.id === existingIdOrObj);
+    }
+  }
+  // Ensure we capture all fields for editing
+  window._currentEditingLesson = existing;
+  const isEdit = !!existing;
   const modalRoot = document.getElementById('modal-root') || (() => {
     const d = document.createElement('div'); d.id = 'modal-root'; document.body.appendChild(d); return d
   })()
@@ -1306,7 +1359,8 @@ function openAddLessonModal(courseId, existing = null) {
         <div id="ltab-panel-0">
           <div class="form-group">
             <label class="form-label">Lesson Title *</label>
-          <input class="input" id="l-title" value="${existing?.title || ''}" placeholder="e.g. Solving Quadratic Equations"/>
+            <input class="input" id="l-title" value="${existing?.title || ''}" placeholder="e.g. Solving Quadratic Equations"/>
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label">Unit / Module Name (optional)</label>
@@ -1324,13 +1378,13 @@ function openAddLessonModal(courseId, existing = null) {
             </div>
           </div>
           <div class="form-group">
-            <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
-              <input type="checkbox" id="l-preview" ${existing?.is_free_preview ? 'checked' : ''} style="width:18px;height:18px;accent-color:var(--blue)"/>
-              <div>
-                <div style="font-size:14px;font-weight:700;color:var(--navy)">🔓 Free Preview</div>
-                <div style="font-size:12px;color:var(--g400)">Visible to non-enrolled students as a sample</div>
-              </div>
-            </label>
+            <label class="form-label">Lesson Thumbnail Image URL</label>
+            <div style="display:flex;gap:8px">
+              <input class="input" id="l-image" value="${existing?.image_url || ''}" placeholder="https://..." style="flex:1"/>
+              <button type="button" class="btn btn-secondary" onclick="document.getElementById('l-image-file').click()" style="white-space:nowrap;">Upload Image</button>
+              <input type="file" id="l-image-file" accept="image/*" style="display:none" onchange="handleCourseImageUploadAPI(this, 'l-image')"/>
+            </div>
+            <div style="font-size:11px;color:var(--g400);margin-top:4px">If left blank, the course cover image will be used.</div>
           </div>
         </div>
 
@@ -1766,7 +1820,8 @@ function _getLessonFormData() {
     video_url:      document.getElementById('l-video')?.value?.trim() || null,
     duration_mins:  parseInt(document.getElementById('l-duration')?.value) || 0,
     order_num:      parseInt(document.getElementById('l-order')?.value) || 1,
-    is_free_preview:document.getElementById('l-preview')?.checked || false,
+    is_free_preview: false,
+    image_url:      document.getElementById('l-image')?.value?.trim() || null,
     content:        document.getElementById('l-content')?.value || null,
     notes:          document.getElementById('l-notes')?.value?.trim() || null,
     resources: Array.from(document.querySelectorAll('.res-row')).map(row => ({
