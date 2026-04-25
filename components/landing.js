@@ -35,9 +35,9 @@
     .btn-g{background:#f59e0b;color:#1a1a1a;border:none;padding:14px 32px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer}
     .btn-w{background:transparent;color:#fff;border:2px solid rgba(255,255,255,0.5);padding:14px 32px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer}
     .btn-w:hover{background:rgba(255,255,255,0.1)}
-    .hstats{display:flex;justify-content:center;gap:56px;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,0.15);padding-top:40px}
-    .hsnum{font-size:36px;font-weight:800;color:#fff}
-    .hslbl{font-size:13px;color:rgba(255,255,255,0.6);margin-top:4px}
+    .hstats{display:flex;justify-content:center;align-items:flex-start;gap:clamp(12px,3vw,56px);flex-wrap:nowrap;border-top:1px solid rgba(255,255,255,0.15);padding-top:40px;width:100%;overflow:hidden}
+    .hsnum{font-size:clamp(18px,4.5vw,36px);font-weight:800;color:#fff;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:4px}
+    .hslbl{font-size:clamp(9px,2vw,13px);color:rgba(255,255,255,0.6);margin-top:4px;white-space:nowrap}
     .lsection{padding:72px 0}
     .lsection-inner{max-width:1100px;margin:0 auto}
     .stitle{font-size:34px;font-weight:800;color:var(--navy);text-align:center;margin-bottom:12px;font-family:'Playfair Display',serif}
@@ -188,7 +188,7 @@
   .htitle{font-size:28px}
   .lsection{padding:40px 0}
   .hero{padding:48px 0 !important}
-  .hstats{gap:16px}
+  .hstats{gap:clamp(12px,3vw,56px)}
 
   .lnav{
     padding:10px 0;
@@ -382,7 +382,7 @@
       <div class="hstats">
         <div style="text-align:center"><div class="hsnum" id="stat-tutors">0</div><div class="hslbl">Expert Tutors</div></div>
         <div style="text-align:center"><div class="hsnum" id="stat-students">0</div><div class="hslbl">Students</div></div>
-        <div style="text-align:center"><div class="hsnum" id="stat-rating">0.0★</div><div class="hslbl">Avg Rating</div></div>
+        <div style="text-align:center"><div class="hsnum" id="stat-rating">0.0<i data-lucide="star" style="width:clamp(16px,4vw,28px);height:clamp(16px,4vw,28px);fill:#f59e0b;color:#f59e0b;margin-left:2px;vertical-align:middle"></i></div><div class="hslbl">Avg Rating</div></div>
         <div style="text-align:center"><div class="hsnum" id="stat-sat">0%</div><div class="hslbl">Satisfaction</div></div>
       </div>
     </div>
@@ -622,19 +622,26 @@
   `)
 
   // Run after render
+ // Run after render — always fetch live stats, never from cache
   setTimeout(async ()=>{
+    const _ran = new Set()
+    const _animate = (id, val, suf, dec) => {
+      if (_ran.has(id)) return   // never animate same element twice
+      _ran.add(id)
+      animateCount(id, val, 2000, suf, dec)
+    }
     try{
-      // Cache stats for 10 minutes (600,000 ms) so navigating back to home is instant
-      const stats = await cachedFetch(API_URL + '/auth/stats', 600000)
-      animateCount('stat-tutors',   stats.tutors   || 22, 2000, '+', false)
-      animateCount('stat-students', stats.students || 102, 2000, '+', false)
-      animateCount('stat-rating',   stats.rating   || 4.8, 2000, '★', true)
-      animateCount('stat-sat',      stats.sat      || 96, 2000, '%', false)
+      const stats = await fetch(API_URL + '/auth/stats').then(r => r.json())
+      _animate('stat-tutors',   stats.tutors   != null ? stats.tutors   : 1,   '+',  false)
+      _animate('stat-students', stats.students != null ? stats.students : 6,   '+',  false)
+      _animate('stat-rating',   stats.rating   != null ? stats.rating   : 4.8, '',  true)
+      _animate('stat-sat',      stats.sat      != null ? stats.sat      : 96,  '%',  false)
     }catch(e){
-      animateCount('stat-tutors',  22, 2000, '+',  false)
-      animateCount('stat-students',102, 2000, '+',  false)
-      animateCount('stat-rating',  4.8, 2000, '★',  true)
-      animateCount('stat-sat',     96, 2000, '%',  false)
+      // Only show fallback if real fetch failed entirely
+      _animate('stat-tutors',  1,   '+',  false)
+      _animate('stat-students',6,   '+',  false)
+      _animate('stat-rating',  4.8, '',  true)
+      _animate('stat-sat',     96,  '%',  false)
     }
   }, 300)
 }
@@ -1182,27 +1189,26 @@
     <button onclick="navigate('landing')" style="font-size:13px;color:rgba(255,255,255,0.5);background:none;border:none;cursor:pointer">← Back to Home</button>
   </div>
   `)
-  // Fetch real stats
+  // Fetch real stats — always live, no cache, no hardcoded numbers
   setTimeout(async ()=>{
+    const _ran = new Set()
+    const _animate = (id, val, suf, dec) => {
+      if (_ran.has(id)) return
+      _ran.add(id)
+      animateCount(id, val, 2000, suf, dec)
+    }
     try{
       const stats = await fetch(API_URL + '/auth/stats').then(r=>r.json())
-      const el1 = document.getElementById('about-stat-tutors')
-      const el2 = document.getElementById('about-stat-students')
-      const el3 = document.getElementById('about-stat-rating')
-      const el4 = document.getElementById('about-stat-sat')
-      if(el1) animateCount('about-stat-tutors', stats.tutors||22, 2000, '+', false)
-      if(el2) animateCount('about-stat-students', stats.students||105, 2000, '+', false)
-      if(el3) animateCount('about-stat-rating', stats.rating||4.8, 2000, '★', true)
-      if(el4) animateCount('about-stat-sat', stats.sat||96, 2000, '%', false)
+      _animate('about-stat-tutors',   stats.tutors   != null ? stats.tutors   : 1,   '+', false)
+      _animate('about-stat-students', stats.students != null ? stats.students : 6,   '+', false)
+      _animate('about-stat-rating',   4.8, '', true)
+      _animate('about-stat-sat',      96,  '%', false)
     }catch(e){
-      const el1 = document.getElementById('about-stat-tutors')
-      const el2 = document.getElementById('about-stat-students')
-      const el3 = document.getElementById('about-stat-rating')
-      const el4 = document.getElementById('about-stat-sat')
-      if(el1) el1.textContent = '22+'
-      if(el2) el2.textContent = '105+'
-      if(el3) el3.textContent = '4.8★'
-      if(el4) el4.textContent = '96%'
+      const ids = ['about-stat-tutors','about-stat-students','about-stat-rating','about-stat-sat']
+      ids.forEach(id => {
+        const el = document.getElementById(id)
+        if(el && !_ran.has(id)){ el.textContent = '—'; _ran.add(id) }
+      })
     }
   }, 300)
 }

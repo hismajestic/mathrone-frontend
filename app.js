@@ -1466,12 +1466,18 @@ function handleFooterLink(l){
 function animateCount(id, target, duration, suffix, isDecimal){
   const el = document.getElementById(id)
   if(!el) return
+  // Find or create a text node at the front, preserving any child elements (e.g. star icon)
+  let textNode = el.firstChild && el.firstChild.nodeType === 3 ? el.firstChild : null
+  if(!textNode){
+    textNode = document.createTextNode('')
+    el.insertBefore(textNode, el.firstChild)
+  }
   const start = performance.now()
   function step(now){
     const progress = Math.min((now - start) / duration, 1)
     const ease = 1 - Math.pow(1 - progress, 3)
     const val = isDecimal ? (ease * target).toFixed(1) : Math.round(ease * target)
-    el.textContent = val + suffix
+    textNode.nodeValue = val + suffix
     if(progress < 1) requestAnimationFrame(step)
   }
   requestAnimationFrame(step)
