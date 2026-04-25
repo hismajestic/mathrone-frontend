@@ -253,6 +253,21 @@ async function renderCoursesShop() {
   }
 }
 
+window.playCourseCardVideo = function(e, id, url) {
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  if (!url || url === 'null' || url === 'undefined') return;
+  const cover = document.getElementById('card-vid-cover-' + id);
+  const iframe = document.getElementById('card-vid-iframe-' + id);
+  if (cover && iframe) {
+    iframe.src = url; // Inject URL to start buffering immediately
+    cover.style.opacity = '0';
+    setTimeout(() => { cover.style.display = 'none'; }, 300);
+  }
+};
+
 function courseCard(c, isLoggedIn, isCourseGuest) {
   const enrollAction = isLoggedIn
     ? `memberEnrollCourse('${c.id}','${(c.title||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}',${c.price})`
@@ -261,20 +276,64 @@ function courseCard(c, isLoggedIn, isCourseGuest) {
   const lessonCount = c.lesson_count || (c.lessons && c.lessons.length) || (c.preview_lessons && c.preview_lessons.length) || 0;
   const lessonText = lessonCount > 0 ? `${lessonCount} Lessons` : `Video Lessons`;
 
+  const imgHtml = c.image_url
+    ? `<img src="${c.image_url}" alt="${c.title}" loading="lazy" decoding="async"
+           style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;object-position:center;background-color:#1E2845;transition:transform .3s"
+           onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'"/>`
+    : `<div style="display:flex;align-items:center;justify-content:center;height:100%;width:100%;font-size:52px;color:#cbd5e1;background:#1E2845"><i data-lucide="book-open" style="width:48px;height:48px;"></i></div>`;
+
+  // We strictly use the overall course video (c.video_url)
+  const inlineVideoUrl = c.video_url && c.video_url.trim() !== '' ? c.video_url : null;
+  
+  let ytId = '';
+  if (inlineVideoUrl) {
+    const ytMatch = inlineVideoUrl.match(/(?:embed\/|v=|youtu\.be\/|shorts\/)([\w-]{11})/);
+    ytId = ytMatch ? ytMatch[1] : '';
+  }
+  const cleanUrl = ytId ? `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1&showinfo=0&controls=1` : inlineVideoUrl;
+  
+  // If there's a video, play it. If not, clicking the cover natively navigates to course details.
+  const clickAction = cleanUrl ? `playCourseCardVideo(event, '${c.id}', '${cleanUrl.replace(/'/g, "\\'")}')` : `navigate('course-${c.slug || c.id}', null, event)`;
+
   return `
   <div class="m-course-card" style="background:#fff;border:1px solid #e8ecf0;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .2s,transform .2s;"
        onmouseover="this.style.boxShadow='0 8px 32px rgba(0,0,0,0.10)';this.style.transform='translateY(-2px)'"
        onmouseout="this.style.boxShadow='none';this.style.transform='translateY(0)'">
 
-    <!-- Image Area -->
-    <a href="/course/${c.slug||c.id}" onclick="navigate('course-${c.slug||c.id}', null, event)"
-       class="m-course-img-wrap" style="display:block;position:relative;width:100%;height:160px;background:#1E2845;overflow:hidden;flex-shrink:0;border-bottom:1px solid #f0f2f5;cursor:pointer;">
-      ${c.image_url
-        ? `<img src="${c.image_url}" alt="${c.title}" loading="lazy" decoding="async"
-               style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;object-position:center;background-color:#1E2845;transition:transform .3s"
-               onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'"/>`
-        : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:52px;color:#cbd5e1"><i data-lucide="book-open" style="width:48px;height:48px;"></i></div>`}
-    </a>
+    <!-- Image / Video Area -->
+    <div class="m-course-img-wrap" style="position:relative;width:100%;height:160px;background:#1E2845;overflow:hidden;flex-shrink:0;border-bottom:1px solid #f0f2f5;">
+      
+      <!-- Cover Container -->
+      <div id="card-vid-cover-${c.id}" 
+           onclick="${clickAction}"
+           style="position:absolute;inset:0;cursor:pointer;z-index:2;display:block;width:100%;height:100%;transition:opacity 0.3s ease;">
+        
+        ${imgHtml}
+        
+        <!-- Dark tint overlay for better button contrast -->
+        <div style="position:absolute;inset:0;background:rgba(15,23,42,0.3);transition:background 0.3s" 
+             onmouseover="this.style.background='rgba(15,23,42,0.15)'" 
+             onmouseout="this.style.background='rgba(15,23,42,0.3)'"></div>
+        
+        <!-- Center Play Button (Always visible) -->
+        <div class="play-btn-circle" style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);width:52px;height:52px;background:rgba(255,255,255,0.95);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(0,0,0,0.3);transition:transform 0.2s, background 0.2s"
+             onmouseover="this.style.transform='translate(-50%, -50%) scale(1.15)'; this.style.background='#fff'" 
+             onmouseout="this.style.transform='translate(-50%, -50%) scale(1)'">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="var(--blue)" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:4px"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        </div>
+        
+        ${cleanUrl ? `
+        <!-- Bottom Right Badge (Only shows if an actual inline video exists) -->
+        <div style="position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,0.75);color:#fff;font-size:11px;font-weight:700;padding:4px 8px;border-radius:6px;backdrop-filter:blur(4px);display:flex;align-items:center;gap:4px">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Preview
+        </div>
+        ` : ''}
+      </div>
+
+      <!-- Always inject iframe container, hidden by default -->
+      <iframe id="card-vid-iframe-${c.id}" src="" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;z-index:1;background:#000;" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe>
+
+    </div>
 
     <!-- Body Area -->
     <div class="m-course-body" style="padding:16px;flex:1;display:flex;flex-direction:column;gap:0">
@@ -460,16 +519,31 @@ async function renderCourseDetail(slugParam) {
         const thumbUrl = ytId ? `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg` : '';
         const cleanUrl = ytId ? `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1&showinfo=0` : c.video_url;
         
+        const coverBg = c.image_url ? `#1E2845 url('${c.image_url}') center/cover no-repeat` : `#1E2845 url('${thumbUrl}') center/cover no-repeat`;
         return `
         <div style="margin-bottom:24px">
           <h2 style="font-size:18px;font-weight:800;color:var(--navy);margin-bottom:12px;display:flex;align-items:center;gap:8px"><i data-lucide="play-circle" style="width:20px;height:20px;color:var(--blue)"></i> Course Preview</h2>
           <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:14px;background:#000;box-shadow:0 8px 30px rgba(0,0,0,0.15)">
             
-            <!-- Custom Mathrone Video Cover -->
-            <div id="preview-vid-cover" onclick="this.style.display='none'; document.getElementById('preview-vid-iframe').src='${cleanUrl}'" 
-                 style="position:absolute;top:0;left:0;width:100%;height:100%;cursor:pointer;background:#000 url('${thumbUrl}') center/cover no-repeat;display:flex;align-items:center;justify-content:center;z-index:2">
-              <div style="width:64px;height:64px;background:var(--blue);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(26,95,255,0.4);transition:transform 0.2s" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:4px"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            <!-- Course thumbnail cover — same look as card -->
+            <div id="preview-vid-cover" onclick="this.style.display='none'; document.getElementById('preview-vid-iframe').src='${cleanUrl}'"
+                 style="position:absolute;top:0;left:0;width:100%;height:100%;cursor:pointer;background:${coverBg};display:flex;align-items:center;justify-content:center;z-index:2;transition:opacity 0.3s;">
+              
+              <!-- Dark tint overlay — matches card -->
+              <div style="position:absolute;inset:0;background:rgba(15,23,42,0.35);transition:background 0.3s"
+                   onmouseover="this.style.background='rgba(15,23,42,0.15)'"
+                   onmouseout="this.style.background='rgba(15,23,42,0.35)'"></div>
+              
+              <!-- White circle play button — matches card -->
+              <div style="position:relative;z-index:1;width:64px;height:64px;background:rgba(255,255,255,0.95);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(0,0,0,0.3);transition:transform 0.2s,background 0.2s"
+                   onmouseover="this.style.transform='scale(1.12)';this.style.background='#fff'"
+                   onmouseout="this.style.transform='scale(1)'">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="var(--blue)" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:5px"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              </div>
+
+              <!-- Preview badge — bottom right, matches card -->
+              <div style="position:absolute;bottom:12px;right:12px;background:rgba(0,0,0,0.75);color:#fff;font-size:12px;font-weight:700;padding:5px 10px;border-radius:6px;backdrop-filter:blur(4px);display:flex;align-items:center;gap:5px;z-index:1">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Preview
               </div>
             </div>
             
