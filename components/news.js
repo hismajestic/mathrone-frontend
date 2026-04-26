@@ -26,6 +26,10 @@ async function insertNewsImage(input){
   }
   input.value = ''
 
+  // Save cursor position before picker steals focus
+  const sel = window.getSelection()
+  if(sel && sel.rangeCount) window._savedEditorRange = sel.getRangeAt(0).cloneRange()
+
   // Show layout picker
   const picker = document.createElement('div')
   picker.id = 'img-layout-picker'
@@ -99,17 +103,25 @@ function _insertImageWithLayout(url, layout){
   document.getElementById('img-layout-picker')?.remove()
   const editor = document.getElementById('news-editor')
   if(!editor){ toast('Editor not found','err'); return }
+  // Restore saved cursor position before inserting
+  if(window._savedEditorRange){
+    const sel = window.getSelection()
+    sel.removeAllRanges()
+    sel.addRange(window._savedEditorRange)
+    window._savedEditorRange = null
+  } else {
+    editor.focus()
+  }
   if(layout === 'left' || layout === 'right'){
     const float = layout === 'left' ? 'left' : 'right'
     const margin = layout === 'left' ? '4px 18px 12px 0' : '4px 0 12px 18px'
-    const html = `<div style="overflow:hidden;margin:12px 0"><img src="${url}" style="float:${float};width:42%;max-width:280px;height:auto;border-radius:8px;margin:${margin}" /><p style="margin:0;min-height:80px;line-height:1.8">Write your text here — it will wrap alongside the image.</p><div style="clear:both"></div></div><p><br></p>`
+    const html = `<div style="overflow:hidden;margin:12px 0"><img src="${url}" alt="News Image" style="float:${float};width:42%;max-width:280px;height:auto;border-radius:8px;margin:${margin}" /><p style="margin:0;min-height:80px;line-height:1.8">Write your text here — it will wrap alongside the image.</p><div style="clear:both"></div></div><p><br></p>`
     editor.focus()
     document.execCommand('insertHTML', false, html)
   } else {
-    const img = document.createElement('img')
-    img.src = url
-    img.style.cssText = 'max-width:100%;height:auto;border-radius:8px;margin:8px 0;display:block'
-    editor.appendChild(img)
+    const html = `<img src="${url}" alt="News Image" style="max-width:100%;height:auto;border-radius:8px;margin:8px 0;display:block"/><p><br></p>`
+    editor.focus()
+    document.execCommand('insertHTML', false, html)
   }
   toast('Image inserted! \u2705')
 }
@@ -194,12 +206,25 @@ function addResizeHandles(img){
     wrapper.appendChild(c)
   })
 
-  // Show width badge
-  const badge = document.createElement('div')
-  badge.id = 'img-size-badge'
-  badge.style.cssText = 'position:absolute;top:-28px;left:50%;transform:translateX(-50%);background:#0D1B40;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;white-space:nowrap;z-index:200;pointer-events:none'
-  badge.textContent = wrapper.offsetWidth + 'px'
-  wrapper.appendChild(badge)
+  // Show width badge & SEO Alt text editor
+  const toolbar = document.createElement('div')
+  toolbar.id = 'img-resize-toolbar'
+  toolbar.contentEditable = 'false'
+  toolbar.style.cssText = 'position:absolute;top:-38px;left:50%;transform:translateX(-50%);background:#0D1B40;color:#fff;font-size:11px;font-weight:700;padding:4px 8px;border-radius:6px;white-space:nowrap;z-index:200;display:flex;align-items:center;gap:8px;box-shadow:0 4px 12px rgba(0,0,0,0.3)'
+  
+  const sizeBadge = document.createElement('span')
+  sizeBadge.id = 'img-size-badge'
+  sizeBadge.textContent = wrapper.offsetWidth + 'px'
+  
+  const altInput = document.createElement('input')
+  altInput.placeholder = "Alt text for SEO..."
+  altInput.value = img.alt || ''
+  altInput.style.cssText = 'background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:4px;padding:3px 6px;font-size:11px;width:130px;outline:none;'
+  altInput.oninput = (e) => { img.alt = e.target.value }
+
+  toolbar.appendChild(sizeBadge)
+  toolbar.appendChild(altInput)
+  wrapper.appendChild(toolbar)
 }
 
 document.addEventListener('mousemove', e=>{
@@ -249,6 +274,23 @@ document.addEventListener('keydown', function(e){
   if(!wrapper) return
   // An image is selected in the editor — delete it
   e.preventDefault()
+  const img = wrapper.querySelector('img')
+  // Delete from backend storage (Supabase)
+  if(img && img.src){
+    try{
+      const urlObj = new URL(img.src)
+      // Extract the storage path after /news-images/
+      const match = urlObj.pathname.match(/\/news-images\/(.+)$/)
+      if(match){
+        const storagePath = match[1]
+        fetch(API_URL + '/news/delete-image', {
+          method: 'DELETE',
+          headers: { 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ path: storagePath })
+        }).catch(()=>{}) // Silent fail — image is already removed from editor
+      }
+    }catch(err){}
+  }
   const parent = wrapper.parentElement
   wrapper.remove()
   // Clean up empty parent block left behind (e.g. empty <p> from float layout)
@@ -973,17 +1015,42 @@ async function openNewsPost(slugOrId){
         <div style="margin-top:32px;padding:20px;background:var(--sky);border-radius:12px">
           <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:12px">📤 Share this article</div>
           <div style="display:flex;gap:10px;flex-wrap:wrap">
-            <a href="https://wa.me/?text=${encodeURIComponent(p.title + '\n\nhttps://mathroneacademy.com/news/' + (p.slug || p.id))}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#25d366;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600"><i data-lucide="message-circle" style="width:16px;height:16px"></i> WhatsApp</a>
-            <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent('https://mathroneacademy.com/news/' + (p.slug || p.id))}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#1877f2;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600"><i data-lucide="facebook" style="width:16px;height:16px"></i> Facebook</a>
-            <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(p.title)}&url=${encodeURIComponent('https://mathroneacademy.com/news/' + (p.slug || p.id))}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#000;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600"><i data-lucide="twitter" style="width:16px;height:16px"></i> Twitter</a>
-            <a href="https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent('https://mathroneacademy.com/news/' + (p.slug || p.id))}&title=${encodeURIComponent(p.title)}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#0077b5;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600"><i data-lucide="linkedin" style="width:16px;height:16px"></i> LinkedIn</a>
-            <button onclick="navigator.clipboard.writeText('https://mathroneacademy.com/news/${p.slug || p.id}');toast('Link copied!')" style="display:inline-flex;align-items:center;gap:6px;background:var(--g100);color:var(--navy);border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600"><i data-lucide="link" style="width:16px;height:16px"></i> Copy Link</button>
+            <!-- WhatsApp -->
+            <a href="https://wa.me/?text=${encodeURIComponent(p.title + '\n\nhttps://mathroneacademy.com/news/' + (p.slug || p.id))}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;background:#25d366;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              WhatsApp
+            </a>
+            <!-- Facebook -->
+            <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent('https://mathroneacademy.com/news/' + (p.slug || p.id))}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;background:#1877f2;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+              Facebook
+            </a>
+            <!-- X (formerly Twitter) -->
+            <a href="https://x.com/intent/post?text=${encodeURIComponent(p.title + ' — Mathrone Academy')}&url=${encodeURIComponent('https://mathroneacademy.com/news/' + (p.slug || p.id))}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;background:#000;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.261 5.632L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/></svg>
+              Post on X
+            </a>
+            <!-- LinkedIn -->
+            <a href="https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent('https://mathroneacademy.com/news/' + (p.slug || p.id))}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;background:#0a66c2;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+              LinkedIn
+            </a>
+            <!-- Telegram -->
+            <a href="https://t.me/share/url?url=${encodeURIComponent('https://mathroneacademy.com/news/' + (p.slug || p.id))}&text=${encodeURIComponent(p.title)}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;background:#2AABEE;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+              Telegram
+            </a>
+            <!-- Copy Link -->
+            <button onclick="navigator.clipboard.writeText('https://mathroneacademy.com/news/${p.slug || p.id}').then(()=>toast('Link copied! 🔗'))" style="display:inline-flex;align-items:center;gap:6px;background:var(--g100);color:var(--navy);border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              Copy Link
+            </button>
           </div>
         </div>
 
         <!-- Related Articles (moved here after share buttons) -->
         <div class="related-articles">
-          <h3 style="font-size:20px;font-weight:700;color:var(--navy);margin-bottom:20px">📚 Related Articles</h3>
+          <h3 style="font-size:20px;font-weight:700;color:var(--navy);margin-bottom:20px">Related Articles</h3>
           <div id="related-articles-content" class="related-grid">
             <div class="loader-center"><div class="spinner"></div></div>
           </div>
@@ -995,7 +1062,7 @@ async function openNewsPost(slugOrId){
 
       <!-- Sidebar with Trending News -->
       <div class="article-sidebar">
-        <h3 style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:16px">🔥 Trending News</h3>
+        <h3 style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:16px"> Trending News</h3>
         <div id="trending-news">
           <div class="loader-center"><div class="spinner"></div></div>
         </div>
@@ -1069,7 +1136,7 @@ async function openNewsPost(slugOrId){
       }
     }, 200)
     const articleUrl = 'https://mathroneacademy.com/news/' + articleSlug
-    const articleDesc = p.content.replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim().slice(0,155) + '...'
+    const articleDesc = p.description || (p.content.replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim().slice(0,155) + '...')
     const articleImg  = p.image_url || 'https://mathroneacademy.com/og-banner.jpg'
     const fullTitle   = p.title + ' | Mathrone Academy Rwanda'
     document.title = fullTitle
@@ -1091,7 +1158,7 @@ articleSchema.textContent = JSON.stringify({
   "@context": "https://schema.org",
   "@type": "NewsArticle",
   "headline": p.title,
-  "description": p.content.replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim().slice(0,160),
+  "description": p.description || p.content.replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim().slice(0,160),
   "image": {
     "@type": "ImageObject",
     "url": p.image_url || 'https://mathroneacademy.com/og-banner.jpg',
@@ -1205,29 +1272,30 @@ function insertNewsLink(){
   const selectedText = sel && sel.toString() ? sel.toString() : ''
   const savedRange = sel && sel.rangeCount ? sel.getRangeAt(0).cloneRange() : null
 
-  const modal = document.createElement('div')
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99999;display:flex;align-items:center;justify-content:center'
-  modal.innerHTML = `
-    <div style="background:#fff;border-radius:12px;padding:24px;width:420px;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
-      <div style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px">🔗 Insert Link</div>
-      <div class="form-group">
-        <label class="form-label">Link Text</label>
-        <input class="input" id="link-text" value="${selectedText}" placeholder="e.g. Read more here"/>
-      </div>
-      <div class="form-group">
-        <label class="form-label">URL *</label>
-        <input class="input" id="link-url" placeholder="https://" type="url"/>
-      </div>
-      <div class="form-group">
-        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
-          <input type="checkbox" id="link-newtab" checked/> Open in new tab
-        </label>
-      </div>
-      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
-        <button onclick="this.closest('div[style*=fixed]').remove()" class="btn btn-ghost">Cancel</button>
-        <button onclick="applyNewsLink()" class="btn btn-primary">Insert Link</button>
-      </div>
-    </div>`
+ const modal = document.createElement('div')
+      modal.id = 'link-insert-modal'
+      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99999;display:flex;align-items:center;justify-content:center'
+      modal.innerHTML = `
+        <div style="background:#fff;border-radius:12px;padding:24px;width:420px;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
+          <div style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px">🔗 Insert Link</div>
+          <div class="form-group">
+            <label class="form-label">Link Text</label>
+            <input class="input" id="link-text" value="${selectedText}" placeholder="e.g. Read more here"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">URL *</label>
+            <input class="input" id="link-url" placeholder="https://" type="url"/>
+          </div>
+          <div class="form-group">
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+              <input type="checkbox" id="link-newtab" checked/> Open in new tab
+            </label>
+          </div>
+          <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+            <button onclick="document.getElementById('link-insert-modal').remove()" class="btn btn-ghost">Cancel</button>
+            <button onclick="applyNewsLink()" class="btn btn-primary">Insert Link</button>
+          </div>
+        </div>`
   document.body.appendChild(modal)
   window._savedLinkRange = savedRange
   setTimeout(() => document.getElementById('link-url')?.focus(), 50)
@@ -1238,30 +1306,27 @@ function applyNewsLink(){
   const text = document.getElementById('link-text')?.value?.trim()
   const newTab = document.getElementById('link-newtab')?.checked
   if(!url){ toast('Please enter a URL','err'); return }
+  
+  // Remove modal FIRST to return focus cleanly to the background document
+  const modal = document.getElementById('link-insert-modal')
+  if(modal) modal.remove()
+  
   const editor = document.getElementById('news-editor')
   if(!editor) return
+  
   editor.focus()
+  
+  // Restore the exact text selection range
   if(window._savedLinkRange){
     const sel = window.getSelection()
     sel.removeAllRanges()
     sel.addRange(window._savedLinkRange)
   }
-  const a = document.createElement('a')
-  a.href = url
-  a.textContent = text || url
-  if(newTab){ a.target = '_blank'; a.rel = 'noopener noreferrer' }
-  a.style.color = '#1A5FFF'
-  const sel2 = window.getSelection()
-  if(sel2 && sel2.rangeCount){
-    const range = sel2.getRangeAt(0)
-    range.deleteContents()
-    range.insertNode(a)
-    range.setStartAfter(a)
-    range.collapse(true)
-    sel2.removeAllRanges()
-    sel2.addRange(range)
-  }
-  document.querySelector('div[style*="position:fixed"][style*="99999"]')?.remove()
+  
+  // Use native execCommand for flawless insertion that preserves caret position
+  const html = `<a href="${url}" ${newTab ? 'target="_blank" rel="noopener noreferrer"' : ''} style="color:#1A5FFF">${text || url}</a>`
+  document.execCommand('insertHTML', false, html)
+  
   window._savedLinkRange = null
 }
 
@@ -1292,6 +1357,10 @@ async function openNewsModalAsync(postId = null){
         if(!res.ok) throw new Error(data.detail||'Upload failed')
         const imageUrlField = document.getElementById('news-image')
         if(imageUrlField && !imageUrlField.value) imageUrlField.value = data.url
+        // Save cursor position before picker steals focus
+        const sel2 = window.getSelection()
+        if(sel2 && sel2.rangeCount) window._savedEditorRange = sel2.getRangeAt(0).cloneRange()
+
         // Reuse same layout picker
         const picker = document.createElement('div')
         picker.id = 'img-layout-picker'
@@ -1450,44 +1519,593 @@ function applyNewsEmbed(){
   toast('Embed inserted! 📺')
 }
 
+// ════════════════════════════════════════════════════════════════
+// MS WORD-LIKE TABLE SYSTEM
+// ════════════════════════════════════════════════════════════════
+
+// ── State ─────────────────────────────────────────────────────
+let _tblResizing = false, _tblResizeCell = null, _tblResizeStartX = 0, _tblResizeStartW = 0
+let _tblSelecting = false, _tblSelStart = null, _tblSelCells = []
+let _tblCtxTable = null  // table the context menu is targeting
+
+// ── Insert Table — grid picker modal ──────────────────────────
 function insertNewsTable(){
   const modal = document.createElement('div')
+  modal.id = 'tbl-insert-modal'
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99999;display:flex;align-items:center;justify-content:center'
   modal.innerHTML = `
-    <div style="background:#fff;border-radius:12px;padding:24px;width:320px;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
-      <div style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px">📊 Insert Table</div>
+    <div style="background:#fff;border-radius:14px;padding:24px;width:360px;box-shadow:0 24px 64px rgba(0,0,0,0.3)">
+      <div style="font-size:16px;font-weight:700;color:#0D1B40;margin-bottom:4px">📊 Insert Table</div>
+      <div style="font-size:12px;color:#8A98B8;margin-bottom:16px">Hover to pick size or enter manually</div>
+      <!-- Grid picker -->
+      <div id="tbl-grid" style="display:grid;grid-template-columns:repeat(10,22px);gap:3px;margin-bottom:12px;user-select:none"></div>
+      <div id="tbl-grid-label" style="font-size:12px;color:#1A5FFF;font-weight:700;margin-bottom:14px;height:16px"></div>
+      <!-- Manual inputs -->
       <div style="display:flex;gap:12px;margin-bottom:16px">
-        <div class="form-group" style="flex:1;margin:0">
-          <label class="form-label">Rows</label>
-          <input class="input" id="tbl-rows" type="number" value="3" min="1" max="20"/>
+        <div style="flex:1">
+          <label style="font-size:12px;color:#64748b;display:block;margin-bottom:4px">Rows</label>
+          <input id="tbl-rows" type="number" value="3" min="1" max="20" style="width:100%;border:1px solid #e2e8f0;border-radius:6px;padding:6px 10px;font-size:13px;outline:none"/>
         </div>
-        <div class="form-group" style="flex:1;margin:0">
-          <label class="form-label">Columns</label>
-          <input class="input" id="tbl-cols" type="number" value="3" min="1" max="10"/>
+        <div style="flex:1">
+          <label style="font-size:12px;color:#64748b;display:block;margin-bottom:4px">Columns</label>
+          <input id="tbl-cols" type="number" value="3" min="1" max="10" style="width:100%;border:1px solid #e2e8f0;border-radius:6px;padding:6px 10px;font-size:13px;outline:none"/>
         </div>
       </div>
       <div style="display:flex;gap:10px;justify-content:flex-end">
-        <button onclick="this.closest('div[style*=fixed]').remove()" class="btn btn-ghost">Cancel</button>
-        <button onclick="applyNewsTable()" class="btn btn-primary">Insert Table</button>
+        <button onclick="document.getElementById('tbl-insert-modal').remove()" style="border:1px solid #e2e8f0;background:#fff;padding:7px 16px;border-radius:6px;font-size:13px;cursor:pointer">Cancel</button>
+        <button onclick="applyNewsTable()" style="background:#1A5FFF;color:#fff;border:none;padding:7px 16px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer">Insert Table</button>
       </div>
     </div>`
   document.body.appendChild(modal)
+  // Build hover grid
+  const grid = document.getElementById('tbl-grid')
+  const label = document.getElementById('tbl-grid-label')
+  for(let r=1;r<=8;r++) for(let c=1;c<=10;c++){
+    const cell = document.createElement('div')
+    cell.dataset.r = r; cell.dataset.c = c
+    cell.style.cssText = 'width:22px;height:22px;border:1px solid #e2e8f0;border-radius:3px;cursor:pointer;background:#fff;transition:background 0.1s'
+    cell.addEventListener('mouseover', ()=>{
+      document.getElementById('tbl-rows').value = r
+      document.getElementById('tbl-cols').value = c
+      label.textContent = `${r} × ${c} table`
+      grid.querySelectorAll('div').forEach(d => {
+        const dr = +d.dataset.r, dc = +d.dataset.c
+        d.style.background = dr<=r && dc<=c ? '#DBEAFE' : '#fff'
+        d.style.borderColor = dr<=r && dc<=c ? '#1A5FFF' : '#e2e8f0'
+      })
+    })
+    cell.addEventListener('click', applyNewsTable)
+    grid.appendChild(cell)
+  }
 }
 
 function applyNewsTable(){
   const rows = Math.max(1, Math.min(20, parseInt(document.getElementById('tbl-rows')?.value)||3))
   const cols = Math.max(1, Math.min(10, parseInt(document.getElementById('tbl-cols')?.value)||3))
+  document.getElementById('tbl-insert-modal')?.remove()
   const editor = document.getElementById('news-editor')
   if(!editor) return
-  const headerRow = `<tr>${Array.from({length:cols},(_,i)=>`<th style="border:1px solid #d1d5db;padding:8px 12px;background:#f8fafc;font-weight:700;text-align:left">Header ${i+1}</th>`).join('')}</tr>`
-  const bodyRows = Array.from({length:rows-1},()=>`<tr>${Array.from({length:cols},()=>`<td style="border:1px solid #d1d5db;padding:8px 12px">Cell</td>`).join('')}</tr>`).join('')
-  const html = `<table style="border-collapse:collapse;width:100%;margin:16px 0"><thead>${headerRow}</thead><tbody>${bodyRows}</tbody></table><p><br></p>`
+  const colW = Math.floor(100 / cols)
+  const mkCell = (tag, i) => {
+    const s = tag==='th'
+      ? `border:1px solid #d1d5db;padding:8px 12px;background:#f1f5f9;font-weight:700;text-align:left;width:${colW}%`
+      : `border:1px solid #d1d5db;padding:8px 12px;width:${colW}%`
+    return `<${tag} style="${s}">${tag==='th'?`Header ${i+1}`:'Cell'}</${tag}>`
+  }
+  const hRow = `<tr>${Array.from({length:cols},(_,i)=>mkCell('th',i)).join('')}</tr>`
+  const bRows = Array.from({length:rows-1},()=>`<tr>${Array.from({length:cols},()=>mkCell('td',0)).join('')}</tr>`).join('')
+  const html = `<table style="border-collapse:collapse;width:100%;margin:16px 0;table-layout:fixed"><thead>${hRow}</thead><tbody>${bRows}</tbody></table><p><br></p>`
+  // (tabIndex added dynamically by _tblInit)
   editor.focus()
   document.execCommand('insertHTML', false, html)
-  document.querySelector('div[style*="position:fixed"][style*="99999"]')?.remove()
+  setTimeout(()=> editor.querySelectorAll('table').forEach(t=>_tblInit(t)), 50)
   toast('Table inserted! 📊')
 }
 
+// ── Init a table: resize handles + context menu + tab nav ─────
+function _tblInit(table){
+  if(table.dataset.tblInit) return
+  table.dataset.tblInit = '1'
+
+  // Make cells focusable + add resize handles
+  table.querySelectorAll('th,td').forEach(cell => {
+    cell.setAttribute('tabindex', '0')
+    _tblAddHandle(cell)
+  })
+
+  // Right-click context menu
+  table.addEventListener('contextmenu', e => {
+    e.preventDefault()
+    _tblCtxTable = table
+    _tblShowCtx(e.clientX, e.clientY, e.target.closest('td,th'))
+  })
+
+  // Cell selection on mousedown drag
+  table.addEventListener('mousedown', e => {
+    const cell = e.target.closest('td,th')
+    if(!cell) return
+    _tblClearSel()
+    _tblSelecting = true
+    _tblSelStart = cell
+    _tblSelCells = [cell]
+    cell.classList.add('tbl-sel')
+  })
+  table.addEventListener('mouseover', e => {
+    if(!_tblSelecting) return
+    const cell = e.target.closest('td,th')
+    if(!cell) return
+    _tblClearSel()
+    // Select rectangle between start and current
+    const allRows = Array.from(table.querySelectorAll('tr'))
+    const startRow = _tblSelStart.closest('tr')
+    const endRow = cell.closest('tr')
+    const r1 = Math.min(allRows.indexOf(startRow), allRows.indexOf(endRow))
+    const r2 = Math.max(allRows.indexOf(startRow), allRows.indexOf(endRow))
+    const startCells = Array.from(startRow.querySelectorAll('td,th'))
+    const endCells = Array.from(endRow.querySelectorAll('td,th'))
+    const c1 = Math.min(startCells.indexOf(_tblSelStart), endCells.indexOf(cell))
+    const c2 = Math.max(startCells.indexOf(_tblSelStart), endCells.indexOf(cell))
+    _tblSelCells = []
+    for(let r=r1;r<=r2;r++){
+      const rowCells = allRows[r]?.querySelectorAll('td,th')
+      if(!rowCells) continue
+      for(let c=c1;c<=c2;c++){
+        if(rowCells[c]){ rowCells[c].classList.add('tbl-sel'); _tblSelCells.push(rowCells[c]) }
+      }
+    }
+  })
+
+  // Tab key to move between cells
+  table.addEventListener('keydown', e => {
+    if(e.key !== 'Tab') return
+    e.preventDefault()
+    const cell = e.target.closest('td,th') || document.activeElement.closest('td,th')
+    if(!cell) return
+    const allCells = Array.from(table.querySelectorAll('td,th'))
+    const idx = allCells.indexOf(cell)
+    if(e.shiftKey){
+      if(idx > 0) allCells[idx-1].focus()
+    } else {
+      if(idx < allCells.length-1){
+        allCells[idx+1].focus()
+      } else {
+        // Tab on last cell → add a new row
+        _tblAddRowAt(table, table.querySelector('tr:last-child'))
+        setTimeout(()=>{
+          const newCells = table.querySelectorAll('td,th')
+          newCells[newCells.length - table.querySelector('tr:last-child').querySelectorAll('td,th').length].focus()
+        }, 10)
+      }
+    }
+  })
+}
+
+function _tblAddHandle(cell){
+  if(cell.querySelector('.col-resize-handle')) return
+  const h = document.createElement('div')
+  h.className = 'col-resize-handle'
+  h.contentEditable = 'false'
+  h.addEventListener('mousedown', e => {
+    e.preventDefault(); e.stopPropagation()
+    _tblResizing = true
+    _tblResizeCell = cell
+    _tblResizeStartX = e.clientX
+    _tblResizeStartW = cell.offsetWidth
+    h.classList.add('dragging')
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+  })
+  cell.appendChild(h)
+}
+
+// ── Cell selection state ───────────────────────────────────────
+function _tblClearSel(){
+  _tblSelCells.forEach(c => c.classList.remove('tbl-sel'))
+  _tblSelCells = []
+}
+
+document.addEventListener('mouseup', () => { _tblSelecting = false })
+
+// ── Resize mouse events ────────────────────────────────────────
+document.addEventListener('mousemove', e => {
+  if(!_tblResizing || !_tblResizeCell) return
+  const dx = e.clientX - _tblResizeStartX
+  const newW = Math.max(40, _tblResizeStartW + dx)
+  _tblResizeCell.style.width = newW + 'px'
+  const tbl = _tblResizeCell.closest('table')
+  if(tbl) tbl.style.tableLayout = 'fixed'
+})
+document.addEventListener('mouseup', e => {
+  if(!_tblResizing) return
+  _tblResizing = false
+  document.body.style.cursor = ''
+  document.body.style.userSelect = ''
+  document.querySelectorAll('.col-resize-handle.dragging').forEach(h=>h.classList.remove('dragging'))
+  _tblResizeCell = null
+})
+
+// ── Right-click context menu ───────────────────────────────────
+function _tblShowCtx(x, y, cell){
+  document.getElementById('tbl-ctx')?.remove()
+  const menu = document.createElement('div')
+  menu.id = 'tbl-ctx'
+  menu.className = 'tbl-ctx-scroll'
+  // Added max-height and overflow-y to make it scrollable!
+  menu.style.cssText = `position:fixed;left:${x}px;top:${y}px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,0.18);z-index:99999;min-width:200px;padding:4px 0;font-size:13px;max-height:300px;overflow-y:auto;`
+
+  const section = (label) => {
+    const d = document.createElement('div')
+    d.style.cssText = 'font-size:10px;font-weight:700;color:#94a3b8;padding:6px 14px 2px;letter-spacing:0.06em'
+    d.textContent = label
+    menu.appendChild(d)
+  }
+  const item = (icon, label, fn, danger=false) => {
+    const d = document.createElement('div')
+    d.style.cssText = `display:flex;align-items:center;gap:8px;padding:7px 14px;cursor:pointer;color:${danger?'#ef4444':'#1e293b'}`
+    d.innerHTML = `<span style="width:16px;text-align:center">${icon}</span>${label}`
+    d.addEventListener('mouseenter', ()=> d.style.background = danger ? '#fef2f2' : '#f8fafc')
+    d.addEventListener('mouseleave', ()=> d.style.background = '')
+    d.addEventListener('mousedown', e => { e.preventDefault(); fn(); menu.remove() })
+    menu.appendChild(d)
+  }
+  const sep = () => {
+    const d = document.createElement('div')
+    d.style.cssText = 'height:1px;background:#f1f5f9;margin:4px 0'
+    menu.appendChild(d)
+  }
+
+  section('ROWS & COLUMNS')
+  item('➕','Insert Row Above', ()=> _tblAddRowAt(_tblCtxTable, cell?.closest('tr'), 'before'))
+  item('➕','Insert Row Below', ()=> _tblAddRowAt(_tblCtxTable, cell?.closest('tr'), 'after'))
+  item('➕','Insert Column Left', ()=> _tblAddColAt(_tblCtxTable, cell, 'before'))
+  item('➕','Insert Column Right', ()=> _tblAddColAt(_tblCtxTable, cell, 'after'))
+  sep()
+  item('🗑','Delete Row', ()=> _tblDelRow(_tblCtxTable, cell))
+  item('🗑','Delete Column', ()=> _tblDelCol(_tblCtxTable, cell))
+  sep()
+
+  section('CELL')
+  item('🔀','Merge Selected Cells', ()=> _tblMergeCells(_tblCtxTable))
+  item('✂️','Split Cell', ()=> _tblSplitCell(cell))
+  sep()
+
+  section('STYLE')
+  // Cell background color
+  const bgItem = document.createElement('div')
+  bgItem.style.cssText = 'display:flex;align-items:center;gap:8px;padding:7px 14px;cursor:pointer;color:#1e293b'
+  bgItem.innerHTML = `<span style="width:16px;text-align:center">🎨</span>Cell Background <input type="color" value="${_tblGetBg(cell)}" style="width:24px;height:20px;border:none;padding:0;cursor:pointer;border-radius:3px" />`
+  bgItem.querySelector('input').addEventListener('input', e => {
+    const targets = _tblSelCells.length > 0 ? _tblSelCells : (cell ? [cell] : [])
+    targets.forEach(c => c.style.background = e.target.value)
+  })
+  bgItem.addEventListener('mouseenter', ()=> bgItem.style.background='#f8fafc')
+  bgItem.addEventListener('mouseleave', ()=> bgItem.style.background='')
+  menu.appendChild(bgItem)
+
+  // Text color
+  const txtItem = document.createElement('div')
+  txtItem.style.cssText = 'display:flex;align-items:center;gap:8px;padding:7px 14px;cursor:pointer;color:#1e293b'
+  txtItem.innerHTML = `<span style="width:16px;text-align:center">🖊</span>Text Color <input type="color" value="#000000" style="width:24px;height:20px;border:none;padding:0;cursor:pointer;border-radius:3px" />`
+  txtItem.querySelector('input').addEventListener('input', e => {
+    const targets = _tblSelCells.length > 0 ? _tblSelCells : (cell ? [cell] : [])
+    targets.forEach(c => c.style.color = e.target.value)
+  })
+  txtItem.addEventListener('mouseenter', ()=> txtItem.style.background='#f8fafc')
+  txtItem.addEventListener('mouseleave', ()=> txtItem.style.background='')
+  menu.appendChild(txtItem)
+
+  sep()
+  section('ALIGNMENT')
+  const alignRow = document.createElement('div')
+  alignRow.style.cssText = 'display:flex;gap:4px;padding:6px 14px'
+  ;[['⬅','left'],['☰','center'],['➡','right']].forEach(([ic,al])=>{
+    const b = document.createElement('button')
+    b.style.cssText = 'flex:1;border:1px solid #e2e8f0;background:#fff;border-radius:4px;padding:4px;cursor:pointer;font-size:14px'
+    b.textContent = ic
+    b.title = `Align ${al}`
+    b.addEventListener('mousedown', e => {
+      e.preventDefault()
+      const targets = _tblSelCells.length > 0 ? _tblSelCells : (cell ? [cell] : [])
+      targets.forEach(c => c.style.textAlign = al)
+      menu.remove()
+    })
+    alignRow.appendChild(b)
+  })
+  menu.appendChild(alignRow)
+
+  sep()
+  section('VERTICAL ALIGN')
+  const valignRow = document.createElement('div')
+  valignRow.style.cssText = 'display:flex;gap:4px;padding:6px 14px'
+  ;[['⬆','top'],['⬌','middle'],['⬇','bottom']].forEach(([ic,va])=>{
+    const b = document.createElement('button')
+    b.style.cssText = 'flex:1;border:1px solid #e2e8f0;background:#fff;border-radius:4px;padding:4px;cursor:pointer;font-size:14px'
+    b.textContent = ic; b.title = `Vertical ${va}`
+    b.addEventListener('mousedown', e => {
+      e.preventDefault()
+      const targets = _tblSelCells.length > 0 ? _tblSelCells : (cell ? [cell] : [])
+      targets.forEach(c => c.style.verticalAlign = va)
+      menu.remove()
+    })
+    valignRow.appendChild(b)
+  })
+  menu.appendChild(valignRow)
+
+  sep()
+  section('BORDERS')
+  const borderRow = document.createElement('div')
+  borderRow.style.cssText = 'display:flex;gap:4px;padding:6px 14px;flex-wrap:wrap'
+  ;[['All','all'],['None','none'],['Outer','outer'],['Inner','inner']].forEach(([lbl,type])=>{
+    const b = document.createElement('button')
+    b.style.cssText = 'border:1px solid #e2e8f0;background:#fff;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:11px;font-weight:600'
+    b.textContent = lbl
+    b.addEventListener('mousedown', e => {
+      e.preventDefault()
+      const targets = _tblSelCells.length > 0 ? _tblSelCells : (cell ? [cell] : [])
+      _tblSetBorders(targets, type, _tblCtxTable)
+      menu.remove()
+    })
+    borderRow.appendChild(b)
+  })
+  menu.appendChild(borderRow)
+
+  sep()
+  section('TABLE WIDTH')
+  const widthRow = document.createElement('div')
+  widthRow.style.cssText = 'display:flex;gap:4px;padding:6px 14px'
+  ;[['100%','100%'],['75%','75%'],['50%','50%'],['Auto','auto']].forEach(([lbl,w])=>{
+    const b = document.createElement('button')
+    b.style.cssText = 'flex:1;border:1px solid #e2e8f0;background:#fff;border-radius:4px;padding:3px 6px;cursor:pointer;font-size:11px;font-weight:600'
+    b.textContent = lbl
+    b.addEventListener('mousedown', e => { e.preventDefault(); _tblCtxTable.style.width = w; menu.remove() })
+    widthRow.appendChild(b)
+  })
+  menu.appendChild(widthRow)
+
+  sep()
+  item('🗑','Delete Table', ()=> {
+    const p = document.createElement('p'); p.innerHTML='<br>'
+    _tblCtxTable.parentNode.insertBefore(p, _tblCtxTable)
+    _tblCtxTable.remove()
+  }, true)
+
+  document.body.appendChild(menu)
+
+  // Close on click outside (Only removes listener if menu is actually closed)
+  setTimeout(()=>{
+    document.addEventListener('mousedown', function close(e){
+      if(!menu.contains(e.target)){
+        menu.remove()
+        document.removeEventListener('mousedown', close)
+      }
+    })
+  }, 0)
+
+  // Keep within viewport safely
+  const rect = menu.getBoundingClientRect()
+  let newLeft = x;
+  let newTop = y;
+  
+  // Prevent falling off the right edge
+  if (x + rect.width > window.innerWidth) {
+    newLeft = window.innerWidth - rect.width - 10;
+  }
+  
+  // Prevent falling off the bottom edge
+  if (y + rect.height > window.innerHeight) {
+    newTop = window.innerHeight - rect.height - 10;
+  }
+  
+  // Prevent falling off the top edge (Critical fix!)
+  if (newTop < 10) {
+    newTop = 10;
+  }
+  
+  menu.style.left = newLeft + 'px';
+  menu.style.top = newTop + 'px';
+}
+
+// ── Helper: get cell bg ────────────────────────────────────────
+function _tblGetBg(cell){
+  if(!cell) return '#ffffff'
+  const bg = cell.style.background || cell.style.backgroundColor || '#ffffff'
+  // Convert rgb to hex if needed
+  const m = bg.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/)
+  if(m) return '#'+[m[1],m[2],m[3]].map(n=>parseInt(n).toString(16).padStart(2,'0')).join('')
+  return bg.startsWith('#') ? bg : '#ffffff'
+}
+
+// ── Row operations ─────────────────────────────────────────────
+function _tblAddRowAt(table, refRow, pos='after'){
+  if(!table||!refRow) return
+  const cols = refRow.querySelectorAll('td,th').length
+  const newRow = document.createElement('tr')
+  Array.from({length:cols}).forEach(()=>{
+    const td = document.createElement('td')
+    td.style.cssText = 'border:1px solid #d1d5db;padding:8px 12px'
+    td.innerHTML = '<br>'
+    newRow.appendChild(td)
+    _tblAddHandle(td)
+  })
+  if(pos==='before') refRow.parentNode.insertBefore(newRow, refRow)
+  else refRow.parentNode.insertBefore(newRow, refRow.nextSibling)
+}
+
+function _tblDelRow(table, cell){
+  if(!table) return
+  const row = cell?.closest('tr')
+  if(!row) return
+  if(table.querySelectorAll('tr').length <= 1){ toast('Table must have at least one row','err'); return }
+  row.remove()
+}
+
+// ── Column operations ──────────────────────────────────────────
+function _tblAddColAt(table, refCell, pos='after'){
+  if(!table||!refCell) return
+  const refRow = refCell.closest('tr')
+  const colIdx = Array.from(refRow.querySelectorAll('td,th')).indexOf(refCell)
+  table.querySelectorAll('tr').forEach(row => {
+    const cells = row.querySelectorAll('td,th')
+    const ref = cells[colIdx]
+    const isHdr = !!row.closest('thead')
+    const newCell = document.createElement(isHdr ? 'th' : 'td')
+    newCell.style.cssText = isHdr
+      ? 'border:1px solid #d1d5db;padding:8px 12px;background:#f1f5f9;font-weight:700;text-align:left'
+      : 'border:1px solid #d1d5db;padding:8px 12px'
+    newCell.innerHTML = isHdr ? 'Header' : '<br>'
+    _tblAddHandle(newCell)
+    if(ref){
+      if(pos==='before') row.insertBefore(newCell, ref)
+      else row.insertBefore(newCell, ref.nextSibling)
+    } else {
+      row.appendChild(newCell)
+    }
+  })
+}
+
+function _tblDelCol(table, cell){
+  if(!table||!cell) return
+  const refRow = cell.closest('tr')
+  const colIdx = Array.from(refRow.querySelectorAll('td,th')).indexOf(cell)
+  if(refRow.querySelectorAll('td,th').length <= 1){ toast('Table must have at least one column','err'); return }
+  table.querySelectorAll('tr').forEach(row => {
+    const cells = row.querySelectorAll('td,th')
+    if(cells[colIdx]) cells[colIdx].remove()
+  })
+}
+
+// ── Merge selected cells ───────────────────────────────────────
+function _tblMergeCells(table){
+  if(_tblSelCells.length < 2){ toast('Select 2+ cells to merge','err'); return }
+  const first = _tblSelCells[0]
+  let combined = ''
+  _tblSelCells.forEach((c,i) => { if(i>0){ combined += ' ' + c.innerHTML; c.remove() }})
+  first.innerHTML += combined
+  first.colSpan = 1; first.rowSpan = 1
+  _tblClearSel()
+  toast('Cells merged ✅')
+}
+
+// ── Split cell (remove colspan/rowspan) ───────────────────────
+function _tblSplitCell(cell){
+  if(!cell) return
+  const cs = cell.colSpan || 1
+  const rs = cell.rowSpan || 1
+  if(cs <= 1 && rs <= 1){ toast('Cell is not merged','err'); return }
+  cell.colSpan = 1; cell.rowSpan = 1
+  toast('Cell split ✅')
+}
+
+// ── Border presets ─────────────────────────────────────────────
+function _tblSetBorders(cells, type, table){
+  if(type === 'none'){
+    cells.forEach(c => c.style.border = 'none')
+  } else if(type === 'all'){
+    cells.forEach(c => c.style.border = '1px solid #d1d5db')
+  } else if(type === 'outer' && table){
+    table.querySelectorAll('td,th').forEach(c => c.style.border = 'none')
+    table.style.border = '2px solid #0D1B40'
+  } else if(type === 'inner' && table){
+    table.querySelectorAll('td,th').forEach(c => c.style.border = '1px solid #d1d5db')
+    table.style.border = 'none'
+  }
+}
+
+// ── handleTableClick — floating mini toolbar on click ─────────
+function handleTableClick(e){
+  const table = e.target.closest('#news-editor table')
+  // Remove any existing mini toolbars
+  document.querySelectorAll('.tbl-minitoolbar').forEach(t=>t.remove())
+  document.querySelectorAll('#news-editor table').forEach(t=>t.classList.remove('tbl-selected'))
+  if(!table) return
+  table.classList.add('tbl-selected')
+
+  // Mini floating toolbar (above table)
+  const tb = document.createElement('div')
+  tb.className = 'tbl-minitoolbar'
+  tb.contentEditable = 'false'
+  const cell = e.target.closest('td,th')
+
+  const mkBtn = (label, title, fn) => {
+    const b = document.createElement('button')
+    b.textContent = label; b.title = title
+    b.style.cssText = 'background:none;border:none;color:#fff;font-size:11px;padding:3px 8px;border-radius:4px;cursor:pointer;white-space:nowrap'
+    b.addEventListener('mouseover', ()=>b.style.background='rgba(255,255,255,0.15)')
+    b.addEventListener('mouseout', ()=>b.style.background='')
+    b.addEventListener('mousedown', ev=>{ ev.preventDefault(); fn() })
+    return b
+  }
+
+  tb.appendChild(mkBtn('+ Row↓','Add row below', ()=>_tblAddRowAt(table,cell?.closest('tr'),'after')))
+  tb.appendChild(mkBtn('+ Row↑','Add row above', ()=>_tblAddRowAt(table,cell?.closest('tr'),'before')))
+  tb.appendChild(mkBtn('+ Col→','Add column right', ()=>_tblAddColAt(table,cell,'after')))
+  tb.appendChild(mkBtn('+ Col←','Add column left', ()=>_tblAddColAt(table,cell,'before')))
+  const sep = document.createElement('span')
+  sep.style.cssText = 'width:1px;height:14px;background:rgba(255,255,255,0.25);display:inline-block;margin:0 2px'
+  tb.appendChild(sep)
+  tb.appendChild(mkBtn('− Row','Delete row', ()=>_tblDelRow(table,cell)))
+  tb.appendChild(mkBtn('− Col','Delete column', ()=>_tblDelCol(table,cell)))
+  const sep2 = sep.cloneNode()
+  tb.appendChild(sep2)
+  tb.appendChild(mkBtn('🗑 Delete Table','Delete this table', ()=>{
+    const p=document.createElement('p');p.innerHTML='<br>'
+    table.parentNode.insertBefore(p,table);table.remove();tb.remove()
+  }))
+  const hint = document.createElement('span')
+  hint.style.cssText = 'font-size:10px;color:rgba(255,255,255,0.45);padding:0 6px'
+  hint.textContent = 'Right-click for more options'
+  tb.appendChild(hint)
+
+  // Position above table
+  const editorEl = document.getElementById('news-editor')
+  const tRect = table.getBoundingClientRect()
+  const eRect = editorEl.getBoundingClientRect()
+  tb.style.cssText = `position:absolute;top:${table.offsetTop - 34}px;left:0;right:0;background:#0D1B40;border-radius:6px;display:flex;gap:2px;padding:4px 6px;z-index:50;align-items:center;flex-wrap:wrap;box-shadow:0 4px 12px rgba(0,0,0,0.3)`
+  editorEl.style.position = 'relative'
+  editorEl.appendChild(tb)
+}
+
+// ── Watch editor for new tables (paste / load existing post) ──
+function attachTableObserver(){
+  const ed = document.getElementById('news-editor')
+  if(!ed) return
+  if(ed.dataset.obsAttached) return
+  const obs = new MutationObserver(()=> ed.querySelectorAll('table').forEach(t=>_tblInit(t)))
+  obs.observe(ed, {childList:true, subtree:true})
+  ed.addEventListener('click', ()=> ed.querySelectorAll('table').forEach(t=>_tblInit(t)))
+  ed.dataset.obsAttached = '1'
+  // Initialize any existing tables
+  ed.querySelectorAll('table').forEach(t=>_tblInit(t))
+}
+function applyNewsFormatBlock(value){
+  const editor = document.getElementById('news-editor')
+  if(!editor) return
+  editor.focus()
+  // execCommand needs angle-bracket wrapped tag on some browsers
+  document.execCommand('formatBlock', false, '<' + value + '>')
+  // Re-sync the dropdown after applying
+  setTimeout(updateNewsFormatSelect, 0)
+}
+
+function updateNewsFormatSelect(){
+  const sel = window.getSelection()
+  if(!sel || !sel.rangeCount) return
+  const node = sel.anchorNode
+  if(!node) return
+  let el = node.nodeType === 3 ? node.parentElement : node
+  const editor = document.getElementById('news-editor')
+  while(el && el !== editor){
+    const tag = el.tagName?.toLowerCase()
+    if(['h1','h2','h3','h4','h5','h6','p','blockquote','pre'].includes(tag)){
+      const select = document.getElementById('news-format-select')
+      if(select) select.value = (['div','span'].includes(tag)) ? 'p' : tag
+      return
+    }
+    el = el.parentElement
+  }
+  const select = document.getElementById('news-format-select')
+  if(select) select.value = 'p'
+}
 function updateNewsWordCount(){
   const editor = document.getElementById('news-editor')
   const el = document.getElementById('news-word-count')
@@ -1495,7 +2113,39 @@ function updateNewsWordCount(){
   const text = editor.innerText || editor.textContent || ''
   const words = text.trim().split(/\s+/).filter(w=>w.length>0).length
   const chars = text.replace(/\s/g,'').length
-  el.textContent = `${words} words · ${chars} chars`
+  const readingMins = Math.max(1, Math.round(words / 200))
+  el.textContent = `${words} words · ${chars} chars · ~${readingMins} min read`
+}
+function updateSeoChecklist(){
+  const checklist = document.getElementById('seo-checklist')
+  const itemsEl = document.getElementById('seo-items')
+  if(!checklist||!itemsEl) return
+  checklist.style.display = 'block'
+  const title = document.getElementById('news-title')?.value?.trim() || ''
+  const desc = document.getElementById('news-description')?.value?.trim() || ''
+  const content = document.getElementById('news-editor')?.innerText?.trim() || ''
+  const wordCount = content.split(/\s+/).filter(w=>w.length>0).length
+  const hasImage = !!(document.getElementById('news-image')?.value?.trim() || document.querySelector('#news-editor img'))
+  const checks = [
+    { label: 'Title is 50–60 characters', ok: title.length >= 50 && title.length <= 60, warn: title.length > 0 && (title.length < 40 || title.length > 70) },
+    { label: 'Meta description under 160 chars', ok: desc.length > 0 && desc.length <= 160, warn: false },
+    { label: 'Content is 300+ words', ok: wordCount >= 300, warn: wordCount > 0 && wordCount < 300 },
+    { label: 'Featured image set', ok: hasImage, warn: false },
+    { label: 'Tags added', ok: !!(document.getElementById('news-tags')?.value?.trim()), warn: false },
+  ]
+  itemsEl.innerHTML = checks.map(c => {
+    const icon = c.ok ? '✅' : c.warn ? '⚠️' : '❌'
+    const color = c.ok ? '#059669' : c.warn ? '#d97706' : '#94a3b8'
+    return `<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:${color}">${icon} ${c.label}</div>`
+  }).join('')
+}
+function updateMetaDescCount(){
+  const ta = document.getElementById('news-description')
+  const counter = document.getElementById('meta-desc-count')
+  if(!ta||!counter) return
+  const len = ta.value.length
+  counter.textContent = `${len} / 160`
+  counter.style.color = len > 155 ? '#ef4444' : len > 130 ? '#f59e0b' : '#6B6B80'
 }
 
 async function insertNewsFormula(){
@@ -1608,7 +2258,7 @@ async function openNewsModal(postId = null){
   <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
     <div class="modal" style="max-width:600px">
       <div class="modal-header">
-        <span class="modal-title">${postId ? '✏️ Edit Post' : '+ New Education Post'}</span>
+        <span class="modal-title">${postId ? 'Edit Post' : '+ New Education Post'}</span>
         <button class="modal-close" onclick="document.querySelector('.modal-overlay').remove()">✕</button>
       </div>
       <div class="modal-body">
@@ -1628,7 +2278,11 @@ async function openNewsModal(postId = null){
         </div>
         <div class="form-group">
           <label class="form-label">Title *</label>
-          <input class="input" id="news-title" placeholder="e.g. Rwanda Government Opens 500 University Scholarships"/>
+          <input class="input" id="news-title" placeholder="e.g. Rwanda Government Opens 500 University Scholarships" oninput="updateSeoChecklist()"/>
+          <div id="seo-checklist" style="margin-top:8px;padding:10px 12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;display:none">
+            <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px;letter-spacing:0.05em">SEO CHECKLIST</div>
+            <div id="seo-items" style="display:flex;flex-direction:column;gap:4px"></div>
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label">SEO Slug (optional - auto-generated from title)</label>
@@ -1637,8 +2291,11 @@ async function openNewsModal(postId = null){
         </div>
         <div class="form-group">
           <label class="form-label">Meta Description (optional - auto-generated from content)</label>
-          <textarea class="input" id="news-description" rows="3" placeholder="Brief description for SEO (max 160 characters)"></textarea>
-          <small style="color:#6B6B80;font-size:12px">Leave empty to auto-generate from content</small>
+          <textarea class="input" id="news-description" rows="3" placeholder="Brief description for SEO (max 160 characters)" oninput="updateMetaDescCount()" maxlength="160"></textarea>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:3px">
+            <small style="color:#6B6B80;font-size:12px">Leave empty to auto-generate from content</small>
+            <small id="meta-desc-count" style="font-size:12px;color:#6B6B80">0 / 160</small>
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label">Content *</label>
@@ -1646,11 +2303,11 @@ async function openNewsModal(postId = null){
             <div style="position:sticky;top:0;z-index:20;background:#f8fafc;border-radius:8px 8px 0 0;border-bottom:1px solid var(--g200)">
               <!-- Row 1: Block format + font + size + fullscreen -->
               <div style="padding:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-                <select onchange="document.execCommand('formatBlock',false,this.value);this.value=''" style="border:1px solid var(--g200);background:#fff;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:13px">
-                  <option value="">Paragraph</option>
-                  <option value="h1">Heading 1</option>
-                  <option value="h2">Heading 2</option>
-                  <option value="h3">Heading 3</option>
+                <select id="news-format-select" onchange="applyNewsFormatBlock(this.value)" style="border:1px solid var(--g200);background:#fff;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:13px;min-width:110px">
+                  <option value="p">Paragraph</option>
+                  <option value="h2">Heading 2 (Main)</option>
+                  <option value="h3">Heading 3 (Sub)</option>
+                  <option value="h4">Heading 4</option>
                   <option value="blockquote">Blockquote</option>
                   <option value="pre">Code Block</option>
                 </select>
@@ -1690,7 +2347,7 @@ async function openNewsModal(postId = null){
                 <button type="button" onclick="document.execCommand('undo')" title="Undo (Ctrl+Z)" style="border:1px solid var(--g200);background:#fff;padding:4px 8px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/></svg></button>
                 <button type="button" onclick="document.execCommand('redo')" title="Redo (Ctrl+Y)" style="border:1px solid var(--g200);background:#fff;padding:4px 8px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5v0A5.5 5.5 0 0 0 9.5 20H13"/></svg></button>
                 <span style="width:1px;height:20px;background:var(--g200);display:inline-block;margin:0 2px"></span>
-                <button type="button" onclick="insertNewsLink()" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;gap:4px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Link</button>
+                <button type="button" onmousedown="event.preventDefault()" onclick="insertNewsLink()" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;gap:4px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Link</button>
                 <button type="button" onclick="document.getElementById('news-img-upload').click()" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;gap:4px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/><line x1="16" x2="22" y1="5" y2="5"/><line x1="19" x2="19" y1="2" y2="8"/></svg> Image</button>
                 <button type="button" onclick="insertNewsEmbed()" title="Embed YouTube or iframe" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;gap:4px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"/><path d="m10 15 5-3-5-3z"/></svg> Embed</button>
                 <button type="button" onclick="insertNewsTable()" title="Insert table" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;gap:4px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/></svg> Table</button>
@@ -1701,7 +2358,22 @@ async function openNewsModal(postId = null){
                 <input type="color" onchange="document.execCommand('hiliteColor',false,this.value)" title="Highlight color" style="border:1px solid var(--g200);border-radius:4px;width:32px;height:28px;cursor:pointer;padding:2px;background:#ffff00"/>
               </div>
             </div>
-            <div id="news-editor" contenteditable="true" style="min-height:200px;padding:12px;font-size:14px;outline:none;line-height:1.8" placeholder="Write your post content here..." oninput="updateNewsWordCount()"></div>
+            <style>
+              #news-editor{position:relative}
+              #news-editor table{border-collapse:collapse;width:100%;margin:16px 0}
+              #news-editor table.tbl-selected{outline:2px solid #1A5FFF;outline-offset:2px}
+              #news-editor th,#news-editor td{border:1px solid #d1d5db;padding:8px 12px;position:relative;min-width:40px;vertical-align:top}
+              #news-editor th{background:#f1f5f9;font-weight:700;text-align:left}
+              #news-editor td:focus,#news-editor th:focus{outline:2px solid #1A5FFF;outline-offset:-2px}
+              #news-editor .tbl-sel{background:rgba(26,95,255,0.12) !important;outline:1px solid #1A5FFF}
+              #news-editor .col-resize-handle{position:absolute;top:0;right:-3px;width:6px;height:100%;cursor:col-resize;z-index:10;background:transparent}
+              #news-editor .col-resize-handle:hover,#news-editor .col-resize-handle.dragging{background:rgba(26,95,255,0.5);border-radius:2px}
+              #news-editor .tbl-minitoolbar{font-family:'DM Sans',sans-serif}
+              .tbl-ctx-scroll::-webkit-scrollbar { width: 5px; }
+              .tbl-ctx-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+              .tbl-ctx-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+            </style>
+            <div id="news-editor" contenteditable="true" style="min-height:200px;padding:12px;font-size:14px;outline:none;line-height:1.8" placeholder="Write your post content here..." oninput="updateNewsWordCount();updateSeoChecklist()" onkeyup="updateNewsFormatSelect()" onmouseup="updateNewsFormatSelect()" onclick="updateNewsFormatSelect();handleTableClick(event)"></div>
             <div style="background:#f8fafc;padding:4px 12px;border-top:1px solid var(--g200);font-size:11px;color:var(--g400);display:flex;justify-content:space-between;align-items:center">
               <span id="news-word-count">0 words · 0 chars</span>
               <span style="font-size:10px;color:var(--g300)">Ctrl+B Bold · Ctrl+I Italic · Ctrl+Z Undo</span>
@@ -1736,6 +2408,9 @@ async function openNewsModal(postId = null){
       </div>
     </div>
   </div>`
+  
+  // Attach table features to the newly created editor
+  setTimeout(attachTableObserver, 50)
 
   // Populate fields if editing
   if(postId){
@@ -1816,9 +2491,10 @@ function generateSuggestedTags(){
 }
 
 async function submitNews(postId){
-  // Unwrap any resize wrappers and bake width into img style before saving
+  // Clean up editor UI artifacts before saving
   const editor = document.getElementById('news-editor')
   if(editor){
+    // 1. Unwrap image resize wrappers — bake width into img style
     editor.querySelectorAll('.img-resize-wrapper').forEach(wrapper=>{
       const img = wrapper.querySelector('img')
       if(img){
@@ -1829,10 +2505,21 @@ async function submitNews(postId){
         img.style.float = wrapper.style.float || 'none'
         img.style.marginLeft = wrapper.style.marginLeft || 'auto'
         img.style.marginRight = wrapper.style.marginRight || 'auto'
+        const tb = wrapper.querySelector('#img-resize-toolbar')
+        if(tb) tb.remove()
         wrapper.parentNode.insertBefore(img, wrapper)
         wrapper.remove()
       }
     })
+    // 2. Remove table toolbars
+    editor.querySelectorAll('.tbl-minitoolbar').forEach(el => el.remove())
+    // 3. Remove column resize handles
+    editor.querySelectorAll('.col-resize-handle').forEach(el => el.remove())
+    // 4. Clean up selection classes
+    editor.querySelectorAll('.tbl-sel').forEach(el => el.classList.remove('tbl-sel'))
+    editor.querySelectorAll('.tbl-selected').forEach(el => el.classList.remove('tbl-selected'))
+    // 5. Clear init flag so handles re-attach next edit session
+    editor.querySelectorAll('table').forEach(t => delete t.dataset.tblInit)
   }
   const title      = document.getElementById('news-title')?.value?.trim()
   const description= document.getElementById('news-description')?.value?.trim()||null
