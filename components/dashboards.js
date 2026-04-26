@@ -1769,7 +1769,125 @@ async function renderTutorDash() {
     // ════════════════════════════════════════════════════════════
     // ADMIN DASHBOARD
     // ════════════════════════════════════════════════════════════
-    function openContactReply(id, name, email, subject){
+  // ── Admin: Contact buyer from any order ────────────────────────────────────
+function openOrderContactModal(opts){
+  // opts: { name, phone, email, courseTitle, amount, orderId, type }
+  const mr = document.getElementById('modal-root') || (() => {
+    const d = document.createElement('div'); d.id = 'modal-root'; document.body.appendChild(d); return d
+  })()
+  const waPhone = (opts.phone || '').replace(/[^0-9+]/g, '')
+  const waDefault = `Hello ${opts.name || 'there'},\n\nThank you for your order of *${opts.courseTitle || 'our product'}* (RWF ${Number(opts.amount||0).toLocaleString()}).\n\n`
+
+  mr.innerHTML = `
+  <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
+    <div class="modal" style="max-width:480px">
+      <div class="modal-header">
+        <span class="modal-title" style="display:flex;align-items:center;gap:8px">
+          📨 Contact Buyer
+        </span>
+        <button class="modal-close" onclick="document.querySelector('.modal-overlay').remove()">✕</button>
+      </div>
+      <div class="modal-body">
+
+        <!-- Buyer summary card -->
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;margin-bottom:18px">
+          <div style="font-size:15px;font-weight:800;color:#0D1B40;margin-bottom:2px">${opts.name || '—'}</div>
+          ${opts.email ? `<div style="font-size:12px;color:#64748b">📧 ${opts.email}</div>` : ''}
+          ${opts.phone ? `<div style="font-size:12px;color:#64748b">📞 ${opts.phone}</div>` : ''}
+          <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+            <span style="background:#dbeafe;color:#1e40af;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px">${opts.courseTitle || '—'}</span>
+            <span style="background:#dcfce7;color:#065f46;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px">RWF ${Number(opts.amount||0).toLocaleString()}</span>
+            ${opts.type ? `<span style="background:#fef3c7;color:#92400e;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px">${opts.type}</span>` : ''}
+          </div>
+        </div>
+
+        <!-- Tab toggle -->
+        <div style="display:flex;gap:0;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:16px">
+          <button id="oc-tab-wa" onclick="document.getElementById('oc-wa').style.display='block';document.getElementById('oc-msg').style.display='none';this.style.background='#0D1B40';this.style.color='#fff';document.getElementById('oc-tab-msg').style.background='#fff';document.getElementById('oc-tab-msg').style.color='#64748b'"
+            style="flex:1;border:none;padding:9px;font-size:13px;font-weight:700;cursor:pointer;background:#0D1B40;color:#fff;display:flex;align-items:center;justify-content:center;gap:6px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            WhatsApp
+          </button>
+          <button id="oc-tab-msg" onclick="document.getElementById('oc-wa').style.display='none';document.getElementById('oc-msg').style.display='block';this.style.background='#0D1B40';this.style.color='#fff';document.getElementById('oc-tab-wa').style.background='#fff';document.getElementById('oc-tab-wa').style.color='#64748b'"
+            style="flex:1;border:none;padding:9px;font-size:13px;font-weight:700;cursor:pointer;background:#fff;color:#64748b;display:flex;align-items:center;justify-content:center;gap:6px">
+            ✉️ In-App Message
+          </button>
+        </div>
+
+        <!-- WhatsApp panel -->
+        <div id="oc-wa">
+          ${!waPhone ? `<div style="background:#fef3c7;border-radius:8px;padding:12px;font-size:13px;color:#92400e;margin-bottom:12px">⚠️ No phone number on file for this buyer.</div>` : ''}
+          <div class="form-group">
+            <label class="form-label" style="font-size:12px">WhatsApp Number</label>
+            <input class="input" id="oc-wa-phone" value="${waPhone}" placeholder="+250788000000" style="font-size:13px"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label" style="font-size:12px">Message</label>
+            <textarea class="input" id="oc-wa-msg" rows="5" style="font-size:13px;line-height:1.6">${waDefault}</textarea>
+          </div>
+          <button onclick="_sendOrderWhatsApp()" class="btn btn-primary" style="width:100%;background:#25d366;border-color:#25d366;display:flex;align-items:center;justify-content:center;gap:8px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Open WhatsApp Chat
+          </button>
+        </div>
+
+        <!-- In-app message panel -->
+        <div id="oc-msg" style="display:none">
+          ${!opts.email ? `<div style="background:#fef3c7;border-radius:8px;padding:12px;font-size:13px;color:#92400e;margin-bottom:12px">⚠️ No email on file. Message will be saved but may not be delivered.</div>` : ''}
+          <div class="form-group">
+            <label class="form-label" style="font-size:12px">Subject</label>
+            <input class="input" id="oc-msg-subject" value="Re: Your order — ${opts.courseTitle || 'Mathrone Academy'}" style="font-size:13px"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label" style="font-size:12px">Message</label>
+            <textarea class="input" id="oc-msg-body" rows="5" style="font-size:13px;line-height:1.6">Hello ${opts.name || 'there'},\n\n</textarea>
+          </div>
+          <button onclick="_sendOrderInAppMsg('${opts.email||''}','${(opts.name||'').replace(/'/g,"\\'")}')" class="btn btn-primary" style="width:100%">
+            ✉️ Send Message
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>`
+}
+
+function _sendOrderWhatsApp(){
+  const phone = document.getElementById('oc-wa-phone')?.value?.replace(/[^0-9+]/g,'')
+  const msg   = document.getElementById('oc-wa-msg')?.value?.trim()
+  if(!phone){ toast('Enter a WhatsApp number','err'); return }
+  if(!msg)  { toast('Enter a message','err'); return }
+  window.open(`https://wa.me/${phone.replace('+','')}?text=${encodeURIComponent(msg)}`, '_blank')
+  document.querySelector('.modal-overlay')?.remove()
+}
+
+async function _sendOrderInAppMsg(email, name){
+  const subject = document.getElementById('oc-msg-subject')?.value?.trim()
+  const body    = document.getElementById('oc-msg-body')?.value?.trim()
+  if(!subject || !body){ toast('Subject and message are required','err'); return }
+  try{
+    await api('/notifications/admin-message', {
+      method: 'POST',
+      body: JSON.stringify({ email, name, subject, message: body })
+    })
+    toast('Message sent ✅')
+    document.querySelector('.modal-overlay')?.remove()
+  }catch(e){
+    // Fallback: open mail client if API not available
+    window.open(`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`)
+    document.querySelector('.modal-overlay')?.remove()
+  }
+}
+async function cleanupPaymentProofs(){
+  if(!confirm('This will delete all payment proof images that are not linked to any order. Continue?')) return
+  try{
+    const res = await api('/news/admin/cleanup-proofs', { method: 'DELETE' })
+    toast(res.message || 'Cleanup done ✅')
+  }catch(e){
+    toast(e.message, 'err')
+  }
+}
+  function openContactReply(id, name, email, subject){
   const modalRoot = document.getElementById('modal-root') || document.createElement('div')
   if(!document.getElementById('modal-root')){
     modalRoot.id = 'modal-root'
@@ -1941,7 +2059,18 @@ async function toggleQuiz(){
         <h3 style="font-size:16px;font-weight:700;color:var(--navy);display:flex;align-items:center;gap:6px"><i data-lucide="mail" style="width:18px;height:18px;color:var(--blue)"></i> Contact Messages</h3>
       </div>
       <div id="contact-msgs-list"><div class="loader-center"><div class="spinner"></div></div></div>
-    </div>
+      
+      </div>
+    <!-- Maintenance Tools -->
+<div class="card" style="padding:20px;margin-top:24px;border:1.5px solid #fef3c7;background:#fffbeb">
+  <div style="font-size:14px;font-weight:700;color:#92400e;margin-bottom:4px">🛠️ Maintenance</div>
+  <div style="font-size:12px;color:#a16207;margin-bottom:14px">Run these occasionally to keep your storage and database clean.</div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <button class="btn btn-ghost btn-sm" onclick="cleanupPaymentProofs()" style="border-color:#fcd34d;color:#92400e">
+      🧹 Clean Orphaned Payment Proofs
+    </button>
+  </div>
+</div>
     `))
 
     // Load contact messages

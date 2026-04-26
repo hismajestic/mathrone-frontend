@@ -1060,8 +1060,11 @@ async function renderAdminCourses() {
         <tbody>
           ${orders.map(o => `<tr>
             <td>
-              <div style="font-weight:700;color:var(--navy)">${o.full_name}</div>
-              <div style="font-size:12px;color:var(--g400)">${o.phone}</div>
+              <div style="font-weight:700;color:var(--navy)">${o.profiles?.full_name || o.full_name || '—'}</div>
+              <div style="font-size:12px;color:var(--g400)">${o.profiles?.phone || o.phone || '—'}</div>
+              <div style="font-size:11px;color:var(--g400)">${o.profiles?.email || ''}</div>
+              ${o.momo_reference ? `<div style="font-size:11px;margin-top:4px;background:#f0fdf4;color:#065f46;padding:2px 6px;border-radius:4px;display:inline-block">🧾 Ref: ${o.momo_reference}</div>` : ''}
+              ${o.payment_proof ? `<div style="margin-top:4px"><a href="${o.payment_proof}" target="_blank" style="font-size:11px;color:#1A5FFF;display:inline-flex;align-items:center;gap:4px">📷 View proof</a></div>` : ''}
             </td>
             <td style="font-size:13px;font-weight:600">${o.courses?.title || '—'}</td>
             <td style="font-weight:800;color:var(--navy)">RWF ${Number(o.courses?.price || 0).toLocaleString()}</td>
@@ -1069,7 +1072,11 @@ async function renderAdminCourses() {
             <td style="font-size:12px">${fmtShort(o.created_at)}</td>
             <td>
               <div style="display:flex;gap:6px;flex-wrap:wrap">
-                ${o.status === 'pending' ? `
+                <button class="btn btn-ghost btn-sm" title="Contact buyer"
+                onclick='openOrderContactModal({name:${JSON.stringify(o.profiles?.full_name||o.full_name||"—")},phone:${JSON.stringify(o.profiles?.phone||o.phone||"")},email:${JSON.stringify(o.profiles?.email||o.email||"")},courseTitle:${JSON.stringify(o.courses?.title||"")},amount:${JSON.stringify(o.courses?.price||0)},orderId:"${o.id}",type:"Course Order"})'>
+                📨
+              </button>
+              ${o.status === 'pending' ? `
                   <button class="btn btn-primary btn-sm" onclick="approveCourseOrder('${o.id}',this)" style="background:#059669">
                     ✅ Grant Access
                   </button>
@@ -1142,6 +1149,34 @@ async function memberEnrollCourse(courseId, courseTitle, price) {
         <div style="background:var(--sky);border-radius:10px;padding:14px;font-size:13px;color:var(--g600);line-height:1.6">
           ${payNote}
         </div>
+
+        ${price > 0 ? `
+        <!-- Proof of payment section -->
+        <div style="margin-top:16px;border:1.5px solid #e2e8f0;border-radius:12px;overflow:hidden">
+          <div style="background:#0D1B40;color:#fff;padding:10px 14px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px">
+            🧾 Proof of Payment <span style="font-size:10px;opacity:0.6;font-weight:400">(optional but speeds up approval)</span>
+          </div>
+          <div style="padding:14px;display:flex;flex-direction:column;gap:12px">
+            <div>
+              <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px">MoMo / Transaction Reference Number</label>
+              <input class="input" id="enroll-momo-ref" placeholder="e.g. 1234567890" style="font-size:13px"/>
+              <div style="font-size:11px;color:#94a3b8;margin-top:3px">Found in your MoMo SMS confirmation message</div>
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px">Screenshot of Payment</label>
+              <div id="enroll-proof-preview" style="display:none;margin-bottom:8px">
+                <img id="enroll-proof-img" style="max-width:100%;max-height:160px;border-radius:8px;border:1px solid #e2e8f0;object-fit:contain"/>
+              </div>
+              <label style="display:flex;align-items:center;gap:8px;border:1.5px dashed #cbd5e1;border-radius:8px;padding:10px 14px;cursor:pointer;background:#f8fafc;font-size:13px;color:#64748b">
+                <span>📷</span>
+                <span id="enroll-proof-label">Click to upload screenshot (JPG, PNG)</span>
+                <input type="file" id="enroll-proof-file" accept="image/*" style="display:none" onchange="uploadPaymentProof(this)"/>
+              </label>
+              <input type="hidden" id="enroll-proof-url" value=""/>
+            </div>
+          </div>
+        </div>` : ''}
+
       </div>
       <div class="modal-footer">
         <button class="btn btn-ghost" onclick="document.querySelector('.modal-overlay').remove()">Cancel</button>
@@ -1152,7 +1187,41 @@ async function memberEnrollCourse(courseId, courseTitle, price) {
     </div>
   </div>`
 }
+async function uploadPaymentProof(input){
+  const file = input.files[0]
+  if(!file) return
+  const label = document.getElementById('enroll-proof-label')
+  const preview = document.getElementById('enroll-proof-preview')
+  const img = document.getElementById('enroll-proof-img')
+  const urlInput = document.getElementById('enroll-proof-url')
 
+  // Show local preview immediately
+  const reader = new FileReader()
+  reader.onload = e => {
+    if(img) img.src = e.target.result
+    if(preview) preview.style.display = 'block'
+  }
+  reader.readAsDataURL(file)
+
+  if(label) label.textContent = '⏳ Uploading...'
+
+  try{
+    const fd = new FormData()
+    fd.append('file', file)
+    const res = await fetch(API_URL + '/news/public/upload-proof', {
+      method: 'POST',
+      body: fd
+    })
+    const data = await res.json()
+    if(!res.ok) throw new Error(data.detail || 'Upload failed')
+    if(urlInput) urlInput.value = data.url
+    if(label) label.textContent = '✅ ' + file.name
+    toast('Screenshot uploaded ✅')
+  }catch(e){
+    if(label) label.textContent = '❌ Upload failed — try again'
+    toast('Upload failed: ' + e.message, 'err')
+  }
+}
 async function submitEnrollmentRequest(courseId, courseTitle, price) {
   const btn = document.getElementById('enroll-submit-btn')
   if (btn) { btn.disabled = true; btn.textContent = price > 0 ? 'Submitting...' : 'Enrolling...' }
@@ -1162,9 +1231,15 @@ async function submitEnrollmentRequest(courseId, courseTitle, price) {
   }
 
   try {
+    const momoRef  = document.getElementById('enroll-momo-ref')?.value?.trim() || null
+    const proofUrl = document.getElementById('enroll-proof-url')?.value?.trim() || null
     await api('/courses/request-enrollment', {
       method: 'POST',
-      body: JSON.stringify({ course_id: courseId })
+      body: JSON.stringify({
+        course_id: courseId,
+        momo_reference: momoRef || null,
+        payment_proof: proofUrl || null
+      })
     })
     document.querySelector('.modal-overlay')?.remove()
     

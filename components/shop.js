@@ -95,6 +95,32 @@ function openGuestOrderModal(preItems = []){
         <div style="background:#F0FDF4;border-radius:8px;padding:12px;font-size:12px;color:#166534;display:flex;align-items:center;gap:8px">
           <i data-lucide="truck" style="width:16px;height:16px;flex-shrink:0"></i> Free delivery on orders above RWF 50,000!
         </div>
+
+        <!-- Proof of payment -->
+        <div style="margin-top:16px;border:1.5px solid #e2e8f0;border-radius:12px;overflow:hidden">
+          <div style="background:#0D1B40;color:#fff;padding:10px 14px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px">
+            🧾 Proof of Payment <span style="font-size:10px;opacity:0.6;font-weight:400">(optional — speeds up confirmation)</span>
+          </div>
+          <div style="padding:14px;display:flex;flex-direction:column;gap:12px">
+            <div>
+              <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px">MoMo / Transaction Reference</label>
+              <input class="input" id="guest-momo-ref" placeholder="e.g. 1234567890" style="font-size:13px"/>
+              <div style="font-size:11px;color:#94a3b8;margin-top:3px">Found in your MoMo SMS after payment</div>
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px">Screenshot of Payment</label>
+              <div id="guest-proof-preview" style="display:none;margin-bottom:8px">
+                <img id="guest-proof-img" style="max-width:100%;max-height:160px;border-radius:8px;border:1px solid #e2e8f0;object-fit:contain"/>
+              </div>
+              <label style="display:flex;align-items:center;gap:8px;border:1.5px dashed #cbd5e1;border-radius:8px;padding:10px 14px;cursor:pointer;background:#f8fafc;font-size:13px;color:#64748b">
+                <span>📷</span>
+                <span id="guest-proof-label">Click to upload screenshot (JPG, PNG)</span>
+                <input type="file" id="guest-proof-file" accept="image/*" style="display:none" onchange="uploadShopPaymentProof(this,'guest')"/>
+              </label>
+              <input type="hidden" id="guest-proof-url" value=""/>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="modal-footer">
@@ -201,6 +227,8 @@ async function submitGuestOrder(preItems){
   const total     = preItems.reduce((s,i)=>s+i.price*(i.qty||1),0)
   const freeDelivery = total >= 50000
   const isWholesale  = preItems.some(i=>(i.qty||1)>5)
+  const momoRef  = document.getElementById('guest-momo-ref')?.value?.trim() || null
+  const proofUrl = document.getElementById('guest-proof-url')?.value?.trim() || null
 
   if(btn){ btn.disabled=true; btn.textContent='Submitting...' }
 
@@ -217,7 +245,9 @@ async function submitGuestOrder(preItems){
         items:            preItems.map(i=>({ name:i.name, quantity:i.qty||1, price:i.price, is_wholesale:isWholesale })),
         total_amount:     total,
         is_wholesale:     isWholesale,
-        notes:            notes||null
+        notes:            notes||null,
+        momo_reference:   momoRef || null,
+        payment_proof:    proofUrl || null
       })
     })
   }catch(e){}
@@ -264,7 +294,7 @@ async function submitGuestOrder(preItems){
       </button>
     </div>
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-      <button class="btn btn-primary" onclick="navigate('shop')">Continue Shopping</button>
+      <button type="button" class="btn btn-primary" onclick="this.disabled=true; this.textContent='Loading...'; navigate('shop', null, event)">Continue Shopping</button>
       <a href="${waUrl}" target="_blank" class="btn btn-ghost">📱 Resend on WhatsApp</a>
     </div>
   </div>`)
@@ -302,6 +332,14 @@ async function renderShop(category = 'all', search = '') {
   // Load cart count dynamically
   setTimeout(() => updateCartButton(), 300);
 
+  // Show an immediate loading state so buttons like "Continue Shopping" provide instant feedback
+  render(`
+  ${nav}
+  <div style="max-width:1200px;margin:100px auto;text-align:center">
+    <div class="spinner" style="margin:0 auto"></div>
+  </div>
+  `);
+
   try {
     const productsUrl = API_URL + '/shop/products?' + new URLSearchParams({
       ...(category !== 'all' && {category}),
@@ -312,6 +350,8 @@ async function renderShop(category = 'all', search = '') {
       search ? fetch(productsUrl).then(r=>r.json()) : cachedFetch(productsUrl, 60000),
       cachedFetch(API_URL + '/shop/bundles', 120000),
     ])
+    window._shopAllProducts = products        // filtered by current category (from API)
+    window._shopActiveCategory = category     // remember which category this list belongs to
 
     const productCards = products.map(p => shopProductCard(p, isLoggedIn)).join('')
     const bundleCards  = bundles.map(b => shopBundleCard(b, isLoggedIn)).join('')
@@ -440,18 +480,23 @@ async function renderShop(category = 'all', search = '') {
             <div class="shop-sort-row" style="display:flex; align-items:center; gap:16px; font-size:12px; color:var(--g600);">
               <div style="display:flex; align-items:center; gap:6px;">
                 <label>Sort By:</label>
-                <select class="input" style="height:32px; min-height:32px; padding:0 8px; font-size:12px; width:auto; border-color:var(--g200);">
-                  <option>Default</option>
-                  <option>Name (A-Z)</option>
-                  <option>Price (Low &gt; High)</option>
+                <select id="shop-sort" class="input" style="height:32px; min-height:32px; padding:0 8px; font-size:12px; width:auto; border-color:var(--g200);" onchange="_applyShopFilters('${category}')">
+                  <option value="default" ${window._shopSort==='default'||!window._shopSort?'selected':''}>Default</option>
+                  <option value="name-az" ${window._shopSort==='name-az'?'selected':''}>Name (A-Z)</option>
+                  <option value="name-za" ${window._shopSort==='name-za'?'selected':''}>Name (Z-A)</option>
+                  <option value="price-asc" ${window._shopSort==='price-asc'?'selected':''}>Price (Low → High)</option>
+                  <option value="price-desc" ${window._shopSort==='price-desc'?'selected':''}>Price (High → Low)</option>
+                  <option value="stock" ${window._shopSort==='stock'?'selected':''}>In Stock First</option>
                 </select>
               </div>
               <div style="display:flex; align-items:center; gap:6px;">
                 <label>Show:</label>
-                <select class="input" style="height:32px; min-height:32px; padding:0 8px; font-size:12px; width:auto; border-color:var(--g200);">
-                  <option>9</option>
-                  <option>15</option>
-                  <option>25</option>
+                <select id="shop-show" class="input" style="height:32px; min-height:32px; padding:0 8px; font-size:12px; width:auto; border-color:var(--g200);" onchange="_applyShopFilters('${category}')">
+                  <option value="9"  ${window._shopShow===9 ?'selected':''}>9</option>
+                  <option value="15" ${window._shopShow===15||!window._shopShow?'selected':''}>15</option>
+                  <option value="25" ${window._shopShow===25?'selected':''}>25</option>
+                  <option value="50" ${window._shopShow===50?'selected':''}>50</option>
+                  <option value="0"  ${window._shopShow===0 ?'selected':''}>All</option>
                 </select>
               </div>
             </div>
@@ -509,6 +554,50 @@ async function renderShop(category = 'all', search = '') {
     `)
   }catch(e){
     toast(e.message,'err')
+  }
+}
+function _applyShopFilters(category){
+  const sortVal = document.getElementById('shop-sort')?.value || 'default'
+  const showVal = parseInt(document.getElementById('shop-show')?.value) || 15
+
+  // Persist selections so dropdowns survive re-renders
+  window._shopSort = sortVal
+  window._shopShow = showVal
+
+  // Use the already-category-filtered list from the last API fetch
+  // (no need to filter by category again — API already did it)
+  let prods = [...(window._shopAllProducts || [])]
+
+  // Apply current search on top
+  const searchTerm = document.getElementById('shop-search')?.value?.trim().toLowerCase()
+  if(searchTerm){
+    prods = prods.filter(p =>
+      (p.name||'').toLowerCase().includes(searchTerm) ||
+      (p.description||'').toLowerCase().includes(searchTerm) ||
+      (p.category||'').toLowerCase().includes(searchTerm)
+    )
+  }
+
+  // Sort
+  if(sortVal === 'name-az')    prods = [...prods].sort((a,b)=>(a.name||'').localeCompare(b.name||''))
+  if(sortVal === 'name-za')    prods = [...prods].sort((a,b)=>(b.name||'').localeCompare(a.name||''))
+  if(sortVal === 'price-asc')  prods = [...prods].sort((a,b)=>a.price-b.price)
+  if(sortVal === 'price-desc') prods = [...prods].sort((a,b)=>b.price-a.price)
+  if(sortVal === 'stock')      prods = [...prods].sort((a,b)=>b.stock-a.stock)
+
+  // Limit
+  const limited = showVal > 0 ? prods.slice(0, showVal) : prods
+
+  // Re-render only the product grid + count
+  const isLoggedIn = !!(State.user && localStorage.getItem('tc_access'))
+  const grid = document.querySelector('.shop-grid:last-of-type')
+  const countEl = document.querySelector('.shop-main-content h2 span')
+  if(countEl) countEl.textContent = `(${prods.length})`
+  if(grid){
+    grid.innerHTML = limited.length
+      ? limited.map(p => shopProductCard(p, isLoggedIn)).join('')
+      : `<div class="empty-state" style="grid-column:1/-1"><div class="empty-title">No products found</div></div>`
+    if(window.lucide) window.lucide.createIcons()
   }
 }
 function openImageLightbox(src, alt) {
@@ -1139,6 +1228,32 @@ function openCheckoutModal(items, total){
           <span style="font-size:16px">💡</span>
           <span>Our team will contact you at the number provided to confirm delivery details.</span>
         </div>
+
+        <!-- Proof of payment -->
+        <div style="margin-top:16px;border:1.5px solid #e2e8f0;border-radius:12px;overflow:hidden">
+          <div style="background:#0D1B40;color:#fff;padding:10px 14px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px">
+            🧾 Proof of Payment <span style="font-size:10px;opacity:0.6;font-weight:400">(optional — speeds up order confirmation)</span>
+          </div>
+          <div style="padding:14px;display:flex;flex-direction:column;gap:12px">
+            <div>
+              <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px">MoMo / Transaction Reference</label>
+              <input class="input" id="order-momo-ref" placeholder="e.g. 1234567890" style="font-size:13px"/>
+              <div style="font-size:11px;color:#94a3b8;margin-top:3px">Found in your MoMo SMS after payment</div>
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:4px">Screenshot of Payment</label>
+              <div id="order-proof-preview" style="display:none;margin-bottom:8px">
+                <img id="order-proof-img" style="max-width:100%;max-height:160px;border-radius:8px;border:1px solid #e2e8f0;object-fit:contain"/>
+              </div>
+              <label style="display:flex;align-items:center;gap:8px;border:1.5px dashed #cbd5e1;border-radius:8px;padding:10px 14px;cursor:pointer;background:#f8fafc;font-size:13px;color:#64748b">
+                <span>📷</span>
+                <span id="order-proof-label">Click to upload screenshot (JPG, PNG)</span>
+                <input type="file" id="order-proof-file" accept="image/*" style="display:none" onchange="uploadShopPaymentProof(this)"/>
+              </label>
+              <input type="hidden" id="order-proof-url" value=""/>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-ghost" onclick="document.querySelector('.modal-overlay').remove()">Cancel</button>
@@ -1147,7 +1262,42 @@ function openCheckoutModal(items, total){
     </div>
   </div>`
 }
+async function uploadShopPaymentProof(input, prefix='order'){
+  const file = input.files[0]
+  if(!file) return
+  const label    = document.getElementById(`${prefix}-proof-label`)
+  const preview  = document.getElementById(`${prefix}-proof-preview`)
+  const img      = document.getElementById(`${prefix}-proof-img`)
+  const urlInput = document.getElementById(`${prefix}-proof-url`)
 
+  // Show local preview instantly — works for everyone
+  const reader = new FileReader()
+  reader.onload = e => {
+    if(img) img.src = e.target.result
+    if(preview) preview.style.display = 'block'
+  }
+  reader.readAsDataURL(file)
+
+  if(label) label.textContent = '⏳ Uploading...'
+
+  try{
+    const fd = new FormData()
+    fd.append('file', file)
+
+    const res = await fetch(API_URL + '/news/public/upload-proof', {
+      method: 'POST',
+      body: fd
+    })
+    const data = await res.json()
+    if(!res.ok) throw new Error(data.detail || 'Upload failed')
+    if(urlInput) urlInput.value = data.url
+    if(label) label.textContent = '✅ ' + file.name
+    toast('Screenshot uploaded ✅')
+  }catch(e){
+    if(label) label.textContent = '❌ Upload failed — ' + e.message
+    toast('Upload failed: ' + e.message, 'err')
+  }
+}
 function toggleOrderPaymentPhone(val){
   const wrap = document.getElementById('order-payment-phone-wrap')
   if(wrap) wrap.style.display = ['mtn_momo','airtel'].includes(val) ? 'block' : 'none'
@@ -1183,19 +1333,23 @@ async function placeOrder(items, total){
   }))
 
   try{
+    const momoRef  = document.getElementById('order-momo-ref')?.value?.trim() || null
+    const proofUrl = document.getElementById('order-proof-url')?.value?.trim() || null
+
     const res = await api('/shop/orders',{
       method:'POST',
       body: JSON.stringify({
         items:            orderItems,
-        total_amount: discountedTotal,
-        discount_amount: total - discountedTotal,
+        total_amount:     discountedTotal,
+        discount_amount:  total - discountedTotal,
         is_free_delivery: total >= 50000,
         payment_method:   payment,
         payment_phone:    payPhone || null,
         delivery_address: address,
         delivery_phone:   phone,
-        notes:            notes || null
-        
+        notes:            notes || null,
+        momo_reference:   momoRef || null,
+        payment_proof:    proofUrl || null
       })
     })
     document.querySelector('.modal-overlay')?.remove()
@@ -1206,8 +1360,8 @@ async function placeOrder(items, total){
       <p style="font-size:15px;color:var(--g400);margin-bottom:8px">Order #${res.order_id.slice(0,8).toUpperCase()}</p>
       <p style="font-size:14px;color:var(--g400);margin-bottom:24px">Our team will contact you at <strong>${phone}</strong> to confirm delivery details. Payment is due upon delivery.</p>
       <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-        <button class="btn btn-primary" onclick="navigate('my-orders')">Track My Order</button>
-        <button class="btn btn-ghost" onclick="navigate('shop')">Continue Shopping</button>
+        <button type="button" class="btn btn-primary" onclick="navigate('my-orders', null, event)">Track My Order</button>
+        <button type="button" class="btn btn-ghost" onclick="this.disabled=true; this.textContent='Loading...'; navigate('shop', null, event)">Continue Shopping</button>
       </div>
     </div>`))
     toast('Order placed successfully! 🎉')
@@ -1302,15 +1456,17 @@ async function renderAdminShop(){
   render(dashWrap('admin-shop',`<div class="loader-center"><div class="spinner"></div></div>`))
   try{
     const tab = State.tab || 'products'
-    const [products, orders, bundles] = await Promise.all([
+    const [products, orders, bundles, guestOrders] = await Promise.all([
       api('/shop/products?'),
       api('/shop/orders/admin'),
-      api('/shop/bundles')
+      api('/shop/bundles'),
+      api('/shop/guest-orders/admin')
     ])
     const pendingOrders = orders.filter(o=>o.status==='pending').length
+    const pendingGuestOrders = guestOrders.filter(o=>o.status==='pending').length
     render(dashWrap('admin-shop',`
     <div class="page-header">
-      <div><h1 class="page-title" style="display:flex;align-items:center;gap:8px"><i data-lucide="store" style="width:28px;height:28px;color:var(--blue)"></i> Shop Manager</h1><p class="page-subtitle">${products.length} products • ${orders.length} orders${pendingOrders?' • '+pendingOrders+' pending':''}</p></div>
+      <div><h1 class="page-title" style="display:flex;align-items:center;gap:8px"><i data-lucide="store" style="width:28px;height:28px;color:var(--blue)"></i> Shop Manager</h1><p class="page-subtitle">${products.length} products • ${orders.length} orders${pendingOrders?' ('+pendingOrders+' pending)':''} • ${guestOrders.length} guest orders${pendingGuestOrders?' ('+pendingGuestOrders+' pending)':''}</p></div>
       ${tab==='products'?`<button class="btn btn-primary" onclick="openAddProductModal()">+ Add Product</button>`:
         tab==='bundles'?`<button class="btn btn-primary" onclick="openAddBundleModal(${JSON.stringify(products).replace(/"/g,'&quot;')})">+ Add Bundle</button>`:''}
     </div>
@@ -1318,7 +1474,7 @@ async function renderAdminShop(){
       <button class="tab-btn ${tab==='products'?'active':''}" onclick="State.tab='products';renderAdminShop()">Products (${products.length})</button>
       <button class="tab-btn ${tab==='orders'?'active':''}" onclick="State.tab='orders';renderAdminShop()">Orders (${orders.length})${pendingOrders?` <span style="background:#ef4444;color:#fff;border-radius:999px;font-size:11px;padding:1px 6px;margin-left:4px">${pendingOrders}</span>`:''}</button>
       <button class="tab-btn ${tab==='bundles'?'active':''}" onclick="State.tab='bundles';renderAdminShop()">Bundles (${bundles.length})</button>
-      <button class="tab-btn ${tab==='guest-orders'?'active':''}" onclick="State.tab='guest-orders';renderAdminShop()">Guest Orders</button>
+      <button class="tab-btn ${tab==='guest-orders'?'active':''}" onclick="State.tab='guest-orders';renderAdminShop()">Guest Orders (${guestOrders.length})${pendingGuestOrders?` <span style="background:#ef4444;color:#fff;border-radius:999px;font-size:11px;padding:1px 6px;margin-left:4px">${pendingGuestOrders}</span>`:''}</button>
     </div>
 
     ${tab==='products'?`
@@ -1350,23 +1506,32 @@ async function renderAdminShop(){
         <tbody>
           ${orders.map(o=>`<tr>
             <td style="font-weight:700;font-size:13px">#${o.id.slice(0,8).toUpperCase()}</td>
-            <td><div style="font-weight:600">${o.profiles?.full_name||'—'}</div><div style="font-size:11px;color:var(--g400)">${o.delivery_phone}</div></td>
+            <td>
+              <div style="font-weight:600">${o.profiles?.full_name||'—'}</div>
+              <div style="font-size:11px;color:var(--g400)">${o.delivery_phone}</div>
+              ${o.momo_reference?`<div style="font-size:11px;margin-top:3px;background:#f0fdf4;color:#065f46;padding:2px 6px;border-radius:4px;display:inline-block">🧾 ${o.momo_reference}</div>`:''}
+              ${o.payment_proof?`<a href="${o.payment_proof}" target="_blank" style="font-size:11px;color:#1A5FFF;display:block;margin-top:2px">📷 View proof</a>`:''}
+            </td>
             <td style="font-size:12px">${(o.order_items||[]).length} item${(o.order_items||[]).length!==1?'s':''}</td>
             <td style="font-weight:700">RWF ${Number(o.total_amount).toLocaleString()}</td>
             <td style="font-size:12px">${o.payment_method.replace(/_/g,' ').toUpperCase()}</td>
             <td>${statusBadge(o.status)}</td>
             <td style="font-size:12px">${fmtShort(o.created_at)}</td>
-            <td>
+            <td style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
               <select class="input" style="font-size:12px;padding:4px 8px" onchange="updateOrderStatus('${o.id}',this.value)">
                 ${['pending','confirmed','processing','shipped','delivered','cancelled'].map(s=>`<option value="${s}" ${o.status===s?'selected':''}>${s.charAt(0).toUpperCase()+s.slice(1)}</option>`).join('')}
               </select>
+              <button class="btn btn-ghost btn-sm" title="Contact buyer"
+                onclick='openOrderContactModal({name:${JSON.stringify(o.profiles?.full_name||"—")},phone:${JSON.stringify(o.delivery_phone||"")},email:${JSON.stringify(o.profiles?.email||"")},courseTitle:${JSON.stringify((o.order_items||[]).map(i=>i.name).join(", ")||"Shop Order")},amount:${JSON.stringify(o.total_amount||0)},orderId:"${o.id}",type:"Shop Order"})'>
+                📨
+              </button>
             </td>
           </tr>`).join('')}
         </tbody>
       </table>
     </div>`
 
-    :`
+    :tab==='bundles'?`
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px">
       ${bundles.map(b=>`
       <div style="background:linear-gradient(135deg,#1E3A8A,#2563EB);border-radius:16px;padding:20px;color:#fff;position:relative">
@@ -1379,29 +1544,19 @@ async function renderAdminShop(){
         </div>
       </div>`).join('')}
       ${!bundles.length?`<div class="card" style="padding:40px;text-align:center;color:var(--g400)">No bundles yet</div>`:''}
-    </div>`}
-    <div id="guest-orders-tab-content"></div>
-    <div id="modal-root"></div>
-    `))
-  if(tab==='guest-orders'){
-    renderGuestOrdersTab();
-  }
-  }catch(e){ toast(e.message,'err') }
-}
-async function renderGuestOrdersTab(){
-  const el = document.getElementById('guest-orders-tab-content');
-  if(!el) return;
-  el.innerHTML = '<div class="loader-center"><div class="spinner"></div></div>';
-  try{
-    const orders = await api('/shop/guest-orders/admin')
-    if(!orders.length){ el.innerHTML = '<div class="empty-state"><div class="empty-sub">No guest orders yet</div></div>'; return; }
-    el.innerHTML = `
+    </div>`
+    
+    :`
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Name</th><th>Phone</th><th>Address</th><th>Items</th><th>Total</th><th>Type</th><th>Status</th><th>Date</th><th>WhatsApp</th></tr></thead>
+        <thead><tr><th>Name</th><th>Phone</th><th>Address</th><th>Items</th><th>Total</th><th>Type</th><th>Status</th><th>Date</th><th>Contact</th></tr></thead>
         <tbody>
-          ${orders.map(o=>`<tr>
-            <td data-label="Name" style="font-weight:600">${o.full_name}</td>
+          ${guestOrders.map(o=>`<tr>
+            <td data-label="Name">
+              <div style="font-weight:600">${o.full_name}</div>
+              ${o.momo_reference?`<div style="font-size:11px;margin-top:3px;background:#f0fdf4;color:#065f46;padding:2px 6px;border-radius:4px;display:inline-block">🧾 ${o.momo_reference}</div>`:''}
+              ${o.payment_proof?`<a href="${o.payment_proof}" target="_blank" style="font-size:11px;color:#1A5FFF;display:block;margin-top:2px">📷 View proof</a>`:''}
+            </td>
             <td data-label="Phone">${o.phone}</td>
             <td data-label="Address" style="font-size:12px">${o.delivery_address}</td>
             <td data-label="Items" style="font-size:12px">${(o.items||[]).map(i=>`${i.name} ×${i.quantity}`).join(', ')}</td>
@@ -1413,12 +1568,20 @@ async function renderGuestOrdersTab(){
               </select>
             </td>
             <td style="font-size:12px">${fmtShort(o.created_at)}</td>
-            <td><a href="https://wa.me/${MATHRONE_WHATSAPP.replace(/[^0-9]/g,'')}?text=${encodeURIComponent(`Hi ${o.full_name}, confirming your order of RWF ${Number(o.total_amount).toLocaleString()} from Mathrone Store.`)}" target="_blank" class="btn btn-ghost btn-sm">📱</a></td>
+            <td>
+              <button class="btn btn-ghost btn-sm" title="Contact buyer"
+                onclick='openOrderContactModal({name:${JSON.stringify(o.full_name||"—")},phone:${JSON.stringify(o.phone||"")},email:${JSON.stringify(o.whatsapp||o.phone||"")},courseTitle:${JSON.stringify((o.items||[]).map(i=>i.name).join(", ")||"Guest Order")},amount:${JSON.stringify(o.total_amount||0)},orderId:"${o.id}",type:"Guest Order"})'>
+                📨 Contact
+              </button>
+            </td>
           </tr>`).join('')}
+          ${!guestOrders.length ? `<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--g400)">No guest orders yet</td></tr>` : ''}
         </tbody>
       </table>
-    </div>`;
-  }catch(e){ if(el) el.innerHTML = '<div class="empty-state"><div class="empty-sub">Could not load guest orders</div></div>'; }
+    </div>`}
+    <div id="modal-root"></div>
+    `))
+  }catch(e){ toast(e.message,'err') }
 }
 
 async function updateGuestOrderStatus(orderId, status){
