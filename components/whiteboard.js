@@ -48,6 +48,7 @@
                 <button class="btn btn-sm" onclick="toggleSplitScreen()" id="lab-splitscreen-btn" style="background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:12px; flex-shrink:0; white-space:nowrap; display:flex; align-items:center; gap:6px;" title="Open Jitsi video meeting (new tab)"><i data-lucide="video" style="width:14px;height:14px"></i> Meet ↗</button>
               `}
               
+              <button class="btn btn-sm" onclick="toggleMajesticFullscreen()" style="background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:12px; flex-shrink:0; white-space:nowrap; display:flex; align-items:center; gap:6px;"><i data-lucide="maximize" style="width:14px;height:14px"></i> Fullscreen</button>
               <button class="btn btn-sm" onclick="exitMajesticLab()" style="background:#EF4444; color:#fff; font-size:12px; flex-shrink:0; white-space:nowrap; display:flex; align-items:center; gap:6px;"><i data-lucide="log-out" style="width:14px;height:14px"></i> Exit</button>
             </div>
       </div>
@@ -2717,6 +2718,19 @@ function openTutorLabDirect() {
   window._currentTutorLabSessionId = sessionId;
   renderWhiteboard(sessionId);
 }
+
+// -- Fullscreen Toggle for Smartboards --
+window.toggleMajesticFullscreen = () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(err => {
+      toast("Fullscreen failed: " + err.message, "err");
+    });
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    }
+  }
+};
 
 // ------------------------------------------------------------
 // DOCUMENT PRESENTATION HELPERS

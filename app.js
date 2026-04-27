@@ -676,7 +676,7 @@ function renderWhiteboard(sessionId) {
             <div>
               <div style="font-size:22px;font-weight:800;color:var(--navy)">${student.profiles?.full_name||'—'}</div>
               <div style="font-size:14px;color:var(--g400);margin-top:4px">${student.profiles?.email||''}</div>
-              <div style="display:flex;gap:8px;margin-top:8px">
+              <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
                 <span class="badge badge-blue">${student.school_level||'—'}</span>
                 <span class="badge badge-gray">${(student.subjects_needed||[]).join(', ')||'—'}</span>
               </div>
@@ -704,129 +704,86 @@ function renderWhiteboard(sessionId) {
           </div>
         </div>
 
-        <!-- Progress Chart -->
-        ${progress.filter(p=>p.marks).length >= 2 ? `
-        <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:20px">
-          <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:6px"><i data-lucide="trending-up" style="width:18px;height:18px;color:var(--blue)"></i> Marks Over Time</h3>
-          <canvas id="progress-chart" height="120"></canvas>
-        </div>` : ''}
-
-        <!-- Feedback Records -->
-        ${progress.length ? `
-        <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:20px">
-          <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:6px"><i data-lucide="file-text" style="width:18px;height:18px;color:var(--blue)"></i> Session Feedback</h3>
-          <div style="display:flex;flex-direction:column;gap:16px">
-            ${progress.map(p=>`
-            <div style="border:1px solid var(--g100);border-radius:12px;padding:16px">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-                <span style="font-weight:700;color:var(--navy)">${p.subject}</span>
-                <div style="display:flex;gap:8px;align-items:center">
-                  ${p.marks !== null ? `<span style="background:${p.marks>=75?'#dcfce7':p.marks>=50?'#fef9c3':'#fee2e2'};color:${p.marks>=75?'#166534':p.marks>=50?'#854d0e':'#991b1b'};border-radius:999px;padding:2px 10px;font-weight:700;font-size:13px">${p.marks}%</span>` : ''}
-                  <span style="font-size:12px;color:var(--g400)">${fmtShort(p.recorded_at)}</span>
-                </div>
-              </div>
-              ${p.feedback?`<p style="font-size:13px;color:var(--g600);margin-bottom:8px">${p.feedback}</p>`:''}
-              ${p.strengths?`<div style="background:#f0fdf4;border-radius:8px;padding:8px;margin-bottom:6px;font-size:12px"><strong><i data-lucide="thumbs-up" style="width:12px;height:12px;vertical-align:middle"></i> Strengths:</strong> ${p.strengths}</div>`:''}
-              ${p.improvements?`<div style="background:#fff7ed;border-radius:8px;padding:8px;font-size:12px"><strong><i data-lucide="trending-up" style="width:12px;height:12px;vertical-align:middle"></i> To Improve:</strong> ${p.improvements}</div>`:''}
-            </div>`).join('')}
-          </div>
-        </div>` : `
-        <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:20px;text-align:center;color:var(--g400)">
-          <div style="display:flex;justify-content:center;margin-bottom:8px"><i data-lucide="file-text" style="width:32px;height:32px"></i></div>
-          <div>No feedback submitted yet</div>
-        </div>`}
-
-        <!-- Sessions -->
-        <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:20px">
-          <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:6px"><i data-lucide="calendar" style="width:18px;height:18px;color:var(--blue)"></i> Sessions</h3>
-          ${sessions.length ? `
-          <div style="overflow-x:auto">
-            <table style="width:100%;border-collapse:collapse;font-size:13px">
-              <thead><tr style="border-bottom:2px solid var(--g100)">
-                <th style="text-align:left;padding:8px;color:var(--g400)">Subject</th>
-                <th style="text-align:left;padding:8px;color:var(--g400)">Tutor</th>
-                <th style="text-align:left;padding:8px;color:var(--g400)">Date</th>
-                <th style="text-align:left;padding:8px;color:var(--g400)">Duration</th>
-                <th style="text-align:left;padding:8px;color:var(--g400)">Status</th>
-              </tr></thead>
-              <tbody>
-                ${sessions.map(s=>`
-                <tr style="border-bottom:1px solid var(--g100)">
-                  <td style="padding:8px;font-weight:600">${s.subject}</td>
-                  <td style="padding:8px">${s.tutors?.profiles?.full_name||'—'}</td>
-                  <td style="padding:8px">${fmtShort(s.scheduled_at)}</td>
-                  <td style="padding:8px">${s.duration_mins} mins</td>
-                  <td style="padding:8px">${statusBadge(s.status)}</td>
-                </tr>`).join('')}
-              </tbody>
-            </table>
-          </div>` : `<div style="text-align:center;color:var(--g400)">No sessions yet</div>`}
+        <!-- Parent Insights / Summary -->
+        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:16px;padding:24px;margin-bottom:20px">
+          <h3 style="font-size:16px;font-weight:700;color:#065f46;margin-bottom:8px;display:flex;align-items:center;gap:6px"><i data-lucide="lightbulb" style="width:18px;height:18px"></i> Parent Summary</h3>
+          <p style="font-size:14px;color:#166534;line-height:1.6;margin:0">
+            ${completed > 0 
+              ? `Your child has successfully completed <strong>${completed} session(s)</strong> with an average score of <strong>${avgMarks !== null ? avgMarks+'%' : 'N/A'}</strong>. Review the detailed feedback below to see their strengths and areas to practice at home.`
+              : `Your child is scheduled for tutoring sessions. Check back here after their first completed session to view their progress, scores, and tutor feedback.`}
+          </p>
         </div>
 
         <!-- Progress Chart -->
         ${progress.filter(p=>p.marks).length >= 2 ? `
-        <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:20px">
-          <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:6px"><i data-lucide="trending-up" style="width:18px;height:18px;color:var(--blue)"></i> Marks Over Time</h3>
+        <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:20px;box-shadow:0 2px 12px rgba(0,0,0,0.03)">
+          <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:6px"><i data-lucide="trending-up" style="width:18px;height:18px;color:var(--blue)"></i> Performance Trend</h3>
+          <p style="font-size:13px;color:var(--g400);margin-bottom:16px">Tracks quiz and assessment scores across all tutoring sessions.</p>
           <canvas id="progress-chart" height="120"></canvas>
         </div>` : ''}
 
         <!-- Feedback Records -->
         ${progress.length ? `
-        <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:20px">
-          <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:6px"><i data-lucide="file-text" style="width:18px;height:18px;color:var(--blue)"></i> Session Feedback</h3>
+        <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:20px;box-shadow:0 2px 12px rgba(0,0,0,0.03)">
+          <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:6px"><i data-lucide="message-square" style="width:18px;height:18px;color:var(--blue)"></i> Detailed Tutor Feedback</h3>
           <div style="display:flex;flex-direction:column;gap:16px">
             ${progress.map(p=>`
-            <div style="border:1px solid var(--g100);border-radius:12px;padding:16px">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-                <span style="font-weight:700;color:var(--navy)">${p.subject}</span>
+            <div style="border:1px solid var(--g100);border-radius:12px;padding:16px;background:var(--g50)">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+                <span style="font-weight:800;color:var(--navy);font-size:15px">${p.subject}</span>
                 <div style="display:flex;gap:8px;align-items:center">
-                  ${p.marks !== null ? `<span style="background:${p.marks>=75?'#dcfce7':p.marks>=50?'#fef9c3':'#fee2e2'};color:${p.marks>=75?'#166534':p.marks>=50?'#854d0e':'#991b1b'};border-radius:999px;padding:2px 10px;font-weight:700;font-size:13px">${p.marks}%</span>` : ''}
-                  <span style="font-size:12px;color:var(--g400)">${fmtShort(p.recorded_at)}</span>
+                  ${p.marks !== null ? `<span style="background:${p.marks>=75?'#dcfce7':p.marks>=50?'#fef9c3':'#fee2e2'};color:${p.marks>=75?'#166534':p.marks>=50?'#854d0e':'#991b1b'};border-radius:6px;padding:4px 10px;font-weight:800;font-size:13px">Score: ${p.marks}%</span>` : ''}
+                  <span style="font-size:12px;color:var(--g400);background:#fff;padding:4px 8px;border-radius:6px;border:1px solid var(--g100)">📅 ${fmtShort(p.recorded_at)}</span>
                 </div>
               </div>
-              ${p.feedback?`<p style="font-size:13px;color:var(--g600);margin-bottom:8px">${p.feedback}</p>`:''}
-              ${p.strengths?`<div style="background:#f0fdf4;border-radius:8px;padding:8px;margin-bottom:6px;font-size:12px"><strong><i data-lucide="thumbs-up" style="width:12px;height:12px;vertical-align:middle"></i> Strengths:</strong> ${p.strengths}</div>`:''}
-              ${p.improvements?`<div style="background:#fff7ed;border-radius:8px;padding:8px;font-size:12px"><strong><i data-lucide="trending-up" style="width:12px;height:12px;vertical-align:middle"></i> To Improve:</strong> ${p.improvements}</div>`:''}
+              ${p.feedback?`<p style="font-size:14px;color:var(--g600);margin-bottom:12px;line-height:1.6">"${p.feedback}"</p>`:''}
+              <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));gap:12px;">
+                ${p.strengths?`<div style="background:#fff;border-left:3px solid #10b981;border-radius:6px;padding:10px;font-size:13px;box-shadow:0 1px 2px rgba(0,0,0,0.05)"><strong style="color:#065f46;display:block;margin-bottom:4px"><i data-lucide="thumbs-up" style="width:14px;height:14px;vertical-align:text-bottom"></i> What went well:</strong> <span style="color:var(--g600)">${p.strengths}</span></div>`:''}
+                ${p.improvements?`<div style="background:#fff;border-left:3px solid #f59e0b;border-radius:6px;padding:10px;font-size:13px;box-shadow:0 1px 2px rgba(0,0,0,0.05)"><strong style="color:#92400e;display:block;margin-bottom:4px"><i data-lucide="target" style="width:14px;height:14px;vertical-align:text-bottom"></i> Focus areas:</strong> <span style="color:var(--g600)">${p.improvements}</span></div>`:''}
+              </div>
             </div>`).join('')}
           </div>
         </div>` : `
-        <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:20px;text-align:center;color:var(--g400)">
-          <div style="display:flex;justify-content:center;margin-bottom:8px"><i data-lucide="file-text" style="width:32px;height:32px"></i></div>
-          <div>No feedback submitted yet</div>
+        <div style="background:#fff;border-radius:16px;padding:32px;margin-bottom:20px;text-align:center;color:var(--g400);box-shadow:0 2px 12px rgba(0,0,0,0.03)">
+          <div style="display:flex;justify-content:center;margin-bottom:12px"><i data-lucide="file-text" style="width:40px;height:40px;opacity:0.5"></i></div>
+          <div style="font-size:15px;font-weight:600;color:var(--g600)">No feedback recorded yet</div>
+          <p style="font-size:13px;margin-top:4px">Tutors will leave detailed notes here after completing sessions.</p>
         </div>`}
 
         <!-- Sessions -->
-        <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:20px">
-          <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:6px"><i data-lucide="calendar" style="width:18px;height:18px;color:var(--blue)"></i> Tutoring Sessions</h3>
+        <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:20px;box-shadow:0 2px 12px rgba(0,0,0,0.03)">
+          <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:6px"><i data-lucide="calendar" style="width:18px;height:18px;color:var(--blue)"></i> Session History</h3>
           ${sessions.length ? `
-          <div style="overflow-x:auto">
+          <div class="table-wrap">
             <table style="width:100%;border-collapse:collapse;font-size:13px">
-              <thead><tr style="border-bottom:2px solid var(--g100)">
-                <th style="text-align:left;padding:8px;color:var(--g400)">Subject</th>
-                <th style="text-align:left;padding:8px;color:var(--g400)">Tutor</th>
-                <th style="text-align:left;padding:8px;color:var(--g400)">Date</th>
-                <th style="text-align:left;padding:8px;color:var(--g400)">Status</th>
+              <thead><tr style="border-bottom:2px solid var(--g100);background:var(--g50)">
+                <th style="text-align:left;padding:10px;color:var(--g600);border-radius:8px 0 0 8px">Subject</th>
+                <th style="text-align:left;padding:10px;color:var(--g600)">Tutor</th>
+                <th style="text-align:left;padding:10px;color:var(--g600)">Date</th>
+                <th style="text-align:left;padding:10px;color:var(--g600)">Duration</th>
+                <th style="text-align:right;padding:10px;color:var(--g600);border-radius:0 8px 8px 0">Status</th>
               </tr></thead>
               <tbody>
                 ${sessions.map(s=>`
-                <tr style="border-bottom:1px solid var(--g100)">
-                  <td style="padding:8px;font-weight:600">${s.subject}</td>
-                  <td style="padding:8px">${s.tutors?.profiles?.full_name||'—'}</td>
-                  <td style="padding:8px">${fmtShort(s.scheduled_at)}</td>
-                  <td style="padding:8px">${statusBadge(s.status)}</td>
+                <tr style="border-bottom:1px solid var(--g50)">
+                  <td data-label="Subject" style="padding:12px 10px;font-weight:700;color:var(--navy)">${s.subject}</td>
+                  <td data-label="Tutor" style="padding:12px 10px;color:var(--g600)">${s.tutors?.profiles?.full_name||'—'}</td>
+                  <td data-label="Date" style="padding:12px 10px;color:var(--g600)">${fmtShort(s.scheduled_at)}</td>
+                  <td data-label="Duration" style="padding:12px 10px;color:var(--g600)">${s.duration_mins} mins</td>
+                  <td data-label="Status" style="padding:12px 10px;text-align:right">${statusBadge(s.status)}</td>
                 </tr>`).join('')}
               </tbody>
             </table>
-          </div>` : `<div style="text-align:center;color:var(--g400)">No sessions yet</div>`}
+          </div>` : `<div style="text-align:center;color:var(--g400);padding:20px 0">No sessions scheduled yet</div>`}
         </div>
 
         <!-- Enrolled Courses -->
         ${courses.length ? `
-        <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:20px">
+        <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:20px;box-shadow:0 2px 12px rgba(0,0,0,0.03)">
           <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:6px"><i data-lucide="book-open-check" style="width:18px;height:18px;color:var(--blue)"></i> Self-Paced Courses</h3>
           <div style="display:flex;flex-direction:column;gap:12px">
             ${courses.map(c => `
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;border:1px solid var(--g100);border-radius:12px;background:var(--g50)">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;border:1px solid var(--g100);border-radius:12px;background:var(--g50);flex-wrap:wrap;gap:8px">
               <div>
                 <div style="font-weight:800;color:var(--navy);font-size:14px">${c.title || c.courses?.title || 'Course'}</div>
                 <div style="font-size:12px;color:var(--g600);margin-top:2px">Enrolled: ${fmtShort(c.enrolled_at || c.created_at)}</div>
@@ -840,10 +797,9 @@ function renderWhiteboard(sessionId) {
 
         <!-- Invoices -->
         ${invoices.length ? `
-        <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:20px">
-          <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:6px"><i data-lucide="credit-card" style="width:18px;height:18px;color:var(--blue)"></i> Payments</h3>
-          <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:6px"><i data-lucide="calendar" style="width:18px;height:18px;color:var(--blue)"></i> Sessions</h3>
-          <div style="overflow-x:auto">
+        <div style="background:#fff;border-radius:16px;padding:24px;margin-bottom:20px;box-shadow:0 2px 12px rgba(0,0,0,0.03)">
+          <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:6px"><i data-lucide="credit-card" style="width:18px;height:18px;color:var(--blue)"></i> Payment History</h3>
+          <div class="table-wrap">
             <table style="width:100%;border-collapse:collapse;font-size:13px">
               <thead><tr style="border-bottom:2px solid var(--g100)">
                 <th style="text-align:left;padding:8px;color:var(--g400)">Amount</th>
@@ -853,14 +809,24 @@ function renderWhiteboard(sessionId) {
               <tbody>
                 ${invoices.map(inv=>`
                 <tr style="border-bottom:1px solid var(--g100)">
-                  <td style="padding:8px;font-weight:600">$${inv.amount}</td>
-                  <td style="padding:8px">${inv.due_date?fmtShort(inv.due_date):'—'}</td>
-                  <td style="padding:8px">${statusBadge(inv.status)}</td>
+                  <td data-label="Amount" style="padding:8px;font-weight:600">RWF ${Number(inv.amount).toLocaleString()}</td>
+                  <td data-label="Due Date" style="padding:8px">${inv.due_date?fmtShort(inv.due_date):'—'}</td>
+                  <td data-label="Status" style="padding:8px">${statusBadge(inv.status)}</td>
                 </tr>`).join('')}
               </tbody>
             </table>
           </div>
         </div>` : ''}
+
+        <!-- Need Help CTA -->
+        <div style="background:var(--navy);border-radius:16px;padding:24px;margin-bottom:20px;text-align:center;color:#fff;box-shadow:0 4px 16px rgba(13, 27, 64, 0.15)">
+          <h3 style="font-size:18px;font-weight:800;margin-bottom:8px">Have questions about this report?</h3>
+          <p style="font-size:14px;color:rgba(255,255,255,0.7);margin-bottom:16px">Our support team is available to discuss your child's progress, adjust their schedule, or recommend additional resources.</p>
+          <a href="https://wa.me/250786684285" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:#25D366;color:#fff;text-decoration:none;padding:10px 20px;border-radius:8px;font-weight:700;font-size:14px;transition:background 0.2s">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Chat with Support
+          </a>
+        </div>
 
         <!-- Footer -->
         <div style="text-align:center;padding:20px;color:rgba(255,255,255,0.6);font-size:12px">
@@ -2610,7 +2576,7 @@ async function saveTutorStatus(tutorId){
       method: 'POST',
       body: JSON.stringify({ student_id: studentId })
     })
-    const fullUrl = `${window.location.origin}${window.location.pathname}#report/${res.token}`
+    const fullUrl = `${window.location.origin}/report/${res.token}`
     document.getElementById('modal-root').innerHTML = `
     <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
       <div class="modal">
