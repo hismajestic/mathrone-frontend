@@ -4511,31 +4511,37 @@ function exitMajesticLab() {
 // ════════════════════════════════════════════════════════════
 window.deferredPWA = null;
 
-// Listen for the browser telling us the app can be installed (Android/PC)
+// Listen for native install prompt (Android/PC)
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   window.deferredPWA = e;
   showInstallButton();
 });
 
-// Function to trigger the installation
 window.installApp = async function() {
   if (window.deferredPWA) {
-    // Show the native Android/PC install prompt
+    // Show the beautiful native Android/PC prompt
     window.deferredPWA.prompt();
     const { outcome } = await window.deferredPWA.userChoice;
-    if (outcome === 'accepted') {
-      window.deferredPWA = null;
-      hideInstallButton();
+    if (outcome === 'accepted') hideInstallButton();
+  } else {
+    // Fallback for phones if the native prompt isn't ready or it's an iPhone
+    const ua = window.navigator.userAgent.toLowerCase();
+    if (/iphone|ipad|ipod/.test(ua)) {
+      alert('To install the Mathrone App on iPhone:\n\n1. Tap the Share icon (square with arrow) at the bottom of Safari.\n2. Scroll down and tap "Add to Home Screen" ➕.');
+    } else if (/android/.test(ua)) {
+      alert('To install on Android:\n\nTap the 3-dots menu (⋮) in the top right corner of Chrome and select "Install app" or "Add to Home screen".');
+    } else {
+      alert('To install, look for the download icon in the right side of your browser address bar.');
     }
-  } else if (/iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase())) {
-    // iPhones don't support prompts, so we tell them how to do it manually
-    alert('To install the Mathrone App on iPhone:\n\n1. Tap the Share icon (square with arrow) at the bottom of Safari.\n2. Scroll down and tap "Add to Home Screen" ➕.');
   }
 };
 
-// Show the button if the device is ready to install OR if it's an iPhone
 function showInstallButton() {
+  // Hide if already installed!
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  if (isStandalone) return;
+
   const btn = document.getElementById('nav-install-btn');
   if (btn) btn.style.display = 'inline-flex';
 }
@@ -4545,11 +4551,14 @@ function hideInstallButton() {
   if (btn) btn.style.display = 'none';
 }
 
-// Check if we should show the button every time a page loads
+// Hook into the page render to ensure the button checks itself when users navigate
 const originalRenderPage = renderPage;
 renderPage = async function() {
   await originalRenderPage();
-  if (window.deferredPWA || /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase())) {
+  
+  // ALWAYS show on mobile devices (Android/iOS) or if PC is ready
+  const isMobile = /iphone|ipad|ipod|android/.test(window.navigator.userAgent.toLowerCase());
+  if (window.deferredPWA || isMobile) {
     showInstallButton();
   }
 };

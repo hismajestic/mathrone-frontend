@@ -218,6 +218,9 @@
     white-space:nowrap;
   }
 }
+@media(max-width:480px){
+  .hide-mobile { display: none !important; }
+}
 
 /* FOOTER BOTTOM */
 .footer-bottom{
@@ -296,10 +299,6 @@
 
  <!-- CENTER MENU (DESKTOP ONLY STYLE) -->
   <div class="nav-menu" id="navMenu">
-    <!-- NEW INSTALL BUTTON -->
-    <button id="nav-install-btn" class="btn-o" style="display:none; gap:8px; border-color:#f59e0b; color:#f59e0b; font-size:20px; font-weight:700;" onclick="installApp()">
-      <i data-lucide="download" style="width:20px;height:20px"></i> Install App
-    </button>
     
     <a href="/news" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:20px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="navigate('news', null, event)">News</a>
     <a href="/shop" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:20px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="navigate('shop', null, event)">Shop</a>
@@ -309,6 +308,13 @@
 
   <!-- RIGHT SIDE -->
   <div class="nav-right" style="display:flex;align-items:center;gap:10px;">
+    
+    <!-- ✨ NEW INSTALL BUTTON (Always visible on mobile) -->
+    <button id="nav-install-btn" class="btn-o" style="display:none; gap:6px; border-color:#f59e0b; color:#f59e0b; font-size:16px; font-weight:800; padding:5px 10px; cursor:pointer;" onclick="installApp()">
+      <i data-lucide="download" style="width:18px;height:18px"></i> 
+      <span class="hide-mobile">Install App</span>
+    </button>
+
     <a href="/login" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:20px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="navigate('login', null, event)">Sign In</a>
     <a href="/register" class="btn-p" style="text-decoration:none;white-space:nowrap;font-size:20px" onclick="navigate('register', null, event)">Get Started</a>
   </div>
