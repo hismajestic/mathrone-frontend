@@ -4,7 +4,9 @@
 // new JS/CSS. Cloudflare Pages auto-serves the new sw.js (no-cache header)
 // and the activate handler deletes the old cache automatically.
 // ─────────────────────────────────────────────────────────────────────────
-const CACHE = 'mathrone-v22';
+
+// BUMPED TO v23
+const CACHE = 'mathrone-v23';
 
 const PRECACHE = [
   '/',
@@ -12,7 +14,7 @@ const PRECACHE = [
   '/style.css',
   '/app.js',
   '/manifest.json',
-  '/favicon.png',
+  '/favicon.png',  // <-- Your one single icon
   '/assets/fonts.css',
   '/assets/fonts/dm-sans-400.woff2',
   '/components/landing.js',
@@ -53,14 +55,11 @@ self.addEventListener('fetch', function(e) {
   var req = e.request;
   var url = new URL(req.url);
 
-  // Skip non-GET and cross-origin API calls (Supabase, backend)
   if (req.method !== 'GET') return;
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith('/api/')) return;
 
-  // Cache-First for fonts only — these never change
   var isFont = /\.(woff2|woff)$/.test(url.pathname);
-
   if (isFont) {
     e.respondWith(
       caches.match(req).then(function(cached) {
@@ -76,27 +75,22 @@ self.addEventListener('fetch', function(e) {
     return;
   }
 
-  // TRUE Network-First for JS, CSS, images
   var isStatic = /\.(js|css|png|jpg|jpeg|webp|svg|ico)$/.test(url.pathname);
-
   if (isStatic) {
     e.respondWith(
       fetch(req).then(function(res) {
-        // 1. If the network works, save the newest version to cache and serve it
         if (res && res.status === 200) {
           var clone = res.clone();
           caches.open(CACHE).then(function(c) { c.put(req, clone); });
         }
         return res;
       }).catch(function() {
-        // 2. If the network fails (offline), fall back to the cached version
         return caches.match(req);
       })
     );
     return;
   }
 
-  // Network-First for HTML (SPA routes) — fall back to cached index.html when offline
   e.respondWith(
     fetch(req).then(function(res) {
       if (res && res.status === 200) {

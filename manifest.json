@@ -1,4 +1,5 @@
 {
+  "id": "/",
   "name": "Mathrone Academy",
   "short_name": "Mathrone",
   "description": "Connect with expert tutors in Rwanda for online and home tutoring",
@@ -12,12 +13,6 @@
   "icons": [
     {
       "src": "/favicon.png",
-      "sizes": "64x64",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/favicon.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
@@ -29,27 +24,5 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["education"],
-  "shortcuts": [
-    {
-      "name": "Find a Tutor",
-      "short_name": "Tutors",
-      "url": "/tutors",
-      "description": "Browse available tutors"
-    },
-    {
-      "name": "Learning Store",
-      "short_name": "Shop",
-      "url": "/shop",
-      "description": "Browse learning materials"
-    },
-    {
-      "name": "Education News",
-      "short_name": "News",
-      "url": "/news",
-      "description": "Latest education news in Rwanda"
-    }
-  ],
-  "related_applications": [],
-  "prefer_related_applications": false
+  "categories": ["education"]
 }
