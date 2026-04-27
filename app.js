@@ -4506,3 +4506,50 @@ function exitMajesticLab() {
     navigate('dashboard');
   }
 }
+// ════════════════════════════════════════════════════════════
+// PWA INSTALLATION LOGIC
+// ════════════════════════════════════════════════════════════
+window.deferredPWA = null;
+
+// Listen for the browser telling us the app can be installed (Android/PC)
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  window.deferredPWA = e;
+  showInstallButton();
+});
+
+// Function to trigger the installation
+window.installApp = async function() {
+  if (window.deferredPWA) {
+    // Show the native Android/PC install prompt
+    window.deferredPWA.prompt();
+    const { outcome } = await window.deferredPWA.userChoice;
+    if (outcome === 'accepted') {
+      window.deferredPWA = null;
+      hideInstallButton();
+    }
+  } else if (/iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase())) {
+    // iPhones don't support prompts, so we tell them how to do it manually
+    alert('To install the Mathrone App on iPhone:\n\n1. Tap the Share icon (square with arrow) at the bottom of Safari.\n2. Scroll down and tap "Add to Home Screen" ➕.');
+  }
+};
+
+// Show the button if the device is ready to install OR if it's an iPhone
+function showInstallButton() {
+  const btn = document.getElementById('nav-install-btn');
+  if (btn) btn.style.display = 'inline-flex';
+}
+
+function hideInstallButton() {
+  const btn = document.getElementById('nav-install-btn');
+  if (btn) btn.style.display = 'none';
+}
+
+// Check if we should show the button every time a page loads
+const originalRenderPage = renderPage;
+renderPage = async function() {
+  await originalRenderPage();
+  if (window.deferredPWA || /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase())) {
+    showInstallButton();
+  }
+};

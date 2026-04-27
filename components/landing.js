@@ -296,6 +296,11 @@
 
  <!-- CENTER MENU (DESKTOP ONLY STYLE) -->
   <div class="nav-menu" id="navMenu">
+    <!-- NEW INSTALL BUTTON -->
+    <button id="nav-install-btn" class="btn-o" style="display:none; gap:8px; border-color:#f59e0b; color:#f59e0b; font-size:20px; font-weight:700;" onclick="installApp()">
+      <i data-lucide="download" style="width:20px;height:20px"></i> Install App
+    </button>
+    
     <a href="/news" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:20px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="navigate('news', null, event)">News</a>
     <a href="/shop" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:20px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="navigate('shop', null, event)">Shop</a>
     <a href="/about" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:20px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="navigate('about', null, event)">About Us</a>
