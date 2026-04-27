@@ -1095,9 +1095,9 @@ async function openNewsPost(slugOrId){
               const cleanUrl = `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1&showinfo=0`;
               const uniqueId = 'vid_' + Math.random().toString(36).substr(2, 9);
               
-              const coverHtml = `
-                <div id="cover-${uniqueId}" onclick="this.style.display='none'; document.getElementById('iframe-${uniqueId}').src='${cleanUrl}'" 
-                     style="position:absolute;top:0;left:0;width:100%;height:100%;cursor:pointer;background:#000 url('${thumbUrl}') center/cover no-repeat;display:flex;align-items:center;justify-content:center;z-index:2">
+             const coverHtml = `
+                <div id="cover-${uniqueId}" onclick="const btn=this.querySelector('div[style*=\\'border-radius:50%\\']'); if(btn) btn.innerHTML='<div class=\\'spinner\\' style=\\'width:28px;height:28px;border-width:3px;border-color:#fff;border-top-color:transparent\\'></div>'; const iframe=document.getElementById('iframe-${uniqueId}'); iframe.src='${cleanUrl}'; iframe.onload = () => { this.style.opacity='0'; setTimeout(()=>this.style.display='none',300); }" 
+                     style="position:absolute;top:0;left:0;width:100%;height:100%;cursor:pointer;background:#000 url('${thumbUrl}') center/cover no-repeat;display:flex;align-items:center;justify-content:center;z-index:2;transition:opacity 0.3s">
                   <div style="width:64px;height:64px;background:#1A5FFF;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(26,95,255,0.4);transition:transform 0.2s" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
                     <svg width="28" height="28" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:4px"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
                   </div>

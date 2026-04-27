@@ -106,12 +106,29 @@
           toast(`Welcome back, ${data.user.full_name}! 👋`)
         }, 100)
      } catch (e) {
-        showErr(err, e.message || 'Login failed. Please check your credentials.')
+        const msg = e.message || 'Login failed. Please check your credentials.'
+        if (err) {
+          err.style.display = 'block'
+          if (msg.toLowerCase().includes('verify')) {
+            err.innerHTML = `${msg}<br><br><a onclick="doResendVerification('${email}')" style="color:var(--blue);cursor:pointer;font-weight:600">Resend verification email →</a>`
+          } else {
+            err.textContent = msg
+          }
+        }
         btn.disabled = false; btn.textContent = 'Sign In'
       }
     }
 
     function showErr(el, msg) { if (el) { el.textContent = msg; el.style.display = 'block' } }
+
+    async function doResendVerification(email) {
+      try {
+        await api('/auth/resend-verification', { method: 'POST', body: JSON.stringify({ email }) })
+        toast('Verification email resent! Check your inbox.', 'ok')
+      } catch (e) {
+        toast('Could not resend email. Please try again later.', 'err')
+      }
+    }
 
     // ════════════════════════════════════════════════════════════
     // REGISTER
@@ -196,6 +213,7 @@ function selectCategory(id){
   const lvlLabel = document.getElementById('levels-label')
   const lvlBox   = document.getElementById('levels-checkboxes')
   if(lvlLabel) lvlLabel.textContent = CATEGORY_LEVELS[id]?.label || 'Levels *'
+
   if(lvlBox){
     const opts = {
       academic: ['Primary','Secondary','University'],
@@ -380,8 +398,7 @@ function selectStudentCategory(id){
             <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" value="Secondary" class="lvl-check"/> Secondary</label>
             <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" value="University" class="lvl-check"/> University</label>
           </div>
-          <input type="hidden" id="r-levels"/>
-          <div style="font-size:11px;color:var(--g400);margin-top:4px" id="levels-hint">Select all that apply</div>
+        <div style="font-size:11px;color:var(--g400);margin-top:4px" id="levels-hint">Select all that apply</div>
         </div>
         <div class="form-group"><label class="form-label">Years Experience *</label><input class="input" id="r-exp" type="number" min="0" placeholder="3"/></div>
       </div>
@@ -408,14 +425,17 @@ function selectStudentCategory(id){
       const name = document.getElementById('r-name')?.value?.trim()
       const email = document.getElementById('r-email')?.value?.trim()
       const pw = document.getElementById('r-pw')?.value
+      const phone = document.getElementById('r-phone')?.value?.trim()
+      
       if (!name || !email || !pw) { showErr(err, 'Name, email and password are required'); return }
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-if (!emailRegex.test(email)) { showErr(err, 'Please enter a valid email address (e.g. name@example.com)'); return }
-if (pw.length < 6) { showErr(err, 'Password must be at least 6 characters'); return }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(email)) { showErr(err, 'Please enter a valid email address (e.g. name@example.com)'); return }
+      if (pw.length < 6) { showErr(err, 'Password must be at least 6 characters'); return }
 
       if (role === 'tutor') {
+        if (!phone) { showErr(err, 'Phone number is required for tutors'); return }
         const cvFile = document.getElementById('r-cv')?.files[0]
-        if (!cvFile) { showErr(err, 'Please upload your CV'); return }
+        if (!cvFile) { showErr(err, 'Please upload your CV document'); return }
       }
 
       btn.disabled = true; btn.textContent = 'Creating account...'
@@ -439,32 +459,52 @@ if (!locationS && sessionMode !== 'online') { showErr(err, 'Please select your d
             category: document.getElementById('r-student-category')?.value || 'academic',}
             path = '/auth/register/student'
             
-        } else {
+       } else {
           const qual = document.getElementById('r-qual')?.value?.trim()
           const subs = document.getElementById('r-subjects')?.value?.split(',').map(s => s.trim()).filter(Boolean) || []
-          const lvls = document.getElementById('r-levels')?.value?.split(',').map(s => s.trim()).filter(Boolean) || []
+          const category = document.getElementById('r-category')?.value || 'academic'
+          
+          // Read directly from DOM to prevent hidden-input sync bugs
+          const lvls = [...document.querySelectorAll('.lvl-check:checked')].map(c => c.value)
+          
           const exp = parseInt(document.getElementById('r-exp')?.value) || 0
           const locationT = document.getElementById('r-location')?.value
-if (!qual || !subs.length || !lvls.length) { showErr(err, 'Qualification, subjects and levels are required'); btn.disabled = false; btn.textContent = 'Submit Application →'; return }
-if (!locationT) { showErr(err, 'Please select your district'); btn.disabled = false; btn.textContent = 'Submit Application →'; return }
+          
+          if (!qual) { showErr(err, 'Please enter your qualification (e.g. BSc Mathematics)'); btn.disabled = false; btn.textContent = 'Submit Application →'; return }
+          
+          if (!subs.length) { 
+            const msg = category === 'academic' 
+              ? 'Please type at least one subject you teach in the text box (e.g. Math, Physics)' 
+              : 'Please type at least one specific skill in the text box (e.g. Web Design, MS Office)';
+            showErr(err, msg); 
+            btn.disabled = false; 
+            btn.textContent = 'Submit Application →'; 
+            return 
+          }
+          
+          if (!lvls.length) { showErr(err, 'Please select at least one level by ticking the checkboxes'); btn.disabled = false; btn.textContent = 'Submit Application →'; return }
+          if (!locationT) { showErr(err, 'Please select your district'); btn.disabled = false; btn.textContent = 'Submit Application →'; return }
+          
           body = {
             full_name: name, email, password: pw,
-            phone: document.getElementById('r-phone')?.value || null,
+            phone: phone || null,
             qualification: qual, subjects: subs, levels: lvls,
             teaching_modes: document.getElementById('r-mode')?.value?.split(',') || ['online'],
             experience_years: exp,
-            location: document.getElementById('r-location')?.value || null,
+            location: locationT,
             bio: document.getElementById('r-bio')?.value || null,
-            category: document.getElementById('r-category')?.value || 'academic'
+            category: category
           }
           path = '/auth/register/tutor'
         }
 
         const data = await api(path, { method: 'POST', body: JSON.stringify(body) })
-        setAuth(data)
+        // Do NOT call setAuth here — user must verify email before being logged in
+        // Use the temporary token from registration only for CV upload, then discard it
+        const tempToken = data.access_token
 
         // Upload CV after successful tutor registration
-        if (role === 'tutor') {
+        if (role === 'tutor' && tempToken) {
           btn.textContent = 'Uploading CV...'
           const cvFile = document.getElementById('r-cv')?.files[0]
           const certFiles = document.getElementById('r-cert')?.files
@@ -474,19 +514,47 @@ if (!locationT) { showErr(err, 'Please select your district'); btn.disabled = fa
             for (const f of certFiles) formData.append('certificates', f)
           }
           try {
-            const token = getToken()
             await fetch(API_URL + '/tutors/upload-docs', {
               method: 'POST',
-              headers: { Authorization: `Bearer ${token}` },
+              headers: { Authorization: `Bearer ${tempToken}` },
               body: formData
             })
           } catch (e) {
-            toast('Account created but CV upload failed. Please upload from dashboard.', 'err')
+            toast('Account created but CV upload failed. Please upload from your dashboard after logging in.', 'err')
           }
         }
 
-        toast(role === 'tutor' ? 'Application submitted! Welcome to Mathrone ✅' : 'Account created! Welcome to Mathrone 🎉')
-        navigate('dashboard')
+        // Clear auth — don't log them in yet, they must verify email first
+        localStorage.removeItem('tc_access')
+        localStorage.removeItem('tc_refresh')
+        localStorage.removeItem('tc_user')
+        State.user = null
+
+        if (role === 'tutor') {
+          render(`
+            <div class="auth-wrap">
+              <div class="auth-card" style="text-align:center">
+                <div style="font-size:48px;margin-bottom:16px">📧</div>
+                <h1 class="auth-title">Application Submitted!</h1>
+                <p class="auth-sub" style="margin-bottom:16px">We sent a verification link to <strong>${email}</strong>.<br>Please check your inbox and verify your email before logging in.</p>
+                <p style="font-size:13px;color:var(--g400);margin-bottom:24px">After verification, our team will review your application within 2–3 business days.</p>
+                <button class="btn btn-primary btn-full" onclick="navigate('login')">Go to Login →</button>
+                <div class="auth-switch" style="margin-top:12px"><a onclick="navigate('landing')">← Back to home</a></div>
+              </div>
+            </div>`)
+        } else {
+          render(`
+            <div class="auth-wrap">
+              <div class="auth-card" style="text-align:center">
+                <div style="font-size:48px;margin-bottom:16px">📧</div>
+                <h1 class="auth-title">Almost there!</h1>
+                <p class="auth-sub" style="margin-bottom:16px">We sent a verification link to <strong>${email}</strong>.<br>Please check your inbox and click the link to activate your account.</p>
+                <p style="font-size:13px;color:var(--g400);margin-bottom:24px">Didn't receive it? Check your spam folder.</p>
+                <button class="btn btn-primary btn-full" onclick="navigate('login')">Go to Login →</button>
+                <div class="auth-switch" style="margin-top:12px"><a onclick="navigate('landing')">← Back to home</a></div>
+              </div>
+            </div>`)
+        }
       } catch (e) {
         showErr(err, e.message)
         btn.disabled = false

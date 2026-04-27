@@ -16,8 +16,10 @@ let supabaseClient = null;
 function getSupabase() {
   if (supabaseClient) return supabaseClient;
   if (window.supabase) {
+    const token = localStorage.getItem('tc_access');
     supabaseClient = window.supabase.createClient(SB_URL, SB_KEY, {
-      auth: { persistSession: false }
+      auth: { persistSession: false },
+      global: { headers: token ? { Authorization: `Bearer ${token}` } : {} }
     });
     return supabaseClient;
   }
@@ -173,6 +175,7 @@ function _get(id) { return _dataRegistry[id]; }
       localStorage.setItem('tc_refresh', data.refresh_token)
       localStorage.setItem('tc_user', JSON.stringify(data.user))
       State.user = data.user
+      supabaseClient = null; // Recreate Supabase client with the new token
       setTimeout(startRealtimeSync, 500)
     }
     function clearAuth() {
@@ -184,6 +187,7 @@ function _get(id) { return _dataRegistry[id]; }
       localStorage.removeItem('tc_tab')
       localStorage.removeItem('tc_lab_token')
       State.user = null
+      supabaseClient = null; // Clear client to remove token
     }
     function closeAuth() {
       if (State.prevPage && State.prevPage !== 'login' && State.prevPage !== 'register') {

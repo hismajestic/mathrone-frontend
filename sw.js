@@ -76,19 +76,21 @@ self.addEventListener('fetch', function(e) {
     return;
   }
 
-  // Network-First for JS, CSS, images — respects _headers cache rules
+  // TRUE Network-First for JS, CSS, images
   var isStatic = /\.(js|css|png|jpg|jpeg|webp|svg|ico)$/.test(url.pathname);
 
   if (isStatic) {
     e.respondWith(
-      caches.match(req).then(function(cached) {
-        return cached || fetch(req).then(function(res) {
-          if (res && res.status === 200) {
-            var clone = res.clone();
-            caches.open(CACHE).then(function(c) { c.put(req, clone); });
-          }
-          return res;
-        });
+      fetch(req).then(function(res) {
+        // 1. If the network works, save the newest version to cache and serve it
+        if (res && res.status === 200) {
+          var clone = res.clone();
+          caches.open(CACHE).then(function(c) { c.put(req, clone); });
+        }
+        return res;
+      }).catch(function() {
+        // 2. If the network fails (offline), fall back to the cached version
+        return caches.match(req);
       })
     );
     return;

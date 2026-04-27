@@ -25,13 +25,14 @@ export async function onRequest(context) {
     const plainText = (product.description || product.name).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
     const description = `Buy for RWF ${product.price}. ${plainText}`.slice(0, 160);
 
-    // Build a hidden HTML page just for the bot to read
+    // Build a semantic HTML page for the bot to read (No redirects!)
     const html = `<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8"/>
   <title>${title}</title>
   <meta name="description" content="${description}"/>
+  <link rel="canonical" href="${url}"/>
 
   <meta property="og:type" content="product"/>
   <meta property="og:title" content="${title}"/>
@@ -46,17 +47,20 @@ export async function onRequest(context) {
   <meta name="twitter:title" content="${title}"/>
   <meta name="twitter:description" content="${description}"/>
   <meta name="twitter:image" content="${image}"/>
-
-  <!-- Send the bot/user to the real URL -->
-  <meta http-equiv="refresh" content="0;url=${url}"/>
 </head>
 <body>
-  <p>Redirecting to <a href="${url}">${title}</a>...</p>
+  <h1>${product.name}</h1>
+  <img src="${image}" alt="${product.name}" />
+  <h2>Price: RWF ${product.price}</h2>
+  <p>${plainText}</p>
 </body>
 </html>`;
 
     return new Response(html, {
-      headers: { 'content-type': 'text/html;charset=UTF-8' }
+      headers: { 
+        'content-type': 'text/html;charset=UTF-8',
+        'Cache-Control': 'public, max-age=3600'
+      }
     });
 
   } catch (e) {

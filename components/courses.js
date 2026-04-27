@@ -262,9 +262,16 @@ window.playCourseCardVideo = function(e, id, url) {
   const cover = document.getElementById('card-vid-cover-' + id);
   const iframe = document.getElementById('card-vid-iframe-' + id);
   if (cover && iframe) {
-    iframe.src = url; // Inject URL to start buffering immediately
-    cover.style.opacity = '0';
-    setTimeout(() => { cover.style.display = 'none'; }, 300);
+    // Show spinner on the play button
+    const playBtn = cover.querySelector('.play-btn-circle');
+    if (playBtn) playBtn.innerHTML = '<div class="spinner" style="width:24px;height:24px;border-width:3px;border-color:var(--blue);border-top-color:transparent"></div>';
+    
+    iframe.src = url; // Inject URL to start buffering
+    // Wait for the iframe to actually load before hiding the cover
+    iframe.onload = () => {
+      cover.style.opacity = '0';
+      setTimeout(() => { cover.style.display = 'none'; }, 300);
+    };
   }
 };
 
@@ -526,7 +533,7 @@ async function renderCourseDetail(slugParam) {
           <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:14px;background:#000;box-shadow:0 8px 30px rgba(0,0,0,0.15)">
             
             <!-- Course thumbnail cover — same look as card -->
-            <div id="preview-vid-cover" onclick="this.style.display='none'; document.getElementById('preview-vid-iframe').src='${cleanUrl}'"
+            <div id="preview-vid-cover" onclick="const btn=this.querySelector('div[style*=\\'border-radius:50%\\']'); if(btn) btn.innerHTML='<div class=\\'spinner\\' style=\\'width:28px;height:28px;border-width:3px;border-color:var(--blue);border-top-color:transparent\\'></div>'; const iframe=document.getElementById('preview-vid-iframe'); iframe.src='${cleanUrl}'; iframe.onload = () => { this.style.opacity='0'; setTimeout(()=>this.style.display='none',300); }"
                  style="position:absolute;top:0;left:0;width:100%;height:100%;cursor:pointer;background:${coverBg};display:flex;align-items:center;justify-content:center;z-index:2;transition:opacity 0.3s;">
               
               <!-- Dark tint overlay — matches card -->
@@ -774,10 +781,10 @@ function openLessonPlayer(lessonId) {
     const thumbUrl = ytId ? `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg` : '';
     const cleanUrl = ytId ? `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1&showinfo=0&controls=1` : l.video_url;
     
-    videoHtml = `
+     videoHtml = `
     <div style="position:relative;padding-bottom:56.25%;height:0;background:#000;border-radius:0;overflow:hidden;border-bottom:1px solid var(--g100)">
-      <div id="lesson-vid-cover" onclick="this.style.display='none'; document.getElementById('lesson-vid-iframe').src='${cleanUrl}'" 
-           style="position:absolute;top:0;left:0;width:100%;height:100%;cursor:pointer;background:#000 url('${thumbUrl}') center/cover no-repeat;display:flex;align-items:center;justify-content:center;z-index:2">
+      <div id="lesson-vid-cover" onclick="const btn=this.querySelector('div[style*=\\'border-radius:50%\\']'); if(btn) btn.innerHTML='<div class=\\'spinner\\' style=\\'width:28px;height:28px;border-width:3px;border-color:#fff;border-top-color:transparent\\'></div>'; const iframe=document.getElementById('lesson-vid-iframe'); iframe.src='${cleanUrl}'; iframe.onload = () => { this.style.opacity='0'; setTimeout(()=>this.style.display='none',300); }" 
+           style="position:absolute;top:0;left:0;width:100%;height:100%;cursor:pointer;background:#000 url('${thumbUrl}') center/cover no-repeat;display:flex;align-items:center;justify-content:center;z-index:2;transition:opacity 0.3s">
         <div style="width:64px;height:64px;background:var(--blue);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(26,95,255,0.4);transition:transform 0.2s" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:4px"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
         </div>

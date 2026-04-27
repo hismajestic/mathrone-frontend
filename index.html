@@ -20,6 +20,9 @@
 <link rel="preconnect" href="https://fonts.bunny.net" crossorigin/>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin/>
 <link rel="preconnect" href="https://images.unsplash.com" crossorigin/>
+<link rel="preconnect" href="https://www.youtube-nocookie.com">
+<link rel="preconnect" href="https://www.google.com">
+<link rel="preconnect" href="https://i.ytimg.com">
 
 <!-- ③ Preload critical resources — LCP logo gets fetchpriority=high -->
 <link rel="preload" href="/style.css" as="style"/>
@@ -38,8 +41,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--g50);color:var(--g800);ov
 .loader-center{display:flex;align-items:center;justify-content:center;min-height:100vh}
 .spinner{width:40px;height:40px;border:3px solid var(--g100);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-/* seo-shell: visible to crawlers, hidden after JS boots via render() setting display:none */
-#seo-shell{position:absolute;left:-9999px;top:0;width:1px;overflow:hidden;pointer-events:none}
+
 </style>
 
 <!-- ⑤ Non-blocking stylesheet load -->
@@ -240,116 +242,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--g50);color:var(--g800);ov
 </head>
 
 <body>
-
-<!-- SEO shell: crawlers read this; JS hides it via render() → shell.style.display='none'
-     Using position:absolute + left:-9999px (NOT clip/width:1px) avoids Google cloaking flag -->
-<div id="seo-shell">
-
-  <!-- HOME -->
-  <article data-route="/" itemscope itemtype="https://schema.org/WebPage">
-    <h1 itemprop="name">Private Tutors in Rwanda — Mathrone Academy</h1>
-    <p itemprop="description">Mathrone Academy connects students across Rwanda with vetted, expert tutors for personalised 1-on-1 learning — online via video call or at home anywhere in Kigali and Rwanda.</p>
-    <h2>Why choose Mathrone Academy?</h2>
-    <p>All our tutors are hand-picked and background-checked. We match you with the right tutor within 24 hours based on your subject, level, and schedule.</p>
-    <h2>Subjects we cover</h2>
-    <p>Mathematics, Physics, Chemistry, Biology, English, French, Kinyarwanda, Digital Skills, Web Development, Business Studies, Music, and more — covering REB curriculum, IGCSE, and A-Level.</p>
-    <h2>How it works</h2>
-    <ol>
-      <li>Register on Mathrone Academy and tell us your subject and level.</li>
-      <li>We match you with a vetted tutor within 24 hours.</li>
-      <li>Book sessions online or at home anywhere in Rwanda.</li>
-    </ol>
-    <nav aria-label="Primary actions">
-      <a href="/courses">Online Video Courses</a> |
-      <a href="/tutors">Browse tutors in Rwanda</a> |
-      <a href="/register">Get started free</a> |
-      <a href="/news">Education news &amp; scholarships</a> |
-      <a href="/shop">Learning materials shop</a> |
-      <a href="/about">About Mathrone Academy</a>
-    </nav>
-  </article>
-
-  <!-- ABOUT -->
-  <article data-route="/about" itemscope itemtype="https://schema.org/AboutPage">
-    <h1 itemprop="name">About Mathrone Academy — Rwanda's Leading Tutoring Platform</h1>
-    <p itemprop="description">Mathrone Academy is Rwanda's leading tutoring platform, connecting ambitious students with qualified, vetted tutors for personalised academic support in Kigali and across Rwanda.</p>
-    <h2>Our mission</h2>
-    <p>To make quality, personalised education accessible to every student in Rwanda, wherever they are, whatever their level.</p>
-    <h2>Contact us</h2>
-    <p>WhatsApp: +250 786 684 285 | Kigali, Rwanda</p>
-    <nav><a href="/tutors">Find a tutor</a> | <a href="/register">Join Mathrone Academy</a> | <a href="/">Home</a></nav>
-  </article>
-
-  <!-- TUTORS -->
-  <article data-route="/tutors" itemscope itemtype="https://schema.org/ItemList">
-    <h1 itemprop="name">Find a Private Tutor in Rwanda — Mathrone Academy</h1>
-    <p itemprop="description">Browse Mathrone Academy's network of expert tutors in Kigali and across Rwanda. All tutors are vetted, qualified, and available for online or home visit sessions for REB, IGCSE and A-Level.</p>
-    <h2>Subjects available</h2>
-    <p>Mathematics, Physics, Chemistry, Biology, English, French, Digital Skills, Web Development, Business, Music and more.</p>
-    <h2>Levels covered</h2>
-    <p>Primary school, O-Level, A-Level, IGCSE, university entrance preparation, and adult learning.</p>
-    <nav><a href="/register">Request a tutor</a> | <a href="/about">About us</a> | <a href="/">Home</a></nav>
-  </article>
-
-  <!-- SHOP -->
-  <article data-route="/shop" itemscope itemtype="https://schema.org/Store">
-    <h1 itemprop="name">Educational Materials Shop — Mathrone Academy Rwanda</h1>
-    <p itemprop="description">Buy quality learning materials online — notebooks, geometry sets, science kits, past papers and study guides. Delivered to your door in Kigali and across Rwanda.</p>
-    <h2>Categories</h2>
-    <ul>
-      <li>Notebooks &amp; stationery</li>
-      <li>Science kits &amp; lab equipment</li>
-      <li>Past papers &amp; revision guides</li>
-      <li>Digital learning resources</li>
-    </ul>
-    <nav><a href="/shop">Shop now</a> | <a href="/tutors">Find a tutor</a> | <a href="/">Home</a></nav>
-  </article>
-
-  <!-- NEWS -->
-  <article data-route="/news" itemscope itemtype="https://schema.org/CollectionPage">
-    <h1 itemprop="name">Education News, Scholarships &amp; Career Opportunities — Rwanda</h1>
-    <p itemprop="description">Stay updated with the latest education news in Rwanda including scholarships, government policy, REB updates, career opportunities, and study abroad programmes for Rwandan students.</p>
-    <h2>Topics covered</h2>
-    <ul>
-      <li>Scholarships for Rwandan students</li>
-      <li>Government education updates &amp; REB news</li>
-      <li>Career opportunities in Rwanda</li>
-      <li>Study abroad programmes</li>
-      <li>Learning resources &amp; tips</li>
-    </ul>
-    <nav><a href="/news">Read latest news</a> | <a href="/tutors">Find a tutor</a> | <a href="/">Home</a></nav>
-  </article>
-
-  <!-- COURSES -->
-  <article data-route="/courses" itemscope itemtype="https://schema.org/CollectionPage">
-    <h1 itemprop="name">Online Courses — Mathrone Academy Rwanda</h1>
-    <p itemprop="description">Browse online courses in Mathematics, Physics, Chemistry, Biology, English and more. Self-paced video lessons, quizzes and certificates for Rwandan students at all levels.</p>
-    <h2>Subjects available</h2>
-    <ul>
-      <li>Mathematics — Algebra, Calculus, Statistics</li>
-      <li>Physics — Mechanics, Electricity, Optics</li>
-      <li>Chemistry — Organic, Inorganic, Physical</li>
-      <li>Biology — Cell biology, Genetics, Ecology</li>
-      <li>English — Grammar, Writing, Literature</li>
-    </ul>
-    <nav><a href="/courses">Browse all courses</a> | <a href="/tutors">Find a tutor</a> | <a href="/">Home</a></nav>
-  </article>
-
-  <!-- PRIVACY -->
-  <article data-route="/privacy">
-    <h1>Privacy Policy — Mathrone Academy</h1>
-    <p>Mathrone Academy is committed to protecting your personal data. This privacy policy explains how we collect, use, and protect information from students, tutors, and visitors on our platform in compliance with Rwandan data protection law.</p>
-    <nav><a href="/">Home</a> | <a href="/terms">Terms of Service</a></nav>
-  </article>
-
-  <!-- TERMS -->
-  <article data-route="/terms">
-    <h1>Terms and Conditions — Mathrone Academy</h1>
-    <p>By using Mathrone Academy you agree to our terms of service. These terms govern the use of our tutoring platform, shop, and all related services in Rwanda.</p>
-    <nav><a href="/">Home</a> | <a href="/privacy">Privacy Policy</a></nav>
-  </article>
-
-</div>
 
 <div id="toasts"></div>
 <div id="app">
