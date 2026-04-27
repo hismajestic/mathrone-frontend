@@ -1,18 +1,20 @@
 // Mathrone Academy — Service Worker
 // ── HOW TO BUST THE CACHE ON NEW DEPLOY ─────────────────────────────────
 
-// BUMPED TO v24
-const CACHE = 'mathrone-v24';
+// BUMPED TO v25
+const CACHE = 'mathrone-v25';
 
 const PRECACHE = [
   '/',
   '/index.html',
   '/style.css',
   '/app.js',
-  '/site.webmanifest',  // <-- Updated to new file
-  '/favicon.ico',       // <-- Added new icon
-  '/icon-192x192.png',  // <-- Added new icon
-  '/icon-512x512.png',  // <-- Added new icon
+  '/site.webmanifest',  
+  '/favicon.ico',       
+  '/icon-192x192.png',  
+  '/icon-512x512.png',  
+  '/screenshot-desktop.png', // <-- Added for the new Rich Install UI
+  '/screenshot-mobile.png',  // <-- Added for the new Rich Install UI
   '/assets/fonts.css',
   '/assets/fonts/dm-sans-400.woff2',
   '/components/landing.js',
