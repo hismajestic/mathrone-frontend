@@ -1,20 +1,18 @@
 // Mathrone Academy — Service Worker
 // ── HOW TO BUST THE CACHE ON NEW DEPLOY ─────────────────────────────────
-// Increment CACHE version string (e.g. v1 → v2) whenever you deploy
-// new JS/CSS. Cloudflare Pages auto-serves the new sw.js (no-cache header)
-// and the activate handler deletes the old cache automatically.
-// ─────────────────────────────────────────────────────────────────────────
 
-// BUMPED TO v23
-const CACHE = 'mathrone-v23';
+// BUMPED TO v24
+const CACHE = 'mathrone-v24';
 
 const PRECACHE = [
   '/',
   '/index.html',
   '/style.css',
   '/app.js',
-  '/manifest.json',
-  '/favicon.png',  // <-- Your one single icon
+  '/site.webmanifest',  // <-- Updated to new file
+  '/favicon.ico',       // <-- Added new icon
+  '/icon-192x192.png',  // <-- Added new icon
+  '/icon-512x512.png',  // <-- Added new icon
   '/assets/fonts.css',
   '/assets/fonts/dm-sans-400.woff2',
   '/components/landing.js',
@@ -75,7 +73,7 @@ self.addEventListener('fetch', function(e) {
     return;
   }
 
-  var isStatic = /\.(js|css|png|jpg|jpeg|webp|svg|ico)$/.test(url.pathname);
+  var isStatic = /\.(js|css|png|jpg|jpeg|webp|svg|ico|webmanifest)$/.test(url.pathname);
   if (isStatic) {
     e.respondWith(
       fetch(req).then(function(res) {
