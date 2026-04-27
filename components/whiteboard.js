@@ -96,7 +96,10 @@
           <button class="wb-btn" onclick="nextWBPage()" title="Next Page" style="min-width:30px; padding:4px;">▶</button>
           <button class="wb-btn host-only" onclick="addWBPage()" style="background:#10B981; color:white; font-weight:bold;">+ Page</button>
         </div>
-        <button class="wb-btn host-only" onclick="downloadLabAsPDF()" style="background:#1A5FFF; color:white; margin-right:10px; font-weight:bold;">💾 Save PDF</button>
+        <button class="wb-btn host-only" onclick="downloadLabAsPDF()" style="background:#1A5FFF; color:white; font-weight:bold;">💾 Save PDF</button>
+        <button class="wb-btn host-only" id="studio-rec-btn" onclick="toggleStudioRecording()" style="background:rgba(239,68,68,0.2);color:#fca5a5;border:1px solid rgba(239,68,68,0.4);font-weight:bold;margin-right:4px;">🔴 Record</button>
+        <span id="studio-rec-timer" style="color:#fca5a5;font-size:11px;font-weight:700;display:none;margin-right:10px;"></span>
+        <button class="wb-btn host-only" id="oct-theme-btn" onclick="toggleOCTTheme()" title="Switch between Studio (black) and Normal theme" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.25);font-weight:bold;margin-right:4px;">🎨 Studio Mode</button>
 
         <div class="tool-sep" style="width:1px; height:28px; background:rgba(255,255,255,0.2); margin:0 4px;"></div>
         <button class="wb-btn active" id="tool-pencil" onclick="setSTEMTool('pencil')" title="Freehand Draw"><i data-lucide="pen" style="width:14px;height:14px"></i> Draw</button>
@@ -3010,4 +3013,270 @@ function setupDocStudentListeners(channel) {
       window._docSlides = [];
       toast('Tutor ended the presentation', 'info');
     });
+}
+
+// ── Studio Recording ─────────────────────────────────────────────────────────
+let _studioRecorder = null;
+let _studioChunks   = [];
+let _studioTimerInterval = null;
+let _studioSeconds  = 0;
+
+async function toggleStudioRecording() {
+  if (_studioRecorder && _studioRecorder.state === 'recording') {
+    stopStudioRecording();
+  } else {
+    startStudioRecording();
+  }
+}
+
+async function startStudioRecording() {
+  try {
+    // ── Step 1: Show checklist so nothing is forgotten ──────────────────────
+    const go = confirm(
+      '🎬 PRE-RECORDING CHECKLIST\n\n' +
+      '✅ Microphone (lapel/wireless) plugged in & selected?\n' +
+      '✅ Whiteboard is ready on screen?\n' +
+      '✅ Tutor is ready to begin?\n\n' +
+      'Click OK to start recording — you will be asked to share this tab next.'
+    );
+    if (!go) return;
+
+    // ── Step 2: Capture the whiteboard tab (works on smartboard, laptop, tablet) ─
+    let screenStream;
+    try {
+      screenStream = await navigator.mediaDevices.getDisplayMedia({
+        video: { displaySurface: 'browser', frameRate: 30, width: { ideal: 1920 }, height: { ideal: 1080 } },
+        audio: false
+      });
+    } catch(e) {
+      // Tablet / mobile fallback — some browsers don't support getDisplayMedia
+      toast('⚠️ Screen capture not supported on this device. Audio-only recording started.', 'info');
+      screenStream = null;
+    }
+
+    // ── Step 3: Capture mic — lapel, phone mic, USB, anything connected ─────
+    let micStream;
+    try {
+      // Show device picker so user can choose the right mic (lapel, phone, built-in)
+      micStream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: false,  // OFF — lapel mic is already isolated
+          noiseSuppression: false,  // OFF — preserve natural voice quality
+          autoGainControl: false,   // OFF — let the hardware mic control gain
+          sampleRate: 48000
+        },
+        video: false
+      });
+    } catch(e) {
+      toast('⚠️ Microphone not found. Recording screen only.', 'info');
+      micStream = null;
+    }
+
+    if (!screenStream && !micStream) {
+      toast('❌ Nothing to record — no screen and no mic available.', 'err');
+      return;
+    }
+
+    // ── Step 4: Merge tracks into one stream ─────────────────────────────────
+    const tracks = [
+      ...(screenStream ? screenStream.getVideoTracks() : []),
+      ...(micStream    ? micStream.getAudioTracks()    : [])
+    ];
+    const combined = new MediaStream(tracks);
+
+    // ── Step 5: Pick best supported format ───────────────────────────────────
+    const mimeType = [
+      'video/webm;codecs=vp9,opus',
+      'video/webm;codecs=vp8,opus',
+      'video/webm',
+      'video/mp4'
+    ].find(t => MediaRecorder.isTypeSupported(t)) || '';
+
+    _studioChunks   = [];
+    _studioRecorder = new MediaRecorder(combined, mimeType ? { mimeType } : {});
+
+    _studioRecorder.ondataavailable = e => {
+      if (e.data && e.data.size > 0) _studioChunks.push(e.data);
+    };
+
+    _studioRecorder.onstop = () => {
+      // Stop all tracks cleanly
+      if (screenStream) screenStream.getTracks().forEach(t => t.stop());
+      if (micStream)    micStream.getTracks().forEach(t => t.stop());
+
+      // Build a readable filename
+      const subject  = (window._wbInstitutionName || 'Lesson').replace(/\s+/g, '_');
+      const dateStr  = new Date().toISOString().slice(0, 10);
+      const ext      = mimeType.includes('mp4') ? 'mp4' : 'webm';
+      const filename = `${subject}_${dateStr}.${ext}`;
+
+      // Auto-download to device
+      const blob = new Blob(_studioChunks, { type: mimeType || 'video/webm' });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+
+      // Reset UI
+      clearInterval(_studioTimerInterval);
+      _studioSeconds = 0;
+      _studioRecorder = null;
+      const btn   = document.getElementById('studio-rec-btn');
+      const timer = document.getElementById('studio-rec-timer');
+      if (btn)   { btn.textContent = '🔴 Record'; btn.style.background = 'rgba(239,68,68,0.2)'; btn.style.color = '#fca5a5'; }
+      if (timer) { timer.style.display = 'none'; timer.textContent = ''; }
+
+      toast('✅ Recording saved — ready for editing!', 'ok');
+    };
+
+    // If tutor stops sharing the tab, auto-stop the recording
+    if (screenStream) {
+      screenStream.getVideoTracks()[0].onended = () => {
+        if (_studioRecorder && _studioRecorder.state === 'recording') {
+          stopStudioRecording();
+        }
+      };
+    }
+
+    _studioRecorder.start(1000); // write a chunk every second for safety
+
+    // ── Step 6: Update button to show recording is live ──────────────────────
+    const btn   = document.getElementById('studio-rec-btn');
+    const timer = document.getElementById('studio-rec-timer');
+    if (btn)   { btn.textContent = '⏹ Stop'; btn.style.background = 'rgba(239,68,68,0.7)'; btn.style.color = '#fff'; }
+    if (timer) { timer.style.display = 'inline'; }
+
+    // Live timer
+    _studioTimerInterval = setInterval(() => {
+      _studioSeconds++;
+      const m = String(Math.floor(_studioSeconds / 60)).padStart(2, '0');
+      const s = String(_studioSeconds % 60).padStart(2, '0');
+      const el = document.getElementById('studio-rec-timer');
+      if (el) el.textContent = `⏱ ${m}:${s}`;
+    }, 1000);
+
+    toast('🔴 Recording live — tutor can begin teaching!', 'info');
+
+  } catch(e) {
+    toast('Recording error: ' + e.message, 'err');
+  }
+}
+
+function stopStudioRecording() {
+  if (_studioRecorder && _studioRecorder.state === 'recording') {
+    _studioRecorder.stop();
+    toast('⏹ Stopping recording...', 'info');
+  }
+}
+
+// ── OCT Studio Theme Toggle ──────────────────────────────────────────────────
+window._octThemeActive = false;
+
+window.toggleOCTTheme = function() {
+  const canvas      = window.wbInstance;
+  const container   = document.getElementById('canvas-container');
+  const gridBox     = document.getElementById('grid-box');
+  const btn         = document.getElementById('oct-theme-btn');
+  const colorPicker = document.getElementById('wb-color');
+  const widthSelect = document.getElementById('wb-width');
+
+  window._octThemeActive = !window._octThemeActive;
+
+  if (window._octThemeActive) {
+    // ── STUDIO MODE (black canvas, white pen) ───────────────────────────────
+    // Save current state so we can restore it perfectly
+    window._normalTheme = {
+      containerBg  : container.style.background,
+      gridBoxBg    : gridBox.style.background,
+      gridBoxShadow: gridBox.style.boxShadow,
+      gridBoxRadius: gridBox.style.borderRadius,
+      penColor     : canvas.freeDrawingBrush.color,
+      penWidth     : canvas.freeDrawingBrush.width,
+      pickerValue  : colorPicker ? colorPicker.value : '#1A5FFF',
+      widthValue   : widthSelect ? widthSelect.value : '2'
+    };
+
+    container.style.background = '#000000';
+    gridBox.style.background   = '#000000';
+    gridBox.style.boxShadow    = 'none';
+    gridBox.style.borderRadius = '0';
+
+    canvas.freeDrawingBrush.color = '#FFFFFF';
+    canvas.freeDrawingBrush.width = 4;
+    if (colorPicker) colorPicker.value = '#FFFFFF';
+    if (widthSelect)  widthSelect.value = '4';
+
+    _renderOCTSwatches(true);
+
+    btn.textContent      = '🎨 Normal Mode';
+    btn.style.background = 'rgba(255,255,255,0.25)';
+    btn.style.border     = '1px solid rgba(255,255,255,0.7)';
+
+    toast('🎬 Studio Mode ON — black canvas, white pen', 'info');
+
+  } else {
+    // ── NORMAL MODE — restore everything exactly as it was ──────────────────
+    const s = window._normalTheme || {};
+
+    container.style.background = s.containerBg   || '#1a2a50';
+    gridBox.style.background   = s.gridBoxBg      || '#fff';
+    gridBox.style.boxShadow    = s.gridBoxShadow  || '0 8px 48px rgba(0,0,0,0.4)';
+    gridBox.style.borderRadius = s.gridBoxRadius  || '4px';
+
+    canvas.freeDrawingBrush.color = s.penColor    || '#1A5FFF';
+    canvas.freeDrawingBrush.width = s.penWidth    || 2;
+    if (colorPicker) colorPicker.value = s.pickerValue || '#1A5FFF';
+    if (widthSelect)  widthSelect.value = s.widthValue  || '2';
+
+    _renderOCTSwatches(false);
+
+    btn.textContent      = '🎨 Studio Mode';
+    btn.style.background = 'rgba(255,255,255,0.1)';
+    btn.style.border     = '1px solid rgba(255,255,255,0.25)';
+
+    toast('Normal Mode restored', 'info');
+  }
+};
+
+function _renderOCTSwatches(studioMode) {
+  const swatchWrap = document.querySelector('[title="Pen Color"]');
+  if (!swatchWrap) return;
+
+  const label = swatchWrap.querySelector('span');
+  swatchWrap.innerHTML = '';
+  if (label) swatchWrap.appendChild(label);
+
+  const studioColors = [
+    { hex: '#FFFFFF', label: 'White',  size: '20px', border: 'rgba(255,255,255,0.9)' },
+    { hex: '#EF4444', label: 'Red',    size: '20px', border: 'rgba(255,255,255,0.3)' },
+    { hex: '#F5A623', label: 'Yellow', size: '20px', border: 'rgba(255,255,255,0.3)' },
+    { hex: '#10B981', label: 'Green',  size: '20px', border: 'rgba(255,255,255,0.3)' },
+    { hex: '#60A5FA', label: 'Blue',   size: '20px', border: 'rgba(255,255,255,0.3)' },
+    { hex: '#C084FC', label: 'Purple', size: '20px', border: 'rgba(255,255,255,0.3)' },
+  ];
+
+  const normalColors = [
+    { hex: '#1A5FFF', label: 'Blue',   size: '18px', border: 'rgba(255,255,255,0.3)' },
+    { hex: '#EF4444', label: 'Red',    size: '18px', border: 'rgba(255,255,255,0.3)' },
+    { hex: '#10B981', label: 'Green',  size: '18px', border: 'rgba(255,255,255,0.3)' },
+    { hex: '#F59E0B', label: 'Orange', size: '18px', border: 'rgba(255,255,255,0.3)' },
+    { hex: '#8B5CF6', label: 'Purple', size: '18px', border: 'rgba(255,255,255,0.3)' },
+    { hex: '#ffffff', label: 'White',  size: '18px', border: 'rgba(255,255,255,0.5)' },
+    { hex: '#000000', label: 'Black',  size: '18px', border: 'rgba(255,255,255,0.3)' },
+  ];
+
+  const palette = studioMode ? studioColors : normalColors;
+
+  palette.forEach(({ hex, label, size, border }) => {
+    const b = document.createElement('button');
+    b.title = label;
+    b.setAttribute('onclick', `setWBColor('${hex}')`);
+    b.style.cssText = `width:${size};height:${size};border-radius:50%;background:${hex};border:2px solid ${border};cursor:pointer;flex-shrink:0;`;
+    b.onclick = () => window.setWBColor(hex);
+    swatchWrap.appendChild(b);
+  });
 }
