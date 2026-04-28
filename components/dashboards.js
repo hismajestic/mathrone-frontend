@@ -1149,7 +1149,12 @@ async function renderExam() {
   // Check tutor status first — only show exam if invited
   let tutorStatus = State.user?.tutor?.status || null
   if(!tutorStatus){
-    try{ const me = await api('/auth/me'); tutorStatus = me?.tutor?.status || null }catch(e){}
+    try { 
+      const me = await api('/auth/me'); 
+      tutorStatus = me?.tutor?.status || null; 
+      State.user = me; 
+      localStorage.setItem('tc_user', JSON.stringify(me)); 
+    } catch(e) {}
   }
 
   if(tutorStatus !== 'written_exam'){
@@ -1255,8 +1260,8 @@ function showExamInstructions(res){
 
 function launchExam(res){
   const { attempt_id, time_remaining_seconds, questions, answers } = res
+  window.examSubmitted = false;
   let timeLeft = time_remaining_seconds
-  let examSubmitted = false
   let fullscreenExits = 0
   let currentPage = 0
   const questionsPerPage = 5
@@ -1302,7 +1307,7 @@ function launchExam(res){
           ${q.type === 'multiple_choice' ? `
           <div style="display:flex;flex-direction:column;gap:10px">
             ${(q.options || []).map((opt, oi) => `
-            <label style="display:flex;align-items:center;gap:10px;padding:12px 16px;border:2px solid var(--g100);border-radius:8px;cursor:pointer;transition:all .2s" id="opt-${q.id}-${oi}" onclick="selectMCQ('${q.id}','${opt}','${attempt_id}',${q.options.length},${oi})">
+            <label style="display:flex;align-items:center;gap:10px;padding:12px 16px;border:2px solid var(--g100);border-radius:8px;cursor:pointer;transition:all .2s" id="opt-${q.id}-${oi}" onclick="selectMCQ('${q.id}','${opt.replace(/'/g, "\\'").replace(/"/g, "&quot;")}','${attempt_id}',${q.options.length},${oi})">
               <div style="width:20px;height:20px;border-radius:50%;border:2px solid var(--g300);display:flex;align-items:center;justify-content:center;flex-shrink:0" id="radio-${q.id}-${oi}"></div>
               <span style="font-size:14px">${opt}</span>
             </label>`).join('')}
@@ -1310,7 +1315,7 @@ function launchExam(res){
           <div style="font-size:12px;color:var(--blue);margin-bottom:8px;font-weight:600">Select all that apply</div>
           <div style="display:flex;flex-direction:column;gap:10px">
             ${(q.options || []).map((opt, oi) => `
-            <label style="display:flex;align-items:center;gap:10px;padding:12px 16px;border:2px solid var(--g100);border-radius:8px;cursor:pointer;transition:all .2s" id="opt-${q.id}-${oi}" onclick="toggleMSQ('${q.id}','${opt}','${attempt_id}',${oi})">
+            <label style="display:flex;align-items:center;gap:10px;padding:12px 16px;border:2px solid var(--g100);border-radius:8px;cursor:pointer;transition:all .2s" id="opt-${q.id}-${oi}" onclick="toggleMSQ('${q.id}','${opt.replace(/'/g, "\\'").replace(/"/g, "&quot;")}','${attempt_id}',${oi})">
               <div style="width:20px;height:20px;border-radius:4px;border:2px solid var(--g300);display:flex;align-items:center;justify-content:center;flex-shrink:0" id="check-${q.id}-${oi}"></div>
               <span style="font-size:14px">${opt}</span>
             </label>`).join('')}
@@ -1326,7 +1331,7 @@ function launchExam(res){
                 <select id="match-${q.id}-${pi}" onchange="saveMatchAnswer('${q.id}','${attempt_id}',${(q.pairs||[]).length})"
                   style="flex:1;border:2px solid var(--g200);border-radius:8px;padding:8px 12px;font-size:14px;background:#fff;cursor:pointer;outline:none">
                   <option value="">— Select answer —</option>
-                  ${shuffled.map(p => `<option value="${p.answer}">${p.answer}</option>`).join('')}
+                  ${shuffled.map(p => `<option value="${p.answer.replace(/"/g, '&quot;')}">${p.answer}</option>`).join('')}
                 </select>
               </div>`
             }).join('')}
@@ -1346,22 +1351,23 @@ function launchExam(res){
     </div>`))
 
     // Restore saved answers if resumed
-    if(answers && Object.keys(answers).length > 0){
+    if(window._examData && window._examData.answers && Object.keys(window._examData.answers).length > 0){
       setTimeout(() => {
         pageQuestions.forEach(q => {
-          const saved = answers[q.id]
+          const saved = window._examData.answers[q.id]
           if(!saved) return
           if(q.type === 'text'){
             const ta = document.getElementById(`text-answer-${q.id}`)
             if(ta) ta.value = saved
           } else if(q.type === 'multiple_choice'){
             const idx = (q.options||[]).findIndex(o => o === saved)
-            if(idx >= 0) selectMCQ(q.id, saved, attempt_id, q.options.length, idx)
+            if(idx >= 0) selectMCQ(q.id, saved, attempt_id, q.options.length, idx, true)
           } else if(q.type === 'multiple_select'){
             const selected = saved.split(',').map(s => s.trim())
+            _msqSelected[q.id] = new Set();
             selected.forEach(opt => {
               const idx = (q.options||[]).findIndex(o => o === opt)
-              if(idx >= 0) toggleMSQ(q.id, opt, attempt_id, idx)
+              if(idx >= 0) toggleMSQ(q.id, opt, attempt_id, idx, true)
             })
           } else if(q.type === 'matching'){
             const parts = saved.split('||')
@@ -1382,7 +1388,7 @@ function launchExam(res){
     // Timer
     const timerEl = document.getElementById('exam-timer')
     const timerInterval = setInterval(() => {
-      if(examSubmitted){ clearInterval(timerInterval); return }
+      if(window.examSubmitted){ clearInterval(timerInterval); return }
       timeLeft--
       const m = Math.floor(timeLeft / 60).toString().padStart(2,'0')
       const s = (timeLeft % 60).toString().padStart(2,'0')
@@ -1397,7 +1403,7 @@ function launchExam(res){
 
     // Tab switch detection
     document.addEventListener('visibilitychange', function onVisChange(){
-      if(examSubmitted){ document.removeEventListener('visibilitychange', onVisChange); return }
+      if(window.examSubmitted){ document.removeEventListener('visibilitychange', onVisChange); return }
       if(document.hidden){
         api('/exam/report-cheating', { method:'POST', body: JSON.stringify({ attempt_id: attempt_id, type: 'tab_switch' }) })
         const warnings = document.getElementById('exam-warnings')
@@ -1411,7 +1417,7 @@ function launchExam(res){
 
     // Fullscreen exit detection
     document.addEventListener('fullscreenchange', function onFSChange(){
-      if(examSubmitted){ document.removeEventListener('fullscreenchange', onFSChange); return }
+      if(window.examSubmitted){ document.removeEventListener('fullscreenchange', onFSChange); return }
       if(!document.fullscreenElement){
         fullscreenExits++
         api('/exam/report-cheating', { method:'POST', body: JSON.stringify({ attempt_id: attempt_id, type: 'fullscreen_exit' }) })
@@ -1462,13 +1468,14 @@ function saveTextAnswer(questionId, attemptId){
   _textSaveTimeout[questionId] = setTimeout(async () => {
     const val = document.getElementById(`text-answer-${questionId}`)?.value
     if(val !== undefined){
-      await api('/exam/save-answer', { method:'POST', body: JSON.stringify({ attempt_id: attemptId, question_id: questionId, answer: val }) })
+      api('/exam/save-answer', { method:'POST', body: JSON.stringify({ attempt_id: attemptId, question_id: questionId, answer: val }) }).catch(()=>{})
+      if(window._examData && window._examData.answers) window._examData.answers[questionId] = val;
       updateExamProgress()
     }
   }, 800)
 }
 
-function selectMCQ(questionId, answer, attemptId, totalOpts, selectedIdx){
+function selectMCQ(questionId, answer, attemptId, totalOpts, selectedIdx, skipSave = false){
   // Clear all options visually
   for(let i = 0; i < totalOpts; i++){
     const opt = document.getElementById(`opt-${questionId}-${i}`)
@@ -1481,30 +1488,40 @@ function selectMCQ(questionId, answer, attemptId, totalOpts, selectedIdx){
   const selRadio = document.getElementById(`radio-${questionId}-${selectedIdx}`)
   if(selOpt){ selOpt.style.border = '2px solid var(--blue)'; selOpt.style.background = 'var(--sky)' }
   if(selRadio){ selRadio.style.background = 'var(--blue)'; selRadio.style.borderColor = 'var(--blue)'; selRadio.innerHTML = '<div style="width:8px;height:8px;border-radius:50%;background:#fff"></div>' }
-  // Save answer
-  api('/exam/save-answer', { method:'POST', body: JSON.stringify({ attempt_id: attemptId, question_id: questionId, answer }) })
-  updateExamProgress()
+  
+  if(!skipSave){
+    api('/exam/save-answer', { method:'POST', body: JSON.stringify({ attempt_id: attemptId, question_id: questionId, answer }) }).catch(()=>{})
+    if(window._examData && window._examData.answers) window._examData.answers[questionId] = answer;
+    updateExamProgress()
+  }
 }
+
 const _msqSelected = {}
-function toggleMSQ(questionId, option, attemptId, optIdx){
+function toggleMSQ(questionId, option, attemptId, optIdx, skipSave = false){
   if(!_msqSelected[questionId]) _msqSelected[questionId] = new Set()
   const sel = _msqSelected[questionId]
   const box  = document.getElementById(`check-${questionId}-${optIdx}`)
   const label = document.getElementById(`opt-${questionId}-${optIdx}`)
 
-  if(sel.has(option)){
-    sel.delete(option)
-    if(box){ box.style.background=''; box.style.borderColor='var(--g300)'; box.innerHTML='' }
-    if(label){ label.style.border='2px solid var(--g100)'; label.style.background='' }
+  if (!skipSave) {
+    if(sel.has(option)){
+      sel.delete(option)
+      if(box){ box.style.background=''; box.style.borderColor='var(--g300)'; box.innerHTML='' }
+      if(label){ label.style.border='2px solid var(--g100)'; label.style.background='' }
+    } else {
+      sel.add(option)
+      if(box){ box.style.background='var(--blue)'; box.style.borderColor='var(--blue)'; box.innerHTML='<div style="width:10px;height:6px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg);margin-top:-2px"></div>' }
+      if(label){ label.style.border='2px solid var(--blue)'; label.style.background='var(--sky)' }
+    }
+    const answer = [...sel].join(',')
+    api('/exam/save-answer', { method:'POST', body: JSON.stringify({ attempt_id: attemptId, question_id: questionId, answer }) }).catch(()=>{})
+    if(window._examData && window._examData.answers) window._examData.answers[questionId] = answer;
+    updateExamProgress()
   } else {
     sel.add(option)
     if(box){ box.style.background='var(--blue)'; box.style.borderColor='var(--blue)'; box.innerHTML='<div style="width:10px;height:6px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg);margin-top:-2px"></div>' }
     if(label){ label.style.border='2px solid var(--blue)'; label.style.background='var(--sky)' }
   }
-
-  const answer = [...sel].join(',')
-  api('/exam/save-answer', { method:'POST', body: JSON.stringify({ attempt_id: attemptId, question_id: questionId, answer }) })
-  updateExamProgress()
 }
 
 function saveMatchAnswer(questionId, attemptId, totalPairs){
@@ -1514,7 +1531,8 @@ function saveMatchAnswer(questionId, attemptId, totalPairs){
     if(sel) answers.push(sel.value || '')
   }
   const answer = answers.join('||')
-  api('/exam/save-answer', { method:'POST', body: JSON.stringify({ attempt_id: attemptId, question_id: questionId, answer }) })
+  api('/exam/save-answer', { method:'POST', body: JSON.stringify({ attempt_id: attemptId, question_id: questionId, answer }) }).catch(()=>{})
+  if(window._examData && window._examData.answers) window._examData.answers[questionId] = answer;
   updateExamProgress()
 }
 
@@ -1538,6 +1556,7 @@ async function submitExam(attemptId, autoSubmit = false){
   if(!autoSubmit && !confirm('Are you sure you want to submit your exam? You cannot change your answers after submission.')) return
   try{
     window.examSubmitted = true
+    window._examTimerRunning = false
     // Exit fullscreen safely
     if (document.fullscreenElement) {
       document.exitFullscreen?.().catch(() => {})
@@ -1639,6 +1658,10 @@ async function renderTutorDash() {
       try {
         const [me, sessions] = await Promise.allSettled([api('/auth/me'), api('/sessions/my')])
         const u = me.value || State.user
+        if (me.value) {
+            State.user = me.value;
+            localStorage.setItem('tc_user', JSON.stringify(me.value));
+        }
         const sess = sessions.value || []
         const tutor = u.tutor || {}
         const upcoming = sess.filter(s => ['scheduled', 'pending'].includes(s.status)).slice(0, 5)

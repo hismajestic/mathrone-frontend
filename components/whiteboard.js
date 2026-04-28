@@ -2701,18 +2701,7 @@ window.toggleLabVideoCam = () => {
   if (btn) btn.textContent = t.enabled ? '📷 Cam' : '🚫 Cam Off';
 };
 
-function exitMajesticLab() {
-  if (window._isSharingScreen && typeof window.stopScreenShare === 'function') window.stopScreenShare();
-  if (window._rtcStarted && typeof window.stopLabVideo === 'function') window.stopLabVideo();
-  if (window.wbInstance) { try { window.wbInstance.dispose(); } catch(e){} window.wbInstance = null; }
-  if (window._wbChannel) {
-    const sb = getSupabase();
-    if (sb) try { sb.removeChannel(window._wbChannel); } catch(e){}
-    window._wbChannel = null;
-  }
-  const prev = State.prevPage || 'dashboard';
-  navigate(prev, State.prevTab);
-}
+// exitMajesticLab consolidated below
 
 function openTutorLabDirect() {
   window._wbInstitutionName = '';
@@ -3280,3 +3269,43 @@ function _renderOCTSwatches(studioMode) {
     swatchWrap.appendChild(b);
   });
 }
+
+// Concurrent session check, media cleanup, and smart routing
+window.exitMajesticLab = function exitMajesticLab() {
+  // 1. Cleanup media and intervals
+  if (window._labPingInterval) clearInterval(window._labPingInterval);
+  if (window._isSharingScreen && typeof window.stopScreenShare === 'function') window.stopScreenShare();
+  if (window._rtcStarted && typeof window.stopLabVideo === 'function') window.stopLabVideo();
+  
+  // 2. Cleanup Canvas & Channel
+  if (window.wbInstance) { try { window.wbInstance.dispose(); } catch(e){} window.wbInstance = null; }
+  if (window._wbChannel) {
+    const sb = getSupabase();
+    if (sb) try { sb.removeChannel(window._wbChannel); } catch(e){}
+    window._wbChannel = null;
+  }
+
+  // 3. Smart routing based on user state
+  const routeUser = () => {
+    if (State.user && localStorage.getItem('tc_access')) {
+      const prev = State.prevPage || 'dashboard';
+      navigate(prev, State.prevTab);
+    } else {
+      navigate('landing'); // Guests go back to the home page securely
+    }
+  };
+
+  // 4. Release session lock on backend (if applicable)
+  const fp = localStorage.getItem('ml_device_id');
+  const token = State.data?.labToken || localStorage.getItem('tc_lab_token');
+  const instId = window._labInstitutionId || null;
+  
+  if (fp && token) {
+    fetch(API_URL + `/lab/tokens/${token}/session`, {
+      method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ device_fingerprint: fp, institution_id: instId })
+    }).catch(() => {}).finally(routeUser);
+  } else {
+    routeUser();
+  }
+};
