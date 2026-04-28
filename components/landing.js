@@ -230,12 +230,14 @@
   color:rgba(255,255,255,0.6);
 }
     @media(max-width:480px){
-      .lnav{padding:8px 0;align-items:center;gap:6px;position:sticky;top:0;z-index:100}
-      .lbrand{font-size:14px;justify-content:flex-start;flex-shrink:0}
-      .lbrand img{height:24px !important}
+      .lnav{padding:10px 16px !important;align-items:center;gap:4px;flex-wrap:nowrap !important;}
+      .nav-left, .nav-right {gap:6px !important; flex-wrap:nowrap !important;}
+      .lbrand{justify-content:flex-start;flex-shrink:0;gap:4px !important;}
+      .lbrand img{height:28px !important; width:28px !important;}
       .lbrand span{display:none}
-      .lnav-links{gap:3px;justify-content:flex-end;flex:1}
-      .btn-o,.btn-p{font-size:10px;padding:4px 8px;min-height:40px;white-space:nowrap}
+      .hamburger {width:32px; height:32px;}
+      .hamburger svg {width:28px; height:28px;}
+      .btn-o,.btn-p{font-size:13px !important;padding:6px 12px !important;min-height:36px !important;white-space:nowrap;}
     }
     @keyframes slideLeft { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
     #tutors-slider:hover { animation-play-state:paused }
