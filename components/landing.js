@@ -230,7 +230,7 @@
   color:rgba(255,255,255,0.6);
 }
     @media(max-width:480px){
-      .lnav{padding:8px 0;align-items:center;gap:6px}
+      .lnav{padding:8px 0;align-items:center;gap:6px;position:sticky;top:0;z-index:100}
       .lbrand{font-size:14px;justify-content:flex-start;flex-shrink:0}
       .lbrand img{height:24px !important}
       .lbrand span{display:none}

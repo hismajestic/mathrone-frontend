@@ -115,7 +115,7 @@
     @media (max-width: 768px) {
       html, body {
         max-width: 100vw;
-        overflow-x: hidden;
+        overflow-x: clip;
       }
       .input {
         font-size: 14px;
@@ -1823,6 +1823,9 @@
   align-items: center;
   justify-content: space-between;
   padding: 10px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 /* MENU (DESKTOP) */
@@ -1884,7 +1887,7 @@
   .nav-menu {
     display: none;
     position: absolute;
-    top: 70px;
+    top: 100%;
     left: 0;
     right: 0;
     background: #0D1B40;

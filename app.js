@@ -4508,6 +4508,9 @@ function showInstallButton() {
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
   if (isStandalone) return;
 
+  // Never show on mobile screens
+  if (window.innerWidth <= 768) return;
+
   const btn = document.getElementById('nav-install-btn');
   if (btn) btn.style.display = 'inline-flex';
 }

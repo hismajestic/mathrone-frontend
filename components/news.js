@@ -1312,20 +1312,20 @@ function applyNewsLink(){
   if(modal) modal.remove()
   
   const editor = document.getElementById('news-editor')
-  if(!editor) return
-  
-  editor.focus()
-  
-  // Restore the exact text selection range
-  if(window._savedLinkRange){
-    const sel = window.getSelection()
-    sel.removeAllRanges()
-    sel.addRange(window._savedLinkRange)
-  }
-  
-  // Use native execCommand for flawless insertion that preserves caret position
-  const html = `<a href="${url}" ${newTab ? 'target="_blank" rel="noopener noreferrer"' : ''} style="color:#1A5FFF">${text || url}</a>`
-  document.execCommand('insertHTML', false, html)
+          if(!editor) return
+          
+          // Restore the exact text selection range
+          if(window._savedLinkRange){
+            const sel = window.getSelection()
+            sel.removeAllRanges()
+            sel.addRange(window._savedLinkRange)
+          } else {
+            editor.focus()
+          }
+          
+          // Use native execCommand for flawless insertion that preserves caret position
+          const html = `<a href="${url}" ${newTab ? 'target="_blank" rel="noopener noreferrer"' : ''} style="color:#1A5FFF">${text || url}</a>`
+          document.execCommand('insertHTML', false, html)
   
   window._savedLinkRange = null
 }
