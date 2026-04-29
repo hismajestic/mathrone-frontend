@@ -137,10 +137,17 @@ function _get(id) { return _dataRegistry[id]; }
       async getDb() {
         if (this.db) return this.db;
         return new Promise((res, rej) => {
-          const req = indexedDB.open('MathroneCache', 1);
-          req.onupgradeneeded = e => e.target.result.createObjectStore('swr');
-          req.onsuccess = e => { this.db = e.target.result; res(this.db); };
-          req.onerror = rej;
+          try {
+            if (!window.indexedDB) throw new Error("IDB disabled");
+            const req = window.indexedDB.open('MathroneCache', 2);
+            req.onupgradeneeded = e => {
+              if (!e.target.result.objectStoreNames.contains('swr')) {
+                e.target.result.createObjectStore('swr');
+              }
+            };
+            req.onsuccess = e => { this.db = e.target.result; res(this.db); };
+            req.onerror = e => rej(e);
+          } catch(err) { rej(err); }
         });
       },
       async get(key) {
@@ -1190,9 +1197,20 @@ function updatePageSEO(params) {
     document.head.appendChild(script);
   }
 }
+    const ENABLE_SUPABASE_TRANSFORMS = false; // Change to true when on Supabase Pro Plan
+
+    function optImg(url, width = 400) {
+      if (!url) return '';
+      if (ENABLE_SUPABASE_TRANSFORMS && url.includes('/storage/v1/object/public/')) {
+        return url.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/') 
+               + `?width=${width}&format=webp&quality=80`;
+      }
+      return url;
+    }
+
     function avi(name = '?', size = 40, url = null) {
   if(url){
-    return `<img src="${url}" alt="Profile of ${name} - Mathrone Academy" title="${name}" loading="lazy" decoding="async" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'"/>`
+    return `<img src="${optImg(url, 150)}" alt="Profile of ${name} - Mathrone Academy" title="${name}" loading="lazy" decoding="async" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'"/>`
   }
   const c = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
   return `<div class="avi" style="width:${size}px;height:${size}px;font-size:${size * 0.35}px">${c}</div>`
