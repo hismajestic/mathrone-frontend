@@ -4452,26 +4452,6 @@ function openTutorLabDirect() {
   renderWhiteboard(pseudoId);
 }
 
-// Concurrent session check for institution links
-function exitMajesticLab() {
-  clearInterval(window._labPingInterval);
-  const fp = localStorage.getItem('ml_device_id');
-  const token = State.data?.labToken || localStorage.getItem('tc_lab_token');
-  const instId = window._labInstitutionId || null;
-  if (fp && token) {
-    fetch(API_URL + `/lab/tokens/${token}/session`, {
-      method: 'DELETE', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ device_fingerprint: fp, institution_id: instId })
-    }).catch(() => {}).finally(() => {
-      // Clean up canvas instance so it doesn't ghost
-      if (window.wbInstance) { try { window.wbInstance.dispose(); } catch(e){} window.wbInstance = null; }
-      navigate('dashboard');
-    });
-  } else {
-    if (window.wbInstance) { try { window.wbInstance.dispose(); } catch(e){} window.wbInstance = null; }
-    navigate('dashboard');
-  }
-}
 // ════════════════════════════════════════════════════════════
 // PWA INSTALLATION LOGIC
 // ════════════════════════════════════════════════════════════

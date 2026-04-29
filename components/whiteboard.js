@@ -3288,8 +3288,9 @@ window.exitMajesticLab = function exitMajesticLab() {
   // 3. Smart routing based on user state
   const routeUser = () => {
     if (State.user && localStorage.getItem('tc_access')) {
-      const prev = State.prevPage || 'dashboard';
-      navigate(prev, State.prevTab);
+      // Reload their active component (dashboard, sessions, etc.)
+      const targetPage = (State.page && State.page !== 'public-lab') ? State.page : 'dashboard';
+      navigate(targetPage, State.tab);
     } else {
       navigate('landing'); // Guests go back to the home page securely
     }
