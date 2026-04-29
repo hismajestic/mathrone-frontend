@@ -337,7 +337,7 @@ return `
   <a href="${articleUrl}" class="pn-ncard" style="text-decoration: none; color: inherit; display: flex; flex-direction: column; border: 1px solid var(--g100); background:#fff;" onclick="navigate('news-article/${p.slug || p.id}', null, event)">
    <div style="position:relative; width:100%; aspect-ratio: 16/10; flex-shrink:0; overflow:hidden;">
       ${p.image_url
-        ? `<img src="${p.image_url}" alt="${p.title||'News'}" loading="lazy" decoding="async" style="width:100%; height:100%; object-fit:cover; display:block;"/>`
+        ? `<img src="${optImg(p.image_url, 600)}" alt="${p.title||'News'}" loading="lazy" decoding="async" style="width:100%; height:100%; object-fit:cover; display:block;"/>`
         : `<div class="pn-ncard-img ${imgColor[p.category]||'blue'}" style="height:100%; width:100%; display:flex; align-items:center; justify-content:center; margin:0;">${cat.icon}</div>`
       }
       <div style="position:absolute; top:0; left:0; display:flex; gap:0;">

@@ -131,17 +131,78 @@ function _get(id) { return _dataRegistry[id]; }
 
     
 
+    // ── IndexedDB Cache Store (Unlimited Asynchronous Storage) ──
+    const idbStore = {
+      db: null,
+      async getDb() {
+        if (this.db) return this.db;
+        return new Promise((res, rej) => {
+          const req = indexedDB.open('MathroneCache', 1);
+          req.onupgradeneeded = e => e.target.result.createObjectStore('swr');
+          req.onsuccess = e => { this.db = e.target.result; res(this.db); };
+          req.onerror = rej;
+        });
+      },
+      async get(key) {
+        try {
+          const db = await this.getDb();
+          return new Promise(res => {
+            const req = db.transaction('swr', 'readonly').objectStore('swr').get(key);
+            req.onsuccess = () => res(req.result);
+            req.onerror = () => res(null);
+          });
+        } catch(e) { return null; }
+      },
+      async set(key, val) {
+        try {
+          const db = await this.getDb();
+          return new Promise(res => {
+            const tx = db.transaction('swr', 'readwrite');
+            tx.objectStore('swr').put(val, key);
+            tx.oncomplete = res;
+          });
+        } catch(e) {}
+      }
+    };
+
     async function cachedFetch(url, ttlMs = 60000) {
       const now = Date.now();
+      const cacheKey = 'swr_' + url;
+      
+      // 1. RAM Cache (Instant execution)
       if (_apiCache[url] && now - _apiCache[url].ts < ttlMs) return _apiCache[url].data;
-      // If same URL is already in-flight, wait for it instead of firing again
-      if (_inflight[url]) return _inflight[url];
-      _inflight[url] = fetch(url).then(r => r.json()).then(data => {
-        _apiCache[url] = { data, ts: Date.now() };
+      
+      // 2. IndexedDB Cache (Instant cross-session load)
+      let staleData = null;
+      const stored = await idbStore.get(cacheKey);
+      if (stored) {
+        staleData = stored.data;
+        if (now - stored.ts < ttlMs) {
+          _apiCache[url] = stored;
+          return stored.data; // Fresh enough, return immediately
+        }
+      }
+
+      // 3. Prevent duplicate simultaneous requests
+      if (_inflight[url]) return staleData || _inflight[url];
+
+      // 4. Background Revalidation (Network Fetch)
+      _inflight[url] = fetch(url).then(r => {
+         if(r.status === 401 || r.status === 403) throw new Error('Auth');
+         return r.json();
+      }).then(data => {
+        const cacheObj = { data, ts: Date.now() };
+        _apiCache[url] = cacheObj;
+        idbStore.set(cacheKey, cacheObj); // Save to disk asynchronously
         delete _inflight[url];
         return data;
-      }).catch(e => { delete _inflight[url]; throw e; });
-      return _inflight[url];
+      }).catch(e => { 
+        delete _inflight[url]; 
+        if (staleData) return staleData; // Offline fallback
+        throw e; 
+      });
+
+      return staleData || _inflight[url]; // Return stale data immediately if available
     }
     function bustCache(prefix) {
       Object.keys(_apiCache).forEach(k => { if(k.includes(prefix)) delete _apiCache[k]; });
@@ -259,28 +320,31 @@ function _get(id) { return _dataRegistry[id]; }
     // RENDER ENGINE
     // ════════════════════════════════════════════════════════════
     function render(html) { 
-  // Hide SEO shell once JS takes over (set display:none — not cloaking since same content)
   const shell = document.getElementById('seo-shell');
   if (shell) { shell.style.display = 'none'; shell.style.position = 'static'; }
-  // 1. Clean up Majestic Lab memory
+  
   if (window.wbInstance) {
     try { window.wbInstance.dispose(); } catch(e){}
     window.wbInstance = null;
   }
-  // 2. Stop background pinging for guest tokens
   if (window._labPingInterval) {
     clearInterval(window._labPingInterval);
     window._labPingInterval = null;
   }
-  // 3. Turn off camera and mic if they left a video call
   if (window._rtcStarted && typeof window.stopLabVideo === 'function') {
     window.stopLabVideo();
   }
-  // 4. Safely render the new page
-  document.getElementById('app').innerHTML = html; 
-  window.scrollTo(0, 0); // Scroll to top of the new page automatically
   
-  // 5. Initialize Lucide icons for the newly injected HTML
+  document.getElementById('app').innerHTML = html; 
+  
+  // Smart Scroll Restoration
+  if (State.restoreScrollPos) {
+    window.scrollTo(0, State.restoreScrollPos);
+    State.restoreScrollPos = null;
+  } else {
+    window.scrollTo(0, 0);
+  }
+  
   if (window.lucide) {
     window.lucide.createIcons();
   }
@@ -584,7 +648,9 @@ function scrollToContact() {
       }
 
       if (window.location.pathname !== newUrl) {
-        history.pushState({ page, tab }, document.title, newUrl);
+        // Save current scroll position before pushing new state
+        history.replaceState({ ...history.state, scroll: window.scrollY }, document.title, window.location.pathname);
+        history.pushState({ page, tab, scroll: 0 }, document.title, newUrl);
       }
 
       renderPage()
@@ -628,7 +694,6 @@ function renderWhiteboard(sessionId) {
 }
     // Handle browser back/forward buttons
     window.addEventListener('popstate', function(e) {
-      // Clear memory/video before rendering the previous page
       if (window.wbInstance) { try { window.wbInstance.dispose(); } catch(err){} window.wbInstance = null; }
       if (window._rtcStarted && typeof window.stopLabVideo === 'function') window.stopLabVideo();
       
@@ -636,6 +701,7 @@ function renderWhiteboard(sessionId) {
         State.page = e.state.page
         State.tab  = e.state.tab || null
         State.data = {}
+        State.restoreScrollPos = e.state.scroll || 0;
         renderPage()
       } else {
         bootFromUrl()
@@ -3220,19 +3286,24 @@ async function boot() {
 window.addEventListener('DOMContentLoaded', () => {
   try {
     boot();
-    // After boot, silently preload components AND pre-fetch critical data
-    // so first navigation to shop/news/courses is instant
-    setTimeout(() => {
+    
+    // True Non-Blocking Idle Preload
+    const runIdle = window.requestIdleCallback || ((cb) => setTimeout(cb, 2000));
+    
+    runIdle(() => {
+      // 1. Preload UI Components (Does not load heavy Canvas/PDF libraries)
       ['landing','auth','dashboards','shop','courses','news'].forEach(name => {
         loadComponent(name).catch(() => {});
       });
-      // Pre-warm backend + pre-fill cache for the most-visited pages
+      
+      // 2. Pre-warm data cache so subsequent clicks are 0ms
       cachedFetch(API_URL + '/shop/products', 60000).catch(() => {});
       cachedFetch(API_URL + '/shop/featured', 120000).catch(() => {});
       cachedFetch(API_URL + '/shop/bundles', 120000).catch(() => {});
       cachedFetch(API_URL + '/news/?featured=true&limit=6', 120000).catch(() => {});
       cachedFetch(API_URL + '/courses/public', 120000).catch(() => {});
-    }, 1500);
+    });
+
   } catch(e) {
     console.error('Boot error:', e);
     navigate('landing');

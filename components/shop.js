@@ -648,7 +648,7 @@ function shopProductCard(p, isLoggedIn) {
     <a href="/shop/${p.slug||p.id}" onclick="navigate('shop-product-${p.slug||p.id}', null, event)"
        class="m-shop-img-wrap" style="display:block;position:relative;width:100%;padding-top:100%;background:#f8fafc;overflow:hidden;flex-shrink:0;border-bottom:1px solid #f0f2f5">
       ${p.image_url
-        ? `<img class="m-shop-img" src="${p.image_url}" alt="${p.name}" loading="lazy" decoding="async"
+        ? `<img class="m-shop-img" src="${optImg(p.image_url, 400)}" alt="${p.name}" loading="lazy" decoding="async"
                style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;padding:16px;transition:transform .3s"
                onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'"/>`
         : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:52px;color:#cbd5e1">🛍️</div>`}
@@ -663,10 +663,10 @@ function shopProductCard(p, isLoggedIn) {
       ${p.category ? `<div style="font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:0.08em">${p.category}</div>` : ''}
 
       <!-- Name — clamped to 2 lines -->
-      <div onclick="navigate('shop-product-${p.slug||p.id}')"
-           style="font-size:14px;font-weight:700;color:#0f172a;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:2px;">
+      <a href="/shop/${p.slug||p.id}" onclick="navigate('shop-product-${p.slug||p.id}', null, event)"
+           style="display:block;text-decoration:none;font-size:14px;font-weight:700;color:#0f172a;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:2px;">
         ${p.name}
-      </div>
+      </a>
 
       <!-- Description — 2 lines max -->
       ${p.description ? `

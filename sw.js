@@ -77,6 +77,24 @@ self.addEventListener('fetch', function(e) {
 
   var isStatic = /\.(js|css|png|jpg|jpeg|webp|svg|ico|webmanifest)$/.test(url.pathname);
   if (isStatic) {
+    // SWR pattern for ultimate speed
+    e.respondWith(
+      caches.match(req).then(function(cached) {
+        var fetchPromise = fetch(req).then(function(res) {
+          if (res && res.status === 200) {
+            var clone = res.clone();
+            caches.open(CACHE).then(function(c) { c.put(req, clone); });
+          }
+          return res;
+        }).catch(function() { return cached; });
+        return cached || fetchPromise;
+      })
+    );
+    return;
+  }
+
+  // HTML Navigation fallback (SPA Offline Support)
+  if (req.mode === 'navigate' || req.headers.get('accept').includes('text/html')) {
     e.respondWith(
       fetch(req).then(function(res) {
         if (res && res.status === 200) {
@@ -85,21 +103,9 @@ self.addEventListener('fetch', function(e) {
         }
         return res;
       }).catch(function() {
-        return caches.match(req);
+        return caches.match('/index.html');
       })
     );
     return;
   }
-
-  e.respondWith(
-    fetch(req).then(function(res) {
-      if (res && res.status === 200) {
-        var clone = res.clone();
-        caches.open(CACHE).then(function(c) { c.put(req, clone); });
-      }
-      return res;
-    }).catch(function() {
-      return caches.match('/index.html');
-    })
-  );
 });

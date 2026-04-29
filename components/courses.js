@@ -284,7 +284,7 @@ function courseCard(c, isLoggedIn, isCourseGuest) {
   const lessonText = lessonCount > 0 ? `${lessonCount} Lessons` : `Video Lessons`;
 
   const imgHtml = c.image_url
-    ? `<img src="${c.image_url}" alt="${c.title}" loading="lazy" decoding="async"
+    ? `<img src="${optImg(c.image_url, 600)}" alt="${c.title}" loading="lazy" decoding="async"
            style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;object-position:center;background-color:#1E2845;transition:transform .3s"
            onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'"/>`
     : `<div style="display:flex;align-items:center;justify-content:center;height:100%;width:100%;font-size:52px;color:#cbd5e1;background:#1E2845"><i data-lucide="book-open" style="width:48px;height:48px;"></i></div>`;
@@ -345,10 +345,10 @@ function courseCard(c, isLoggedIn, isCourseGuest) {
     <!-- Body Area -->
     <div class="m-course-body" style="padding:16px;flex:1;display:flex;flex-direction:column;gap:0">
       
-      <div onclick="navigate('course-${c.slug||c.id}')"
-           style="font-size:16px;font-weight:800;color:#0f172a;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:6px;cursor:pointer;word-break:break-word;overflow-wrap:break-word;">
+      <a href="/course/${c.slug||c.id}" onclick="navigate('course-${c.slug||c.id}', null, event)"
+           style="display:block;text-decoration:none;font-size:16px;font-weight:800;color:#0f172a;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:6px;cursor:pointer;word-break:break-word;overflow-wrap:break-word;">
         ${c.title}
-      </div>
+      </a>
 
       <div style="font-size:12px;color:#64748b;margin-bottom:8px;line-height:1.5;">
         By <span style="font-weight:700;color:#334155">Mathrone Academy</span><br/>
