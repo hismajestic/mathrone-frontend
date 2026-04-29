@@ -2,7 +2,7 @@
 // ── HOW TO BUST THE CACHE ON NEW DEPLOY ─────────────────────────────────
 
 // BUMPED TO v25
-const CACHE = 'mathrone-v31';
+const CACHE = 'mathrone-v32';
 
 const PRECACHE = [
   '/',
