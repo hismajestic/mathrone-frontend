@@ -2109,6 +2109,22 @@ canvas.on('path:created', triggerCloudSave);
       if (cc) cc.style.display = 'flex';
       window._docSlides = [];
       toast('Tutor ended the presentation', 'info');
+    })
+    .on('presence', { event: 'join' }, ({ newPresences }) => {
+      // Logic: If a new student joins, the Tutor automatically sends the current board state
+      const iAmHost = (State.user && (State.user.role === 'tutor' || State.user.role === 'admin')) || window._isLabHost;
+      if (iAmHost && window.wbInstance && newPresences.length > 0) {
+        const currentJson = window.wbInstance.toJSON(['id']);
+        channel.send({ 
+          type: 'broadcast', 
+          event: 'page-change', 
+          payload: { 
+            page: window._wbCurrentPage, 
+            total: window._wbNotebook.length, 
+            json: currentJson 
+          } 
+        });
+      }
     });
   setupDocStudentListeners(channel);
   // NOTE: doc student listeners are chained inside setupDocStudentListeners before subscribe � see below
@@ -2150,7 +2166,7 @@ canvas.on('path:created', triggerCloudSave);
            dot.style.left = (pt.x + canvasBox.offsetLeft) + 'px';
            dot.style.top = (pt.y + canvasBox.offsetTop) + 'px';
         }
-        if (now - _lastCursorBroadcast > 40) { // Throttle laser to ~25fps
+        if (now - _lastCursorBroadcast > 60) { // Throttle to ~16fps to save bandwidth
           try {
             channel.send({ type: 'broadcast', event: 'laser-move', payload: { x: Math.round(pt.x), y: Math.round(pt.y) } });
           } catch(err) {}
@@ -2162,7 +2178,7 @@ canvas.on('path:created', triggerCloudSave);
       // Live stroke: stream drawing points to students in real-time
       if (canvas.isDrawingMode && _liveStroke !== null && (e.e.buttons === 1 || e.e.touches?.length > 0)) {
         _liveStroke.push({ x: Math.round(pt.x), y: Math.round(pt.y) });
-        if (_liveStroke.length >= 3 && now - _lastCursorBroadcast > 50) { // Throttle stroke to 20fps to save data
+        if (_liveStroke.length >= 5 && now - _lastCursorBroadcast > 80) { // Aggressive throttle to save data
           try {
             channel.send({ type: 'broadcast', event: 'live-stroke', payload: {
               points: _liveStroke.slice(-6),

@@ -636,12 +636,17 @@
       display: none;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 16px;
+      padding: 0 16px;
+      height: 56px;
       background: var(--navy);
       position: sticky;
       top: 0;
       z-index: 99;
-      gap: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    /* Prevent body scroll when sidebar is open */
+    body.sidebar-open {
+      overflow: hidden;
     }
 
     .mobile-topbar button {

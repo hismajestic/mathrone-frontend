@@ -2423,8 +2423,15 @@ async function openNewsModal(postId = null){
         document.getElementById('news-title').value = post.title
         document.getElementById('news-slug').value = post.slug || ''
         document.getElementById('news-description').value = post.description || ''
-        document.getElementById('news-editor').innerHTML = post.content
-        document.getElementById('news-image').value = post.image_url || ''
+        const editor = document.getElementById('news-editor');
+        editor.innerHTML = post.content;
+        // Clean up any remaining wrappers from previous failed saves
+        editor.querySelectorAll('.img-resize-wrapper').forEach(w => {
+           const img = w.querySelector('img');
+           if(img) w.parentNode.insertBefore(img, w);
+           w.remove();
+        });
+        document.getElementById('news-image').value = post.image_url || '';
         document.getElementById('news-source-name').value = post.source_name || ''
         document.getElementById('news-source-url').value = post.source_url || ''
         document.getElementById('news-featured').checked = post.is_featured

@@ -2,7 +2,13 @@
 // ── HOW TO BUST THE CACHE ON NEW DEPLOY ─────────────────────────────────
 
 // BUMPED TO v25
-const CACHE = 'mathrone-v32';
+const CACHE = 'mathrone-v33'; // Bump this number every time you deploy
+
+self.addEventListener('message', (event) => {
+  if (event.data === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
 
 const PRECACHE = [
   '/',

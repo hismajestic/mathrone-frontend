@@ -269,38 +269,36 @@ function _get(id) { return _dataRegistry[id]; }
     // API CLIENT
     // ════════════════════════════════════════════════════════════
  
+   let _refreshing = null;
     async function api(path, opts = {}) {
-      const token = getToken()
-      const h = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }
-      const r = await fetch(API_URL + path, { ...opts, headers: { ...h, ...(opts.headers || {}) } })
-      if (!r.ok) {
-        const e = await r.json().catch(() => ({ detail: r.statusText }))
-        const msg = typeof e.detail === 'string' ? e.detail : (e.message || JSON.stringify(e.detail) || 'Request failed')
-    if((r.status===401 || r.status===403) && State.user){
-      // Try to refresh token once, then retry the request
-      const refreshed = await refreshAccessToken();
-      if(refreshed){
-        const newToken = getToken();
-        const newH = { 'Content-Type': 'application/json', Authorization: `Bearer ${newToken}` };
-        const retry = await fetch(API_URL + path, { ...opts, headers: { ...newH, ...(opts.headers || {}) } });
-        if(retry.ok){
-          if(retry.status === 204) return null;
-          return retry.json();
+      const token = getToken();
+      const h = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) };
+      let r = await fetch(API_URL + path, { ...opts, headers: { ...h, ...(opts.headers || {}) } });
+
+      if (r.status === 401 && !path.includes('/auth/refresh') && State.user) {
+        if (!_refreshing) _refreshing = refreshAccessToken();
+        const ok = await _refreshing;
+        _refreshing = null;
+        if (ok) {
+          const newToken = getToken();
+          opts.headers = { ...opts.headers, 'Content-Type': 'application/json', Authorization: `Bearer ${newToken}` };
+          r = await fetch(API_URL + path, opts);
+        } else {
+          clearAuth(); 
+          navigate('login');
+          throw new Error('Session expired');
         }
       }
-      localStorage.removeItem('tc_access');
-      localStorage.removeItem('tc_refresh');
-      State.user = null;
-      toast('Session expired. Please log in again.', 'err');
-      if(State.page !== 'login'){
-        setTimeout(() => { navigate('login'); }, 1500);
+
+      if (!r.ok) {
+        const e = await r.json().catch(() => ({ detail: r.statusText }));
+        let msg = 'Request failed';
+        if (typeof e.detail === 'string') msg = e.detail;
+        else if (Array.isArray(e.detail)) msg = e.detail.map(err => `${err.loc[err.loc.length-1]}: ${err.msg}`).join(', ');
+        else if (e.message) msg = e.message;
+        throw new Error(msg);
       }
-      throw new Error(msg);
-    }
-        throw new Error(msg)
-      }
-      if (r.status === 204) return null
-      return r.json()
+      return r.status === 204 ? null : r.json();
     }
     // ── Cache buster — call after any mutation so stale data never persists ──
     function bustCacheAfterMutation(pathPrefix) {
@@ -440,24 +438,25 @@ function scrollToContact() {
       setTimeout(loadUnreadCount, 200)
     }
    function navigate(page, tab = null, event = null) {
-  // Define auth pages once at the top to avoid redeclaration errors
   const authPages = ['login', 'register', 'forgot-password', 'reset-password'];
-
-  // Remember origin if not going to an auth page
   const privateAppPages = ['dashboard','sessions','messages','profile','notifications','tutors','forum','exam','quiz','cart','wishlist','my-orders','admin-tutors','admin-students','admin-sessions','admin-payments','admin-exam','admin-shop','my-courses','admin-courses'];
+  
   if (!authPages.includes(page) && !privateAppPages.includes(page) && !page.startsWith('verify/') && !page.startsWith('reset/')) {
     State.lastPublicPage = page;
     State.lastPublicTab = tab;
   }
 
-  if (event) {
-    // If it's a normal click (not ctrl+click or middle-click)
+  // SEO: If a real event is passed, prevent full reload but keep the 'href' behavior for bots
+  if (event && event.preventDefault) {
     if (!event.ctrlKey && !event.shiftKey && !event.metaKey && event.button !== 1) {
       event.preventDefault();
     } else {
-      return; // Allow browser to handle new tab opening
+      return; // Let browser open in new tab if user uses Ctrl+Click
     }
   }
+
+  State.page = page;
+  State.tab = tab;
 
   // Memory: Save current page before switching, unless it's an auth page
   if (!authPages.includes(State.page)) {
@@ -1280,6 +1279,13 @@ function fmtShort(dt) { return dt ? new Date(dt).toLocaleDateString('en-US', { m
         })
         .on('presence', { event: 'sync' }, function() {
           window._onlineUsers = _realtimeChannel.presenceState();
+        })
+        .on('presence', { event: 'join' }, ({ key, newPresences }) => {
+          if (State.user?.role === 'admin') {
+            newPresences.forEach(p => {
+               if(p.user_id !== State.user.id) toast(`🌐 ${p.role}: User logged in`, 'info');
+            });
+          }
         })
         .subscribe(function(status) {
           _realtimeSubscribing = false;
@@ -3194,9 +3200,11 @@ function bootFromUrl() {
     State.page = 'course-' + clean.replace('course/', '');
   } else if (clean === 'shop') {
     State.page = 'shop';
-  } else if (clean.startsWith('shop/')) {
-    State.page = 'shop-product-' + clean.replace('shop/', '');
-  } else {
+  } else if (clean.startsWith('shop/') && clean !== 'shop') {
+      State.page = 'shop-product-' + clean.replace('shop/', '');
+    } else if (clean === 'shop') {
+      State.page = 'shop';
+    } else {
     const validPages = [
       'about', 'privacy', 'terms', 'login', 'register', 'dashboard', 
       'sessions', 'messages', 'profile', 'notifications', 'tutors', 
@@ -3297,6 +3305,18 @@ async function boot() {
       setTimeout(startRealtimeSync, 800);
     }
     // Do NOT silently refresh tokens on public pages — this was sending guests to dashboard
+  }
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.ready.then(reg => {
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            toast('New version available! <a onclick="location.reload()" style="color:white;text-decoration:underline;cursor:pointer">Refresh to update</a>', 'info');
+          }
+        });
+      });
+    });
   }
 }
 

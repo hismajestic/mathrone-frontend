@@ -362,10 +362,10 @@
       <h1 class="htitle">Never Fall Behind in Class <span>Ever Again</span></h1>
       <p class="hsub">Teacher absent? Missed a topic? Or just need a better explanation? Mathrone Academy is your academic safety net. Access expert 1-on-1 tutors, REB-aligned video courses, and an AI Tutor to guarantee your success and provides high-quality learning tools  from notebooks to educational kits for personalised success,at home or online..</p>
       <div class="hbtns">
-        <button class="btn-hero-o" onclick="navigate('register')" style="background:#0e172b;border-color:var(--gold)"> Start Learning</button>
-        <button class="btn-hero-o" onclick="navigate('register','tutor')">Become a Tutor</button>
-        <button class="btn-hero-o" onclick="navigate('shop')" style="background:var(--gold);color:#1a1a1a;border-color:var(--gold)">🛒 Learning Store</button>
-        <button class="btn-hero-o" onclick="navigate('news')" style="background:#0e172b;border-color:#1e3a8a">Read Updates</button>
+        <a href="/register" class="btn-hero-o" onclick="navigate('register', null, event)" style="background:#0e172b; border-color:var(--gold); text-decoration:none;"> Start Learning</a>
+        <a href="/register" class="btn-hero-o" onclick="navigate('register', 'tutor', event)" style="text-decoration:none;">Become a Tutor</a>
+        <a href="/shop" class="btn-hero-o" onclick="navigate('shop', null, event)" style="background:var(--gold); color:#1a1a1a; border-color:var(--gold); text-decoration:none;">🛒 Learning Store</a>
+        <a href="/news" class="btn-hero-o" onclick="navigate('news', null, event)" style="background:#0e172b; border-color:#1e3a8a; text-decoration:none;">Read Updates</a>
       </div>
       <!-- MOBILE ONLY: courses banner shown below buttons -->
       <div class="chc-mobile-banner" onclick="navigate('courses')">
@@ -622,7 +622,20 @@
           ].map(([ht,links])=>`
         <div>
           <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.9);margin-bottom:14px;letter-spacing:0.08em">${ht}</div>
-          ${links.map(l=>`<button class="footer-link" onclick="handleFooterLink('${l}')">${l}</button>`).join('')}
+          ${links.map(l => {
+            const urlMap = {
+              'Find a Tutor': '/register',
+              'Become a Tutor': '/register',
+              'How It Works': '/#how-it-works',
+              'Education News': '/news',
+              'About Us': '/about',
+              'Careers': '/news',
+              'Contact Us': '/#contact',
+              'Privacy Policy': '/privacy',
+              'Terms of Service': '/terms'
+            };
+            return `<a href="${urlMap[l] || '#'}" class="footer-link" style="text-decoration:none; display:block;" onclick="handleFooterLink('${l}', event)">${l}</a>`;
+          }).join('')}
         </div>`).join('')}
       </div>
       <div style="border-top:1px solid rgba(255,255,255,0.1);margin-top:40px;padding-top:24px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px">

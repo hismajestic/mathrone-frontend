@@ -230,6 +230,8 @@ async function submitGuestOrder(preItems){
   const momoRef  = document.getElementById('guest-momo-ref')?.value?.trim() || null
   const proofUrl = document.getElementById('guest-proof-url')?.value?.trim() || null
 
+  if (window._isSubmittingOrder) return;
+  window._isSubmittingOrder = true;
   if(btn){ btn.disabled=true; btn.textContent='Submitting...' }
 
   // Save to database
@@ -265,6 +267,7 @@ async function submitGuestOrder(preItems){
   // Clear guest cart
   _setGuestCart([]);
   updateCartButton();
+  window._isSubmittingOrder = false;
 
   // Show confirmation + CTA
   render(`
@@ -1482,18 +1485,17 @@ async function renderAdminShop(){
       ${products.map(p=>`
       <div class="card" style="padding:0;overflow:hidden">
         <div style="height:140px;background:var(--sky);position:relative;overflow:hidden">
-          ${p.image_url?`<img src="${p.image_url}" alt="${p.name||'Product image'}"loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;${!p.is_active?'filter:grayscale(100%) opacity(0.6)':''}"/>`:`<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:40px${!p.is_active?';filter:grayscale(100%) opacity(0.6)':''}">${SHOP_CATEGORIES.find(c=>c.id===p.category)?.icon||'🛍️'}</div>`}
+          ${p.image_url?`<img src="${p.image_url}" alt="${p.name||'Product image'}"loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover"/>`:`<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:40px">${SHOP_CATEGORIES.find(c=>c.id===p.category)?.icon||'🛍️'}</div>`}
           ${p.is_featured?`<div style="position:absolute;top:8px;left:8px;background:var(--gold);color:#1a1a1a;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px">⭐ Featured</div>`:''}
-          ${!p.is_active?`<div style="position:absolute;top:8px;left:8px;background:#6b7280;color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px">Inactive</div>`:''}
           <div style="position:absolute;top:8px;right:8px;background:${p.stock>0?'#dcfce7':'#fee2e2'};color:${p.stock>0?'#065f46':'#991b1b'};font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px">${p.stock>0?'In Stock':'Out of Stock'}</div>
         </div>
         <div style="padding:14px">
-          <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:2px${!p.is_active?';opacity:0.6;text-decoration:line-through':''}">${p.name}</div>
+          <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:2px">${p.name}</div>
           <div style="font-size:12px;color:var(--g400);margin-bottom:8px">${SHOP_CATEGORIES.find(c=>c.id===p.category)?.label||p.category} • Stock: ${p.stock}</div>
-          <div style="font-size:16px;font-weight:800;color:var(--navy);margin-bottom:12px${!p.is_active?';opacity:0.6':''}">RWF ${Number(p.price).toLocaleString()}</div>
+          <div style="font-size:16px;font-weight:800;color:var(--navy);margin-bottom:12px">RWF ${Number(p.price).toLocaleString()}</div>
           <div style="display:flex;gap:6px">
             <button class="btn btn-ghost btn-sm" style="flex:1" onclick="openEditProductModal(${JSON.stringify(p).replace(/"/g,'&quot;')})"><i data-lucide="edit" style="width:14px;height:14px;margin-right:4px"></i> Edit</button>
-            <button class="btn btn-ghost btn-sm" style="color:${p.is_active ? 'var(--red)' : 'var(--green)'}" onclick="toggleProductStatus('${p.id}','${(p.name||'').replace(/'/g,"\\'")}', ${p.is_active})"><i data-lucide="${p.is_active ? 'eye-off' : 'eye'}" style="width:16px;height:16px"></i></button>
+            <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteProduct('${p.id}','${(p.name||'').replace(/'/g,"\\'")}')"><i data-lucide="trash-2" style="width:16px;height:16px"></i></button>
           </div>
         </div>
       </div>`).join('')}
@@ -1865,12 +1867,11 @@ async function saveEditProduct(id){
   }catch(e){ toast(e.message,'err') }
 }
 
-async function toggleProductStatus(id, name, currentlyActive){
-  const action = currentlyActive ? 'deactivate' : 'activate';
-  if(!confirm(`Are you sure you want to ${action} "${name}"? ${currentlyActive ? 'It will be hidden from the shop.' : 'It will be visible in the shop again.'}`)) return
+async function deleteProduct(id, name){
+  if(!confirm(`Delete product "${name}"? This cannot be undone.`)) return
   try{
-    await api(`/shop/products/admin/${id}/toggle-status`,{ method:'PUT' })
-    toast(`Product ${action}d`)
+    await api(`/shop/products/admin/${id}`,{ method:'DELETE' })
+    toast('Product deleted')
     renderAdminShop()
   }catch(e){ toast(e.message,'err') }
 }

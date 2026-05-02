@@ -85,8 +85,20 @@ export async function onRequest(context) {
 
   // Strip the /api prefix that the Pages Function receives
   // URL will be /api/v1/shop/products → route = /shop/products
-  const route = url.pathname.replace(/^\/api\/v1/, '') + (url.search || '');
   const ip    = request.headers.get('CF-Connecting-IP') || 'unknown';
+  
+  if ((url.pathname === "/" || url.pathname === "") && isBot) {
+    return new Response(`<!DOCTYPE html><html><head>
+      <title>Mathrone Academy | Best Private Tutors in Rwanda</title>
+      <meta property="og:title" content="Mathrone Academy | Expert Tutoring" />
+      <meta property="og:description" content="Connect with vetted tutors for 1-on-1 learning in Rwanda. Maths, Science, Languages and more." />
+      <meta property="og:image" content="https://mathroneacademy.com/og-banner.jpg" />
+      <meta property="og:url" content="https://mathroneacademy.com/" />
+      </head><body><h1>Mathrone Academy</h1><p>Majestic Learning. Royal Results.</p></body></html>`, 
+      { headers: { 'content-type': 'text/html;charset=UTF-8' } });
+  }
+  
+  const route = url.pathname.replace(/^\/api\/v1/, '') + (url.search || '');
 
   // Rate limiting — skip for health checks
   if (route !== '/health' && isRateLimited(ip)) {

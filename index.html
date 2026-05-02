@@ -295,13 +295,16 @@ async function ensureFabric() {
 }
 async function ensureMathJax() {
   if (window.MathJax && window.MathJax.typesetPromise) return;
-  window.MathJax = {
-    tex: { inlineMath: [['\\(','\\)']], displayMath: [['$$','$$']], packages: {'[+]': ['ams']} },
-    svg: { fontCache: 'global', scale: 1.2 }, startup: { typeset: false }
-  };
-  await loadScript('https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js');
-  // Wait for MathJax to be ready
-  await new Promise(r => { if (window.MathJax.startup) window.MathJax.startup.promise.then(r); else r(); });
+  if (!window._mjPromise) {
+    window._mjPromise = new Promise((res) => {
+      window.MathJax = {
+        tex: { inlineMath: [['\\(','\\)']], displayMath: [['$$','$$']] },
+        startup: { typeset: false, pageReady: () => { res(); return MathJax.startup.defaultPageReady(); } }
+      };
+      loadScript('https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js');
+    });
+  }
+  return window._mjPromise;
 }
 async function ensurePDFJS() {
   if (window.pdfjsLib) return;
