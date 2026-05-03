@@ -101,7 +101,23 @@ var FORUM_CATEGORIES = [
             <div style="font-size:12px;color:var(--g400);margin-top:2px">${a.subject} • ${a.mode}</div>
             <div style="margin-top:6px;display:flex;gap:6px;align-items:center">
               ${statusBadge(a.is_active?'approved':'cancelled')}
-              ${a.is_active ? `<button class="btn btn-ghost btn-sm" onclick="navigate('messages')">💬 Message</button>` : ''}
+              ${a.is_active ? `
+  <div style="display:flex;gap:6px;align-items:center">
+    ${a.is_active 
+      ? ( (Array.isArray(a.tutors) ? a.tutors[0]?.agreement_accepted : a.tutors?.agreement_accepted)
+          ? `<button class="btn btn-primary btn-sm" onclick="openBookingModal('${a.tutor_id}', '${a.subject}', '${(Array.isArray(a.tutors) ? a.tutors[0].profiles.full_name : a.tutors.profiles.full_name).replace(/'/g,"\\'")}')">📅 Book Session</button>`
+          : `<div style="display:flex; flex-direction:column; gap:4px;">
+               <span style="font-size:11px;color:var(--orange);background:#fff7ed;padding:6px 10px;border-radius:6px;font-weight:600;">⏳ Tutor finalizing setup</span>
+               <button class="btn btn-ghost btn-sm" style="font-size:10px" onclick="State.data.chatWithId='${a.tutors.profiles.id}'; navigate('messages')">Message tutor to hurry up 💬</button>
+             </div>`)
+      : `<div style="display:flex;flex-direction:column;gap:4px">
+           <span class="badge badge-orange">⏳ Waiting for Admin</span>
+           <span style="font-size:10px;color:var(--g400)">Deal in progress...</span>
+         </div>`
+    }
+    <button class="btn btn-ghost btn-sm" onclick="State.data.chatWithId='${a.tutors.profiles.id}'; navigate('messages')">💬 Chat</button>
+  </div>
+` : ''}
             </div>
           </div>
         </div>`).join('')}
@@ -727,7 +743,7 @@ async function renderAdminExam() {
         <div style="background:var(--navy);color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0">${i+1}</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:14px;font-weight:600;color:var(--navy);margin-bottom:4px">${q.question}</div>
-          <div style="font-size:12px;color:var(--g400)">${q.type === 'multiple_choice' ? '🔘 Multiple choice' : q.type === 'multiple_select' ? '☑️ Select all that apply' : q.type === 'matching' ? '🔗 Matching (dropdown)' : '✍️ Written answer'} • ${q.marks} mark${q.marks>1?'s':''}</div>
+          <div style="font-size:12px;color:var(--g400)">${q.type === 'multiple_choice' ? '🔘 Multiple choice' : q.type === 'multiple_select' ? '☑️ Select all that apply' : q.type === 'matching' ? '🔗 Matching (dropdown)' : '✍️ Written answer'} • ${q.marks} mark${q.marks>1?'s':''} • <span style="background:${q.subject==='general'?'var(--sky)':'#f0fdf4'};color:${q.subject==='general'?'var(--navy)':'#166534'};padding:1px 7px;border-radius:4px;font-weight:600">${q.subject||'general'}</span></div>
           ${optionsHtml}${matchingHtml}
         </div>
         <div style="display:flex;gap:6px;flex-shrink:0">
@@ -799,6 +815,7 @@ async function renderAdminExam() {
 
 function openAddQuestionModal(existing = null){
   const isEdit = !!existing
+  const SUBJECTS = ['general','Mathematics','Physics','Chemistry','Biology','English','History','Geography','Economics','Computer Science','French','Kinyarwanda','Literature']
   document.getElementById('modal-root').innerHTML = `
   <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
     <div class="modal" style="max-width:600px">
@@ -807,19 +824,35 @@ function openAddQuestionModal(existing = null){
         <button class="modal-close" onclick="document.querySelector('.modal-overlay').remove()">✕</button>
       </div>
       <div class="modal-body">
-        <div class="form-group">
-          <label class="form-label">Question Type</label>
-          <select class="input" id="q-type" onchange="onQTypeChange(this.value)">
-          <option value="multiple_choice" ${existing?.type==='multiple_choice'?'selected':''}>Multiple Choice (one answer)</option>
-          <option value="multiple_select" ${existing?.type==='multiple_select'?'selected':''}>Multiple Select (click all that apply)</option>
-          <option value="matching" ${existing?.type==='matching'?'selected':''}>Matching (pairs — answers hidden in dropdown)</option>
-          <option value="text" ${existing?.type==='text'?'selected':''}>Written Answer</option>
-          </select>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Subject <span style="color:var(--red)">*</span></label>
+            <select class="input" id="q-subject">
+              ${SUBJECTS.map(s => `<option value="${s}" ${(existing?.subject||'general')===s?'selected':''}>${s==='general'?'🌐 General (all tutors)':s}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Question Type</label>
+            <select class="input" id="q-type" onchange="onQTypeChange(this.value)">
+            <option value="multiple_choice" ${existing?.type==='multiple_choice'?'selected':''}>Multiple Choice (one answer)</option>
+            <option value="multiple_select" ${existing?.type==='multiple_select'?'selected':''}>Multiple Select (click all that apply)</option>
+            <option value="matching" ${existing?.type==='matching'?'selected':''}>Matching (pairs — answers hidden in dropdown)</option>
+            <option value="text" ${existing?.type==='text'?'selected':''}>Written Answer</option>
+            </select>
+          </div>
         </div>
         <div class="form-group">
-          <label class="form-label">Question *</label>
+          <label class="form-label">Question Text *</label>
           <textarea class="input" id="q-text" rows="3" placeholder="Enter the question...">${existing?.question||''}</textarea>
-          <div style="font-size:11px;color:var(--g400);margin-top:4px">Use LaTeX for formulas: \( x^2 + y^2 = z^2 \) for inline, \[ \frac{a}{b} \] for block</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Question Image (Optional)</label>
+          <div style="display:flex;gap:8px">
+            <input class="input" id="q-image" value="${existing?.image_url || ''}" placeholder="https://..." style="flex:1"/>
+            <button type="button" class="btn btn-secondary" onclick="document.getElementById('q-image-file').click()">Upload</button>
+            <input type="file" id="q-image-file" accept="image/*" style="display:none" onchange="handleCourseImageUploadAPI(this, 'q-image')"/>
+          </div>
+          <div style="font-size:11px;color:var(--g400);margin-top:4px">Used for diagrams, circuits, or graphs.</div>
         </div>
         <div id="q-options-wrap">
           <div class="form-group">
@@ -893,11 +926,13 @@ function onQTypeChange(type){
 }
 async function saveNewQuestion(){
   const type    = document.getElementById('q-type')?.value
+  const subject = document.getElementById('q-subject')?.value || 'general'
   const text    = document.getElementById('q-text')?.value?.trim()
   const options = ['multiple_choice','multiple_select'].includes(type) ? document.getElementById('q-options')?.value?.split('\n').map(o=>o.trim()).filter(Boolean) : null
   const correct = ['multiple_choice','multiple_select'].includes(type) ? document.getElementById('q-correct')?.value?.trim() : null
   const marks   = parseInt(document.getElementById('q-marks')?.value) || 1
   const order   = parseInt(document.getElementById('q-order')?.value) || 0
+  const image_url = document.getElementById('q-image')?.value?.trim() || null;
   let pairs = null
   if(type === 'matching'){
     const raw = document.getElementById('q-pairs')?.value?.trim()
@@ -912,7 +947,7 @@ async function saveNewQuestion(){
   if(['multiple_choice','multiple_select'].includes(type) && (!options?.length || !correct)){ toast('Options and correct answer are required','err'); return }
   const modelAnswer = type === 'text' ? (document.getElementById('q-model-answer')?.value?.trim() || null) : null
   try{
-    await api('/exam/questions/admin', { method:'POST', body: JSON.stringify({ question:text, type, options, correct_answer:correct, model_answer:modelAnswer, marks, order_num:order, pairs }) })
+    await api('/exam/questions/admin', { method:'POST', body: JSON.stringify({ question:text, type, subject, options, correct_answer:correct, model_answer:modelAnswer, marks, order_num:order, pairs, image_url })})
     document.querySelector('.modal-overlay')?.remove()
     toast('Question added ✅')
     renderAdminExam()
@@ -921,11 +956,13 @@ async function saveNewQuestion(){
 
 async function saveEditQuestion(id){
   const type    = document.getElementById('q-type')?.value
+  const subject = document.getElementById('q-subject')?.value || 'general'
   const text    = document.getElementById('q-text')?.value?.trim()
   const options = ['multiple_choice','multiple_select'].includes(type) ? document.getElementById('q-options')?.value?.split('\n').map(o=>o.trim()).filter(Boolean) : null
   const correct = ['multiple_choice','multiple_select'].includes(type) ? document.getElementById('q-correct')?.value?.trim() : null
   const marks   = parseInt(document.getElementById('q-marks')?.value) || 1
   const order   = parseInt(document.getElementById('q-order')?.value) || 0
+  const image_url = document.getElementById('q-image')?.value?.trim() || null;
   let pairs = null
   if(type === 'matching'){
     const raw = document.getElementById('q-pairs')?.value?.trim()
@@ -939,7 +976,7 @@ async function saveEditQuestion(id){
   const modelAnswer = type === 'text' ? (document.getElementById('q-model-answer')?.value?.trim() || null) : null
   if(!text){ toast('Question text is required','err'); return }
   try{
-    await api(`/exam/questions/admin/${id}`, { method:'PATCH', body: JSON.stringify({ question:text, type, options, correct_answer:correct, model_answer:modelAnswer, marks, order_num:order, pairs }) })
+    await api(`/exam/questions/admin/${id}`, { method:'PATCH', body: JSON.stringify({ question:text, type, subject, options, correct_answer:correct, model_answer:modelAnswer, marks, order_num:order, pairs, image_url }) })
     document.querySelector('.modal-overlay')?.remove()
     toast('Question updated ✅')
     renderAdminExam()
@@ -1303,6 +1340,12 @@ function launchExam(res){
             <div style="background:var(--navy);color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0">${globalIndex+1}</div>
             <div style="font-size:15px;font-weight:600;color:var(--navy);line-height:1.5">${q.question}</div>
           </div>
+          ${q.image_url ? `
+            <div style="margin: 12px 0; border-radius: 8px; overflow: hidden; border: 1px solid var(--g100); background: #f8fafc; text-align: center;">
+              <img src="${q.image_url}" style="max-width: 100%; max-height: 400px; cursor: zoom-in;" onclick="window.open(this.src, '_blank')"/>
+              <div style="padding: 6px; font-size: 11px; color: var(--g400); border-top: 1px solid var(--g100);">Click image to enlarge</div>
+            </div>
+          ` : ''}
           <div style="font-size:11px;color:var(--g400);margin-bottom:12px">${q.marks} mark${q.marks>1?'s':''} • ${q.type === 'multiple_choice' ? 'Multiple choice' : q.type === 'multiple_select' ? 'Select all that apply' : 'Written answer'}</div>
           ${q.type === 'multiple_choice' ? `
           <div style="display:flex;flex-direction:column;gap:10px">
@@ -1446,6 +1489,7 @@ function launchExam(res){
     window.changePage = function(dir){
       currentPage += dir
       renderExamPageOnly()
+      setTimeout(() => { if(window.MathJax) MathJax.typesetPromise() }, 100);
     }
   }
 
@@ -1554,6 +1598,11 @@ function updateExamProgress(){
 
 async function submitExam(attemptId, autoSubmit = false){
   if(!autoSubmit && !confirm('Are you sure you want to submit your exam? You cannot change your answers after submission.')) return
+  
+  // Find the submit button to show loading
+  const btn = event?.target?.closest('button') || document.querySelector('button[onclick*="submitExam"]');
+  if(btn) { btn.disabled = true; btn.textContent = '⏳ Finalizing & Grading...'; }
+
   try{
     window.examSubmitted = true
     window._examTimerRunning = false
@@ -1580,12 +1629,28 @@ async function submitExam(attemptId, autoSubmit = false){
   }catch(e){ toast(e.message,'err') }
 }
 
-    function openTutorLabDirect(){
-  window._wbInstitutionName = '';
-  window._isLabHost = true;
-  const sessionId = 'tutor_' + State.user.id + '_' + Date.now();
-  window._currentTutorLabSessionId = sessionId;
-  renderWhiteboard(sessionId);
+    async function openTutorLabDirect(){
+  // Only allow lab access if tutor has at least one upcoming scheduled session
+  try {
+    const sessions = await api('/sessions/my');
+    const now = new Date();
+    const active = (sessions || []).filter(s => 
+      s.status === 'scheduled' &&
+      new Date(s.scheduled_at) >= new Date(now - 60 * 60 * 1000) // within 1hr past start
+    );
+    if (!active.length) {
+      toast('⚠️ The lab is only accessible during your scheduled sessions. You have no active session right now.', 'err');
+      return;
+    }
+    // Use the soonest session ID so whiteboard syncs with that session
+    const session = active[0];
+    window._wbInstitutionName = '';
+    window._isLabHost = true;
+    window._currentTutorLabSessionId = session.id;
+    renderWhiteboard(session.id);
+  } catch(e) {
+    toast('Could not verify session: ' + e.message, 'err');
+  }
 }
 function openTutorLabShareModal(){
   document.getElementById('modal-root').innerHTML = `
@@ -1673,6 +1738,25 @@ async function renderTutorDash() {
       </div>
       ${statusBadge(tutor.status || 'applicant')}
     </div>
+    ${tutor.status === 'approved' && !tutor.agreement_accepted ? `
+    <div style="position:fixed;inset:0;background:rgba(13,27,64,0.95);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;">
+      <div class="card" style="max-width:500px;padding:32px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,0.5)">
+        <div style="font-size:48px;margin-bottom:16px;">👑</div>
+        <h2 style="margin-bottom:12px;color:var(--navy);font-family:'Playfair Display',serif">Majestic Tutor Agreement</h2>
+        <p style="font-size:14px;color:var(--g600);margin-bottom:20px">To maintain the quality of Mathrone Academy, you must agree to our professional standards.</p>
+        <div style="text-align:left;font-size:12px;color:var(--g800);max-height:180px;overflow-y:auto;background:var(--g50);padding:16px;border-radius:8px;margin-bottom:24px;line-height:1.6;border:1px solid var(--g100)">
+          <strong>1. Non-Solicitation & Platform Exclusivity:</strong> You strictly agree not to solicit, accept, or negotiate direct payments from students or parents outside the Mathrone platform. Sharing personal contact details (WhatsApp, phone, email) with students for the purpose of bypassing the platform constitutes immediate grounds for permanent account termination.<br><br>
+          <strong>2. Royalty Fee & Revenue Share:</strong> Mathrone Academy retains a platform royalty on all sessions booked through the platform. Your agreed salary or per-session rate is net of this royalty. Attempting to circumvent this fee structure — including offering discounted "off-platform" rates — is a material breach of this agreement.<br><br>
+          <strong>3. The Majestic Lab:</strong> All live online sessions must be conducted exclusively inside the Mathrone Majestic Lab. Use of third-party video tools (Zoom, Google Meet, etc.) as a substitute for the Lab is prohibited unless explicitly authorised in writing by an admin.<br><br>
+          <strong>4. Session Reporting:</strong> Detailed progress feedback, including marks, strengths, and areas for improvement, must be submitted within 24 hours of every completed session. Failure to report consistently may result in session fee withholding.<br><br>
+          <strong>5. Professional Conduct:</strong> You agree to maintain punctuality, respect, and academic integrity in all interactions with students and parents. Any complaint of misconduct will be investigated and may result in suspension pending review.<br><br>
+          <strong>6. Confidentiality:</strong> All student data, learning records, and parent communications accessed through the platform are strictly confidential and may not be shared with any third party.<br><br>
+          <strong>7. Intellectual Property:</strong> Any teaching materials, quizzes, or content created while using Mathrone Academy tools remain jointly owned by you and Mathrone Academy. You may not re-publish or sell these materials independently.<br><br>
+          <strong>8. Termination:</strong> Either party may end this agreement with 7 days' written notice. Mathrone Academy reserves the right to terminate immediately for any breach of clauses 1, 2, 3, or 5.
+        </div>
+        <button class="btn btn-primary btn-full" id="sign-contract-btn" onclick="signTutorContract()">I Agree & Become a Majestic Tutor</button>
+      </div>
+    </div>` : ''}
     ${tutor.status !== 'approved' ? `<div class="alert-warn"><i data-lucide="hourglass" style="width:16px;height:16px;margin-right:6px"></i> Your application status is <strong>${tutor.status?.replace(/_/g, ' ') || 'applicant'}</strong>. You'll be notified when approved to start teaching.</div>` : ''}
     <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px">
       <div class="card" style="flex:1;min-width:130px;padding:18px;display:flex;align-items:center;gap:12px">
@@ -1706,6 +1790,16 @@ async function renderTutorDash() {
         <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="navigate('profile')">Edit Profile</button>
       </div>
     </div>
+    <!-- Availability Manager -->
+    <div class="card" style="padding:24px;margin-bottom:24px">
+      <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:6px"><i data-lucide="calendar-days" style="width:18px;height:18px;color:var(--blue)"></i> My Teaching Hours</h3>
+      <p style="font-size:12px;color:var(--g400);margin-bottom:16px">Set the days and times you are generally free to teach. Students will book within these windows.</p>
+      <div id="availability-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+        <div class="loader-center"><div class="spinner"></div></div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="openAddAvailabilityModal()">+ Add Time Window</button>
+    </div>
+    <div id="modal-root"></div>
     <div class="card" style="padding:24px;margin-top:24px">
       <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:6px"><i data-lucide="banknote" style="width:18px;height:18px;color:var(--blue)"></i> Salary & Payment</h3>
       ${tutor.salary_amount || tutor.hourly_rate ? `
@@ -1745,8 +1839,15 @@ async function renderTutorDash() {
             <div style="font-size:12px;color:var(--g400)">${fmt(s.scheduled_at)} • ${s.duration_mins} mins</div>
           </div>
           <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
-            ${statusBadge(s.status)}
-            <button class="btn btn-primary btn-sm" onclick="renderWhiteboard('${s.id}')" style="font-size:11px;">🚀 Start Session</button>
+            ${s.status === 'pending' 
+              ? `<div style="display:flex;gap:4px">
+                   <button class="btn btn-ghost btn-sm" onclick="State.data.activeOtherId='${s.students.profiles.id}'; navigate('messages')">💬 Chat</button>
+                   <button class="btn btn-success btn-sm" onclick="approveBooking('${s.id}')" title="Confirm Session">✅ Confirm</button>
+                   <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="updateSession('${s.id}','cancelled')" title="Decline">✕</button>
+                 </div>`
+              : statusBadge(s.status)
+            }
+            ${s.status === 'scheduled' ? `<button class="btn btn-primary btn-sm" onclick="renderWhiteboard('${s.id}')" style="font-size:11px;">🚀 Start Session</button>` : ''}
           </div>
         </div>`).join('')}
       </div>` : `<div class="empty-state"><div class="empty-icon" style="color:var(--g400)"><i data-lucide="calendar" style="width:48px;height:48px;stroke-width:1.5"></i></div><div class="empty-title">No upcoming sessions</div></div>`}
@@ -1762,8 +1863,14 @@ async function renderTutorDash() {
           <p style="font-size:12px;color:rgba(255,255,255,0.65);max-width:380px">Open the full interactive lab — whiteboard, formulas, shapes, rulers, graph tools and more. Great for home sessions, online prep, or independent tutoring.</p>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn btn-sm" onclick="openTutorLabDirect()" style="background:#F5A623;color:#0D1B40;font-weight:800;">🚀 Open Lab Now</button>
-          <button class="btn btn-sm" onclick="openTutorLabShareModal()" style="background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.25);">🔗 Share Student Link</button>
+          ${upcoming.length ? `
+            <button class="btn btn-sm" onclick="openTutorLabDirect()" style="background:#F5A623;color:#0D1B40;font-weight:800;">🚀 Open Lab for Session</button>
+            <button class="btn btn-sm" onclick="openTutorLabShareModal()" style="background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.25);">🔗 Share Student Link</button>
+          ` : `
+            <div style="background:rgba(255,255,255,0.08);border-radius:8px;padding:10px 14px;font-size:12px;color:rgba(255,255,255,0.55);border:1px solid rgba(255,255,255,0.15)">
+              🔒 Lab opens when you have a scheduled session
+            </div>
+          `}
         </div>
       </div>
     </div>
@@ -1784,6 +1891,8 @@ async function renderTutorDash() {
       </div>
     </div>
     `))
+      // Load availability after DOM is painted
+      setTimeout(() => loadTutorAvailability(), 0);
       } catch (e) {
         toast(e.message, 'err')
       }
@@ -1967,19 +2076,28 @@ async function deleteContactMessage(id){
   }
 }
 async function toggleRecruiting(){
-  const btn = document.getElementById('recruiting-toggle-btn')
-  const current = btn?.dataset.recruiting === 'true'
-  try{
+  const btn = document.getElementById('recruiting-toggle-btn');
+  if(!btn) return;
+  const current = btn.dataset.recruiting === 'true';
+  const target = !current;
+  
+  btn.disabled = true;
+  btn.textContent = '⏳ ...';
+  
+  try {
     await api('/auth/settings/recruiting', {
       method: 'PATCH',
-      body: JSON.stringify({ is_recruiting: !current })
-    })
-    btn.dataset.recruiting = (!current).toString()
-    btn.textContent = !current ? '🟢 Recruiting ON' : '🔴 Recruiting OFF'
-    btn.style.color = !current ? 'var(--green)' : 'var(--red)'
-    toast(!current ? 'Tutor recruiting is now ON ✅' : 'Tutor recruiting is now OFF 🔴')
-  }catch(e){
-    toast(e.message,'err')
+      body: JSON.stringify({ is_recruiting: target })
+    });
+    btn.dataset.recruiting = target.toString();
+    btn.textContent = target ? '🟢 Recruiting ON' : '🔴 Recruiting OFF';
+    btn.style.color = target ? 'var(--green)' : 'var(--red)';
+    toast(target ? 'Tutor recruiting is now ON ✅' : 'Tutor recruiting is now OFF 🔴');
+  } catch(e) {
+    toast(e.message, 'err');
+    btn.textContent = current ? '🟢 Recruiting ON' : '🔴 Recruiting OFF';
+  } finally {
+    btn.disabled = false;
   }
 }
 
@@ -2053,9 +2171,15 @@ async function toggleQuiz(){
         ${SE.slice(0, 4).map(s => `
         <div style="display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--g100)">
           <div style="width:36px;height:36px;background:var(--sky);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">📖</div>
-          <div style="flex:1;min-width:0"><div style="font-weight:600;font-size:13px;color:var(--navy)">${s.subject}</div><div style="font-size:11px;color:var(--g400)">${fmtShort(s.scheduled_at)}</div></div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:700;font-size:13px;color:var(--navy)">${s.subject}</div>
+            <div style="font-size:11px;color:var(--g600)">
+              ${s.tutors?.profiles?.full_name?.split(' ')[0]} ↔ ${s.students?.profiles?.full_name?.split(' ')[0]}
+            </div>
+            <div style="font-size:10px;color:var(--g400);margin-top:2px">${fmtShort(s.scheduled_at)}</div>
+          </div>
           ${statusBadge(s.status)}
-        </div>`).join('') || `<div class="empty-state" style="padding:20px"><div class="empty-sub">No sessions yet</div></div>`}
+        </div>`).join('') || `<div class="empty-state" style="padding:20px"><div class="empty-sub">No sessions scheduled yet</div></div>`}
       </div>
     </div>
     <!-- Institution License Manager -->
@@ -2082,6 +2206,14 @@ async function toggleQuiz(){
         <h3 style="font-size:16px;font-weight:700;color:var(--navy);display:flex;align-items:center;gap:6px"><i data-lucide="mail" style="width:18px;height:18px;color:var(--blue)"></i> Contact Messages</h3>
       </div>
       <div id="contact-msgs-list"><div class="loader-center"><div class="spinner"></div></div></div>
+      <!-- Flagged Messages Audit -->
+    <div class="card" style="padding:24px;margin-top:24px;border:1px solid #fee2e2">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+        <div style="background:#fee2e2;color:var(--red);padding:6px;border-radius:8px;"><i data-lucide="shield-alert" style="width:20px;height:20px"></i></div>
+        <h3 style="font-size:16px;font-weight:700;color:var(--navy)">Security Audit: Flagged Messages</h3>
+      </div>
+      <div id="flagged-msgs-list" style="font-size:13px;color:var(--g400)">Scanning for potential leakage...</div>
+    </div>
       
       </div>
     <!-- Maintenance Tools -->
@@ -2119,35 +2251,181 @@ async function toggleQuiz(){
           </div>`).join('') : '<div style="color:var(--g400);font-size:13px;text-align:center;padding:20px">No contact messages yet</div>'
         }
       }catch(e){}
+      // Load flagged messages for Admin
+      try {
+        const flagged = await api('/messages/admin/flagged');
+        const fEl = document.getElementById('flagged-msgs-list');
+        if(fEl) {
+          fEl.innerHTML = flagged.length ? flagged.map(m => `
+            <div style="padding:12px;border-bottom:1px solid var(--g100);display:flex;justify-content:space-between;align-items:center">
+              <div>
+                <div style="color:var(--navy);font-weight:700">From: ${m.sender_name}</div>
+                <div style="color:var(--red);margin:4px 0">"${m.content}"</div>
+                <div style="font-size:11px">${fmtShort(m.created_at)}</div>
+              </div>
+              <button class="btn btn-ghost btn-sm" onclick="State.data.activeOtherId='${m.sender_id}';navigate('messages')">Investigate</button>
+            </div>
+          `).join('') : 'No security flags today. ✅';
+        }
+      } catch(e) {}
     }, 500)
     // Load institution list
     renderInstitutionList();
 
-    // Load recruiting + quiz status
-  setTimeout(async ()=>{
-    try{
-      const [recRes, quizRes] = await Promise.all([
-        fetch(API_URL + '/auth/settings/recruiting'),
-        fetch(API_URL + '/auth/settings/quiz')
-      ])
-      const recData  = await recRes.json()
-      const quizData = await quizRes.json()
-      const recBtn  = document.getElementById('recruiting-toggle-btn')
-      const quizBtn = document.getElementById('quiz-toggle-btn')
-      if(recBtn){
-        recBtn.dataset.recruiting = recData.is_recruiting.toString()
-        recBtn.textContent = recData.is_recruiting ? '🟢 Recruiting ON' : '🔴 Recruiting OFF'
-        recBtn.style.color = recData.is_recruiting ? 'var(--green)' : 'var(--red)'
-      }
-      if(quizBtn){
-        quizBtn.dataset.quiz = quizData.quiz_enabled.toString()
-        quizBtn.textContent = quizData.quiz_enabled ? '🟢 Quiz ON' : '🔴 Quiz OFF'
-        quizBtn.style.color = quizData.quiz_enabled ? 'var(--green)' : 'var(--red)'
-      }
-    }catch(e){}
-  }, 400)
+    // Load recruiting + quiz status using the authorized api helper
+    setTimeout(async () => {
+        try {
+            const [recData, quizData] = await Promise.all([
+                api('/auth/settings/recruiting'),
+                api('/auth/settings/quiz')
+            ]);
+            
+            const recBtn = document.getElementById('recruiting-toggle-btn');
+            const quizBtn = document.getElementById('quiz-toggle-btn');
+
+            if (recBtn && recData) {
+                const isRec = recData.is_recruiting;
+                recBtn.dataset.recruiting = isRec.toString();
+                recBtn.textContent = isRec ? '🟢 Recruiting ON' : '🔴 Recruiting OFF';
+                recBtn.style.color = isRec ? 'var(--green)' : 'var(--red)';
+            }
+            if (quizBtn && quizData) {
+                const isQuiz = quizData.quiz_enabled;
+                quizBtn.dataset.quiz = isQuiz.toString();
+                quizBtn.textContent = isQuiz ? '🟢 Quiz ON' : '🔴 Quiz OFF';
+                quizBtn.style.color = isQuiz ? 'var(--green)' : 'var(--red)';
+            }
+        } catch (e) {
+            console.error("Failed to load admin settings:", e);
+        }
+    }, 100);
 
   } catch (e) {
     toast(e.message, 'err')
   }
+}
+async function signTutorContract() {
+  const btn = document.getElementById('sign-contract-btn');
+  if(!btn) return;
+  btn.disabled = true; btn.textContent = 'Signing...';
+  try {
+    await api('/tutors/me/agreement', { method: 'POST' });
+    toast('Welcome to the Mathrone Royalty! 👑');
+    // Clear any cached tutor/assignment data
+    if(typeof bustCache === 'function') bustCache('/tutors');
+    if(typeof bustCache === 'function') bustCache('/students/assignments');
+    renderTutorDash();
+  } catch(e) { 
+    toast(e.message, 'err'); 
+    btn.disabled = false; btn.textContent = 'I Agree & Become a Majestic Tutor';
+  }
+}
+
+async function loadTutorAvailability() {
+  try {
+    const data = await api('/tutors/me/availability');
+    const container = document.getElementById('availability-list');
+    if (!container) return;
+    // Backend returns { is_available, slots: [{day, start, end}], last_updated }
+    const slots = (data.slots || []);
+    const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    container.innerHTML = slots.length ? slots.map((a, idx) => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:var(--g50);border-radius:8px">
+        <span style="font-weight:600;font-size:13px">${a.day}: ${a.start} - ${a.end}</span>
+        <button class="btn btn-ghost btn-sm" style="color:var(--red);border:none" onclick="deleteAvailabilitySlot(${idx})">✕</button>
+      </div>
+    `).join('') : '<div style="color:var(--g400);font-size:12px">No hours set yet. Click "+ Add Time Window" to get started.</div>';
+  } catch(e) {
+    const container = document.getElementById('availability-list');
+    if (container) container.innerHTML = '<div style="color:var(--red);font-size:12px">Failed to load hours. Please refresh.</div>';
+  }
+}
+
+function openAddAvailabilityModal() {
+  document.getElementById('modal-root').innerHTML = `
+  <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
+    <div class="modal" style="max-width:360px">
+      <div class="modal-header"><span class="modal-title">Add Available Hours</span></div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Day of Week</label>
+          <select class="input" id="avail-day">
+            <option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option>
+            <option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option><option value="0">Sunday</option>
+          </select>
+        </div>
+        <div class="grid-2">
+          <div class="form-group"><label class="form-label">Start Time</label><input type="time" class="input" id="avail-start" value="17:00"></div>
+          <div class="form-group"><label class="form-label">End Time</label><input type="time" class="input" id="avail-end" value="20:00"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary btn-full" onclick="saveAvailability()">Save Hours ✅</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function saveAvailability() {
+  const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const dayIdx = parseInt(document.getElementById('avail-day').value);
+  const newSlot = {
+    day: dayNames[dayIdx],
+    start: document.getElementById('avail-start').value,
+    end: document.getElementById('avail-end').value
+  };
+  try {
+    // Fetch existing slots, append new one, then PATCH
+    const existing = await api('/tutors/me/availability');
+    const slots = [...(existing.slots || []), newSlot];
+    await api('/tutors/me/availability', { method: 'PATCH', body: JSON.stringify({ availability: slots }) });
+    document.querySelector('.modal-overlay').remove();
+    loadTutorAvailability();
+    toast('Hours updated! ✅');
+  } catch(e) { toast(e.message, 'err'); }
+}
+
+async function deleteAvailabilitySlot(idx) {
+  try {
+    const existing = await api('/tutors/me/availability');
+    const slots = (existing.slots || []).filter((_, i) => i !== idx);
+    await api('/tutors/me/availability', { method: 'PATCH', body: JSON.stringify({ availability: slots }) });
+    loadTutorAvailability();
+    toast('Slot removed');
+  } catch(e) { toast(e.message, 'err'); }
+}
+async function openBookingModal(tutorId, subject, tutorName) {
+  document.getElementById('modal-root').innerHTML = `
+  <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
+    <div class="modal" style="max-width:400px">
+      <div class="modal-header"><span class="modal-title">Book with ${tutorName}</span></div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Choose Date & Time</label>
+          <input type="datetime-local" class="input" id="book-time">
+          <p style="font-size:11px;color:var(--g400);margin-top:8px">Select a time when your tutor is usually free. They will need to confirm this request.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary btn-full" onclick="submitBooking('${tutorId}', '${subject}')">Send Booking Request 🚀</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function submitBooking(tutorId, subject) {
+  const time = document.getElementById('book-time').value;
+  if(!time) return toast('Please pick a time', 'err');
+  try {
+    await api('/sessions/book', { method: 'POST', body: JSON.stringify({ tutor_id: tutorId, subject, scheduled_at: time }) });
+    document.querySelector('.modal-overlay').remove();
+    toast('Request sent to tutor! Check back soon for confirmation. ✅');
+  } catch(e) { toast(e.message, 'err'); }
+}
+async function approveBooking(sessionId) {
+  try {
+    await api(`/sessions/${sessionId}`, { method: 'PATCH', body: JSON.stringify({ status: 'scheduled' }) });
+    toast('Session confirmed! It is now in your schedule. 📅');
+    renderTutorDash(); // Refresh
+  } catch(e) { toast(e.message, 'err'); }
 }

@@ -2018,11 +2018,36 @@
   }
 }
 
-/* MAJESTIC LAB MOBILE OPTIMIZATION */
+/* MAJESTIC LAB MOBILE OPTIMIZATION - HARDENED */
 @media (max-width: 768px) {
+  #wb-header { height: 44px !important; padding: 4px 10px !important; }
+  #wb-header span { font-size: 11px !important; letter-spacing: 0 !important; }
+  
   #wb-resource-drawer, #wb-shapes-panel { 
     width: 100% !important; 
+    z-index: 20000 !important;
   }
+  
+  .wb-toolbar {
+    height: 40px !important;
+    padding: 0 6px !important;
+    overflow-x: auto;
+    background: #0D1B40 !important;
+  }
+  
+  .wb-btn {
+    padding: 4px 8px !important;
+    font-size: 10px !important;
+    min-width: unset !important;
+    height: 32px !important;
+  }
+
+  .wb-btn i, .wb-btn svg {
+    width: 12px !important;
+    height: 12px !important;
+  }
+
+  .tool-sep { display: none !important; }
   
   .wb-toolbar,
   #wb-toolbar-el { 
@@ -2290,3 +2315,4 @@
   .cart-grid { grid-template-columns: 1fr !important; }
   .cart-grid > div:last-child { position: static !important; top: auto !important; }
 }
+

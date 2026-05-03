@@ -91,6 +91,7 @@
         btn.textContent = 'Send Reset Link'
       }
     }
+
     async function doLogin() {
       const email = document.getElementById('l-email')?.value?.trim()
       const pw = document.getElementById('l-pw')?.value
@@ -151,8 +152,8 @@ function toggleStudentLocation(){
         <button class="role-tab ${defaultRole === 'student' ? 'active' : ''}" id="rtab-student" onclick="switchRegRole('student')" style="display:flex;align-items:center;justify-content:center;gap:8px"><i data-lucide="graduation-cap" style="width:16px;height:16px"></i> I'm a Student</button>
         <button class="role-tab ${defaultRole === 'tutor' ? 'active' : ''}" id="rtab-tutor" onclick="switchRegRole('tutor')" style="display:flex;align-items:center;justify-content:center;gap:8px"><i data-lucide="briefcase" style="width:16px;height:16px"></i> I'm a Tutor</button>
         <div id="reg-not-recruiting" class="alert-warn" style="display:none;margin:10px 0 0">
-          <i data-lucide="alert-circle" style="width:16px;height:16px;margin-right:6px"></i> We are not currently recruiting new tutors. Please check back later or <a onclick="navigate('landing')" style="color:var(--blue);cursor:pointer">Contact Us</a>.
-        </div>
+        <i data-lucide="alert-circle" style="width:16px;height:16px;margin-right:6px"></i> We are not currently recruiting new tutors. Please check back later or <a onclick="scrollToContact()" style="color:var(--blue);cursor:pointer">Contact Us</a>.
+       </div>
       </div>
       <div id="reg-form"></div>
       <div class="auth-switch">Already have an account? <a onclick="navigate('login')">Sign in →</a></div>

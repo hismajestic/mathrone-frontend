@@ -381,10 +381,33 @@ function closeMenuOnOutside(e) {
     closeMenu();
   }
 }
-function scrollToContact() {
-  closeMenu()
-  const el = document.querySelector(".contact-grid")
-  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" })
+window.scrollToContact = function(e) {
+  if (e) e.preventDefault();
+  
+  const performScroll = () => {
+    const el = document.querySelector(".contact-grid");
+    if (el) {
+      const offset = 80; // Offset for the sticky header
+      const bodyRect = document.body.getBoundingClientRect().top;
+      const elementRect = el.getBoundingClientRect().top;
+      const elementPosition = elementRect - bodyRect;
+      const offsetPosition = elementPosition - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth"
+      });
+    }
+  };
+
+  if (State.page !== 'landing') {
+    navigate('landing');
+    // Increase timeout slightly to ensure full DOM paint
+    setTimeout(performScroll, 600);
+  } else {
+    closeMenu();
+    performScroll();
+  }
 }
  async function renderPage() {
       const p = State.page
@@ -419,7 +442,13 @@ function scrollToContact() {
       }
       if (p === 'forum')         return renderForum()
       if (p === 'sessions')      return renderSessions()
-      if (p === 'messages')      return renderMessages()
+      if (p === 'messages') {
+        if(State.data.chatWithId) {
+          State.data.activeOtherId = State.data.chatWithId;
+          delete State.data.chatWithId; // Clear after use
+        }
+        return renderMessages();
+      }
       if (p === 'profile')       return renderProfile()
       if (p === 'notifications') return renderNotifications()
       if (p === 'tutors')        return renderTutorSearch()
@@ -685,6 +714,10 @@ function closeAuth() {
 
 // Global stub — works before whiteboard.js loads
 function renderWhiteboard(sessionId) {
+  // Push a history entry so browser Back returns to dashboard, not login
+  const prevUrl = window.location.pathname;
+  history.replaceState({ ...history.state, scroll: window.scrollY }, document.title, prevUrl);
+  history.pushState({ page: 'dashboard', tab: State.tab, scroll: 0 }, document.title, '/dashboard');
   loadComponent('whiteboard').then(() => {
     if (typeof window._doRenderWhiteboard === 'function') {
       window._doRenderWhiteboard(sessionId);
@@ -700,18 +733,31 @@ function renderWhiteboard(sessionId) {
 }
     // Handle browser back/forward buttons
     window.addEventListener('popstate', function(e) {
+      // Cleanly tear down the lab if active
       if (window.wbInstance) { try { window.wbInstance.dispose(); } catch(err){} window.wbInstance = null; }
       if (window._rtcStarted && typeof window.stopLabVideo === 'function') window.stopLabVideo();
-      
+      window._examTimerRunning = false;
+
       if (e.state && e.state.page) {
-        State.page = e.state.page
-        State.tab  = e.state.tab || null
-        State.data = {}
+        // We have a known state — use it
+        State.page = e.state.page;
+        State.tab  = e.state.tab || null;
+        State.data = {};
         State.restoreScrollPos = e.state.scroll || 0;
-        renderPage()
+        // Never send an authenticated user to login via back button
+        if (!State.user && !['landing','login','register','news','shop','about','privacy','terms'].includes(State.page)) {
+          State.page = 'landing';
+        }
+        renderPage();
       } else {
-        bootFromUrl()
-        renderPage()
+        // No state (e.g. very first entry) — if user is logged in, go to dashboard, not login
+        if (State.user && localStorage.getItem('tc_access')) {
+          State.page = 'dashboard';
+          renderPage();
+        } else {
+          bootFromUrl();
+          renderPage();
+        }
       }
     })
     async function renderParentReport(token){
@@ -1520,7 +1566,10 @@ function handleFooterLink(l){
   else if(l==='Become a Tutor') navigate('register','tutor')
   else if(l==='Careers') navigate('news','career')
   else if(l==='Terms of Service') navigate('terms')
-  else if(l==='Contact Us') document.querySelector('.contact-grid')?.scrollIntoView()
+  else if(l==='Contact Us') {
+    if(event) event.preventDefault(); 
+    window.scrollToContact();
+  }
   else if(l==='How It Works') document.querySelector('.steps-grid')?.scrollIntoView()
 }
 function animateCount(id, target, duration, suffix, isDecimal){
@@ -1875,10 +1924,13 @@ ${s.mode !== 'home' ? `<button class="btn btn-ghost btn-sm" onclick="openStandal
           <span>📍 ${t.teaching_modes?.join(', ') || 'Online'}</span>
         </div>
         ${t.bio ? `<p style="font-size:12px;color:var(--g600);line-height:1.5;margin-bottom:14px">${t.bio.slice(0, 100)}${t.bio.length > 100 ? '...' : ''}</p>` : ''}
-        <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="display:flex; flex-direction:column; gap:8px;">
           ${(State.data.assignedTutorIds || []).includes(t.profile_id) ?
-            `<button class="btn btn-primary btn-sm" onclick="openMessageModal('${t.profile_id}','${(t.profiles?.full_name || '').replace(/'/g, "\\'")}')">Message →</button>` :
-            `<button class="btn btn-ghost btn-sm" onclick="requestTutor('${t.id}')">Request this Tutor</button>`}
+            ` <div style="display:flex; gap:6px;">
+                <button class="btn btn-success btn-sm" style="flex:1" onclick="openBookingModal('${t.id}', '${(t.subjects[0]||'General')}', '${(t.profiles?.full_name || '').replace(/'/g, "\\'")}')">📅 Book Now</button>
+                <button class="btn btn-ghost btn-sm" onclick="openMessageModal('${t.profile_id}','${(t.profiles?.full_name || '').replace(/'/g, "\\'")}')">💬 Chat</button>
+              </div>` :
+            `<button class="btn btn-primary btn-full" onclick="requestTutor('${t.id}')">Request to Study with ${t.profiles?.full_name?.split(' ')[0]}</button>`}
         </div>
       </div>`).join('')}
     </div>` : `<div class="empty-state"><div class="empty-icon" style="color:var(--g400)"><i data-lucide="search" style="width:48px;height:48px;stroke-width:1.5"></i></div><div class="empty-title">No tutors found</div><div class="empty-sub">Try adjusting your filters or <a onclick="State.data.searchParams={};renderTutorSearch()" style="color:var(--blue);cursor:pointer">clear all</a></div></div>`}
@@ -2022,16 +2074,46 @@ async function deleteSelectedMsgs(){
       render(dashWrap('messages', `<div class="loader-center"><div class="spinner"></div></div>`))
       try {
         const convs = await api('/messages/conversations')
-        const active = State.data.activeConv || (convs[0]?.id ? convs[0] : null)
-        let msgs = []
-        if (active) {
-          try {
-            const other_id = active.participant_a === State.user.id ? active.participant_b : active.participant_a
-            const res = await api(`/messages/conversations/${other_id}`)
-            msgs = res.messages || []
-            State.data.activeConv = active
-            State.data.activeOtherId = other_id
-          } catch (e) { }
+        // Priority: 1. Manually set ID from dashboard, 2. Existing active conv, 3. First conv in list
+        let active = State.data.activeConv;
+        if (!active && State.data.activeOtherId) {
+          active = convs.find(c => c.participant_a === State.data.activeOtherId || c.participant_b === State.data.activeOtherId);
+        }
+        let msgs = [];
+        
+        // If we are initiating a NEW chat from a dashboard button
+        if (State.data.activeOtherId && !active) {
+            try {
+                const res = await api(`/messages/conversations/${State.data.activeOtherId}`);
+                msgs = res.messages || [];
+                // Find the user details for the header
+                const userRes = await api(`/auth/me`); // Or specific profile fetch
+                active = { 
+                    id: res.conversation_id, 
+                    other_user: convs.find(c => c.other_user.id === State.data.activeOtherId)?.other_user 
+                };
+                // Fallback: If they aren't in convs yet, fetch their name
+                if (!active.other_user) {
+                   const profile = await api(`/auth/contact-messages`); // Minimal fallback
+                   active.other_user = { full_name: "New Chat", id: State.data.activeOtherId };
+                }
+            } catch (e) {
+                // If conversation doesn't exist yet, we stay in "ready to send" state
+                active = { id: 'new', other_user: { full_name: "Initiating Chat...", id: State.data.activeOtherId } };
+            }
+        } 
+        else if (active) {
+            const other_id = active.participant_a === State.user.id ? active.participant_b : active.participant_a;
+            const res = await api(`/messages/conversations/${other_id}`);
+            msgs = res.messages || [];
+            State.data.activeOtherId = other_id;
+        } 
+        else if (convs.length > 0) {
+            active = convs[0];
+            const other_id = active.participant_a === State.user.id ? active.participant_b : active.participant_a;
+            const res = await api(`/messages/conversations/${other_id}`);
+            msgs = res.messages || [];
+            State.data.activeOtherId = other_id;
         }
         render(dashWrap('messages', `
     <div class="page-header">
@@ -2927,11 +3009,20 @@ async function saveTutorStatus(tutorId){
             <option value="blended" ${prefMode==='blended'?'selected':''}>Blended</option>
           </select>
         </div>
-        <div class="form-group"><label class="form-label">Notes</label><input class="input" id="assign-notes" placeholder="Optional notes..."/></div>
+        <div class="form-group"><label class="form-label">Notes</label><input class="input" id="assign-notes" placeholder="Optional notes..." value="${student.notes || ''}"/></div>
+        <div class="form-group">
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:12px;background:var(--g50);border-radius:8px;border:1px dashed var(--g200)">
+            <input type="checkbox" id="assign-active" style="width:20px;height:20px">
+            <div>
+              <div style="font-weight:800;color:var(--navy);font-size:13px">Activate Tutoring Deal</div>
+              <div style="font-size:11px;color:var(--g400)">Checking this allows the student to start booking sessions.</div>
+            </div>
+          </label>
+        </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-ghost" onclick="document.querySelector('.modal-overlay').remove()">Cancel</button>
-        <button class="btn btn-primary" onclick="doAssign('${studentId}')">Assign Tutor ✅</button>
+        <button class="btn btn-primary" onclick="doAssign('${studentId}')">Assign & Save Deal ✅</button>
       </div>
     </div>
   </div>`
@@ -2942,10 +3033,11 @@ async function saveTutorStatus(tutorId){
       const subject = document.getElementById('assign-subject')?.value?.trim()
       const mode = document.getElementById('assign-mode')?.value
       const notes = document.getElementById('assign-notes')?.value || null
+      const isActive = document.getElementById('assign-active')?.checked || false
       if (!tutorId || !subject) { toast('Please select a tutor and subject', 'err'); return }
       try {
-        await api('/students/admin/assign', { method: 'POST', body: JSON.stringify({ student_id: studentId, tutor_id: tutorId, subject, mode, notes }) })
-        toast('Tutor assigned successfully! 🎉')
+        await api('/students/admin/assign', { method: 'POST', body: JSON.stringify({ student_id: studentId, tutor_id: tutorId, subject, mode, notes, is_active: isActive }) })
+        toast('Tutor assigned and deal updated! 🎉')
         bustCache('/students')
         bustCache('/tutors')
         document.querySelector('.modal-overlay')?.remove()
@@ -2965,8 +3057,8 @@ async function saveTutorStatus(tutorId){
         const approved = tutors.filter(t => t.status === 'approved')
         render(dashWrap('admin-sessions', `
     <div class="page-header">
-      <div><h1 class="page-title">Sessions</h1><p class="page-subtitle">${sessions.length} sessions</p></div>
-      <button class="btn btn-primary" onclick="openCreateSession()">+ Schedule Session</button>
+      <div><h1 class="page-title">Session Monitor</h1><p class="page-subtitle">${sessions.length} sessions</p></div>
+      <div style="font-size:12px; color:var(--g400); font-style:italic;">Sessions are scheduled by students and confirmed by tutors.</div>
     </div>
     <div class="tabs">
       ${['all', 'scheduled', 'completed', 'cancelled'].map(s => `<button class="tab-btn ${tab === s ? 'active' : ''}" onclick="State.tab='${s}';renderAdminSessions()">${s.charAt(0).toUpperCase() + s.slice(1)}</button>`).join('')}
@@ -2977,10 +3069,16 @@ async function saveTutorStatus(tutorId){
         <tbody>
           ${sessions.map(s => `
           <tr>
-            <td><strong>${s.subject}</strong></td>
-            <td>${s.students?.profiles?.full_name || '—'}</td>
-            <td>${s.tutors?.profiles?.full_name || '—'}</td>
-            <td>${fmt(s.scheduled_at)}</td>
+            <td><strong style="color:var(--blue)">${s.subject}</strong></td>
+            <td>
+              <div style="font-weight:600">${s.students?.profiles?.full_name || '—'}</div>
+              <div style="font-size:10px;color:var(--g400)">Student</div>
+            </td>
+            <td>
+              <div style="font-weight:600">${s.tutors?.profiles?.full_name || '—'}</div>
+              <div style="font-size:10px;color:var(--g400)">Tutor</div>
+            </td>
+            <td style="font-size:13px">${fmt(s.scheduled_at)}</td>
             <td>${s.duration_mins} min</td>
             <td><span class="badge badge-gray">${s.mode}</span></td>
             <td>${statusBadge(s.status)}</td>
@@ -3117,12 +3215,16 @@ async function saveTutorStatus(tutorId){
             <td><strong>$${parseFloat(i.amount).toFixed(2)}</strong></td>
             <td>${i.payment_packages?.name || 'Custom'}</td>
             <td>${i.due_date ? fmtShort(i.due_date) : '—'}</td>
-            <td>${statusBadge(i.status)}</td>
-<td>
-  ${i.status === 'pending' || i.status === 'overdue' ? 
-    `<button class="btn btn-primary btn-sm" onclick="markInvoicePaid('${i.id}','${i.students?.profiles?.full_name||''}','${i.student_id}')">✅ Mark Paid</button>` : 
-    `<span style="color:var(--g400);font-size:13px">—</span>`}
-</td>
+            <td data-label="Status">
+              ${statusBadge(i.status)}
+              ${i.momo_reference ? `<div style="font-size:10px;margin-top:4px;color:var(--blue)">Ref: ${i.momo_reference}</div>` : ''}
+              ${i.payment_proof ? `<a href="${i.payment_proof}" target="_blank" style="font-size:10px;color:var(--green);display:block;margin-top:2px">🖼️ View Proof</a>` : ''}
+            </td>
+            <td>
+              ${i.status === 'pending' || i.status === 'overdue' ? 
+                `<button class="btn btn-success btn-sm" onclick="markInvoicePaid('${i.id}','${(i.students?.profiles?.full_name||'').replace(/'/g,"\\'")}')">✅ Approve Payment</button>` : 
+                `<span style="color:var(--g400);font-size:13px">Verified</span>`}
+            </td>
           </tr>`).join('')}
         </tbody>
       </table>

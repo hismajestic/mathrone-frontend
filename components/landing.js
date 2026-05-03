@@ -305,7 +305,7 @@
     <a href="/news" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:20px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="navigate('news', null, event)">News</a>
     <a href="/shop" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:20px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="navigate('shop', null, event)">Shop</a>
     <a href="/about" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:20px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="navigate('about', null, event)">About Us</a>
-    <a href="#contact" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:20px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="event.preventDefault(); scrollToContact()">Contact Us</a>
+    <a href="#contact" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:20px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="event.preventDefault(); window.scrollToContact()">Contact Us</a>
   </div>
 
   <!-- RIGHT SIDE -->
@@ -626,11 +626,11 @@
             const urlMap = {
               'Find a Tutor': '/register',
               'Become a Tutor': '/register',
-              'How It Works': '/#how-it-works',
+              'How It Works': '#how-it-works',
               'Education News': '/news',
               'About Us': '/about',
               'Careers': '/news',
-              'Contact Us': '/#contact',
+              'Contact Us': 'javascript:void(0)', // Prevent hash jump
               'Privacy Policy': '/privacy',
               'Terms of Service': '/terms'
             };

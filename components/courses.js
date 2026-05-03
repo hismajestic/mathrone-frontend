@@ -860,10 +860,23 @@ function openLessonPlayer(lessonId) {
         <span class="modal-title" style="font-size:16px;">▶ ${l.title}</span>
         <div style="display:flex;align-items:center;gap:12px;margin-left:auto">
           ${l.video_url ? `
-          <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--g600);cursor:pointer;background:var(--sky);padding:4px 10px;border-radius:999px" title="Hide video to save internet data">
-            <input type="checkbox" onchange="document.getElementById('lesson-video-wrapper').style.display = this.checked ? 'none' : 'block'" style="accent-color:var(--blue)">
-            <span>📉 Data Saver Mode</span>
-          </label>` : ''}
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--g600);cursor:pointer;background:var(--sky);padding:4px 10px;border-radius:999px" title="Stop video stream to save mobile data">
+  <input type="checkbox" onchange="
+    const iframe = document.getElementById('lesson-vid-iframe');
+    const wrap = iframe.parentElement;
+    if(this.checked) {
+      iframe.dataset.src = iframe.src;
+      iframe.src = '';
+      wrap.style.display = 'none';
+      toast('Video stopped to save data 📉');
+    } else {
+      iframe.src = iframe.dataset.src;
+      wrap.style.display = 'block';
+      toast('Video resumed');
+    }
+  " style="accent-color:var(--blue)">
+  <span>📉 Data Saver Mode</span>
+</label>` : ''}
           <button class="modal-close" style="margin:0;" onclick="document.querySelector('.modal-overlay').remove()">✕</button>
         </div>
       </div>
