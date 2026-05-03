@@ -1977,6 +1977,68 @@ ${s.mode !== 'home' ? `<button class="btn btn-ghost btn-sm" onclick="openStandal
     // ════════════════════════════════════════════════════════════
     // MESSAGES
     // ════════════════════════════════════════════════════════════
+    async function openAssignedMessageModal(){
+  try{
+    let contacts = []
+    if(State.user.role === 'student'){
+      const assigns = await api('/students/assignments')
+      contacts = (assigns || []).filter(a => a.is_active).map(a => ({
+        id: Array.isArray(a.tutors) ? a.tutors[0].profiles.id : a.tutors.profiles.id,
+        name: Array.isArray(a.tutors) ? a.tutors[0].profiles.full_name : a.tutors.profiles.full_name,
+        label: a.subject + ' Tutor'
+      }))
+    } else if(State.user.role === 'tutor'){
+      const me = await api('/auth/me')
+      const tutorId = me.tutor?.id
+      if(tutorId){
+        const sb_res = await api('/students/admin/all')
+        // Filter only students assigned to this tutor
+        const myStudents = (sb_res || []).filter(s =>
+          (s.assignments || []).some(a => a.tutor_id === tutorId && a.is_active)
+        )
+        contacts = myStudents.map(s => ({
+          id: s.profiles?.id,
+          name: s.profiles?.full_name,
+          label: 'My Student'
+        })).filter(c => c.id)
+      }
+    }
+    if(!contacts.length){
+      toast('You have no assigned contacts to message yet.', 'err'); return
+    }
+    const mr = document.getElementById('modal-root') || (() => {
+      const d = document.createElement('div'); d.id = 'modal-root'; document.body.appendChild(d); return d
+    })()
+    mr.innerHTML = `
+    <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
+      <div class="modal" style="max-width:400px">
+        <div class="modal-header">
+          <span class="modal-title" style="display:flex;align-items:center;gap:8px"><i data-lucide="message-square-plus" style="width:20px;height:20px"></i> New Message</span>
+          <button class="modal-close" onclick="document.querySelector('.modal-overlay').remove()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Send To</label>
+            <select class="input" id="new-msg-recipient">
+              <option value="">— Select person —</option>
+              ${contacts.map(c=>`<option value="${c.id}">${c.name} (${c.label})</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Message</label>
+            <textarea class="input" id="new-msg-content" rows="4" placeholder="Type your message..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" onclick="document.querySelector('.modal-overlay').remove()">Cancel</button>
+          <button class="btn btn-primary" onclick="sendNewMessage()">Send Message →</button>
+        </div>
+      </div>
+    </div>`
+    if(window.lucide) lucide.createIcons()
+  }catch(e){ toast(e.message,'err') }
+}
+
     async function openNewMessageModal(){
   try{
     const [tutors, students] = await Promise.all([
@@ -2118,7 +2180,7 @@ async function deleteSelectedMsgs(){
         render(dashWrap('messages', `
     <div class="page-header">
   <div><h1 class="page-title">Messages</h1></div>
-  ${State.user.role === 'admin' ? `<button class="btn btn-primary" onclick="openNewMessageModal()">+ New Message</button>` : ''}
+  ${State.user.role === 'admin' ? `<button class="btn btn-primary" onclick="openNewMessageModal()">+ New Message</button>` : `<button class="btn btn-primary" onclick="openAssignedMessageModal()">+ New Message</button>`}
 </div>
     <div class="chat-wrap">
       <div class="chat-list">
@@ -2370,16 +2432,24 @@ async function deleteSelectedNotifs(){
       </div>` : role === 'student' && extra ? `
       <div class="card" style="padding:28px">
         <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:20px">Learning Info</h3>
-        <div class="form-group"><label class="form-label">Category</label>
-          <select class="input" id="s-category">
-            ${CATEGORIES.map(c => `<option value="${c.id}" ${extra.category === c.id ? 'selected' : ''}>${c.label}</option>`).join('')}
-          </select>
-        </div>
-        <div class="form-group"><label class="form-label">School Level</label>
-          <select class="input" id="s-level"><option ${extra.school_level === 'Primary' ? 'selected' : ''}>Primary</option><option ${extra.school_level === 'Secondary' ? 'selected' : ''}>Secondary</option><option ${extra.school_level === 'University' ? 'selected' : ''}>University</option></select></div>
-        <div class="form-group"><label class="form-label">Subjects Needed</label><input class="input" id="s-subs" value="${(extra.subjects_needed || []).join(', ')}"/></div>
-        <div class="form-group"><label class="form-label">Preferred Mode</label>
-          <select class="input" id="s-mode"><option value="online" ${extra.preferred_mode === 'online' ? 'selected' : ''}>Online</option><option value="home" ${extra.preferred_mode === 'home' ? 'selected' : ''}>Home Visit</option></select></div>
+       <div class="form-group"><label class="form-label">Category</label>
+  <select class="input" id="s-category" onchange="updateProfileLevelOptions(this.value)">
+    ${CATEGORIES.map(c => `<option value="${c.id}" ${extra.category === c.id ? 'selected' : ''}>${c.label}</option>`).join('')}
+  </select>
+</div>
+<div class="form-group"><label class="form-label" id="s-level-label">Level</label>
+  <select class="input" id="s-level">
+    <option value="${extra.school_level || ''}">${extra.school_level || 'Select level'}</option>
+  </select>
+</div>
+<div class="form-group"><label class="form-label">Subjects Needed</label><input class="input" id="s-subs" value="${(extra.subjects_needed || []).join(', ')}"/></div>
+<div class="form-group"><label class="form-label">Preferred Mode</label>
+  <select class="input" id="s-mode">
+    <option value="online" ${extra.preferred_mode === 'online' ? 'selected' : ''}>Online</option>
+    <option value="home" ${extra.preferred_mode === 'home' ? 'selected' : ''}>Home Visit</option>
+    <option value="blended" ${extra.preferred_mode === 'blended' ? 'selected' : ''}>Blended (Both)</option>
+  </select>
+</div>
         <div class="form-group"><label class="form-label">Home Location</label><select class="input" id="s-loc">
   <option value="">— Select district —</option>
   ${RWANDA_DISTRICTS.map(d=>`<option value="${d}" ${extra.home_location===d?'selected':''}>${d}</option>`).join('')}
@@ -2533,12 +2603,13 @@ async function deleteStudent(id, name){
     </div>` : `
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Tutor</th><th>Phone</th><th>Subjects</th><th>Status</th><th>Rating</th><th>Sessions</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Tutor</th><th>Location</th><th>Phone</th><th>Subjects</th><th>Status</th><th>Rating</th><th>Actions</th></tr></thead>
         <tbody>
-          ${all.map(t => `
-          <tr>
-            <td><div style="display:flex;align-items:center;gap:10px">${avi(t.profiles?.full_name || 'T', 34)}<div><div style="font-weight:600">${t.profiles?.full_name || '—'}</div><div style="font-size:11px;color:var(--g400)">${t.profiles?.email || ''}</div></div></div></td>
-            <td style="font-size:13px">${t.profiles?.phone || '<span style="color:var(--g400)">—</span>'}</td>
+             ${all.map(t => `
+              <tr>
+    <td><div style="display:flex;align-items:center;gap:10px">${avi(t.profiles?.full_name || 'T', 34)}<div><div style="font-weight:600">${t.profiles?.full_name || '—'}</div><div style="font-size:11px;color:var(--g400)">${t.profiles?.email || ''}</div></div></div></td>
+    <td style="font-size:12px;font-weight:600;color:var(--navy)">📍 ${t.location || '—'}</td>
+    <td style="font-size:13px">${t.profiles?.phone || '<span style="color:var(--g400)">—</span>'}</td>
             <td>${(t.subjects || []).slice(0, 2).map(sub => `<span class="badge badge-blue" style="margin-right:4px">${sub}</span>`).join('')}</td>
             <td>${statusBadge(t.status)}</td>
             <td><span class="stars">${stars(t.rating)}</span> ${(t.rating || 0).toFixed(1)}</td>
@@ -2888,22 +2959,22 @@ async function saveTutorStatus(tutorId){
       ${assigned.length ? `
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Student</th><th>Category</th><th>Level</th><th>Subjects</th><th>Mode</th><th>Parent</th><th>Assigned Tutor</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Student</th><th>Location</th><th>Level</th><th>Subjects</th><th>Mode</th><th>Parent</th><th>Assigned Tutor</th><th>Actions</th></tr></thead>
           <tbody>
             ${assigned.map(s=>{
               const active = (s.assignments||[]).find(a=>a.is_active)
               const tutorName = active?.tutors?.profiles?.full_name
               return `<tr>
-              <td>
-                <div style="display:flex;align-items:center;gap:10px">
-                  ${avi(s.profiles?.full_name||'S', 34, s.profiles?.avatar_url||null)}
-                  <div>
-                    <div style="font-weight:600">${s.profiles?.full_name||'—'}</div>
-                    <div style="font-size:11px;color:var(--g400)">${s.profiles?.email||''}</div>
-                  </div>
-                </div>
-              </td>
-              <td><span style="font-size:12px">${CATEGORIES.find(c=>c.id===(s.category||'academic'))?.icon||'📚'} ${CATEGORIES.find(c=>c.id===(s.category||'academic'))?.label||'Academic'}</span></td>
+              <<td>
+  <div style="display:flex;align-items:center;gap:10px">
+    ${avi(s.profiles?.full_name||'S', 34, s.profiles?.avatar_url||null)}
+    <div>
+      <div style="font-weight:600">${s.profiles?.full_name||'—'}</div>
+      <div style="font-size:11px;color:var(--g400)">${s.profiles?.email||''}</div>
+    </div>
+  </div>
+</td>
+<td style="font-size:12px;font-weight:600;color:var(--navy)">📍 ${s.home_location || '—'}</td>
               <td>${s.school_level||'—'}</td>
               <td>${(s.subjects_needed||[]).slice(0,2).map(sub=>`<span class="badge badge-blue" style="margin-right:3px">${sub}</span>`).join('')||'—'}</td>
               <td>${s.preferred_mode||'—'}</td>
@@ -4721,4 +4792,24 @@ renderPage = async function() {
   if (window.deferredPWA || isMobile) {
     showInstallButton();
   }
-};
+};window.updateProfileLevelOptions = function(catId) {
+  const levelSelect = document.getElementById('s-level');
+  const label = document.getElementById('s-level-label');
+  if(!levelSelect) return;
+
+  const levels = {
+    academic:  ['Primary', 'Secondary', 'University'],
+    digital:   ['Beginner', 'Intermediate', 'Advanced', 'All Levels'],
+    creative:  ['Beginner', 'Intermediate', 'Advanced', 'All Levels'],
+    tech:      ['Beginner', 'Intermediate', 'Advanced', 'All Levels'],
+    language:  ['Beginner', 'Intermediate', 'Advanced', 'Fluent', 'All Levels'],
+    business:  ['Beginner', 'Intermediate', 'Advanced', 'All Levels'],
+    music:     ['Beginner', 'Intermediate', 'Advanced', 'All Levels'],
+    cv:        ['Fresh Graduate', 'Mid-level', 'Senior', 'Executive', 'All Levels'],
+    global:    ['Beginner', 'Intermediate', 'Advanced', 'Expert', 'All Levels'],
+  };
+
+  const options = levels[catId] || levels.academic;
+  levelSelect.innerHTML = options.map(l => `<option value="${l}">${l}</option>`).join('');
+  if (label) label.textContent = catId === 'academic' ? 'School Level *' : 'Experience Level *';
+}

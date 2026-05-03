@@ -103,19 +103,8 @@ var FORUM_CATEGORIES = [
               ${statusBadge(a.is_active?'approved':'cancelled')}
               ${a.is_active ? `
   <div style="display:flex;gap:6px;align-items:center">
-    ${a.is_active 
-      ? ( (Array.isArray(a.tutors) ? a.tutors[0]?.agreement_accepted : a.tutors?.agreement_accepted)
-          ? `<button class="btn btn-primary btn-sm" onclick="openBookingModal('${a.tutor_id}', '${a.subject}', '${(Array.isArray(a.tutors) ? a.tutors[0].profiles.full_name : a.tutors.profiles.full_name).replace(/'/g,"\\'")}')">📅 Book Session</button>`
-          : `<div style="display:flex; flex-direction:column; gap:4px;">
-               <span style="font-size:11px;color:var(--orange);background:#fff7ed;padding:6px 10px;border-radius:6px;font-weight:600;">⏳ Tutor finalizing setup</span>
-               <button class="btn btn-ghost btn-sm" style="font-size:10px" onclick="State.data.chatWithId='${a.tutors.profiles.id}'; navigate('messages')">Message tutor to hurry up 💬</button>
-             </div>`)
-      : `<div style="display:flex;flex-direction:column;gap:4px">
-           <span class="badge badge-orange">⏳ Waiting for Admin</span>
-           <span style="font-size:10px;color:var(--g400)">Deal in progress...</span>
-         </div>`
-    }
-    <button class="btn btn-ghost btn-sm" onclick="State.data.chatWithId='${a.tutors.profiles.id}'; navigate('messages')">💬 Chat</button>
+    <button class="btn btn-primary btn-sm" onclick="openBookingModal('${a.tutor_id}', '${a.subject}', '${(Array.isArray(a.tutors) ? a.tutors[0].profiles.full_name : a.tutors.profiles.full_name).replace(/'/g,"\\'")}')">📅 Book Session</button>
+    <button class="btn btn-ghost btn-sm" onclick="State.data.chatWithId='${Array.isArray(a.tutors) ? a.tutors[0].profiles.id : a.tutors.profiles.id}'; navigate('messages')">💬 Chat</button>
   </div>
 ` : ''}
             </div>
@@ -2395,32 +2384,143 @@ async function deleteAvailabilitySlot(idx) {
   } catch(e) { toast(e.message, 'err'); }
 }
 async function openBookingModal(tutorId, subject, tutorName) {
-  document.getElementById('modal-root').innerHTML = `
-  <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
-    <div class="modal" style="max-width:400px">
-      <div class="modal-header"><span class="modal-title">Book with ${tutorName}</span></div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label class="form-label">Choose Date & Time</label>
-          <input type="datetime-local" class="input" id="book-time">
-          <p style="font-size:11px;color:var(--g400);margin-top:8px">Select a time when your tutor is usually free. They will need to confirm this request.</p>
+  const mr = document.getElementById('modal-root')
+  mr.innerHTML = `<div class="modal-overlay"><div class="modal" style="max-width:480px"><div class="modal-header"><span class="modal-title">📅 Book with ${tutorName}</span></div><div class="modal-body"><div class="loader-center" style="padding:32px"><div class="spinner"></div></div></div></div></div>`
+
+  try {
+    // Fetch assignment to get assignment_id and tutor availability
+    const assigns = await api('/students/assignments')
+    const assignment = (assigns || []).find(a => a.tutor_id === tutorId && a.subject === subject && a.is_active)
+    if(!assignment) { toast('Assignment not found', 'err'); mr.innerHTML=''; return }
+
+    const slots = assignment.tutors?.availability?.slots || []
+    const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
+
+    const slotsHtml = slots.length
+      ? slots.map((s,i) => `<div style="padding:10px 14px;border:1.5px solid var(--g200);border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;color:var(--navy);transition:all .2s" id="slot-${i}" onclick="selectSlot(${i})">${s.day} &nbsp;${s.start} – ${s.end}</div>`).join('')
+      : `<div style="background:#fff7ed;border-radius:8px;padding:12px;font-size:13px;color:var(--orange)">⚠️ Your tutor hasn't set availability yet. You can still request a custom time below.</div>`
+
+    mr.innerHTML = `
+    <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
+      <div class="modal" style="max-width:480px">
+        <div class="modal-header">
+          <span class="modal-title">📅 Book with ${tutorName}</span>
+          <button class="modal-close" onclick="document.querySelector('.modal-overlay').remove()">✕</button>
+        </div>
+        <div class="modal-body">
+          ${slots.length ? `
+          <div class="form-group">
+            <label class="form-label">📌 Tutor's Available Hours — pick a slot</label>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:4px">${slotsHtml}</div>
+            <div style="font-size:11px;color:var(--g400);margin-top:6px">Click a slot to pre-fill the date/time below, then adjust to the exact date.</div>
+          </div>` : ''}
+          <div class="form-group">
+            <label class="form-label">${slots.length ? 'Or request a custom date & time' : 'Requested Date & Time'}</label>
+            <input type="datetime-local" class="input" id="book-time"/>
+            ${!slots.length ? `<p style="font-size:11px;color:var(--g400);margin-top:6px">⚡ Custom request — tutor must accept this time.</p>` : ''}
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">Duration</label>
+              <select class="input" id="book-duration">
+                <option value="60">1 hour</option>
+                <option value="90">1.5 hours</option>
+                <option value="120" selected>2 hours</option>
+                <option value="180">3 hours</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Mode</label>
+              <select class="input" id="book-mode">
+                <option value="online">Online</option>
+                <option value="home">Home Visit</option>
+                <option value="blended">Blended</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Notes (optional)</label>
+            <input class="input" id="book-notes" placeholder="e.g. Please focus on integration by parts"/>
+          </div>
+          <div id="book-warning" style="display:none;background:#fff7ed;border-radius:8px;padding:10px;font-size:12px;color:var(--orange);margin-top:8px"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" onclick="document.querySelector('.modal-overlay').remove()">Cancel</button>
+          <button class="btn btn-primary" id="book-submit-btn" onclick="submitBooking('${assignment.id}', '${tutorId}', ${!!slots.length})">Send Booking Request 🚀</button>
         </div>
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-primary btn-full" onclick="submitBooking('${tutorId}', '${subject}')">Send Booking Request 🚀</button>
-      </div>
-    </div>
-  </div>`;
+    </div>`
+
+    window._bookingSlots = slots
+  } catch(e) { toast(e.message, 'err') }
 }
 
-async function submitBooking(tutorId, subject) {
-  const time = document.getElementById('book-time').value;
-  if(!time) return toast('Please pick a time', 'err');
+function selectSlot(idx){
+  const slots = window._bookingSlots || []
+  const slot = slots[idx]
+  if(!slot) return
+  // Highlight selected slot
+  slots.forEach((_,i) => {
+    const el = document.getElementById('slot-'+i)
+    if(el){ el.style.borderColor = i===idx ? 'var(--blue)' : 'var(--g200)'; el.style.background = i===idx ? 'var(--sky)' : '' }
+  })
+  // Set next occurrence of this day in datetime-local input
+  const dayMap = {Sunday:0,Monday:1,Tuesday:2,Wednesday:3,Thursday:4,Friday:5,Saturday:6}
+  const targetDay = dayMap[slot.day]
+  const now = new Date()
+  const diff = (targetDay - now.getDay() + 7) % 7 || 7
+  const next = new Date(now)
+  next.setDate(now.getDate() + diff)
+  const [h, m] = slot.start.split(':')
+  next.setHours(parseInt(h), parseInt(m), 0, 0)
+  const pad = n => String(n).padStart(2,'0')
+  const local = `${next.getFullYear()}-${pad(next.getMonth()+1)}-${pad(next.getDate())}T${pad(next.getHours())}:${pad(next.getMinutes())}`
+  const inp = document.getElementById('book-time')
+  if(inp) inp.value = local
+}
+
+async function submitBooking(assignmentId, tutorId, hasSlots) {
+  const time     = document.getElementById('book-time')?.value
+  const duration = parseInt(document.getElementById('book-duration')?.value || '120')
+  const mode     = document.getElementById('book-mode')?.value || 'online'
+  const notes    = document.getElementById('book-notes')?.value?.trim() || ''
+  const warn     = document.getElementById('book-warning')
+  const btn      = document.getElementById('book-submit-btn')
+
+  if(!time){ toast('Please pick a date and time', 'err'); return }
+
+  // Warn if time is outside tutor slots but don't block — tutor will need to accept
+  if(hasSlots && window._bookingSlots?.length){
+    const d = new Date(time)
+    const dayName = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d.getDay()]
+    const hhmm = d.toTimeString().slice(0,5)
+    const inSlot = window._bookingSlots.some(s => s.day === dayName && s.start <= hhmm && hhmm < s.end)
+    if(!inSlot && warn){
+      warn.style.display = 'block'
+      warn.textContent = '⚡ This time is outside your tutor\'s usual hours. The tutor will need to accept this custom request.'
+    } else if(warn){ warn.style.display = 'none' }
+  }
+
+  if(btn){ btn.disabled = true; btn.textContent = '⏳ Sending...' }
   try {
-    await api('/sessions/book', { method: 'POST', body: JSON.stringify({ tutor_id: tutorId, subject, scheduled_at: time }) });
-    document.querySelector('.modal-overlay').remove();
-    toast('Request sent to tutor! Check back soon for confirmation. ✅');
-  } catch(e) { toast(e.message, 'err'); }
+    await api('/sessions/my/book', {
+      method: 'POST',
+      body: JSON.stringify({
+        assignment_id: assignmentId,
+        scheduled_at:  new Date(time).toISOString(),
+        duration_mins: duration,
+        mode,
+        notes: notes || null
+      })
+    })
+    document.querySelector('.modal-overlay')?.remove()
+    toast('Booking request sent! ✅ Your tutor will be notified.')
+    renderStudentDash()
+  } catch(e) {
+    if(btn){ btn.disabled = false; btn.textContent = 'Send Booking Request 🚀' }
+    // If out-of-slot rejection from backend, surface it clearly
+    toast(e.message, 'err')
+  }
 }
 async function approveBooking(sessionId) {
   try {

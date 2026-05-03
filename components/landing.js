@@ -326,7 +326,10 @@
   <!-- HERO -->
   <section class="hero">
     <div style="position:absolute;inset:0;z-index:0">
-      <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1000&q=75&fm=webp" alt="" role="presentation" fetchpriority="high" decoding="async" style="width:100%;height:100%;object-fit:cover;display:block"/>
+      <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=600&q=75&fm=webp" 
+     srcset="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=600&q=75&fm=webp 600w, https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1200&q=75&fm=webp 1200w"
+     sizes="(max-width: 768px) 600px, 1200px"
+     alt="Mathrone Academy Hero" fetchpriority="high" decoding="async" style="width:100%;height:100%;object-fit:cover;display:block"/>
       <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(30,58,138,0.88) 0%,rgba(37,99,235,0.82) 100%)"></div>
     </div>
     <!-- COURSES TEASER quarter circle desktop only -->

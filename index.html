@@ -24,13 +24,12 @@
 <link rel="preconnect" href="https://www.google.com">
 <link rel="preconnect" href="https://i.ytimg.com">
 
-<!-- ③ Preload critical resources — LCP logo gets fetchpriority=high -->
+<!-- ③ Preload critical resources -->
 <link rel="preload" href="/style.css" as="style"/>
-<link rel="preload" href="/app.js" as="script" crossorigin="anonymous"/>
-<link rel="preload" href="/components/landing.js" as="script" crossorigin="anonymous"/>
-<link rel="preload" href="/components/auth.js" as="script" crossorigin="anonymous"/>
-<link rel="preload" href="/assets/fonts.css" as="style"/>
 <link rel="preload" href="/assets/fonts/dm-sans-400.woff2" as="font" type="font/woff2" crossorigin/>
+<!-- Optimized Hero Image Preload for Mobile -->
+<link rel="preload" href="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=600&q=75&fm=webp" as="image" media="(max-width: 768px)" fetchpriority="high"/>
+<link rel="preload" href="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1200&q=75&fm=webp" as="image" media="(min-width: 769px)" fetchpriority="high"/>
 <link rel="preload" href="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" as="image" fetchpriority="high"/>
 
 <!-- ④ Inline critical CSS — renders spinner with zero extra request -->
@@ -267,10 +266,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--g50);color:var(--g800);ov
 </script>
 
 <!-- Supabase must load before app.js -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer></script>
+<!-- Move to very bottom and use async where possible -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" async></script>
 <script src="/app.js" defer></script>
-<!-- Lucide loads last — icons render after app boots, no blocking -->
-<script src="https://cdn.jsdelivr.net/npm/lucide@0.383.0/dist/umd/lucide.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.383.0/dist/umd/lucide.min.js" async></script>
 <script>
 // ── Lazy library loader ──────────────────────────────────────
 const _libLoaded = {};

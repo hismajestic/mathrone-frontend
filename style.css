@@ -2316,3 +2316,12 @@
   .cart-grid > div:last-child { position: static !important; top: auto !important; }
 }
 
+/* Optimization for PageSpeed */
+.lsection, .section, .footer-grid {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 500px;
+}
+img {
+  content-visibility: auto;
+}
+
