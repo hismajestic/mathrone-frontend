@@ -821,6 +821,14 @@ function openAddQuestionModal(existing = null){
             </select>
           </div>
           <div class="form-group">
+            <label class="form-label">Difficulty</label>
+            <select class="input" id="q-difficulty">
+              <option value="easy" ${existing?.difficulty==='easy'?'selected':''}>🟢 Easy</option>
+              <option value="medium" ${existing?.difficulty==='medium'||!existing?'selected':''}>🟡 Medium</option>
+              <option value="hard" ${existing?.difficulty==='hard'?'selected':''}>🔴 Hard</option>
+            </select>
+          </div>
+          <div class="form-group">
             <label class="form-label">Question Type</label>
             <select class="input" id="q-type" onchange="onQTypeChange(this.value)">
             <option value="multiple_choice" ${existing?.type==='multiple_choice'?'selected':''}>Multiple Choice (one answer)</option>
@@ -936,7 +944,11 @@ async function saveNewQuestion(){
   if(['multiple_choice','multiple_select'].includes(type) && (!options?.length || !correct)){ toast('Options and correct answer are required','err'); return }
   const modelAnswer = type === 'text' ? (document.getElementById('q-model-answer')?.value?.trim() || null) : null
   try{
-    await api('/exam/questions/admin', { method:'POST', body: JSON.stringify({ question:text, type, subject, options, correct_answer:correct, model_answer:modelAnswer, marks, order_num:order, pairs, image_url })})
+    const difficulty = document.getElementById('q-difficulty')?.value || 'medium';
+    await api('/exam/questions/admin' + (id ? '/'+id : ''), { 
+        method: id ? 'PATCH' : 'POST', 
+        body: JSON.stringify({ question:text, type, subject, difficulty, options, correct_answer:correct, model_answer:modelAnswer, marks, order_num:order, pairs, image_url })
+    })
     document.querySelector('.modal-overlay')?.remove()
     toast('Question added ✅')
     renderAdminExam()
@@ -965,7 +977,11 @@ async function saveEditQuestion(id){
   const modelAnswer = type === 'text' ? (document.getElementById('q-model-answer')?.value?.trim() || null) : null
   if(!text){ toast('Question text is required','err'); return }
   try{
-    await api(`/exam/questions/admin/${id}`, { method:'PATCH', body: JSON.stringify({ question:text, type, subject, options, correct_answer:correct, model_answer:modelAnswer, marks, order_num:order, pairs, image_url }) })
+    const difficulty = document.getElementById('q-difficulty')?.value || 'medium';
+    await api('/exam/questions/admin' + (id ? '/'+id : ''), { 
+        method: id ? 'PATCH' : 'POST', 
+        body: JSON.stringify({ question:text, type, subject, difficulty, options, correct_answer:correct, model_answer:modelAnswer, marks, order_num:order, pairs, image_url })
+    }) 
     document.querySelector('.modal-overlay')?.remove()
     toast('Question updated ✅')
     renderAdminExam()
@@ -1237,8 +1253,9 @@ async function startExamWithCode() {
 }
 
 function showExamInstructions(res){
-  const mins = Math.round(res.time_remaining_seconds / 60)
-  const instructions = res.instructions || 'Please read carefully before starting'
+  // Use the explicit time limit sent by the backend
+  const mins = res.time_limit_minutes || Math.round(res.time_remaining_seconds / 60);
+  const instructions = res.instructions || 'Please read carefully before starting';
   render(dashWrap('exam', `
   <div style="max-width:600px;margin:40px auto;padding:24px">
     <div class="card" style="padding:40px">
@@ -1298,10 +1315,19 @@ function launchExam(res){
     const end = start + questionsPerPage
     const pageQuestions = questions.slice(start, end)
 
-    const mins = Math.floor(timeLeft / 60).toString().padStart(2,'0')
-    const secs = (timeLeft % 60).toString().padStart(2,'0')
+    // Calculate current display time from the timeLeft variable
+    const minsDisplay = Math.floor(timeLeft / 60).toString().padStart(2,'0');
+    const secsDisplay = (timeLeft % 60).toString().padStart(2,'0');
 
     render(dashWrap('exam', `
+    <div style="max-width:800px;margin:0 auto;padding:24px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding:16px;background:var(--navy);border-radius:12px;color:#fff">
+        <div>
+          <div style="font-size:18px;font-weight:700">📝 Written Examination</div>
+          <div style="font-size:12px;opacity:0.7;margin-top:2px">Answer all questions honestly. This exam is monitored.</div>
+        </div>
+        <div style="text-align:center">
+          <div id="exam-timer" style="font-size:28px;font-weight:800;color:var(--gold)">${minsDisplay}:${secsDisplay}</div>
     <div style="max-width:800px;margin:0 auto;padding:24px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding:16px;background:var(--navy);border-radius:12px;color:#fff">
         <div>
@@ -1330,9 +1356,10 @@ function launchExam(res){
             <div style="font-size:15px;font-weight:600;color:var(--navy);line-height:1.5">${q.question}</div>
           </div>
           ${q.image_url ? `
-            <div style="margin: 12px 0; border-radius: 8px; overflow: hidden; border: 1px solid var(--g100); background: #f8fafc; text-align: center;">
-              <img src="${q.image_url}" style="max-width: 100%; max-height: 400px; cursor: zoom-in;" onclick="window.open(this.src, '_blank')"/>
-              <div style="padding: 6px; font-size: 11px; color: var(--g400); border-top: 1px solid var(--g100);">Click image to enlarge</div>
+            <div style="margin: 20px 0; border-radius: 12px; overflow: hidden; border: 2px solid var(--sky); background: #fff; text-align: center; box-shadow: var(--sh);">
+              <div style="padding: 8px; background: var(--sky); color: var(--blue); font-size: 10px; font-weight: 800; text-align: left; text-transform: uppercase; letter-spacing: 1px;">Reference Image</div>
+              <img src="${q.image_url}" style="max-width: 100%; max-height: 450px; display: block; margin: 0 auto; padding: 10px;" />
+              <button type="button" class="btn btn-ghost btn-sm" onclick="window.open('${q.image_url}', '_blank')" style="margin: 10px; border-style: dashed;">🔍 View Full Size</button>
             </div>
           ` : ''}
           <div style="font-size:11px;color:var(--g400);margin-bottom:12px">${q.marks} mark${q.marks>1?'s':''} • ${q.type === 'multiple_choice' ? 'Multiple choice' : q.type === 'multiple_select' ? 'Select all that apply' : 'Written answer'}</div>

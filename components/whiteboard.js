@@ -1933,6 +1933,20 @@ canvas.on('path:created', triggerCloudSave);
       const target = canvas.getObjects().find(o => o.id === msg.payload.id);
       if (target) { canvas.remove(target); canvas.renderAll(); }
     })
+    .on('broadcast', { event: 'obj-update' }, (msg) => {
+      const target = canvas.getObjects().find(o => o.id === msg.payload.id);
+      if (target) {
+        target.set({
+          left: msg.payload.left,
+          top: msg.payload.top,
+          scaleX: msg.payload.scaleX,
+          scaleY: msg.payload.scaleY,
+          angle: msg.payload.angle
+        });
+        target.setCoords();
+        canvas.renderAll();
+      }
+    })
     .on('broadcast', { event: 'clear' }, () => {
       canvas.clear(); canvas.renderAll();
     })
@@ -2141,11 +2155,35 @@ canvas.on('path:created', triggerCloudSave);
     // Sync: object added (shapes, text, completed strokes)
     canvas.on('object:added', (e) => sendObj(e.target));
 
-    // Sync: object moved/scaled/rotated
-    canvas.on('object:modified', (e) => sendObj(e.target));
+    // Sync: object moved/scaled/rotated - ONLY send essential transform data
+    canvas.on('object:modified', (e) => {
+        const obj = e.target;
+        if (!obj || obj.remote) return;
+        try {
+            channel.send({ 
+                type: 'broadcast', 
+                event: 'obj-update', 
+                payload: { 
+                    id: obj.id, 
+                    left: Math.round(obj.left), 
+                    top: Math.round(obj.top), 
+                    scaleX: obj.scaleX, 
+                    scaleY: obj.scaleY, 
+                    angle: obj.angle 
+                } 
+            });
+        } catch(err) {}
+    });
 
     // Sync: freehand path after completed stroke
-    canvas.on('path:created', (e) => sendObj(e.path));
+    canvas.on('path:created', (e) => {
+        // Clear local live-stroke overlay when committed to Fabric
+        if (window._liveStrokeCtx) {
+            const ov = document.getElementById('live-stroke-overlay');
+            if (ov) window._liveStrokeCtx.clearRect(0, 0, ov.width, ov.height);
+        }
+        sendObj(e.path);
+    });
 
     // Live stroke streaming: send points while tutor is still drawing
     let _liveStroke = null;
@@ -2553,8 +2591,11 @@ async function _rtcAnswerOffer(sdp, hostName) {
 }
 
 window.toggleLabVideo = async () => {
-  if (_rtcStarted) { window.stopLabVideo(); return; }
+  // Mobile fix: User must trigger .play() directly via this click
+  document.getElementById('lab-local-video')?.play().catch(()=>{});
+  document.getElementById('lab-remote-video')?.play().catch(()=>{});
 
+  if (_rtcStarted) { window.stopLabVideo(); return; }
   _rtcIsHost = !!(State.user && (State.user.role === 'tutor' || State.user.role === 'admin')) || !!window._isLabHost;
 
   try {

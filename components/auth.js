@@ -489,7 +489,7 @@ if (!locationS && sessionMode !== 'online') { showErr(err, 'Please select your d
           body = {
             full_name: name, email, password: pw,
             phone: phone || null,
-            qualification: qual, subjects: subs, levels: lvls,
+            qualification: qual, subjects: subs.map(s => s.toLowerCase().trim()), levels: lvls,
             teaching_modes: document.getElementById('r-mode')?.value?.split(',') || ['online'],
             experience_years: exp,
             location: locationT,

@@ -282,11 +282,11 @@ function _get(id) { return _dataRegistry[id]; }
         if (ok) {
           const newToken = getToken();
           opts.headers = { ...opts.headers, 'Content-Type': 'application/json', Authorization: `Bearer ${newToken}` };
-          r = await fetch(API_URL + path, opts);
+          return fetch(API_URL + path, opts).then(res => res.json()); // Return immediately to stop recursion
         } else {
           clearAuth(); 
-          navigate('login');
-          throw new Error('Session expired');
+          if (State.page !== 'login') navigate('login');
+          return Promise.reject(new Error('Session expired'));
         }
       }
 
@@ -484,18 +484,16 @@ window.scrollToContact = function(e) {
     }
   }
 
-  State.page = page;
-  State.tab = tab;
-
   // Memory: Save current page before switching, unless it's an auth page
   if (!authPages.includes(State.page)) {
     State.prevPage = State.page;
     State.prevTab = State.tab;
   }
   
-  State.page = page
-  State.tab = tab
-  State.data = {}
+ State.page = page;
+ State.tab = tab;
+  // State.data is preserved to keep search filters/temp data alive
+  renderPage();
   
   // IMMEDIATE SEO UPDATE (Before API calls)
   // Comprehensive Page Titles for SEO and User Navigation
@@ -1267,7 +1265,11 @@ function statusBadge(s) {
 }
 function stars(n) { return '★'.repeat(Math.round(n || 0)) + '☆'.repeat(5 - Math.round(n || 0)) }
 function fmt(dt) { return dt ? new Date(dt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—' }
-function fmtShort(dt) { return dt ? new Date(dt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—' }
+function fmtShort(dt) { 
+  if (!dt || dt === 'null' || dt === 'undefined') return '—';
+  const d = new Date(dt);
+  return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
     // ════════════════════════════════════════════════════════════
     // REALTIME — live notification badge + session status updates
     // Starts once after login; cleans up on logout
