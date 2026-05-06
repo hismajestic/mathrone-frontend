@@ -728,7 +728,8 @@ async function renderAdminExam() {
           q.pairs.map(p => '<div style="display:flex;gap:8px;font-size:12px"><span style="background:var(--sky);padding:2px 8px;border-radius:4px;color:var(--navy);font-weight:600">' + p.term + '</span><span style="color:var(--g400)">→</span><span style="background:#dcfce7;padding:2px 8px;border-radius:4px;color:#166534">' + p.answer + '</span></div>').join('') +
           '</div>'
         : ''
-      return `<div style="padding:16px;border:1px solid var(--g100);border-radius:10px;display:flex;align-items:flex-start;gap:14px">
+      return `<div style="padding:16px;border:1px solid var(--g100);border-radius:10px;display:flex;align-items:flex-start;gap:14px;background:#fff" id="qrow-${q.id}">
+        <input type="checkbox" class="q-select-check" data-id="${q.id}" onchange="onQuestionCheckChange()" style="margin-top:6px;width:18px;height:18px;cursor:pointer;accent-color:var(--blue)"/>
         <div style="background:var(--navy);color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0">${i+1}</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:14px;font-weight:600;color:var(--navy);margin-bottom:4px">${q.question}</div>
@@ -764,7 +765,15 @@ async function renderAdminExam() {
     render(dashWrap('admin-exam', `
     <div class="page-header">
       <div><h1 class="page-title">Exam Manager</h1><p class="page-subtitle">${questions.length} questions • ${attempts.length} attempts</p></div>
-      <button class="btn btn-primary" onclick="openAddQuestionModal()">+ Add Question</button>
+      <div style="display:flex;gap:10px">
+        <button id="bulk-delete-q-btn" class="btn btn-danger btn-sm" style="display:none;background:#ef4444" onclick="deleteSelectedQuestions()">🗑️ Delete Selected (0)</button>
+        <button class="btn btn-primary" onclick="openAddQuestionModal()">+ Add Question</button>
+      </div>
+    </div>
+    <div style="margin-bottom:12px;padding-left:16px">
+       <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--g600);cursor:pointer">
+         <input type="checkbox" id="q-select-all" onchange="toggleSelectAllQuestions(this.checked)"/> <strong>Select All Questions</strong>
+       </label>
     </div>
 
     <div class="card" style="padding:24px;margin-bottom:24px">
@@ -804,7 +813,7 @@ async function renderAdminExam() {
 
 function openAddQuestionModal(existing = null){
   const isEdit = !!existing
-  const SUBJECTS = ['general','Mathematics','Physics','Chemistry','Biology','English','History','Geography','Economics','Computer Science','French','Kinyarwanda','Literature']
+  const SUBJECTS = ['general','Mathematics','Physics','Chemistry','Biology','English','History','Geography','Economics','Computer Science','French','Kinyarwanda','Literature', 'Social and Religious Studies', 'Science and Elementary Technologies']
   document.getElementById('modal-root').innerHTML = `
   <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
     <div class="modal" style="max-width:600px">
@@ -826,6 +835,15 @@ function openAddQuestionModal(existing = null){
               <option value="easy" ${existing?.difficulty==='easy'?'selected':''}>🟢 Easy</option>
               <option value="medium" ${existing?.difficulty==='medium'||!existing?'selected':''}>🟡 Medium</option>
               <option value="hard" ${existing?.difficulty==='hard'?'selected':''}>🔴 Hard</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Academic Level</label>
+            <select class="input" id="q-level">
+              <option value="All Levels" ${existing?.level==='All Levels'?'selected':''}>🌍 All Levels</option>
+              <option value="Primary" ${existing?.level==='Primary'?'selected':''}>👶 Primary</option>
+              <option value="Secondary" ${existing?.level==='Secondary'?'selected':''}>🎒 Secondary</option>
+              <option value="University" ${existing?.level==='University'?'selected':''}>🎓 University</option>
             </select>
           </div>
           <div class="form-group">
@@ -945,9 +963,10 @@ async function saveNewQuestion(){
   const modelAnswer = type === 'text' ? (document.getElementById('q-model-answer')?.value?.trim() || null) : null
   try{
     const difficulty = document.getElementById('q-difficulty')?.value || 'medium';
+const level = document.getElementById('q-level')?.value || 'All Levels';
     await api('/exam/questions/admin' + (id ? '/'+id : ''), { 
         method: id ? 'PATCH' : 'POST', 
-        body: JSON.stringify({ question:text, type, subject, difficulty, options, correct_answer:correct, model_answer:modelAnswer, marks, order_num:order, pairs, image_url })
+        body: JSON.stringify({ question:text, type, subject, difficulty,level, options, correct_answer:correct, model_answer:modelAnswer, marks, order_num:order, pairs, image_url })
     })
     document.querySelector('.modal-overlay')?.remove()
     toast('Question added ✅')
@@ -978,9 +997,10 @@ async function saveEditQuestion(id){
   if(!text){ toast('Question text is required','err'); return }
   try{
     const difficulty = document.getElementById('q-difficulty')?.value || 'medium';
+const level = document.getElementById('q-level')?.value || 'All Levels';
     await api('/exam/questions/admin' + (id ? '/'+id : ''), { 
         method: id ? 'PATCH' : 'POST', 
-        body: JSON.stringify({ question:text, type, subject, difficulty, options, correct_answer:correct, model_answer:modelAnswer, marks, order_num:order, pairs, image_url })
+        body: JSON.stringify({ question:text, type, subject, difficulty, level,options, correct_answer:correct, model_answer:modelAnswer, marks, order_num:order, pairs, image_url })
     }) 
     document.querySelector('.modal-overlay')?.remove()
     toast('Question updated ✅')
@@ -1505,6 +1525,7 @@ function launchExam(res){
     window.changePage = function(dir){
       currentPage += dir
       renderExamPageOnly()
+      window.scrollTo({ top: 0, behavior: 'smooth' }); // Fix: user sees top of next page
       setTimeout(() => { if(window.MathJax) MathJax.typesetPromise() }, 100);
     }
   }
@@ -2555,4 +2576,44 @@ async function approveBooking(sessionId) {
     toast('Session confirmed! It is now in your schedule. 📅');
     renderTutorDash(); // Refresh
   } catch(e) { toast(e.message, 'err'); }
+}
+// HELPER FUNCTIONS FOR BULK DELETE
+function onQuestionCheckChange() {
+  const checked = document.querySelectorAll('.q-select-check:checked');
+  const btn = document.getElementById('bulk-delete-q-btn');
+  if (btn) {
+    btn.style.display = checked.length > 0 ? 'inline-flex' : 'none';
+    btn.textContent = `🗑️ Delete Selected (${checked.length})`;
+  }
+}
+
+function toggleSelectAllQuestions(checked) {
+  document.querySelectorAll('.q-select-check').forEach(cb => {
+    cb.checked = checked;
+  });
+  onQuestionCheckChange();
+}
+
+async function deleteSelectedQuestions() {
+  const checked = document.querySelectorAll('.q-select-check:checked');
+  const ids = Array.from(checked).map(cb => cb.dataset.id);
+  
+  if (!confirm(`Permanently delete ${ids.length} questions? This will also remove all their answer records and cannot be undone.`)) return;
+
+  const btn = document.getElementById('bulk-delete-q-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Deleting...';
+
+  try {
+    await api('/exam/questions/admin/bulk-delete', {
+      method: 'POST',
+      body: JSON.stringify({ ids: ids })
+    });
+    toast(`Successfully deleted ${ids.length} questions ✅`);
+    renderAdminExam(); // Refresh the full manager
+  } catch (e) {
+    toast(e.message, 'err');
+    btn.disabled = false;
+    onQuestionCheckChange();
+  }
 }

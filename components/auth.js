@@ -388,7 +388,7 @@ function selectStudentCategory(id){
 </div>
       <div class="form-group">
   <label class="form-label" id="subjects-label">Subjects / Skills You Teach *</label>
-  <input class="input" id="r-subjects" placeholder="e.g. Math, Physics, Chemistry"/>
+  <input class="input" id="r-subjects" placeholder="e.g. Math, Physics, SET, SRS"/>
   <div style="font-size:11px;color:var(--g400);margin-top:4px" id="subjects-hint">Separate multiple subjects with commas</div>
 </div>
       <div class="grid-2">
