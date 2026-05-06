@@ -2352,7 +2352,7 @@ async function deleteSelectedNotifs(){
     // ════════════════════════════════════════════════════════════
     function updateBioCount(el){
   const len = el.value.length
-  document.getElementById('bio-count').textContent = len + '/500'
+  document.getElementById('bio-count').textContent = len + '/600'
   const msg = document.getElementById('bio-count-msg')
   if(len < 200){
     msg.style.color = 'var(--orange)'
@@ -2414,7 +2414,22 @@ async function deleteSelectedNotifs(){
       <div class="card" style="padding:28px">
         <h3 style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:20px">Tutor Profile</h3>
         <div style="margin-bottom:12px">${statusBadge(extra.status)}</div>
-        <textarea class="input" id="t-bio" maxlength="500" minlength="200" rows="5" placeholder="Tell students about yourself — your teaching style, experience, and what makes you a great tutor..." oninput="updateBioCount(this)">${extra.bio || ''}</textarea>
+        <div style="background:#f8fafc; border:1px solid var(--g100); padding:12px; border-radius:10px; margin-bottom:12px">
+  <div style="font-size:12px; font-weight:800; color:var(--navy); margin-bottom:6px; display:flex; align-items:center; gap:6px">
+    <i data-lucide="sparkles" style="width:14px;height:14px;color:var(--gold)"></i> Majestic Bio Guide
+  </div>
+  <div style="font-size:11px; color:var(--g600); line-height:1.4">
+    Your bio is your sales pitch. Structure it like this:
+    <div style="margin-top:5px">
+      1. <strong>The Philosopy :</strong> Your teaching philosophy (What drives you?) <br>
+      2. <strong>The Style:</strong> Are you patient? Fast-paced? Visual? <br>
+      3. <strong>The Promise:</strong> What will the student achieve after your lessons?
+    </div>
+  </div>
+</div>
+<textarea class="input" id="t-bio" maxlength="600" minlength="200" rows="6" 
+  placeholder="Example: I am a firm believer that no student is 'bad at a subject'—they just haven't been taught in their unique learning language yet. My approach focuses on building confidence first..." 
+  oninput="updateBioCount(this)">${extra.bio || ''}</textarea>
 <div style="font-size:11px;margin-top:4px;text-align:right">
   <span id="bio-count-msg" style="color:${(extra.bio||'').length < 200 ? 'var(--orange)' : 'var(--green)'}">
     ${(extra.bio||'').length < 200 ? `Minimum 200 characters (${200 - (extra.bio||'').length} more needed)` : 'Looks good ✅'}

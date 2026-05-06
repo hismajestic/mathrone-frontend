@@ -428,7 +428,7 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
 .pn-cat-menu-item:hover{background:#F0F4FF;color:#1A5FFF}
 .pn-cat-menu-item.active{background:#EEF4FF;color:#1A5FFF;font-weight:700}
 .pn-cat-menu-item .pn-cat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-    .pn-body{max-width:100%;margin:0;padding:0.5rem 0}.pn-main-side>aside{align-self:start;position:sticky;top:8px}
+    .pn-body{max-width:100%;margin:0;padding:0.5rem 0}.pn-main-side>aside{align-self:start;position:sticky;top:80px}
     .pn-main-side{display:grid;grid-template-columns:1fr 300px;gap:2rem;align-items:start}
     .pn-section-hdr{display:flex;align-items:baseline;gap:1rem;margin-bottom:1.5rem}
     .pn-section-title{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;color:#1C1C2E;display:flex;align-items:center;gap:8px}
@@ -747,9 +747,12 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
       }).join('')
     }
 
-    // Article count
+    // Article count 
     const statEl = document.getElementById('pn-stat-articles')
-    if(statEl) statEl.textContent = (allPosts.length + featuredPosts.length) + '+'
+    if(statEl){
+      const uniqueIds = new Set([...allPosts, ...featuredPosts].map(p => p.id))
+      statEl.textContent = uniqueIds.size + '+'
+    }
 
     // Trending sidebar
     const trendingHtml = popularPosts.length ? popularPosts.map((p,i) => {
@@ -2128,7 +2131,7 @@ function updateSeoChecklist(){
   const hasImage = !!(document.getElementById('news-image')?.value?.trim() || document.querySelector('#news-editor img'))
   const checks = [
     { label: 'Title is 50–60 characters', ok: title.length >= 50 && title.length <= 60, warn: title.length > 0 && (title.length < 40 || title.length > 70) },
-    { label: 'Meta description under 160 chars', ok: desc.length > 0 && desc.length <= 160, warn: false },
+    { label: 'Description SEO length (150-160)', ok: desc.length >= 140 && desc.length <= 170, warn: desc.length > 0 && desc.length > 170 },
     { label: 'Content is 300+ words', ok: wordCount >= 300, warn: wordCount > 0 && wordCount < 300 },
     { label: 'Featured image set', ok: hasImage, warn: false },
     { label: 'Tags added', ok: !!(document.getElementById('news-tags')?.value?.trim()), warn: false },
@@ -2144,8 +2147,8 @@ function updateMetaDescCount(){
   const counter = document.getElementById('meta-desc-count')
   if(!ta||!counter) return
   const len = ta.value.length
-  counter.textContent = `${len} / 160`
-  counter.style.color = len > 155 ? '#ef4444' : len > 130 ? '#f59e0b' : '#6B6B80'
+  counter.textContent = `${len} chars`
+  counter.style.color = (len > 170 || len < 140) ? '#f59e0b' : '#059669'
 }
 
 async function insertNewsFormula(){
@@ -2291,7 +2294,7 @@ async function openNewsModal(postId = null){
         </div>
         <div class="form-group">
           <label class="form-label">Meta Description (optional - auto-generated from content)</label>
-          <textarea class="input" id="news-description" rows="3" placeholder="Brief description for SEO (max 160 characters)" oninput="updateMetaDescCount()" maxlength="160"></textarea>
+          <textarea class="input" id="news-description" rows="3" placeholder="Brief summary (Recommended: 150-160 chars for SEO)" oninput="updateMetaDescCount()" maxlength="500"></textarea>
           <div style="display:flex;justify-content:space-between;align-items:center;margin-top:3px">
             <small style="color:#6B6B80;font-size:12px">Leave empty to auto-generate from content</small>
             <small id="meta-desc-count" style="font-size:12px;color:#6B6B80">0 / 160</small>

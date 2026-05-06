@@ -406,7 +406,18 @@ function selectStudentCategory(id){
       
       <div class="form-group"><label class="form-label">Teaching Mode</label>
         <select class="input" id="r-mode"><option value="online,home">Both Online & Home</option><option value="online">Online Only</option><option value="home">Home Only</option></select></div>
-      <div class="form-group"><label class="form-label">Bio / About You</label><textarea class="input" id="r-bio" placeholder="Tell students about your teaching style..."></textarea></div>
+      <div class="form-group">
+  <label class="form-label">Bio / Professional Summary *</label>
+  <div style="background:var(--sky); padding:10px; border-radius:8px; margin-bottom:8px; font-size:11px; color:var(--g600); line-height:1.5; border-left:3px solid var(--blue)">
+    <strong>Pro-Bio Tips:</strong> To attract more students, include:
+    <ul style="margin-left:16px; margin-top:4px">
+      <li><strong>Philosophy:</strong> What makes a great tutor in your opinion?</li>
+      <li><strong>Methodology:</strong> How do you simplify difficult topics?</li>
+      <li><strong>Results:</strong> Mention past student successes or your passion for the subject.</li>
+    </ul>
+  </div>
+  <textarea class="input" id="r-bio" placeholder="Example: I believe a great tutor is a bridge between confusion and clarity. My style is interactive, using real-world analogies to make complex Math feel simple..."></textarea>
+</div>
       <div class="form-group">
         <label class="form-label">CV / Resume * <span style="font-size:11px;color:var(--g400)">(PDF, DOC — required)</span></label>
         <input type="file" class="input" id="r-cv" accept=".pdf,.doc,.docx" style="padding:8px"/>
