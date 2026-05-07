@@ -5,7 +5,7 @@
   function renderLanding() {
   render(`
   <style>
-    .lnav{display:flex;align-items:left;justify-content:space-between;padding:16px 0;border-bottom:1px solid rgba(255,255,255,0.08);position:sticky;top:0;background:#1e3a8a;z-index:100;flex-wrap:wrap;gap:10px}
+    .lnav{display:flex;align-items:center;justify-content:space-between;padding:10px 24px;border-bottom:1px solid rgba(255,255,255,0.08);position:sticky;top:0;background:#1e3a8a;z-index:100;flex-wrap:nowrap;gap:8px}
     .lbrand{font-size:20px;font-weight:700;color:#fff;cursor:pointer;background:none;border:none;display:flex;align-items:left;gap:8px;flex-shrink:0}
     .lnav-links{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
     .btn-o{border:1px solid rgba(255,255,255,0.4);background:transparent;padding:8px 18px;border-radius:8px;font-size:14px;cursor:pointer;color:#fff;min-height:44px;display:inline-flex;align-items:center;justify-content:center;transition:all 0.2s}
@@ -311,10 +311,11 @@
  <!-- CENTER MENU (DESKTOP ONLY STYLE) -->
   <div class="nav-menu" id="navMenu">
     
-    <a href="/news" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:20px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="navigate('news', null, event)">News</a>
-    <a href="/shop" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:20px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="navigate('shop', null, event)">Shop</a>
-    <a href="/about" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:20px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="navigate('about', null, event)">About Us</a>
-    <a href="#contact" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:20px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="event.preventDefault(); window.scrollToContact()">Contact Us</a>
+    <a href="/news" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:15px;color:#fff;cursor:pointer;padding:5px 6px;white-space:nowrap" onclick="navigate('news', null, event)">News</a>
+    <a href="/shop" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:15px;color:#fff;cursor:pointer;padding:5px 6px;white-space:nowrap" onclick="navigate('shop', null, event)">Shop</a>
+    <a href="/majestic-lab" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:15px;color:var(--gold);cursor:pointer;padding:5px 6px;white-space:nowrap;font-weight:700" onclick="navigate('majestic-lab', null, event)">⚗ Majestic Lab</a>
+    <a href="/about" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:15px;color:#fff;cursor:pointer;padding:5px 6px;white-space:nowrap" onclick="navigate('about', null, event)">About Us</a>
+    <a href="#contact" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:15px;color:#fff;cursor:pointer;padding:5px 6px;white-space:nowrap" onclick="event.preventDefault(); window.scrollToContact()">Contact Us</a>
   </div>
 
   <!-- RIGHT SIDE -->
@@ -378,6 +379,7 @@
         <a href="/register" class="btn-hero-o" onclick="navigate('register', 'tutor', event)" style="text-decoration:none;">Become a Tutor</a>
         <a href="/shop" class="btn-hero-o" onclick="navigate('shop', null, event)" style="background:var(--gold); color:#1a1a1a; border-color:var(--gold); text-decoration:none;">🛒 Learning Store</a>
         <a href="/news" class="btn-hero-o" onclick="navigate('news', null, event)" style="background:#0e172b; border-color:#1e3a8a; text-decoration:none;">Read Updates</a>
+        <a href="/majestic-lab" class="btn-hero-o" onclick="navigate('majestic-lab', null, event)" style="background:linear-gradient(135deg,#1e3a8a,#7c3aed);border-color:#7c3aed;text-decoration:none;display:inline-flex;align-items:center;gap:7px;font-weight:800"><i data-lucide="flask-conical" style="width:16px;height:16px"></i> Majestic Lab</a>
       </div>
       <!-- MOBILE ONLY: courses banner shown below buttons -->
       <div class="chc-mobile-banner" onclick="navigate('courses')">
@@ -565,7 +567,7 @@
           <div style="display:flex;flex-direction:column;gap:20px">
             ${[['map-pin','Office','KG 11 Ave, Kiyovu, Kigali, Rwanda'],
                ['phone','Phone','+250 786 684 285'],
-               ['mail','Email','hello@Mathrone.rw'],
+               ['mail','Email','info@mathroneacademy.com'],
                ['clock','Hours','Mon–Sat: 8am – 6pm · Sunday: Closed']
               ].map(([ic,t,d])=>`
             <div style="display:flex;gap:14px;align-items:flex-start">
@@ -628,7 +630,7 @@
             </a>
           </div>
         </div>
-        ${[['PLATFORM',['Find a Tutor','Become a Tutor','How It Works','Education News']],
+        ${[['PLATFORM',['Find a Tutor','Become a Tutor','How It Works','Majestic Lab','Education News']],
            ['COMPANY',['About Us','Careers']],
            ['SUPPORT',['Help Centre','Contact Us','Privacy Policy','Terms of Service']]
           ].map(([ht,links])=>`
@@ -639,6 +641,7 @@
               'Find a Tutor': '/register',
               'Become a Tutor': '/register',
               'How It Works': '#how-it-works',
+              'Majestic Lab': '/majestic-lab',
               'Education News': '/news',
               'About Us': '/about',
               'Careers': '/news',
@@ -683,6 +686,391 @@
     }
   }, 300)
 }
+    function renderMajesticLabPage(){
+  render(`
+  <style>
+    @keyframes slideLabImages { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+    .lab-slider-container { background: #0A0F2C; padding: 40px 0; overflow: hidden; position: relative; border-top: 1px solid rgba(255,255,255,0.1); border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .lab-slider-track { display: flex; gap: 20px; animation: slideLabImages 40s linear infinite; width: max-content; }
+    .lab-slider-track:hover { animation-play-state: paused; }
+    .lab-image-card { width: 320px; height: 180px; border-radius: 12px; overflow: hidden; border: 2px solid rgba(26,95,255,0.3); background: #000; flex-shrink: 0; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    .lab-image-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
+    .lab-image-card:hover img { transform: scale(1.1); }
+    
+    .mlab-nav{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,0.08);background:var(--navy);position:sticky;top:0;z-index:100}
+    .mlab-hero{background:linear-gradient(135deg,#0d1b40 0%,#1e3a8a 50%,#4c1d95 100%);padding:80px 24px;text-align:center;position:relative;overflow:hidden}
+    .mlab-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(124,58,237,0.18) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(26,95,255,0.15) 0%,transparent 55%);pointer-events:none}
+    .mlab-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(245,166,35,0.12);color:var(--gold);font-size:12px;font-weight:700;padding:6px 16px;border-radius:999px;margin-bottom:24px;border:1px solid rgba(245,166,35,0.3);letter-spacing:0.04em}
+    .mlab-section{padding:72px 24px}
+    .mlab-inner{max-width:1100px;margin:0 auto}
+    .mlab-stitle{font-size:clamp(24px,4vw,34px);font-weight:800;color:var(--navy);font-family:'Playfair Display',serif;text-align:center;margin-bottom:12px}
+    .mlab-ssub{font-size:16px;color:var(--g400);text-align:center;margin-bottom:52px;max-width:600px;margin-left:auto;margin-right:auto}
+    .mlab-feat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px}
+    .mlab-feat{background:#fff;border:1px solid var(--g100);border-radius:16px;padding:24px;transition:transform 0.2s,box-shadow 0.2s}
+    .mlab-feat:hover{transform:translateY(-3px);box-shadow:0 8px 32px rgba(26,95,255,0.1)}
+    .mlab-feat-ic{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+    .mlab-plan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:24px}
+    .mlab-plan{background:#fff;border:1px solid var(--g100);border-radius:20px;padding:28px;position:relative;transition:transform 0.2s,box-shadow 0.2s}
+    .mlab-plan:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(26,95,255,0.12)}
+    .mlab-plan.featured{border:2px solid var(--blue);background:linear-gradient(135deg,#f0f6ff,#fff)}
+    .mlab-plan-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--blue);color:#fff;font-size:11px;font-weight:700;padding:4px 14px;border-radius:999px;white-space:nowrap}
+    .mlab-check{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;font-size:14px;color:var(--g600)}
+    .mlab-check i{flex-shrink:0;margin-top:1px;color:var(--green)}
+    .mlab-use-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px}
+    .mlab-use{background:var(--sky);border-radius:16px;padding:20px;text-align:center;cursor:pointer;border:1px solid var(--g100);transition:all 0.2s}
+    .mlab-use:hover{background:#dbeafe;border-color:var(--blue)}
+    .mlab-stat-row{display:flex;gap:0;flex-wrap:wrap;background:var(--navy);border-radius:20px;overflow:hidden}
+    .mlab-stat{flex:1;min-width:140px;padding:32px 24px;text-align:center;border-right:1px solid rgba(255,255,255,0.08)}
+    .mlab-stat:last-child{border-right:none}
+    @media(max-width:768px){
+      .mlab-nav{padding:12px 16px}
+      .mlab-hero{padding:56px 16px}
+      .mlab-section{padding:48px 16px}
+      .mlab-stat{min-width:120px;padding:24px 16px}
+    }
+    @media(max-width:480px){
+      .mlab-plan-grid{grid-template-columns:1fr}
+      .mlab-stat-row{flex-direction:column}
+      .mlab-stat{border-right:none;border-bottom:1px solid rgba(255,255,255,0.08)}
+    }
+    @media(max-width:768px){
+      .mlab-admin-grid{grid-template-columns:1fr!important}
+      .mlab-admin-cards{grid-template-columns:1fr 1fr!important}
+    }
+  </style>
+
+  <!-- NAV -->
+  <nav class="mlab-nav">
+    <button style="display:flex;align-items:center;gap:10px;background:none;border:none;cursor:pointer" onclick="navigate('landing')">
+      <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" alt="Mathrone Academy logo" loading="lazy" decoding="async" style="height:34px;width:auto;filter:brightness(0) invert(1)"/>
+      <span style="font-size:17px;font-weight:700;color:#fff">Mathrone Academy</span>
+    </button>
+    <div style="display:flex;align-items:center;gap:10px">
+      <button class="btn btn-ghost btn-sm" style="color:rgba(255,255,255,0.7);border-color:rgba(255,255,255,0.2)" onclick="navigate('landing')">← Home</button>
+      <button class="btn btn-sm" style="background:var(--gold);color:#1a1a1a;font-weight:800;border:none" onclick="openBusinessInquiry('School Subscription')">
+        <i data-lucide="phone" style="width:14px;height:14px"></i> Get a Quote
+      </button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <div class="mlab-hero">
+    <div style="position:relative;z-index:1">
+      <div class="mlab-badge"><i data-lucide="flask-conical" style="width:14px;height:14px"></i> MAJESTIC LAB, PROFESSIONAL VIRTUAL STEM LABS</div>
+      <h1 style="font-size:clamp(32px,6vw,56px);font-weight:800;color:#fff;font-family:'Playfair Display',serif;margin-bottom:20px;line-height:1.15">Your School Deserves a<br/><span style="color:var(--gold)">World-Class Virtual Lab</span></h1>
+      <p style="font-size:clamp(15px,2vw,18px);color:rgba(255,255,255,0.75);max-width:680px;margin:0 auto 36px;line-height:1.7">Stop improvising with basic video calls. Give your teachers a professional interactive workspace, 
+      whiteboard, 3D shapes, rulers, graph tools, document sharing, and live student sync. all in one powerful platform built for Rwandan schools.</p>
+      <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:56px">
+        <button class="btn btn-primary btn-lg" style="background:var(--gold);color:#1a1a1a;font-weight:800;border:none;display:inline-flex;align-items:center;gap:8px" onclick="openBusinessInquiry('School Subscription')">
+          <i data-lucide="building-2" style="width:18px;height:18px"></i> Get School License
+        </button>
+        <button class="btn btn-lg" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.25);display:inline-flex;align-items:center;gap:8px" onclick="openBusinessInquiry('Standard License')">
+          <i data-lucide="user" style="width:18px;height:18px"></i> Individual Tutor Plan
+        </button>
+        <button class="btn btn-lg" style="background:transparent;color:rgba(255,255,255,0.6);border:1px solid rgba(255,255,255,0.15);display:inline-flex;align-items:center;gap:8px" onclick="navigate('login')">
+          <i data-lucide="log-in" style="width:18px;height:18px"></i> Sign In to Your Lab
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- LAB IMAGE SLIDER -->
+  <div class="lab-slider-container">
+    <div style="text-align:center; margin-bottom:24px;">
+       <span style="color:var(--gold); font-size:11px; font-weight:800; letter-spacing:2px; text-transform:uppercase;">Board Preview</span>
+       <h2 style="color:#fff; font-size:20px; font-family:'Playfair Display',serif;">See the Lab in Action</h2>
+    </div>
+    <div class="lab-slider-track">
+      ${[
+        
+        "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=600&q=80", // Geometry/Math
+        "https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/lab1.png",
+        "https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/lab2.png",
+        "https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/lab3.png",
+        "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=600&q=80",
+        "https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/lab4.png",
+        "https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/lab5.png",
+        "https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/lab6.png",
+        "https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/lab7.png",
+        "https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/lab8.png",
+        "https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/lab9.png",
+       
+      ].concat([
+        "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=600&q=80", // Geometry/Math
+        "https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/lab1.png",
+        "https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/lab2.png",
+        "https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/lab3.png",
+        "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=600&q=80",
+        "https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/lab4.png",
+        "https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/lab5.png",
+        "https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/lab6.png",
+        "https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/lab7.png",
+        "https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/lab8.png",
+        "https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/lab9.png"
+      ]).map(url => `
+        <div class="lab-image-card">
+          <img src="${url}" alt="Mathrone Majestic Lab Preview" loading="lazy">
+        </div>
+      `).join('')}
+    </div>
+  </div>
+
+  <!-- WHAT IS IT -->
+  <div class="mlab-section" style="background:var(--sky)">
+    <div class="mlab-inner">
+      <h2 class="mlab-stitle">Everything a Teacher Needs. Nothing Extra.</h2>
+      <p class="mlab-ssub">Majestic Lab is a professional virtual STEM workspace built for live teaching , not general video calls. Every tool is designed for how teachers actually teach.</p>
+      <div class="mlab-feat-grid">
+        ${[
+          ['pen-tool','#EEF2FF','var(--blue)','Infinite Whiteboard','Draw, annotate, and explain any concept with a pixel-perfect whiteboard that syncs live to every student\'s screen.'],
+          ['box','#F0FDF4','var(--green)','3D Shapes & Geometry','Rotate and manipulate 3D objects in real time. Ideal for S4–S6 Physics, Chemistry, and Mathematics.'],
+          ['ruler','#FFF7ED','var(--orange)','Rulers & Protractors','Drag-and-drop measuring tools that behave exactly like physical instruments.'],
+          ['line-chart','#F5F3FF','#7c3aed','Graph Plotter','Plot functions, draw coordinate systems, and visualize data live during class.'],
+          ['file-text','#FEF2F2','var(--red)','Document Presenter','Upload a PDF or PPTX and annotate over it in real time. Students see every mark.'],
+          ['users','#EEF2FF','var(--blue)','Live Student Sync','Students join via a secure link and follow the teacher\'s board in real time. No app install needed.'],
+          ['lock','#F0FDF4','var(--green)','Device-Locked Links','Every student link is locked to one device. No forwarding, no sharing, no piracy.'],
+          ['download','#FFF7ED','var(--orange)','PDF Export','Export any whiteboard session as a branded PDF for students to review later.'],
+        ].map(([ic,bg,color,title,desc])=>`
+        <div class="mlab-feat">
+          <div class="mlab-feat-ic" style="background:${bg}">
+            <i data-lucide="${ic}" style="width:24px;height:24px;color:${color}"></i>
+          </div>
+          <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:6px">${title}</div>
+          <p style="font-size:13px;color:var(--g400);line-height:1.6;margin:0">${desc}</p>
+        </div>`).join('')}
+      </div>
+    </div>
+  </div>
+
+  <!-- WHO IT'S FOR -->
+  <div class="mlab-section">
+    <div class="mlab-inner">
+      <h2 class="mlab-stitle">Built for Every Learning Context</h2>
+      <p class="mlab-ssub">Whether you run a school, a tutoring centre, or teach privately. Majestic Lab fits your workflow.</p>
+      <div class="mlab-use-grid">
+        ${[
+          ['school','#1e40af','Secondary Schools','Equip your science and math departments with a professional shared lab. Teachers get their own links, you control the seats.'],
+          ['graduation-cap','#065f46','Universities & Colleges','Host advanced lab simulations, annotate research papers live, and coordinate across multiple faculties.'],
+          ['user-check','#7c3aed','Private Tutors','Open a professional lab for every 1-on-1 session. Share a student link in seconds and start teaching immediately.'],
+          ['building','#b45309','Tutoring Centres','Manage multiple teachers under one institution license. Track usage and generate links from your admin portal.'],
+          ['home','#be185d','Home-School Parents','Give your child a structured learning environment with all the tools their school uses, right at home.'],
+          ['briefcase','#0e7490','Corporate Training','Deliver technical training with interactive diagrams and live Q&A boards for professional teams.'],
+        ].map(([ic,color,title,desc])=>`
+        <div class="mlab-use" onclick="openBusinessInquiry('${title} License')">
+          <div style="width:48px;height:48px;border-radius:12px;background:#fff;border:1px solid var(--g100);display:flex;align-items:center;justify-content:center;margin:0 auto 14px">
+            <i data-lucide="${ic}" style="width:24px;height:24px;color:${color}"></i>
+          </div>
+          <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:6px">${title}</div>
+          <p style="font-size:12px;color:var(--g400);line-height:1.5;margin:0">${desc}</p>
+        </div>`).join('')}
+      </div>
+    </div>
+  </div>
+
+  <!-- PRICING -->
+  <div class="mlab-section" style="background:var(--sky)">
+    <div class="mlab-inner">
+      <h2 class="mlab-stitle">Simple, Transparent Pricing</h2>
+      <p class="mlab-ssub">No hidden fees. Pay once, teach all month. Contact us for exact RWF pricing tailored to your institution size.</p>
+      <div class="mlab-plan-grid">
+        ${[
+          {
+            name:'Individual Tutor',
+            icon:'user',
+            color:'#1e40af',
+            bg:'#EEF2FF',
+            price:'From 1,000',
+            period:'/month',
+            tag:null,
+            features:['1 concurrent session','Device-locked student links','Full whiteboard & tools','PDF export','Email support'],
+            cta:'Get Started',
+            inquiry:'Standard License',
+          },
+          {
+            name:'School Starter',
+            icon:'school',
+            color:'#065f46',
+            bg:'#F0FDF4',
+            price:'From 30,000',
+            period:'/year',
+            tag:'Most Popular',
+            features:['Up to 10 concurrent sessions','Teacher self-service portal','Institution branding on exports','Usage analytics','Priority WhatsApp support'],
+            cta:'Get School License',
+            inquiry:'School Subscription',
+          },
+          {
+            name:'School Pro',
+            icon:'building-2',
+            color:'#7c3aed',
+            bg:'#F5F3FF',
+            price:'From 80,000',
+            period:'/year',
+            tag:null,
+            features:['Up to 30 concurrent sessions','Multi-teacher management','Custom logo on whiteboard','Dedicated account manager','Training session included'],
+            cta:'Contact Us',
+            inquiry:'School Pro License',
+          },
+          {
+            name:'Enterprise',
+            icon:'landmark',
+            color:'#b45309',
+            bg:'#FFF7ED',
+            price:'Custom',
+            period:'pricing',
+            tag:null,
+            features:['Unlimited concurrent sessions','Full white-label branding','Custom domain option','SLA guarantee','On-site training in Kigali'],
+            cta:'Request a Quote',
+            inquiry:'Enterprise License',
+          },
+        ].map(p=>`
+        <div class="mlab-plan ${p.tag ? 'featured' : ''}">
+          ${p.tag ? `<div class="mlab-plan-badge"><i data-lucide="star" style="width:10px;height:10px"></i> ${p.tag}</div>` : ''}
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+            <div style="width:44px;height:44px;border-radius:12px;background:${p.bg};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <i data-lucide="${p.icon}" style="width:22px;height:22px;color:${p.color}"></i>
+            </div>
+            <div style="font-size:17px;font-weight:800;color:var(--navy)">${p.name}</div>
+          </div>
+          <div style="margin-bottom:20px">
+            <span style="font-size:28px;font-weight:800;color:var(--navy);font-family:'Playfair Display',serif">${p.price}</span>
+            <span style="font-size:13px;color:var(--g400)"> RWF${p.period}</span>
+          </div>
+          <div style="border-top:1px solid var(--g100);padding-top:16px;margin-bottom:20px">
+            ${p.features.map(f=>`
+            <div class="mlab-check">
+              <i data-lucide="check-circle-2" style="width:16px;height:16px"></i>
+              <span>${f}</span>
+            </div>`).join('')}
+          </div>
+          <button class="btn btn-primary btn-full" style="${p.tag ? '' : 'background:var(--navy);'}" onclick="openBusinessInquiry('${p.inquiry}')">
+            ${p.cta} →
+          </button>
+        </div>`).join('')}
+      </div>
+      <p style="text-align:center;font-size:13px;color:var(--g400);margin-top:24px">All prices in RWF. Annual plans available at a 20% discount. Free demo session for all school plans.</p>
+    </div>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <div class="mlab-section">
+    <div class="mlab-inner">
+      <h2 class="mlab-stitle">Up & Running in 3 Steps</h2>
+      <p class="mlab-ssub">From signup to first live class in under 10 minutes. No software to install , it runs in any browser.</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:24px;margin-top:40px">
+        ${[
+          ['1','phone-call','Contact Mathrone','Reach out via WhatsApp or email. Tell us your school name, number of teachers, and preferred start date.','var(--blue)','#EEF2FF'],
+          ['2','credit-card','Choose Your Plan','We create your institution profile, assign your licenses, and set up your admin portal account within 24 hours.','#7c3aed','#F5F3FF'],
+          ['3','rocket','Start Teaching','Log in, generate teacher links from your portal, share them with your staff and your teachers open the lab and start live classes immediately.','var(--green)','#F0FDF4'],
+        ].map(([n,ic,title,desc,color,bg])=>`
+        <div style="background:#fff;border:1px solid var(--g100);border-radius:20px;padding:28px;position:relative">
+          <div style="width:36px;height:36px;border-radius:999px;background:${bg};display:flex;align-items:center;justify-content:center;margin-bottom:16px">
+            <span style="font-size:14px;font-weight:800;color:${color}">0${n}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+            <i data-lucide="${ic}" style="width:20px;height:20px;color:${color}"></i>
+            <div style="font-size:16px;font-weight:700;color:var(--navy)">${title}</div>
+          </div>
+          <p style="font-size:13px;color:var(--g400);line-height:1.6;margin:0">${desc}</p>
+        </div>`).join('')}
+      </div>
+    </div>
+  </div>
+
+  <!-- INSTITUTION ADMIN FEATURE CALLOUT -->
+  <div style="background:var(--navy);padding:72px 24px">
+    <div class="mlab-inner">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))">
+        <div>
+          <div class="mlab-badge" style="margin-bottom:20px"><i data-lucide="shield-check" style="width:14px;height:14px"></i> FOR SCHOOL ADMINISTRATORS</div>
+          <h2 style="font-size:clamp(24px,4vw,34px);font-weight:800;color:#fff;font-family:'Playfair Display',serif;margin-bottom:16px;line-height:1.2">Your Staff Manages Their Own Links. You Stay in Control.</h2>
+          <p style="font-size:15px;color:rgba(255,255,255,0.7);line-height:1.7;margin-bottom:28px">Once your school is set up, your designated Lab Admin logs into their own portal, no need to contact Mathrone every time a teacher needs a new link. They generate, monitor, and revoke teacher access themselves, within your license limits.</p>
+          <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:32px">
+            ${[
+              ['users','See live seat usage across all teachers in real time'],
+              ['link','Generate new teacher links in under 10 seconds'],
+              ['x-circle','Instantly revoke a link if a teacher leaves or shares it'],
+              ['calendar-clock','See when each teacher link expires and renew as needed'],
+            ].map(([ic,t])=>`
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="width:32px;height:32px;background:rgba(245,166,35,0.12);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <i data-lucide="${ic}" style="width:16px;height:16px;color:var(--gold)"></i>
+              </div>
+              <span style="font-size:14px;color:rgba(255,255,255,0.8)">${t}</span>
+            </div>`).join('')}
+          </div>
+          <button class="btn btn-primary btn-lg" style="background:var(--gold);color:#1a1a1a;font-weight:800;border:none;display:inline-flex;align-items:center;gap:8px" onclick="openBusinessInquiry('School Subscription')">
+            <i data-lucide="building-2" style="width:18px;height:18px"></i> Get School License
+          </button>
+        </div>
+        <div class="mlab-admin-cards" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;min-width:0;overflow:hidden">
+          ${[
+            ['monitor-play','Active Sessions','0 / 10 seats','#EEF2FF','var(--blue)'],
+            ['link','Active Links','8 teacher links','#F0FDF4','var(--green)'],
+            ['calendar-clock','Subscription','Expires Dec 2025','#FFF7ED','var(--orange)'],
+            ['check-circle','Status','All systems live','#F0FDF4','var(--green)'],
+          ].map(([ic,label,val,bg,color])=>`
+          <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:20px;min-width:0;overflow:hidden">
+            <div style="width:36px;height:36px;background:${bg};border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:12px">
+              <i data-lucide="${ic}" style="width:18px;height:18px;color:${color}"></i>
+            </div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.45);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em">${label}</div>
+            <div style="font-size:14px;font-weight:700;color:#fff">${val}</div>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TESTIMONIALS -->
+  <div class="mlab-section" style="background:var(--sky)">
+    <div class="mlab-inner">
+      <h2 class="mlab-stitle">What Schools Are Saying</h2>
+      <p class="mlab-ssub">Real feedback from teachers and administrators using Majestic Lab across Rwanda.</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px">
+        ${[
+          ['Our S6 Physics teacher used to struggle explaining 3D concepts on a regular whiteboard. Since Majestic Lab, students actually see it rotating in 3D. Exam results improved by 22% that term.','Mr. Emmanuel Nkusi','Head of Sciences · FAWE Girls School, Kigali','EN','#1e40af'],
+          ['The institution portal is a game changer. I generate a link for each teacher in the morning and revoke it in the evening. No more shared passwords or security headaches.','Mrs. Claudette Uwera','Academic Director · Riviera High School','CU','#065f46'],
+          ['I used to spend 20 minutes at the start of each session setting up Google Meet and a shared whiteboard. Now I just send one link. The student is in the lab in 30 seconds.','Mr. Théogène Habimana','Private STEM Tutor · Kigali','TH','#7c3aed'],
+        ].map(([txt,name,role,ini,bg])=>`
+        <div style="background:#fff;border:1px solid var(--g100);border-radius:16px;padding:24px">
+          <div style="font-size:28px;color:var(--gold);margin-bottom:12px">❝</div>
+          <p style="font-size:14px;color:var(--g600);line-height:1.7;margin-bottom:20px">${txt}</p>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:38px;height:38px;border-radius:50%;background:${bg};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0">${ini}</div>
+            <div>
+              <div style="font-size:14px;font-weight:700;color:var(--navy)">${name}</div>
+              <div style="font-size:12px;color:var(--g400)">${role}</div>
+            </div>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>
+  </div>
+
+  <!-- FINAL CTA -->
+  <div style="background:linear-gradient(135deg,#0d1b40,#1e3a8a,#4c1d95);padding:80px 24px;text-align:center">
+    <div style="display:inline-flex;align-items:center;gap:7px;background:rgba(245,166,35,0.12);color:var(--gold);font-size:12px;font-weight:700;padding:6px 16px;border-radius:999px;margin-bottom:24px;border:1px solid rgba(245,166,35,0.3)"><i data-lucide="zap" style="width:14px;height:14px"></i> START TODAY: NO SETUP FEE</div>
+    <h2 style="font-size:clamp(26px,5vw,44px);font-weight:800;color:#fff;font-family:'Playfair Display',serif;margin-bottom:16px">Your Students Deserve Better<br/><span style="color:var(--gold)">Than a Basic Whiteboard App.</span></h2>
+    <p style="font-size:16px;color:rgba(255,255,255,0.7);max-width:560px;margin:0 auto 36px;line-height:1.7">Join 40+ schools and 500+ teachers using Majestic Lab to deliver professional, engaging STEM lessons every day. First demo session is free.</p>
+    <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-lg" style="background:var(--gold);color:#1a1a1a;font-weight:800;border:none;display:inline-flex;align-items:center;gap:8px" onclick="openBusinessInquiry('School Subscription')">
+        <i data-lucide="building-2" style="width:20px;height:20px"></i> Get School License
+      </button>
+      <button class="btn btn-lg" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.25);display:inline-flex;align-items:center;gap:8px" onclick="openBusinessInquiry('Demo Session')">
+        <i data-lucide="play-circle" style="width:20px;height:20px"></i> Book Free Demo
+      </button>
+      <button class="btn btn-lg" style="background:transparent;color:rgba(255,255,255,0.6);border:1px solid rgba(255,255,255,0.15);display:inline-flex;align-items:center;gap:8px" onclick="navigate('login')">
+        <i data-lucide="log-in" style="width:20px;height:20px"></i> Already have an account?
+      </button>
+    </div>
+    <p style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:24px;display:flex;align-items:center;justify-content:center;gap:6px">
+      <i data-lucide="message-circle" style="width:14px;height:14px"></i> WhatsApp: +250 786 684 285 · info@Mathrone.com · Kigali, Rwanda
+    </p>
+  </div>
+  `);
+}
+
     function renderTerms(){
   render(`
   <nav style="display:flex;align-items:center;justify-content:space-between;padding:14px 48px;border-bottom:1px solid var(--g100);background:#fff;position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:10px">

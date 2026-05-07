@@ -324,13 +324,40 @@
     </div>
   `;
   render(html);
-  // Show host-only controls for hosts, keep hidden for students
+  // --- BUSINESS PROTECTION: HOST vs GUEST ---
   setTimeout(() => {
     const isHost = (State.user && (State.user.role === 'tutor' || State.user.role === 'admin')) || window._isLabHost;
+    
     if (isHost) {
-      document.querySelectorAll('.host-only').forEach(el => { el.style.setProperty('display', 'inline-flex', 'important'); });
+      // Show professional tools for the Business Owner/Teacher
+      document.querySelectorAll('.host-only').forEach(el => { 
+        el.style.setProperty('display', 'inline-flex', 'important'); 
+      });
+    } else {
+      // GUEST MODE: Hide the main toolbar and restricted actions
+      const mainToolbar = document.getElementById('wb-toolbar-el');
+      if (mainToolbar) mainToolbar.style.display = 'none';
+      
+      // Prevent Guests from deleting Host objects
+      canvas.on('object:selected', (e) => {
+        if (e.target && e.target.id && !e.target.id.startsWith('guest_')) {
+          canvas.discardActiveObject();
+          toast("Viewing Mode: You cannot modify Business Owner assets.", "info");
+        }
+      });
+      
+      // Context menu protection
+      document.addEventListener('contextmenu', e => e.preventDefault());
     }
   }, 50);
+  // --- IP PROTECTION ---
+  document.addEventListener('contextmenu', e => { if(document.getElementById('wb-canvas-el')) e.preventDefault(); });
+  document.addEventListener('keydown', e => {
+    if(document.getElementById('wb-canvas-el') && (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) || (e.ctrlKey && e.key === 'u'))){
+      e.preventDefault();
+      toast("Source code protection active 🛡️", "err");
+    }
+  });
   setTimeout(() => {
     initWhiteboardSync(sessionId);
     // Auto-prompt video if this is a real scheduled session (not a solo lab)
@@ -696,70 +723,68 @@ canvas.on('path:created', triggerCloudSave);
   }
 
   // --- PDF EXPORT LOGIC ---
-  // --- Branded PDF EXPORT ---
+  // --- PROFESSIONAL BUSINESS EXPORT (B2B & B2C Protected) ---
   window.downloadLabAsPDF = async () => {
     if (!window.jspdf) {
-      toast("Loading PDF library...", "info");
-      try { await ensureJsPDF(); } catch(e) { toast("Failed to load PDF library.", "err"); return; }
+      toast("Loading professional PDF engine...", "info");
+      try { await ensureJsPDF(); } catch(e) { toast("Engine failed.", "err"); return; }
     }
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('l', 'px', [canvas.width, canvas.height]);
     const logoUrl = "https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png";
+    const bizName = window._wbInstitutionName || "Independent Tutor Pro";
 
-    // Save current page state
-    window._wbNotebook[window._wbCurrentPage] = canvas.toJSON(['id']);
+    toast("Generating Licensed Document... ⏳");
 
     for (let i = 0; i < window._wbNotebook.length; i++) {
       if (i > 0) doc.addPage([canvas.width, canvas.height], 'l');
       
       const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = canvas.width; 
-      tempCanvas.height = canvas.height;
-      const staticCanvas = new fabric.StaticCanvas(tempCanvas);
+      tempCanvas.width = canvas.width; tempCanvas.height = canvas.height;
+      const ctx = tempCanvas.getContext('2d');
       
-      await new Promise(resolve => {
-        // 1. Load the background drawing
-        staticCanvas.loadFromJSON(window._wbNotebook[i], () => {
-          
-          // 2. Add the Mathrone Logo
-          fabric.Image.fromURL(logoUrl, (img) => {
-            img.scaleToWidth(100); // Set logo size
-            img.set({
-              left: canvas.width - 120, // Position top right
-              top: 20,
-              opacity: 0.9
-            });
-            staticCanvas.add(img);
+      // 1. Draw Background & Whiteboard Content
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0,0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL({ format: 'png', quality: 1 });
+      const imgContent = await new Promise(res => { const img = new Image(); img.onload = () => res(img); img.src = dataUrl; });
+      ctx.drawImage(imgContent, 0, 0);
 
-            // 3. Add Page footer text � co-branded
-            const institutionName = window._wbInstitutionName || '';
-            const footerLeft = new fabric.Text(
-              institutionName ? `${institutionName}  �  Powered by Mathrone Academy STEM Majestic Lab` : `Mathrone Academy STEM Majestic Lab`,
-              { left: 40, top: canvas.height - 38, fontSize: 13, fill: '#8A98B8', fontFamily: 'DM Sans', fontWeight: '700' }
-            );
-            const footerRight = new fabric.Text(`Page ${i+1} of ${window._wbNotebook.length}`, {
-              left: canvas.width - 120, top: canvas.height - 38,
-              fontSize: 13, fill: '#8A98B8', fontFamily: 'DM Sans'
-            });
-            staticCanvas.add(footerLeft);
-            staticCanvas.add(footerRight);
-            // Separator line
-            const footerLine = new fabric.Line([30, canvas.height - 48, canvas.width - 30, canvas.height - 48], { stroke: '#c0cce0', strokeWidth: 1 });
-            staticCanvas.add(footerLine);
-            // footer variable removed � footerLeft/footerRight/footerLine already added above
+      // 2. SECURITY WATERMARK (Prevents unauthorized copying of Business logic)
+      ctx.save();
+      ctx.globalAlpha = 0.04;
+      ctx.font = "bold 100px Arial";
+      ctx.fillStyle = "#0D1B40";
+      ctx.textAlign = "center";
+      ctx.translate(canvas.width/2, canvas.height/2);
+      ctx.rotate(-Math.PI / 4);
+      ctx.fillText("MATHRONE MAJESTIC LAB", 0, 0);
+      ctx.restore();
 
-            staticCanvas.renderAll();
-            
-            // 4. Add the finished branded canvas to PDF
-            doc.addImage(staticCanvas.toDataURL({format: 'png'}), 'PNG', 0, 0, canvas.width, canvas.height);
-            resolve();
-          }, { crossOrigin: 'anonymous' }); // Required to avoid security errors with the image URL
-        });
-      });
+      // 3. BUSINESS BRANDING BAR (Header)
+      ctx.fillStyle = "#0D1B40";
+      ctx.fillRect(0, 0, canvas.width, 50);
+      ctx.font = "bold 16px Arial";
+      ctx.fillStyle = "#FFFFFF";
+      ctx.textAlign = "left";
+      ctx.fillText(`PRO SESSION: ${bizName.toUpperCase()}`, 30, 32);
+
+      // 4. MATHRONE QUALITY STAMP (Footer)
+      ctx.fillStyle = "#F1F5F9";
+      ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
+      ctx.font = "italic 11px Arial";
+      ctx.fillStyle = "#64748B";
+      ctx.textAlign = "center";
+      ctx.fillText("Licensed to " + bizName + " | Powered by Mathrone Academy (mathroneacademy.com)", canvas.width/2, canvas.height - 15);
+      
+      ctx.textAlign = "right";
+      ctx.fillText(`Page ${i+1} of ${window._wbNotebook.length}`, canvas.width - 30, canvas.height - 15);
+
+      doc.addImage(tempCanvas.toDataURL('image/jpeg', 0.8), 'JPEG', 0, 0, canvas.width, canvas.height);
     }
     
-    doc.save(`Mathrone_Lesson_Notes_${new Date().toLocaleDateString().replace(/\//g,'-')}.pdf`);
-    toast("Branded PDF Downloaded ✅");
+    doc.save(`${bizName.replace(/\s/g,'_')}_Lab_Notes.pdf`);
+    toast("Licensed PDF Exported ", "ok");
   };
   window.addEventListener('resize', () => {
     if (window.wbInstance) {

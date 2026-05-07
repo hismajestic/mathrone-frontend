@@ -87,7 +87,20 @@ export async function onRequest(context) {
   // URL will be /api/v1/shop/products → route = /shop/products
   const ip    = request.headers.get('CF-Connecting-IP') || 'unknown';
   
-  if ((url.pathname === "/" || url.pathname === "") && isBot) {
+  if (isBot && (url.pathname === "/" || url.pathname === "" || url.pathname === "/majestic-lab")) {
+    const isLab = url.pathname.includes('majestic-lab');
+    const title = isLab ? "Majestic Lab — Professional Virtual STEM Lab" : "Mathrone Academy | Best Private Tutors in Rwanda";
+    const desc = isLab ? "The high-performance interactive lab for Rwandan schools. 3D shapes, whiteboard sync, and professional STEM tools." : "Connect with vetted tutors for 1-on-1 learning in Rwanda. Maths, Science, Languages and more.";
+    
+    return new Response(`<!DOCTYPE html><html><head>
+      <title>${title}</title>
+      <meta property="og:title" content="${title}" />
+      <meta property="og:description" content="${desc}" />
+      <meta property="og:image" content="https://mathroneacademy.com/og-banner.jpg" />
+      <meta property="og:url" content="https://mathroneacademy.com${url.pathname}" />
+      </head><body><h1>${title}</h1><p>${desc}</p></body></html>`, 
+      { headers: { 'content-type': 'text/html;charset=UTF-8' } });
+  }
     return new Response(`<!DOCTYPE html><html><head>
       <title>Mathrone Academy | Best Private Tutors in Rwanda</title>
       <meta property="og:title" content="Mathrone Academy | Expert Tutoring" />
@@ -172,4 +185,3 @@ export async function onRequest(context) {
     status:  backendResp.status,
     headers: respHeaders,
   });
-}

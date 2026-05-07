@@ -204,7 +204,16 @@ var FORUM_CATEGORIES = [
     </div>
     <!-- AI Tutor Card (shown only if quiz is enabled) -->
     <div id="student-quiz-card"></div>
-
+<!-- BUSINESS OWNER / INSTITUTION CTA -->
+    <div class="card" style="padding:24px; margin-top:24px; border:2px dashed var(--blue); background:#F8FAFF;">
+      <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;">
+        <div style="flex:1; min-width:280px;">
+          <h3 style="font-size:18px; font-weight:800; color:var(--navy); margin-bottom:8px;">🏢 Are you a School Principal or Tutoring Business Owner?</h3>
+          <p style="font-size:13px; color:var(--g600); line-height:1.5;">Get a professional license for the Majestic Lab. Host your own classes with your brand, control 30+ students at once, and lock your links from being shared.</p>
+        </div>
+        <button class="btn btn-primary" onclick="window.open('https://wa.me/250786684285?text=I%20want%20to%20inquire%20about%20a%20Business%20License%20for%20the%20Majestic%20Lab')">Get Business Quote 🚀</button>
+      </div>
+    </div>
     <div id="modal-root"></div>
     `))
   // Load quiz enabled status and conditionally show AI Tutor card + sidebar link
@@ -217,20 +226,14 @@ var FORUM_CATEGORIES = [
       <div class="card" style="padding:24px;margin-top:24px;background:linear-gradient(135deg,#1e1b4b 0%,#312e81 100%)">
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
           <div>
-            var FORUM_CATEGORIES = [
-  { id: 'general',   icon: '<i data-lucide="message-square" style="width:16px;height:16px"></i>', label: 'General Discussion' },
-  { id: 'study',     icon: '<i data-lucide="book-open" style="width:16px;height:16px"></i>', label: 'Study Tips' },
-  { id: 'reviews',   ic<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
               <div style="background:rgba(255,255,255,0.1);padding:6px;border-radius:8px;display:flex;align-items:center;justify-content:center"><i data-lucide="bot" style="width:24px;height:24px;color:#a78bfa"></i></div>
               <h3 style="font-size:17px;font-weight:900;color:#fff">AI Study Tutor</h3>
-              <span style="background:#a78bfa;color:#1e1b4b;font-size:10px;font-weight:900;padding:2px 8px;border-radius:99px">POWERED BY AI</span>
+              <span style="background:#a78bfa;color:#1e40af;font-size:10px;font-weight:900;padding:2px 8px;border-radius:99px">POWERED BY AI</span>
             </div>
             <p style="font-size:12px;color:rgba(255,255,255,0.65);max-width:400px">Ask questions, get explanations, quiz yourself — an interactive AI tutor available 24/7.</p>
           </div>
-          <button class="btn btn-sm" onclick="navigate('quiz')" style="background:#a78bfa;color:#1e1b4b;font-weight:800;display:flex;align-items:center;gap:6px"><i data-lucide="graduation-cap" style="width:16px;height:16px"></i> Open AI Tutor</button>on: '<i data-lucide="star" style="width:16px;height:16px"></i>', label: 'Tutor Reviews' },
-  { id: 'career',    icon: '<i data-lucide="briefcase" style="width:16px;height:16px"></i>', label: 'Career Advice' },
-  { id: 'feedback',  icon: '<i data-lucide="megaphone" style="width:16px;height:16px"></i>', label: 'Platform Feedback' },
-]
+          <button class="btn btn-sm" onclick="navigate('quiz')" style="background:#a78bfa;color:#1e40af;font-weight:800;display:flex;align-items:center;gap:6px"><i data-lucide="graduation-cap" style="width:16px;height:16px"></i> Open AI Tutor</button>
         </div>
       </div>`
       // Show quiz sidebar link
@@ -248,6 +251,46 @@ var FORUM_CATEGORIES = [
     toast(e.message, 'err')
     render(dashWrap('dashboard', `<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Failed to load dashboard</div><button class="btn btn-primary" onclick="navigate('dashboard')">Retry</button></div>`))
   }
+}
+function renderLabSolutions() {
+  render(dashWrap('lab-solutions', `
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">🏢 Institutional STEM Solutions</h1>
+        <p class="page-subtitle">Professional Virtual Labs for Schools and Private Tutoring Businesses</p>
+      </div>
+    </div>
+
+    <div style="background:var(--navy); border-radius:16px; padding:40px; color:#fff; margin-bottom:30px; display:flex; align-items:center; gap:30px; flex-wrap:wrap;">
+      <div style="flex:1; min-width:300px;">
+        <h2 style="font-size:32px; font-family:'Playfair Display',serif; color:var(--gold); margin-bottom:16px;">The Majestic Lab for Business</h2>
+        <p style="font-size:16px; opacity:0.8; line-height:1.6; margin-bottom:24px;">
+          Stop using basic video tools. Give your students a majestic learning experience. 
+          Rent our high-performance STEM engine to host your own classes, complete with rulers, 
+          3D shapes, and live simulation syncing.
+        </p>
+        <ul style="list-style:none; padding:0; display:grid; grid-template-columns:1fr 1fr; gap:12px; font-size:14px; margin-bottom:24px;">
+          <li>✅ <strong>White-Label Exports:</strong> Your brand on every PDF.</li>
+          <li>✅ <strong>Host Controls:</strong> You control the stage, they follow.</li>
+          <li>✅ <strong>Device Locking:</strong> Protect your links from being leaked.</li>
+          <li>✅ <strong>Admin Portal:</strong> Track how many hours your staff is teaching.</li>
+        </ul>
+      </div>
+      <div style="background:rgba(255,255,255,0.05); padding:30px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); width:320px;">
+        <h3 style="text-align:center; margin-bottom:20px;">Get Licensed</h3>
+        <button class="btn btn-gold btn-full" style="margin-bottom:12px;" onclick="openBusinessInquiry('Standard License')">Individual Tutor Pro</button>
+        <button class="btn btn-primary btn-full" style="margin-bottom:12px; background:#fff; color:var(--navy);" onclick="openBusinessInquiry('School Subscription')">School/Academy License</button>
+        <p style="text-align:center; font-size:11px; opacity:0.5;">Includes 24/7 technical support in Kigali</p>
+      </div>
+    </div>
+
+    <div id="modal-root"></div>
+  `));
+}
+
+function openBusinessInquiry(type) {
+  const msg = encodeURIComponent(`Hello Mathrone Academy. I am a Business Owner/School Principal and I want to inquire about the ${type} for the Majestic Lab.`);
+  window.open(`https://wa.me/250786684285?text=${msg}`);
 }
     // ════════════════════════════════════════════════════════════
     // AI TUTOR — Interactive conversational study assistant
@@ -939,73 +982,86 @@ function onQTypeChange(type){
   if(hint  && type === 'multiple_select') hint.textContent  = 'e.g. Option A, Option C'
   if(hint  && type === 'multiple_choice') hint.textContent  = 'Must match one option exactly'
 }
-async function saveNewQuestion(){
-  const type    = document.getElementById('q-type')?.value
-  const subject = document.getElementById('q-subject')?.value || 'general'
-  const text    = document.getElementById('q-text')?.value?.trim()
-  const options = ['multiple_choice','multiple_select'].includes(type) ? document.getElementById('q-options')?.value?.split('\n').map(o=>o.trim()).filter(Boolean) : null
-  const correct = ['multiple_choice','multiple_select'].includes(type) ? document.getElementById('q-correct')?.value?.trim() : null
-  const marks   = parseInt(document.getElementById('q-marks')?.value) || 1
-  const order   = parseInt(document.getElementById('q-order')?.value) || 0
+async function saveNewQuestion() {
+  const type = document.getElementById('q-type')?.value;
+  const subject = document.getElementById('q-subject')?.value || 'general';
+  const difficulty = document.getElementById('q-difficulty')?.value || 'medium';
+  const level = document.getElementById('q-level')?.value || 'All Levels';
+  const text = document.getElementById('q-text')?.value?.trim();
+  const options = ['multiple_choice', 'multiple_select'].includes(type) ? document.getElementById('q-options')?.value?.split('\n').map(o => o.trim()).filter(Boolean) : null;
+  const correct = ['multiple_choice', 'multiple_select'].includes(type) ? document.getElementById('q-correct')?.value?.trim() : null;
+  const marks = parseInt(document.getElementById('q-marks')?.value) || 1;
+  const order = parseInt(document.getElementById('q-order')?.value) || 0;
   const image_url = document.getElementById('q-image')?.value?.trim() || null;
-  let pairs = null
-  if(type === 'matching'){
-    const raw = document.getElementById('q-pairs')?.value?.trim()
-    if(!raw){ toast('Please enter matching pairs','err'); return }
-    pairs = raw.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{
-      const [term,...rest] = l.split('|')
-      return { term: term?.trim(), answer: rest.join('|').trim() }
-    }).filter(p=>p.term && p.answer)
-    if(pairs.length < 2){ toast('Please enter at least 2 pairs','err'); return }
+  
+  let pairs = null;
+  if (type === 'matching') {
+    const raw = document.getElementById('q-pairs')?.value?.trim();
+    if (!raw) { toast('Please enter matching pairs', 'err'); return; }
+    pairs = raw.split('\n').map(l => l.trim()).filter(Boolean).map(l => {
+      const [term, ...rest] = l.split('|');
+      return { term: term?.trim(), answer: rest.join('|').trim() };
+    }).filter(p => p.term && p.answer);
+    if (pairs.length < 2) { toast('Please enter at least 2 pairs', 'err'); return; }
   }
-  if(!text){ toast('Question text is required','err'); return }
-  if(['multiple_choice','multiple_select'].includes(type) && (!options?.length || !correct)){ toast('Options and correct answer are required','err'); return }
-  const modelAnswer = type === 'text' ? (document.getElementById('q-model-answer')?.value?.trim() || null) : null
-  try{
-    const difficulty = document.getElementById('q-difficulty')?.value || 'medium';
-const level = document.getElementById('q-level')?.value || 'All Levels';
-    await api('/exam/questions/admin' + (id ? '/'+id : ''), { 
-        method: id ? 'PATCH' : 'POST', 
-        body: JSON.stringify({ question:text, type, subject, difficulty,level, options, correct_answer:correct, model_answer:modelAnswer, marks, order_num:order, pairs, image_url })
-    })
-    document.querySelector('.modal-overlay')?.remove()
-    toast('Question added ✅')
-    renderAdminExam()
-  }catch(e){ toast(e.message,'err') }
-}
 
-async function saveEditQuestion(id){
-  const type    = document.getElementById('q-type')?.value
-  const subject = document.getElementById('q-subject')?.value || 'general'
-  const text    = document.getElementById('q-text')?.value?.trim()
-  const options = ['multiple_choice','multiple_select'].includes(type) ? document.getElementById('q-options')?.value?.split('\n').map(o=>o.trim()).filter(Boolean) : null
-  const correct = ['multiple_choice','multiple_select'].includes(type) ? document.getElementById('q-correct')?.value?.trim() : null
-  const marks   = parseInt(document.getElementById('q-marks')?.value) || 1
-  const order   = parseInt(document.getElementById('q-order')?.value) || 0
-  const image_url = document.getElementById('q-image')?.value?.trim() || null;
-  let pairs = null
-  if(type === 'matching'){
-    const raw = document.getElementById('q-pairs')?.value?.trim()
-    if(!raw){ toast('Please enter matching pairs','err'); return }
-    pairs = raw.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{
-      const [term,...rest] = l.split('|')
-      return { term: term?.trim(), answer: rest.join('|').trim() }
-    }).filter(p=>p.term && p.answer)
-    if(pairs.length < 2){ toast('Please enter at least 2 pairs','err'); return }
+  if (!text) { toast('Question text is required', 'err'); return; }
+  if (['multiple_choice', 'multiple_select'].includes(type) && (!options?.length || !correct)) {
+    toast('Options and correct answer are required', 'err');
+    return;
   }
-  const modelAnswer = type === 'text' ? (document.getElementById('q-model-answer')?.value?.trim() || null) : null
-  if(!text){ toast('Question text is required','err'); return }
-  try{
-    const difficulty = document.getElementById('q-difficulty')?.value || 'medium';
-const level = document.getElementById('q-level')?.value || 'All Levels';
-    await api('/exam/questions/admin' + (id ? '/'+id : ''), { 
-        method: id ? 'PATCH' : 'POST', 
-        body: JSON.stringify({ question:text, type, subject, difficulty, level,options, correct_answer:correct, model_answer:modelAnswer, marks, order_num:order, pairs, image_url })
-    }) 
-    document.querySelector('.modal-overlay')?.remove()
-    toast('Question updated ✅')
-    renderAdminExam()
-  }catch(e){ toast(e.message,'err') }
+  
+  const modelAnswer = type === 'text' ? (document.getElementById('q-model-answer')?.value?.trim() || null) : null;
+
+  try {
+    await api('/exam/questions/admin', {
+      method: 'POST',
+      body: JSON.stringify({ question: text, type, subject, difficulty, level, options, correct_answer: correct, model_answer: modelAnswer, marks, order_num: order, pairs, image_url })
+    });
+    document.querySelector('.modal-overlay')?.remove();
+    toast('Question added ✅');
+    renderAdminExam();
+  } catch (e) {
+    toast(e.message, 'err');
+  }
+}
+async function saveEditQuestion(id) {
+  const type = document.getElementById('q-type')?.value;
+  const subject = document.getElementById('q-subject')?.value || 'general';
+  const difficulty = document.getElementById('q-difficulty')?.value || 'medium';
+  const level = document.getElementById('q-level')?.value || 'All Levels';
+  const text = document.getElementById('q-text')?.value?.trim();
+  const options = ['multiple_choice', 'multiple_select'].includes(type) ? document.getElementById('q-options')?.value?.split('\n').map(o => o.trim()).filter(Boolean) : null;
+  const correct = ['multiple_choice', 'multiple_select'].includes(type) ? document.getElementById('q-correct')?.value?.trim() : null;
+  const marks = parseInt(document.getElementById('q-marks')?.value) || 1;
+  const order = parseInt(document.getElementById('q-order')?.value) || 0;
+  const image_url = document.getElementById('q-image')?.value?.trim() || null;
+
+  let pairs = null;
+  if (type === 'matching') {
+    const raw = document.getElementById('q-pairs')?.value?.trim();
+    if (!raw) { toast('Please enter matching pairs', 'err'); return; }
+    pairs = raw.split('\n').map(l => l.trim()).filter(Boolean).map(l => {
+      const [term, ...rest] = l.split('|');
+      return { term: term?.trim(), answer: rest.join('|').trim() };
+    }).filter(p => p.term && p.answer);
+    if (pairs.length < 2) { toast('Please enter at least 2 pairs', 'err'); return; }
+  }
+
+  const modelAnswer = type === 'text' ? (document.getElementById('q-model-answer')?.value?.trim() || null) : null;
+  if (!text) { toast('Question text is required', 'err'); return; }
+
+  try {
+    await api('/exam/questions/admin/' + id, {
+      method: 'PATCH',
+      body: JSON.stringify({ question: text, type, subject, difficulty, level, options, correct_answer: correct, model_answer: modelAnswer, marks, order_num: order, pairs, image_url })
+    });
+    document.querySelector('.modal-overlay')?.remove();
+    toast('Question updated ');
+    renderAdminExam();
+  } catch (e) {
+    toast(e.message, 'err');
+  }
 }
 
 async function deleteQuestion(id){
@@ -1665,6 +1721,211 @@ async function submitExam(attemptId, autoSubmit = false){
     </div>`))
   }catch(e){ toast(e.message,'err') }
 }
+
+    // ════════════════════════════════════════════════════════════
+    // INSTITUTION ADMIN DASHBOARD
+    // ════════════════════════════════════════════════════════════
+    async function renderInstitutionAdminDash() {
+      render(dashWrap('dashboard', `<div class="loader-center"><div class="spinner"></div></div>`));
+      try {
+        const inst = await api('/lab/my-institution');
+        const tokens = await api('/lab/my-institution/tokens');
+        const activeCount = inst.active_sessions || 0;
+        const usedSeats = activeCount;
+        const totalSeats = inst.licenses || 0;
+        const expiresLabel = inst.expires_at ? new Date(inst.expires_at).toLocaleDateString() : 'No expiry';
+        const isExpired = inst.expires_at && new Date(inst.expires_at) < new Date();
+
+        render(dashWrap('dashboard', `
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
+            <div style="width:44px;height:44px;background:linear-gradient(135deg,#1A5FFF,#7c3aed);border-radius:12px;display:flex;align-items:center;justify-content:center">
+              <i data-lucide="school" style="width:22px;height:22px;color:#fff"></i>
+            </div>
+            <div>
+              <h1 class="page-title" style="margin:0">${inst.name}</h1>
+              <div style="font-size:12px;color:var(--g400)">${inst.type} · Lab Admin Portal</div>
+            </div>
+          </div>
+
+          <!-- Stats Row -->
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px">
+            <div class="stat-card">
+              <div class="stat-icon" style="background:#EEF2FF;color:var(--blue)"><i data-lucide="monitor-play" style="width:20px;height:20px"></i></div>
+              <div><div class="stat-num">${usedSeats}/${totalSeats}</div><div class="stat-label">Active Sessions</div></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="background:#F0FDF4;color:var(--green)"><i data-lucide="link" style="width:20px;height:20px"></i></div>
+              <div><div class="stat-num">${tokens.filter(t=>!t.is_revoked).length}</div><div class="stat-label">Active Links</div></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="${isExpired ? 'background:#FEF2F2;color:var(--red)' : 'background:#FFF7ED;color:var(--orange)'}"><i data-lucide="calendar-clock" style="width:20px;height:20px"></i></div>
+              <div><div class="stat-num" style="font-size:13px;font-weight:700;${isExpired?'color:var(--red)':''}">${isExpired ? 'Expired' : expiresLabel}</div><div class="stat-label">Subscription</div></div>
+            </div>
+          </div>
+
+          ${isExpired ? `
+          <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:14px;margin-bottom:20px;display:flex;align-items:center;gap:10px">
+            <i data-lucide="alert-triangle" style="width:18px;height:18px;color:var(--red);flex-shrink:0"></i>
+            <div style="font-size:13px;color:#991B1B">Your subscription expired on ${expiresLabel}. Teacher links can no longer be activated. <strong>Contact Mathrone to renew.</strong></div>
+          </div>` : ''}
+
+          <!-- Generate Teacher Link -->
+          <div class="card" style="padding:24px;margin-bottom:24px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+              <div>
+                <h3 style="font-size:16px;font-weight:700;color:var(--navy);display:flex;align-items:center;gap:8px">
+                  <i data-lucide="share-2" style="width:16px;height:16px;color:var(--blue)"></i> Teacher Access Links
+                </h3>
+                <p style="font-size:12px;color:var(--g400);margin-top:3px">Generate a secure lab link for each teacher. ${totalSeats} concurrent session${totalSeats!==1?'s':''} allowed.</p>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="openInstitutionAdminGenerateModal()" ${isExpired ? 'disabled title="Subscription expired"' : ''}>
+                <i data-lucide="plus" style="width:14px;height:14px"></i> New Link
+              </button>
+            </div>
+
+            <!-- Links Table -->
+            <div id="inst-admin-tokens-list">
+              ${tokens.length ? `
+              <div class="table-wrap"><table>
+                <thead><tr><th>Teacher Name</th><th>Created</th><th>Expires</th><th>Status</th><th>Action</th></tr></thead>
+                <tbody>${tokens.map(t => {
+                  const expired = new Date(t.expires_at) < new Date();
+                  const status = t.is_revoked ? 'revoked' : expired ? 'expired' : 'active';
+                  const statusColor = { active: 'var(--green)', expired: 'var(--orange)', revoked: 'var(--red)' }[status];
+                  const link = window.location.origin + '/lab/' + t.token;
+                  return `<tr>
+                    <td data-label="Teacher"><strong>${t.buyer_name}</strong></td>
+                    <td data-label="Created" style="font-size:12px">${new Date(t.created_at).toLocaleDateString()}</td>
+                    <td data-label="Expires" style="font-size:12px">${new Date(t.expires_at).toLocaleString()}</td>
+                    <td data-label="Status"><span class="badge" style="background:${statusColor}20;color:${statusColor};font-size:11px">${status}</span></td>
+                    <td data-label="Action" style="display:flex;gap:6px;align-items:center">
+                      ${status === 'active' ? `<button class="btn btn-sm btn-ghost" title="Copy link" onclick="navigator.clipboard.writeText('${link}');toast('Link copied! 📋')"><i data-lucide="copy" style="width:14px;height:14px"></i></button>` : ''}
+                      ${status === 'active' ? `<button class="btn btn-sm btn-ghost" style="color:var(--red)" title="Revoke" onclick="revokeInstAdminToken('${t.id}')"><i data-lucide="x-circle" style="width:14px;height:14px"></i></button>` : ''}
+                    </td>
+                  </tr>`;
+                }).join('')}</tbody>
+              </table></div>
+              ` : `<div style="font-size:13px;color:var(--g400);text-align:center;padding:20px">No teacher links yet. Click "+ New Link" to generate one.</div>`}
+            </div>
+          </div>
+
+          <!-- Seat Usage Bar -->
+          <div class="card" style="padding:20px;margin-bottom:24px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+              <div style="font-size:14px;font-weight:700;color:var(--navy);display:flex;align-items:center;gap:6px">
+                <i data-lucide="users" style="width:16px;height:16px;color:var(--blue)"></i> Live Seat Usage
+              </div>
+              <div style="font-size:12px;color:var(--g400)">${usedSeats} of ${totalSeats} seats in use</div>
+            </div>
+            <div style="background:var(--g100);border-radius:99px;height:10px;overflow:hidden">
+              <div style="height:100%;border-radius:99px;background:${usedSeats>=totalSeats?'var(--red)':'var(--blue)'};width:${totalSeats>0?Math.min(100,Math.round(usedSeats/totalSeats*100)):0}%;transition:width .3s"></div>
+            </div>
+            <div style="font-size:11px;color:var(--g400);margin-top:6px">Updates in real-time. Need more seats? Contact Mathrone.</div>
+          </div>
+        `));
+
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+
+      } catch(e) {
+        const msg = e.message.includes('not linked') 
+          ? `🔒 ${e.message}` 
+          : 'Failed to load dashboard. Please try again.';
+        render(dashWrap('dashboard', `
+          <div style="max-width:500px;margin:100px auto;text-align:center;padding:20px;">
+            <div style="font-size:48px;margin-bottom:20px;">🏫</div>
+            <h2 style="color:var(--navy);font-weight:800;">Setup Required</h2>
+            <p style="color:var(--g600);line-height:1.6;margin-top:10px;">${e.message}</p>
+            <button class="btn btn-primary" style="margin-top:20px;" onclick="location.reload()">Retry Login</button>
+          </div>
+        `));
+      }
+    }
+
+    function openInstitutionAdminGenerateModal() {
+      document.querySelectorAll('.modal-overlay.ia-modal').forEach(m => m.remove());
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay ia-modal';
+      overlay.innerHTML = `
+        <div class="modal" style="max-width:440px;padding:28px;position:relative;">
+          <button onclick="this.closest('.modal-overlay').remove()" style="position:absolute;top:14px;right:14px;background:none;border:none;font-size:20px;cursor:pointer;color:var(--g400)">✕</button>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+            <div style="background:#EEF2FF;color:var(--blue);padding:8px;border-radius:8px"><i data-lucide="user-plus" style="width:20px;height:20px"></i></div>
+            <h3 style="font-size:17px;font-weight:800;color:var(--navy)">Generate Teacher Link</h3>
+          </div>
+          <p style="font-size:12px;color:var(--g400);margin-bottom:18px">The link will count as one concurrent session from your institution's license.</p>
+          <div class="form-group">
+            <label class="form-label">Teacher / Host Name</label>
+            <input class="input" id="ia-teacher-name" placeholder="e.g. Mr. Mugisha Jean Claude">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Access Duration</label>
+            <select class="input" id="ia-duration">
+              <option value="1">1 hour</option>
+              <option value="2">2 hours</option>
+              <option value="3">3 hours</option>
+              <option value="8" selected>Full day (8 hours)</option>
+              <option value="168">1 week</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:8px">
+            <button class="btn btn-primary btn-full" id="ia-gen-btn" onclick="createInstAdminLink()">
+              <i data-lucide="link" style="width:14px;height:14px"></i> Generate Link
+            </button>
+            <button class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+          </div>
+          <div id="ia-link-result" style="display:none;margin-top:16px;background:var(--sky);border-radius:10px;padding:14px">
+            <p style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:6px;display:flex;align-items:center;gap:6px">
+              <i data-lucide="check-circle" style="width:14px;height:14px;color:var(--green)"></i> Share this with the teacher:
+            </p>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input class="input" id="ia-link-output" readonly style="font-size:12px;background:#fff;flex:1;">
+              <button class="btn btn-sm btn-gold" onclick="navigator.clipboard.writeText(document.getElementById('ia-link-output').value);toast('Copied! 📋')">
+                <i data-lucide="copy" style="width:14px;height:14px"></i>
+              </button>
+            </div>
+            <p id="ia-link-expiry" style="font-size:11px;color:var(--g600);margin-top:6px"></p>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+      overlay.addEventListener('click', e => { if(e.target === overlay) overlay.remove(); });
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    async function createInstAdminLink() {
+      const name = document.getElementById('ia-teacher-name')?.value.trim();
+      const hours = parseInt(document.getElementById('ia-duration')?.value || '8');
+      const btn = document.getElementById('ia-gen-btn');
+      if (!name) { toast('Please enter the teacher name', 'err'); return; }
+      if (btn) { btn.disabled = true; btn.innerHTML = '<div class="spinner" style="width:14px;height:14px;border-width:2px"></div> Generating...'; }
+      try {
+        // institution_id is automatically set server-side from the user's institution membership
+        const result = await api('/lab/tokens', {
+          method: 'POST',
+          body: JSON.stringify({ buyer_name: name, hours })
+        });
+        const link = `${window.location.origin}/lab/${result.token}`;
+        document.getElementById('ia-link-output').value = link;
+        document.getElementById('ia-link-expiry').textContent = `Expires: ${new Date(result.expires_at).toLocaleString()} · Teacher: ${name}`;
+        document.getElementById('ia-link-result').style.display = 'block';
+        toast(`Link for ${name} generated ✅`);
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+        // Refresh the tokens table in the background
+        renderInstitutionAdminDash();
+      } catch(e) {
+        toast(e.message, 'err');
+      } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i data-lucide="link" style="width:14px;height:14px"></i> Generate Link'; if (typeof lucide !== 'undefined') lucide.createIcons(); }
+      }
+    }
+
+    async function revokeInstAdminToken(tokenId) {
+      if (!confirm('Revoke this teacher link? They will be immediately signed out.')) return;
+      try {
+        await api(`/lab/my-institution/tokens/${tokenId}`, { method: 'DELETE' });
+        toast('Token revoked');
+        renderInstitutionAdminDash();
+      } catch(e) { toast(e.message, 'err'); }
+    }
 
     async function openTutorLabDirect(){
   // Only allow lab access if tutor has at least one upcoming scheduled session
@@ -2561,9 +2822,15 @@ async function submitBooking(assignmentId, tutorId, hasSlots) {
         notes: notes || null
       })
     })
-    document.querySelector('.modal-overlay')?.remove()
-    toast('Booking request sent! ✅ Your tutor will be notified.')
-    renderStudentDash()
+    const isOutsideSlot = warn && warn.style.display === 'block';
+    document.querySelector('.modal-overlay')?.remove();
+    
+    if (isOutsideSlot) {
+      toast('Request sent! Since this is outside usual hours, your tutor must approve it. ⏳', 'info');
+    } else {
+      toast('Session booked and confirmed! See you in the Lab. ✅', 'ok');
+    }
+    renderStudentDash();
   } catch(e) {
     if(btn){ btn.disabled = false; btn.textContent = 'Send Booking Request 🚀' }
     // If out-of-slot rejection from backend, surface it clearly

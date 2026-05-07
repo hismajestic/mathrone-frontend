@@ -424,6 +424,7 @@ window.scrollToContact = function(e) {
       if (p.startsWith('news-article/')) { await loadComponent('news'); return openNewsPost(p.replace('news-article/','')) }
       if (p === 'news' || p.startsWith('news')) { await loadComponent('news'); return renderPublicNews(State.tab) }
       if (p === 'public-lab') { await loadComponent('whiteboard'); return renderPublicLab(State.data.labToken) }
+      if (p === 'majestic-lab') { await loadComponent('landing'); return renderMajesticLabPage() }
       if (p.startsWith('shop-product-')) { await loadComponent('shop'); return renderShopProduct(p.replace('shop-product-','')) }
       if (p === 'shop' || p.startsWith('shop')) { await loadComponent('shop'); return renderShop() }
       if (p === 'courses') { await loadComponent('courses'); return renderCoursesShop() }
@@ -438,6 +439,7 @@ window.scrollToContact = function(e) {
       if (p === 'dashboard') {
         if (role === 'admin') return await renderAdminDash()
         if (role === 'tutor') return await renderTutorDash()
+        if (role === 'institution_admin') return await renderInstitutionAdminDash()
         return await renderStudentDash()
       }
       if (p === 'forum')         return renderForum()
@@ -463,6 +465,7 @@ window.scrollToContact = function(e) {
       if (p === 'wishlist')      { await loadComponent('shop'); return renderWishlist() }
       if (p === 'my-orders')     { await loadComponent('shop'); return renderMyOrders() }
       if (p === 'admin-shop')    { await loadComponent('shop'); return renderAdminShop() }
+      if (p === 'lab-solutions') { await loadComponent('dashboards'); return renderLabSolutions() }
       await loadComponent('landing'); renderLanding()
       setTimeout(loadUnreadCount, 200)
     }
@@ -524,6 +527,7 @@ window.scrollToContact = function(e) {
         cart:            'My Shopping Cart — Mathrone Store',
         wishlist:        'My Wishlist — Mathrone Academy',
         'my-orders':     'My Orders — Mathrone Academy',
+        'majestic-lab':  'Majestic Lab — Professional Virtual STEM Lab for Schools',
         'courses':       'Online Courses — Mathrone Academy',
         'my-courses':    'My Courses — Mathrone Academy',
          'admin-courses': 'Courses Manager — Mathrone Academy',
@@ -537,6 +541,7 @@ window.scrollToContact = function(e) {
         about: 'Learn about Mathrone Academy — our mission, team and story of connecting students with the best tutors in Rwanda.',
         register: 'Join Mathrone Academy today. Find a tutor or apply to become one.',
         tutors: 'Search our directory of qualified tutors in Kigali for REB, IGCSE and University levels.',
+        'majestic-lab': 'Equip your school with the Majestic Lab. A professional virtual STEM workspace with 3D shapes, whiteboard sync, and interactive teaching tools for Rwandan educators.',
       }
 
       // Update the browser title
@@ -556,6 +561,7 @@ window.scrollToContact = function(e) {
       // Reset noindex (in case user navigated from a 404)
       document.getElementById('meta-robots-noindex')?.remove()
       const privatePages = ['dashboard','messages','profile','sessions','notifications','cart','wishlist','my-orders','forum','exam','quiz','admin-tutors','admin-students','admin-sessions','admin-payments','admin-exam','admin-shop','login','register','my-courses','admin-courses']
+      
       if (privatePages.includes(page) || page.startsWith('verify/') || page.startsWith('reset/') || page.startsWith('admin')) {
         const ni = document.createElement('meta')
         ni.id = 'meta-robots-noindex'
@@ -1403,6 +1409,7 @@ function fmtShort(dt) {
       const u = State.user
       const role = u?.role
       let links = ''
+      
       if (role === 'admin') {
         links = `
       <span class="sidebar-section">Overview</span>
@@ -1420,13 +1427,22 @@ function fmtShort(dt) {
       <button class="sidebar-item ${active === 'notifications' ? 'active' : ''}" onclick="navigate('notifications')"><i data-lucide="bell" class="sidebar-ic" style="width:18px;height:18px"></i>Notifications</button>
       <button class="sidebar-item ${active === 'forum' ? 'active' : ''}" onclick="navigate('forum')"><i data-lucide="messages-square" class="sidebar-ic" style="width:18px;height:18px"></i>Forum</button>
       <button class="sidebar-item ${active === 'news' ? 'active' : ''}" onclick="navigate('news')"><i data-lucide="newspaper" class="sidebar-ic" style="width:18px;height:18px"></i>Education News</button>`
-      } else if (role === 'tutor') {
+      } 
+      else if (role === 'institution_admin') {
+        links = `
+      <span class="sidebar-section">Portal</span>
+      <button class="sidebar-item ${active === 'dashboard' ? 'active' : ''}" onclick="navigate('dashboard')"><i data-lucide="school" class="sidebar-ic" style="width:18px;height:18px"></i>My Institution</button>
+      <span class="sidebar-section">Account</span>
+      <button class="sidebar-item ${active === 'profile' ? 'active' : ''}" onclick="navigate('profile')"><i data-lucide="user" class="sidebar-ic" style="width:18px;height:18px"></i>Profile</button>
+      <button class="sidebar-item ${active === 'notifications' ? 'active' : ''}" onclick="navigate('notifications')"><i data-lucide="bell" class="sidebar-ic" style="width:18px;height:18px"></i>Notifications</button>
+      <button class="sidebar-item ${active === 'news' ? 'active' : ''}" onclick="navigate('news')"><i data-lucide="newspaper" class="sidebar-ic" style="width:18px;height:18px"></i>Education News</button>`
+      }
+      else if (role === 'tutor') {
         links = `
       <span class="sidebar-section">Overview</span>
       <button class="sidebar-item ${active === 'dashboard' ? 'active' : ''}" onclick="navigate('dashboard')"><i data-lucide="layout-dashboard" class="sidebar-ic" style="width:18px;height:18px"></i>Dashboard</button>
       <span class="sidebar-section">Teaching</span>
       <button class="sidebar-item ${active === 'sessions' ? 'active' : ''}" onclick="navigate('sessions')"><i data-lucide="calendar" class="sidebar-ic" style="width:18px;height:18px"></i>My Sessions</button>
-      ${u?.tutor?.status === 'written_exam' ? `<button class="sidebar-item ${active === 'exam' ? 'active' : ''}" onclick="navigate('exam')"><i data-lucide="file-text" class="sidebar-ic" style="width:18px;height:18px"></i>Written Exam <span style="background:#ef4444;color:#fff;border-radius:999px;font-size:10px;padding:1px 6px;margin-left:4px">!</span></button>` : ''}
       <button class="sidebar-item ${active === 'messages' ? 'active' : ''}" onclick="navigate('messages')"><i data-lucide="message-square" class="sidebar-ic" style="width:18px;height:18px"></i>Messages</button>
       <span class="sidebar-section">Account</span>
       <button class="sidebar-item ${active === 'profile' ? 'active' : ''}" onclick="navigate('profile')"><i data-lucide="user" class="sidebar-ic" style="width:18px;height:18px"></i>Profile</button>
@@ -1468,7 +1484,7 @@ function fmtShort(dt) {
         ${avi(u?.full_name || '?', 36, u?.avatar_url || null)}
         <div style="min-width:0">
           <div style="font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${u?.full_name || ''}</div>
-          <div style="font-size:11px;color:var(--g400);text-transform:capitalize">${u?.role || ''}</div>
+          <div style="font-size:11px;color:var(--g400);text-transform:capitalize">${u?.role?.replace(/_/g, ' ') || ''}</div>
         </div>
       </div>
       <button class="sidebar-item" onclick="logout()"><i data-lucide="log-out" class="sidebar-ic" style="width:18px;height:18px"></i>Sign Out</button>
@@ -1563,6 +1579,7 @@ function handleFooterLink(l){
   if(l==='Privacy Policy') navigate('privacy')
 
   else if(l==='About Us') navigate('about')
+  else if(l==='Majestic Lab') navigate('majestic-lab')
   else if(l==='Education News') navigate('news')
   else if(l==='Find a Tutor') navigate('register')
   else if(l==='Become a Tutor') navigate('register','tutor')
@@ -3409,6 +3426,8 @@ function bootFromUrl() {
     else if (clean.startsWith('reset/'))  { State.page = 'reset/' + clean.replace('reset/', ''); }
     else if (clean.startsWith('report/')) { State.page = 'report/' + clean.replace('report/', ''); }
     else if (clean.startsWith('lab/')) { State.page = 'public-lab'; State.data.labToken = clean.replace('lab/', ''); }
+    else if (clean === 'majestic-lab') { State.page = 'majestic-lab'; }
+    else if (clean === 'institution' || clean === 'inst-portal') { State.page = 'dashboard'; }
     else if (clean === 'dashboard' || clean === 'sessions') {
       // If user was in a lab session before refresh, restore it
       const savedLabToken = localStorage.getItem('tc_lab_token');
@@ -3723,26 +3742,37 @@ function copyLabLink() {
 }
 
 async function validateGuestLabToken(token) {
-  // Generate or retrieve a stable device fingerprint for this browser
-  const fp = localStorage.getItem('ml_device_id') || (() => {
-    const id = 'dev_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
-    localStorage.setItem('ml_device_id', id);
-    return id;
-  })(); 
+  let fp = localStorage.getItem('ml_device_id');
+  if (!fp) {
+    fp = 'dev_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+    localStorage.setItem('ml_device_id', fp);
+  }
+
   try {
     const result = await fetch(API_URL + `/lab/tokens/${token}/validate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ device_fingerprint: fp })
     });
+
     if (!result.ok) {
       const err = await result.json().catch(() => ({ detail: 'Access denied.' }));
-      return { valid: false, reason: typeof err.detail === 'string' ? err.detail : 'Access denied.' };
+      return { valid: false, reason: err.detail || 'Link validation failed.' };
     }
+
     const data = await result.json();
-    return { valid: true, name: data.buyer_name, institution_id: data.institution_id, institution_name: data.institution_name || '', session_id: data.session_id || null };
+    // Persist the token locally to handle pings/exits
+    localStorage.setItem('tc_lab_token', token); 
+    
+    return { 
+      valid: true, 
+      name: data.buyer_name, 
+      institution_id: data.institution_id, 
+      institution_name: data.institution_name || '', 
+      session_id: data.session_id || null 
+    };
   } catch(e) {
-    return { valid: false, reason: 'Could not verify access. Check your connection.' };
+    return { valid: false, reason: 'Network error. Please check your internet and try again.' };
   }
 }
 // ════════════════════════════════════════════════════════════
@@ -3766,8 +3796,9 @@ async function renderInstitutionList() {
           <td data-label="Licenses"><span class="badge badge-blue">${inst.licenses} seats</span></td>
           <td data-label="Expires">${inst.expires_at ? new Date(inst.expires_at).toLocaleDateString() : 'No expiry'}</td>
           <td data-label="Actions">
-            <button class="btn btn-sm btn-primary" onclick="openInstitutionLabModal('${inst.id}')">🔗 Gen Link</button>
-            <button class="btn btn-sm btn-ghost" style="color:var(--red)" onclick="deleteInstitution('${inst.id}')">🗑</button>
+           <button class="btn btn-sm btn-primary" onclick="openInstitutionLabModal('${inst.id}')" title="Generate shared link">🔗 Link</button>
+          <button class="btn btn-sm btn-ghost" style="border: 1px solid var(--g200)" onclick="openCreateInstAdminModal('${inst.id}', '${inst.name.replace(/'/g,"\\'")}')" title="Create Admin Account">🔑 Add Admin</button>
+          <button class="btn btn-sm btn-ghost" style="color:var(--red)" onclick="deleteInstitution('${inst.id}')">🗑</button>
           </td>
         </tr>`).join('')}
       </tbody></table></div>`;
@@ -4829,4 +4860,63 @@ renderPage = async function() {
   const options = levels[catId] || levels.academic;
   levelSelect.innerHTML = options.map(l => `<option value="${l}">${l}</option>`).join('');
   if (label) label.textContent = catId === 'academic' ? 'School Level *' : 'Experience Level *';
+}
+function openCreateInstAdminModal(instId, instName) {
+  const modalRoot = document.getElementById('modal-root') || document.createElement('div');
+  modalRoot.id = 'modal-root';
+  document.body.appendChild(modalRoot);
+
+  modalRoot.innerHTML = `
+  <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
+    <div class="modal" style="max-width:400px">
+      <div class="modal-header">
+        <span class="modal-title">🔑 Create School Admin</span>
+        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="background:var(--sky); padding:12px; border-radius:8px; margin-bottom:16px; font-size:13px; color:var(--navy)">
+          Creating admin login for: <strong>${instName}</strong>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input class="input" id="ia-new-name" placeholder="e.g. Principal Mugisha"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input class="input" id="ia-new-email" type="email" placeholder="admin@school.rw"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input class="input" id="ia-new-pw" type="password" placeholder="Min 6 characters"/>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+        <button class="btn btn-primary" id="ia-save-btn" onclick="submitCreateInstAdmin('${instId}')">Create Account →</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function submitCreateInstAdmin(instId) {
+  const full_name = document.getElementById('ia-new-name').value.trim();
+  const email = document.getElementById('ia-new-email').value.trim();
+  const password = document.getElementById('ia-new-pw').value;
+  const btn = document.getElementById('ia-save-btn');
+
+  if (!full_name || !email || !password) { toast('All fields required', 'err'); return; }
+  
+  btn.disabled = true; btn.textContent = 'Creating...';
+
+  try {
+    await api('/lab/admin/create-institution-admin', {
+      method: 'POST',
+      body: JSON.stringify({ full_name, email, password, institution_id: instId })
+    });
+    toast('Account created! They can now log in to their dashboard. ✅', 'ok');
+    document.querySelector('.modal-overlay').remove();
+  } catch (e) {
+    toast(e.message, 'err');
+    btn.disabled = false; btn.textContent = 'Create Account →';
+  }
 }
