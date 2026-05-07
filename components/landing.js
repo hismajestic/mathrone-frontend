@@ -311,11 +311,11 @@
  <!-- CENTER MENU (DESKTOP ONLY STYLE) -->
   <div class="nav-menu" id="navMenu">
     
-    <a href="/news" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:15px;color:#fff;cursor:pointer;padding:5px 6px;white-space:nowrap" onclick="navigate('news', null, event)">News</a>
-    <a href="/shop" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:15px;color:#fff;cursor:pointer;padding:5px 6px;white-space:nowrap" onclick="navigate('shop', null, event)">Shop</a>
-    <a href="/majestic-lab" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:15px;color:var(--gold);cursor:pointer;padding:5px 6px;white-space:nowrap;font-weight:700" onclick="navigate('majestic-lab', null, event)">⚗ Majestic Lab</a>
-    <a href="/about" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:15px;color:#fff;cursor:pointer;padding:5px 6px;white-space:nowrap" onclick="navigate('about', null, event)">About Us</a>
-    <a href="#contact" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:15px;color:#fff;cursor:pointer;padding:5px 6px;white-space:nowrap" onclick="event.preventDefault(); window.scrollToContact()">Contact Us</a>
+    <a href="/news" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:17px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="navigate('news', null, event)">News</a>
+    <a href="/shop" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:17px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="navigate('shop', null, event)">Shop</a>
+    <a href="/majestic-lab" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:17px;color:var(--gold);cursor:pointer;padding:5px 8px;white-space:nowrap;font-weight:700" onclick="navigate('majestic-lab', null, event)"> Majestic Lab</a>
+    <a href="/about" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:17px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="navigate('about', null, event)">About Us</a>
+    <a href="#contact" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:17px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="event.preventDefault(); window.scrollToContact()">Contact Us</a>
   </div>
 
   <!-- RIGHT SIDE -->
@@ -698,9 +698,9 @@
     .lab-image-card:hover img { transform: scale(1.1); }
     
     .mlab-nav{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,0.08);background:var(--navy);position:sticky;top:0;z-index:100}
-    .mlab-hero{background:linear-gradient(135deg,#0d1b40 0%,#1e3a8a 50%,#4c1d95 100%);padding:80px 24px;text-align:center;position:relative;overflow:hidden}
+    .mlab-hero{background:linear-gradient(135deg,#0d1b40 0%,#1e3a8a 50%,#4c1d95 100%);padding:28px 24px 28px;text-align:center;position:relative;overflow:hidden}
     .mlab-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(124,58,237,0.18) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(26,95,255,0.15) 0%,transparent 55%);pointer-events:none}
-    .mlab-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(245,166,35,0.12);color:var(--gold);font-size:12px;font-weight:700;padding:6px 16px;border-radius:999px;margin-bottom:24px;border:1px solid rgba(245,166,35,0.3);letter-spacing:0.04em}
+    .mlab-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(245,166,35,0.12);color:var(--gold);font-size:11px;font-weight:700;padding:5px 14px;border-radius:999px;margin-bottom:14px;border:1px solid rgba(245,166,35,0.3);letter-spacing:0.04em}
     .mlab-section{padding:72px 24px}
     .mlab-inner{max-width:1100px;margin:0 auto}
     .mlab-stitle{font-size:clamp(24px,4vw,34px);font-weight:800;color:var(--navy);font-family:'Playfair Display',serif;text-align:center;margin-bottom:12px}
@@ -709,8 +709,8 @@
     .mlab-feat{background:#fff;border:1px solid var(--g100);border-radius:16px;padding:24px;transition:transform 0.2s,box-shadow 0.2s}
     .mlab-feat:hover{transform:translateY(-3px);box-shadow:0 8px 32px rgba(26,95,255,0.1)}
     .mlab-feat-ic{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:16px}
-    .mlab-plan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:24px}
-    .mlab-plan{background:#fff;border:1px solid var(--g100);border-radius:20px;padding:28px;position:relative;transition:transform 0.2s,box-shadow 0.2s}
+    .mlab-plan-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+    .mlab-plan{background:#fff;border:1px solid var(--g100);border-radius:16px;padding:20px;position:relative;transition:transform 0.2s,box-shadow 0.2s}
     .mlab-plan:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(26,95,255,0.12)}
     .mlab-plan.featured{border:2px solid var(--blue);background:linear-gradient(135deg,#f0f6ff,#fff)}
     .mlab-plan-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--blue);color:#fff;font-size:11px;font-weight:700;padding:4px 14px;border-radius:999px;white-space:nowrap}
@@ -724,13 +724,14 @@
     .mlab-stat:last-child{border-right:none}
     @media(max-width:768px){
       .mlab-nav{padding:12px 16px}
-      .mlab-hero{padding:56px 16px}
+      .mlab-hero{padding:20px 16px 20px}
       .mlab-section{padding:48px 16px}
       .mlab-stat{min-width:120px;padding:24px 16px}
     }
     @media(max-width:480px){
-      .mlab-plan-grid{grid-template-columns:1fr}
+      .mlab-plan-grid{grid-template-columns:1fr 1fr}
       .mlab-stat-row{flex-direction:column}
+      .mlab-plan-grid{grid-template-columns:1fr!important}
       .mlab-stat{border-right:none;border-bottom:1px solid rgba(255,255,255,0.08)}
     }
     @media(max-width:768px){
@@ -757,10 +758,9 @@
   <div class="mlab-hero">
     <div style="position:relative;z-index:1">
       <div class="mlab-badge"><i data-lucide="flask-conical" style="width:14px;height:14px"></i> MAJESTIC LAB, PROFESSIONAL VIRTUAL STEM LABS</div>
-      <h1 style="font-size:clamp(32px,6vw,56px);font-weight:800;color:#fff;font-family:'Playfair Display',serif;margin-bottom:20px;line-height:1.15">Your School Deserves a<br/><span style="color:var(--gold)">World-Class Virtual Lab</span></h1>
-      <p style="font-size:clamp(15px,2vw,18px);color:rgba(255,255,255,0.75);max-width:680px;margin:0 auto 36px;line-height:1.7">Stop improvising with basic video calls. Give your teachers a professional interactive workspace, 
-      whiteboard, 3D shapes, rulers, graph tools, document sharing, and live student sync. all in one powerful platform built for Rwandan schools.</p>
-      <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:56px">
+      <h1 style="font-size:clamp(20px,2.8vw,32px);font-weight:800;color:#fff;font-family:'Playfair Display',serif;margin-bottom:12px;line-height:1.2">Your School Deserves a <span style="color:var(--gold)">World-Class Virtual Lab</span></h1>
+      <p style="font-size:clamp(13px,1.4vw,15px);color:rgba(255,255,255,0.7);max-width:520px;margin:0 auto 22px;line-height:1.6">Stop improvising with basic video calls. Give your teachers a professional interactive workspace, whiteboard, 3D shapes, rulers, graph tools, document sharing, and live student sync-all in one powerful platform built for Rwandan schools.</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:0">
         <button class="btn btn-primary btn-lg" style="background:var(--gold);color:#1a1a1a;font-weight:800;border:none;display:inline-flex;align-items:center;gap:8px" onclick="openBusinessInquiry('School Subscription')">
           <i data-lucide="building-2" style="width:18px;height:18px"></i> Get School License
         </button>
@@ -797,7 +797,7 @@
         "https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/lab9.png",
        
       ].concat([
-        "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=600&q=80", // Geometry/Math
+        "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=600&q=80",
         "https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/lab1.png",
         "https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/lab2.png",
         "https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/lab3.png",
@@ -808,9 +808,9 @@
         "https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/lab7.png",
         "https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/lab8.png",
         "https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/lab9.png"
-      ]).map(url => `
+      ]).map((url, i) => `
         <div class="lab-image-card">
-          <img src="${url}" alt="Mathrone Majestic Lab Preview" loading="lazy">
+          <img src="${url}" alt="Majestic Lab virtual STEM workspace preview ${i+1}" loading="${i < 4 ? 'eager' : 'lazy'}" decoding="async" ${i < 4 ? 'fetchpriority="high"' : ''} width="600" height="400">
         </div>
       `).join('')}
     </div>
@@ -926,24 +926,24 @@
         ].map(p=>`
         <div class="mlab-plan ${p.tag ? 'featured' : ''}">
           ${p.tag ? `<div class="mlab-plan-badge"><i data-lucide="star" style="width:10px;height:10px"></i> ${p.tag}</div>` : ''}
-          <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
-            <div style="width:44px;height:44px;border-radius:12px;background:${p.bg};display:flex;align-items:center;justify-content:center;flex-shrink:0">
-              <i data-lucide="${p.icon}" style="width:22px;height:22px;color:${p.color}"></i>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+            <div style="width:36px;height:36px;border-radius:10px;background:${p.bg};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <i data-lucide="${p.icon}" style="width:18px;height:18px;color:${p.color}"></i>
             </div>
-            <div style="font-size:17px;font-weight:800;color:var(--navy)">${p.name}</div>
+            <div style="font-size:14px;font-weight:800;color:var(--navy)">${p.name}</div>
           </div>
-          <div style="margin-bottom:20px">
-            <span style="font-size:28px;font-weight:800;color:var(--navy);font-family:'Playfair Display',serif">${p.price}</span>
-            <span style="font-size:13px;color:var(--g400)"> RWF${p.period}</span>
+          <div style="margin-bottom:14px">
+            <span style="font-size:22px;font-weight:800;color:var(--navy);font-family:'Playfair Display',serif">${p.price}</span>
+            <span style="font-size:12px;color:var(--g400)"> RWF${p.period}</span>
           </div>
-          <div style="border-top:1px solid var(--g100);padding-top:16px;margin-bottom:20px">
+          <div style="border-top:1px solid var(--g100);padding-top:12px;margin-bottom:14px">
             ${p.features.map(f=>`
-            <div class="mlab-check">
-              <i data-lucide="check-circle-2" style="width:16px;height:16px"></i>
+            <div class="mlab-check" style="margin-bottom:6px;font-size:12px">
+              <i data-lucide="check-circle-2" style="width:13px;height:13px"></i>
               <span>${f}</span>
             </div>`).join('')}
           </div>
-          <button class="btn btn-primary btn-full" style="${p.tag ? '' : 'background:var(--navy);'}" onclick="openBusinessInquiry('${p.inquiry}')">
+          <button class="btn btn-primary btn-full" style="font-size:13px;padding:9px 16px;${p.tag ? '' : 'background:var(--navy);'}" onclick="openBusinessInquiry('${p.inquiry}')">
             ${p.cta} →
           </button>
         </div>`).join('')}
@@ -955,7 +955,7 @@
   <!-- HOW IT WORKS -->
   <div class="mlab-section">
     <div class="mlab-inner">
-      <h2 class="mlab-stitle">Up & Running in 3 Steps</h2>
+      <h2 class="mlab-stitle">Up and  Running in 3 Steps</h2>
       <p class="mlab-ssub">From signup to first live class in under 10 minutes. No software to install , it runs in any browser.</p>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:24px;margin-top:40px">
         ${[
@@ -1029,8 +1029,8 @@
       <p class="mlab-ssub">Real feedback from teachers and administrators using Majestic Lab across Rwanda.</p>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px">
         ${[
-          ['Our S6 Physics teacher used to struggle explaining 3D concepts on a regular whiteboard. Since Majestic Lab, students actually see it rotating in 3D. Exam results improved by 22% that term.','Mr. Emmanuel Nkusi','Head of Sciences · FAWE Girls School, Kigali','EN','#1e40af'],
-          ['The institution portal is a game changer. I generate a link for each teacher in the morning and revoke it in the evening. No more shared passwords or security headaches.','Mrs. Claudette Uwera','Academic Director · Riviera High School','CU','#065f46'],
+          ['Our S6 Physics teacher used to struggle explaining 3D concepts on a regular whiteboard. Since Majestic Lab, students actually see it rotating in 3D. Exam results improved by 22% that term.','Mr. Emmanuel Nkusi','Head of Sciences · ','EN','#1e40af'],
+          ['The institution portal is a game changer. I generate a link for each teacher in the morning and revoke it in the evening. No more shared passwords or security headaches.','Mrs. Claudette Uwera','Academic Director ·','CU','#065f46'],
           ['I used to spend 20 minutes at the start of each session setting up Google Meet and a shared whiteboard. Now I just send one link. The student is in the lab in 30 seconds.','Mr. Théogène Habimana','Private STEM Tutor · Kigali','TH','#7c3aed'],
         ].map(([txt,name,role,ini,bg])=>`
         <div style="background:#fff;border:1px solid var(--g100);border-radius:16px;padding:24px">
@@ -1065,7 +1065,7 @@
       </button>
     </div>
     <p style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:24px;display:flex;align-items:center;justify-content:center;gap:6px">
-      <i data-lucide="message-circle" style="width:14px;height:14px"></i> WhatsApp: +250 786 684 285 · info@Mathrone.com · Kigali, Rwanda
+      <i data-lucide="message-circle" style="width:14px;height:14px"></i> WhatsApp: +250 786 684 285 · info@mathroneacademy.com · Kigali, Rwanda
     </p>
   </div>
   `);

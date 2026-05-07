@@ -3434,7 +3434,9 @@ function bootFromUrl() {
       if (savedLabToken) { State.page = 'public-lab'; State.data.labToken = savedLabToken; }
     }
     else {
-      State.page = '404-not-found';
+      // Unknown path — try treating it as a valid page name before giving up
+      console.warn('[Router] Unknown path:', clean, '— defaulting to landing');
+      State.page = 'landing';
     }
   }
 
