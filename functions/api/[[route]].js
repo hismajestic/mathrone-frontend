@@ -73,20 +73,24 @@ function corsHeaders(origin) {
 }
 
 // ── Main handler ─────────────────────────────────────────────────────────
+// ── Main handler ─────────────────────────────────────────────────────────
 export async function onRequest(context) {
   const { request, env } = context;
   const url    = new URL(request.url);
   const origin = request.headers.get('Origin') || '';
+  const userAgent = request.headers.get('user-agent') || '';
+
+  // Define isBot so the worker knows who is visiting
+  const isBot = /googlebot|bingbot|yandex|duckduckbot|slurp|baiduspider|whatsapp|telegram|twitterbot|facebookexternalhit|linkedinbot|slackbot|discordbot|crawler|spider|bot/i.test(userAgent);
 
   // Preflight
   if (request.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: corsHeaders(origin) });
   }
 
-  // Strip the /api prefix that the Pages Function receives
-  // URL will be /api/v1/shop/products → route = /shop/products
-  const ip    = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
   
+  // 1. Handle Bots for SEO and Social Sharing
   if (isBot && (url.pathname === "/" || url.pathname === "" || url.pathname === "/majestic-lab")) {
     const isLab = url.pathname.includes('majestic-lab');
     const title = isLab ? "Majestic Lab — Professional Virtual STEM Lab" : "Mathrone Academy | Best Private Tutors in Rwanda";
@@ -101,16 +105,8 @@ export async function onRequest(context) {
       </head><body><h1>${title}</h1><p>${desc}</p></body></html>`, 
       { headers: { 'content-type': 'text/html;charset=UTF-8' } });
   }
-    return new Response(`<!DOCTYPE html><html><head>
-      <title>Mathrone Academy | Best Private Tutors in Rwanda</title>
-      <meta property="og:title" content="Mathrone Academy | Expert Tutoring" />
-      <meta property="og:description" content="Connect with vetted tutors for 1-on-1 learning in Rwanda. Maths, Science, Languages and more." />
-      <meta property="og:image" content="https://mathroneacademy.com/og-banner.jpg" />
-      <meta property="og:url" content="https://mathroneacademy.com/" />
-      </head><body><h1>Mathrone Academy</h1><p>Majestic Learning. Royal Results.</p></body></html>`, 
-      { headers: { 'content-type': 'text/html;charset=UTF-8' } });
-  }
   
+  // 2. Proxy API requests to Render
   const route = url.pathname.replace(/^\/api\/v1/, '') + (url.search || '');
 
   // Rate limiting — skip for health checks
@@ -142,7 +138,6 @@ export async function onRequest(context) {
     }
   }
 
-  // Forward to Render backend
   const backendUrl = BACKEND + route;
   const headers    = new Headers(request.headers);
   headers.set('X-Forwarded-For', ip);
@@ -153,21 +148,18 @@ export async function onRequest(context) {
     backendResp = await fetch(backendUrl, {
       method:  request.method,
       headers: headers,
-      body:    ['GET', 'HEAD'].includes(request.method) ? undefined : request.body,
+      body:    ['GET', 'HEAD', 'OPTIONS'].includes(request.method) ? undefined : request.body,
     });
   } catch (err) {
-    // Render is down or timing out — return a clean error
-    return new Response(JSON.stringify({ error: 'Backend temporarily unavailable. Please try again in a moment.' }), {
+    return new Response(JSON.stringify({ error: 'Backend temporarily unavailable.' }), {
       status: 503,
       headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) },
     });
   }
 
-  // Build response to client
   const respHeaders = new Headers(backendResp.headers);
   Object.entries(corsHeaders(origin)).forEach(([k, v]) => respHeaders.set(k, v));
 
-  // Cache successful public responses at the edge
   if (canCache && backendResp.ok) {
     respHeaders.set('Cache-Control', `public, max-age=${cacheRule.ttl}, s-maxage=${cacheRule.ttl}`);
     respHeaders.set('X-Cache', 'MISS');
@@ -178,10 +170,8 @@ export async function onRequest(context) {
     return new Response(bodyText, { status: backendResp.status, headers: respHeaders });
   }
 
-  // Non-cacheable: stream straight through
-  respHeaders.delete('Cache-Control');
-  respHeaders.set('Cache-Control', 'no-store');
   return new Response(backendResp.body, {
     status:  backendResp.status,
     headers: respHeaders,
   });
+}
