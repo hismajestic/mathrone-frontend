@@ -508,7 +508,7 @@
   <!-- SHOP TEASER -->
   <div style="background:#fff;padding:72px 48px">
     <div style="max-width:1100px;margin:0 auto">
-      <h2 class="stitle"> Buy School Supplies & Learning Materials in Rwanda</h2>
+      <h2 class="stitle"> Buy School Supplies and Learning Materials in Rwanda</h2>
       <p class="ssub">Quality notebooks, geometry sets, science equipment and stationery delivered to your door anywhere in Kigali and Rwanda.</p>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px;margin-bottom:32px">
         ${[
@@ -705,10 +705,10 @@
     .mlab-inner{max-width:1100px;margin:0 auto}
     .mlab-stitle{font-size:clamp(24px,4vw,34px);font-weight:800;color:var(--navy);font-family:'Playfair Display',serif;text-align:center;margin-bottom:12px}
     .mlab-ssub{font-size:16px;color:var(--g400);text-align:center;margin-bottom:52px;max-width:600px;margin-left:auto;margin-right:auto}
-    .mlab-feat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px}
-    .mlab-feat{background:#fff;border:1px solid var(--g100);border-radius:16px;padding:24px;transition:transform 0.2s,box-shadow 0.2s}
+    .mlab-feat-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+    .mlab-feat{background:#fff;border:1px solid var(--g100);border-radius:14px;padding:18px;transition:transform 0.2s,box-shadow 0.2s}
     .mlab-feat:hover{transform:translateY(-3px);box-shadow:0 8px 32px rgba(26,95,255,0.1)}
-    .mlab-feat-ic{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+    .mlab-feat-ic{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:12px}
     .mlab-plan-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
     .mlab-plan{background:#fff;border:1px solid var(--g100);border-radius:16px;padding:20px;position:relative;transition:transform 0.2s,box-shadow 0.2s}
     .mlab-plan:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(26,95,255,0.12)}
@@ -730,6 +730,7 @@
     }
     @media(max-width:480px){
       .mlab-plan-grid{grid-template-columns:1fr 1fr}
+      .mlab-feat-grid{grid-template-columns:repeat(2,1fr)!important}
       .mlab-stat-row{flex-direction:column}
       .mlab-plan-grid{grid-template-columns:1fr!important}
       .mlab-stat{border-right:none;border-bottom:1px solid rgba(255,255,255,0.08)}
@@ -831,13 +832,15 @@
           ['users','#EEF2FF','var(--blue)','Live Student Sync','Students join via a secure link and follow the teacher\'s board in real time. No app install needed.'],
           ['lock','#F0FDF4','var(--green)','Device-Locked Links','Every student link is locked to one device. No forwarding, no sharing, no piracy.'],
           ['download','#FFF7ED','var(--orange)','PDF Export','Export any whiteboard session as a branded PDF for students to review later.'],
+          ['flask-conical','#EEF2FF','var(--blue)','Virtual Lab Simulations','100+ browser-based STEM simulations from PhET, GeoGebra, Desmos, Falstad, oPhysics and more — open any sim inside the whiteboard in one click. No install, no equipment.'],
+          ['library','#F5F3FF','#7c3aed','Resource Library','Access Khan Academy, MIT OpenCourseWare, HHMI BioInteractive, OpenStax, Labster, CK-12 and 40+ more curated resources — all launchable directly inside your live session.'],
         ].map(([ic,bg,color,title,desc])=>`
         <div class="mlab-feat">
           <div class="mlab-feat-ic" style="background:${bg}">
-            <i data-lucide="${ic}" style="width:24px;height:24px;color:${color}"></i>
+            <i data-lucide="${ic}" style="width:20px;height:20px;color:${color}"></i>
           </div>
-          <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:6px">${title}</div>
-          <p style="font-size:13px;color:var(--g400);line-height:1.6;margin:0">${desc}</p>
+          <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:5px">${title}</div>
+          <p style="font-size:12px;color:var(--g400);line-height:1.55;margin:0">${desc}</p>
         </div>`).join('')}
       </div>
     </div>

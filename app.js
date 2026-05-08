@@ -501,36 +501,36 @@ window.scrollToContact = function(e) {
   // IMMEDIATE SEO UPDATE (Before API calls)
   // Comprehensive Page Titles for SEO and User Navigation
       const titles = {
-        landing:         'Mathrone Academy — Best Private Tutors in Rwanda',
+        landing:         'Mathrone Academy| Best Private Tutors in Rwanda',
         news:            'Education News & Scholarships Rwanda | Mathrone Academy',
-        shop:            'Learning Store — Buy School Materials in Kigali',
-        about:           'About Us — Mathrone Academy',
-        privacy:         'Privacy Policy — Mathrone Academy',
-        terms:           'Terms & Conditions — Mathrone Academy',
-        login:           'Sign In — Mathrone Academy',
-        register:        'Join Mathrone Academy — Register Today',
-        quiz:            'AI Quiz — Mathrone Academy',
-        dashboard:       'Dashboard — Mathrone Academy',
-        forum:           'Community Forum — Mathrone Academy',
-        sessions:        'My Sessions — Mathrone Academy',
-        messages:        'Messages — Mathrone Academy',
-        profile:         'My Profile — Mathrone Academy',
-        notifications:   'Notifications — Mathrone Academy',
+        shop:            'Learning Store |Buy School Materials in Kigali',
+        about:           'About Us |Mathrone Academy',
+        privacy:         'Privacy Policy | Mathrone Academy',
+        terms:           'Terms & Conditions | Mathrone Academy',
+        login:           'Sign In | Mathrone Academy',
+        register:        'Join Mathrone Academy | Register Today',
+        quiz:            'AI Quiz | Mathrone Academy',
+        dashboard:       'Dashboard | Mathrone Academy',
+        forum:           'Community Forum | Mathrone Academy',
+        sessions:        'My Sessions | Mathrone Academy',
+        messages:        'Messages | Mathrone Academy',
+        profile:         'My Profile | Mathrone Academy',
+        notifications:   'Notifications | Mathrone Academy',
         tutors:          'Find a Math, Science or Language Tutor | Mathrone',
-        'admin-tutors':  'Manage Tutors — Mathrone Academy',
-        'admin-students':'Manage Students — Mathrone Academy',
-        'admin-sessions':'Manage Sessions — Mathrone Academy',
-        'admin-payments':'Payments — Mathrone Academy',
-        'admin-exam':    'Exam Manager — Mathrone Academy',
-        'admin-shop':    'Shop Manager — Mathrone Academy',
-        exam:            'Written Exam — Mathrone Academy',
-        cart:            'My Shopping Cart — Mathrone Store',
-        wishlist:        'My Wishlist — Mathrone Academy',
-        'my-orders':     'My Orders — Mathrone Academy',
-        'majestic-lab':  'Majestic Lab — Professional Virtual STEM Lab for Schools',
-        'courses':       'Online Courses — Mathrone Academy',
-        'my-courses':    'My Courses — Mathrone Academy',
-         'admin-courses': 'Courses Manager — Mathrone Academy',
+        'admin-tutors':  'Manage Tutors | Mathrone Academy',
+        'admin-students':'Manage Students | Mathrone Academy',
+        'admin-sessions':'Manage Sessions | Mathrone Academy',
+        'admin-payments':'Payments | Mathrone Academy',
+        'admin-exam':    'Exam Manager | Mathrone Academy',
+        'admin-shop':    'Shop Manager | Mathrone Academy',
+        exam:            'Written Exam | Mathrone Academy',
+        cart:            'My Shopping Cart | Mathrone Store',
+        wishlist:        'My Wishlist | Mathrone Academy',
+        'my-orders':     'My Orders | Mathrone Academy',
+        'majestic-lab':  'Majestic Lab | Professional Virtual STEM Lab for Schools',
+        'courses':       'Online Courses | Mathrone Academy',
+        'my-courses':    'My Courses | Mathrone Academy',
+         'admin-courses': 'Courses Manager | Mathrone Academy',
       }
 
       // Dynamic Meta Descriptions to help Google ranking
@@ -592,6 +592,7 @@ window.scrollToContact = function(e) {
         about:   [{ name:'Home', url:'/' }, { name:'About Us', url:'/about' }],
         privacy: [{ name:'Home', url:'/' }, { name:'Privacy Policy', url:'/privacy' }],
         terms:   [{ name:'Home', url:'/' }, { name:'Terms & Conditions', url:'/terms' }],
+        'majestic-lab': [{ name:'Home', url:'/' }, { name:'Majestic Lab', url:'/majestic-lab' }],
       }
       if (breadcrumbMap[page]) {
         const BASE = 'https://mathroneacademy.com'
@@ -619,6 +620,7 @@ window.scrollToContact = function(e) {
         about: 'https://mathroneacademy.com/about',
         privacy: 'https://mathroneacademy.com/privacy',
         terms: 'https://mathroneacademy.com/terms',
+        'majestic-lab': 'https://mathroneacademy.com/majestic-lab',
       }
       const canonicalHref = urlMap2[page] || null
       if (canonicalHref) {
@@ -661,6 +663,7 @@ window.scrollToContact = function(e) {
         'courses':        '/courses',
         'my-courses':     '/my-courses',
         'admin-courses':  '/admin-courses',
+        'majestic-lab':   '/majestic-lab',
       };
 
       let newUrl = urlMap[page];
