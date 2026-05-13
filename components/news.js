@@ -940,6 +940,12 @@ async function openNewsPost(slugOrId){
     }
     const cat = NEWS_CATEGORIES.find(c=>c.id===p.category) || NEWS_CATEGORIES[0]
     const isLoggedIn = !!State.user
+    setPageMeta(
+      p.title + ' | Mathrone Academy Rwanda',
+      (p.content || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 155),
+      p.image_url || '',
+      'https://mathroneacademy.com/news/' + (p.slug || p.id)
+    )
     render(`
     <style>
       .news-article-body h2{font-size:26px;font-weight:800;color:var(--navy);margin:32px 0 16px;line-height:1.2;border-bottom:1px solid var(--g100);padding-bottom:8px}

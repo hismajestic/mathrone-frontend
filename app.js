@@ -6,6 +6,20 @@
 ? 'http://127.0.0.1:8000/api/v1'
 : '/api/v1'
 
+function setPageMeta(title, description, imageUrl, canonicalUrl) {
+  document.title = title
+  const desc = document.querySelector('meta[name="description"]')
+  if (desc) desc.setAttribute('content', description)
+  const ogTitle = document.querySelector('meta[property="og:title"]')
+  if (ogTitle) ogTitle.setAttribute('content', title)
+  const ogDesc = document.querySelector('meta[property="og:description"]')
+  if (ogDesc) ogDesc.setAttribute('content', description)
+  const ogImg = document.querySelector('meta[property="og:image"]')
+  if (ogImg && imageUrl) ogImg.setAttribute('content', imageUrl)
+  const canonical = document.querySelector('link[rel="canonical"]')
+  if (canonical && canonicalUrl) canonical.setAttribute('href', canonicalUrl)
+}
+
 // NEW: Client-side Supabase connection for Whiteboard
 const SB_URL = "https://hdpkjomganndiiprnpok.supabase.co";
 const SB_KEY = window.__SB_CFG__ || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkcGtqb21nYW5uZGlpcHJucG9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxMTU5ODEsImV4cCI6MjA4ODY5MTk4MX0.cNA9Eira3m5Bv0v1EFIOdzOMF08avbxYs4zKwIVleLM";

@@ -28,7 +28,8 @@ export async function onRequest(context) {
     const url         = `${BASE}/news/${slug}`
     const image       = article.image_url || `${BASE}/og-banner.jpg`
     const plainText   = (article.content || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
-    const description = esc(plainText.slice(0, 155) + (plainText.length > 155 ? '…' : ''))
+    const trimmed = plainText.length > 155 ? plainText.slice(0, plainText.lastIndexOf(' ', 155)) + '…' : plainText
+    const description = esc(trimmed)
     const fullTitle   = esc(title + ' | Mathrone Academy Rwanda')
     const published   = article.created_at ? new Date(article.created_at).toISOString() : ''
     const modified    = article.updated_at ? new Date(article.updated_at).toISOString() : published
@@ -98,6 +99,7 @@ export async function onRequest(context) {
   ${published ? `<meta property="article:published_time" content="${published}"/>` : ''}
   ${modified  ? `<meta property="article:modified_time"  content="${modified}"/>` : ''}
   <meta property="article:section" content="${esc(catLabel)}"/>
+  ${(article.tags||[]).map(t => `<meta property="article:tag" content="${esc(t)}"/>`).join('\n  ')}
 
   <meta name="twitter:card" content="summary_large_image"/>
   <meta name="twitter:title" content="${fullTitle}"/>
@@ -109,9 +111,10 @@ export async function onRequest(context) {
   <script type="application/ld+json">${breadcrumb}</script>
 
   <style>
-    body{font-family:Arial,sans-serif;max-width:860px;margin:0 auto;padding:24px 16px;color:#1E2845;line-height:1.7}
+    @import url('https://fonts.bunny.net/css?family=dm-sans:400,700|playfair-display:700&display=swap');
+    body{font-family:'DM Sans',Arial,sans-serif;max-width:860px;margin:0 auto;padding:24px 16px;color:#1E2845;line-height:1.7}
     nav{margin-bottom:16px;font-size:13px}nav a{color:#1A5FFF;text-decoration:none;margin-right:8px}
-    h1{font-size:2rem;font-weight:800;margin:16px 0 8px;line-height:1.2}
+    h1{font-family:'Playfair Display',Georgia,serif;font-size:2rem;font-weight:700;margin:16px 0 8px;line-height:1.2}
     .meta{font-size:13px;color:#6B6B80;margin-bottom:24px;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
     .cat-badge{background:#EEF4FF;color:#1A5FFF;padding:3px 10px;border-radius:999px;font-weight:700;font-size:12px}
     .hero-img{width:100%;max-height:480px;object-fit:cover;border-radius:12px;margin:16px 0}
@@ -130,12 +133,12 @@ export async function onRequest(context) {
   <nav aria-label="Breadcrumb">
     <a href="${BASE}/">Home</a> &rsaquo;
     <a href="${BASE}/news">Education News</a> &rsaquo;
-    <span>${esc(article.title)}</span>
+    <span>${escText(article.title)}</span>
   </nav>
 
-  <span class="cat-badge">${esc(catLabel)}</span>
+  <span class="cat-badge">${escText(catLabel)}</span>
 
-  <h1>${esc(article.title)}</h1>
+  <h1>${escText(article.title)}</h1>
 
   <div class="meta">
     ${dateDisplay ? `<time datetime="${published}">${dateDisplay}</time>` : ''}
@@ -179,4 +182,10 @@ function esc(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;')
+}
+function escText(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
 }
