@@ -584,7 +584,7 @@ window.scrollToContact = function(e) {
         document.getElementById(id)?.remove()
       })
 
-      // Inject BreadcrumbList schema for indexable listing pages
+      // Inject BreadcrumbList schema
       const breadcrumbMap = {
         news:    [{ name:'Home', url:'/' }, { name:'Education News', url:'/news' }],
         shop:    [{ name:'Home', url:'/' }, { name:'Learning Store', url:'/shop' }],
@@ -593,7 +593,23 @@ window.scrollToContact = function(e) {
         privacy: [{ name:'Home', url:'/' }, { name:'Privacy Policy', url:'/privacy' }],
         terms:   [{ name:'Home', url:'/' }, { name:'Terms & Conditions', url:'/terms' }],
         'majestic-lab': [{ name:'Home', url:'/' }, { name:'Majestic Lab', url:'/majestic-lab' }],
+      };
+      
+      // Dynamic logic for Articles and Products
+      if(page.startsWith('news-article/')) {
+         breadcrumbMap[page] = [
+           { name:'Home', url:'/' }, 
+           { name:'News', url:'/news' },
+           { name: document.title.split('|')[0].trim(), url: window.location.pathname }
+         ];
+      } else if(page.startsWith('shop-product-')) {
+         breadcrumbMap[page] = [
+           { name:'Home', url:'/' }, 
+           { name:'Shop', url:'/shop' },
+           { name: document.title.split('|')[0].trim(), url: window.location.pathname }
+         ];
       }
+
       if (breadcrumbMap[page]) {
         const BASE = 'https://mathroneacademy.com'
         const bcSchema = document.createElement('script')
@@ -3913,6 +3929,7 @@ window._docCurrentSlide = 0;
 window._docTool = 'pen';
 window._docIsDrawing = false;
 window._docAnnotations = {};   // { slideIndex: [annotation objects] }
+window._docHidden = false;
 window._docSlideCtx = null;
 window._docAnnoCtx = null;
 
@@ -3936,11 +3953,105 @@ async function openPresentationDoc(input) {
     if (!window._docSlides.length) { toast('Could not read document.', 'err'); return; }
     window._docCurrentSlide = 0;
     window._docAnnotations = {};
+    window._docHidden = false;
     enterPresentationMode();
+    updateDocDownloadUI();
     document.getElementById('pdf-load-progress')?.remove();
   } catch(e) {
     console.error(e);
     toast('Error loading document: ' + e.message, 'err');
+  }
+}
+
+function handlePresentDocButton() {
+  if (window._docSlides && window._docSlides.length) {
+    showPresentationMode();
+    return;
+  }
+  document.getElementById('wb-doc-upload').click();
+}
+
+function showPresentationMode() {
+  if (!window._docSlides || !window._docSlides.length) {
+    toast('Upload a document first to present.', 'err');
+    return;
+  }
+  window._docHidden = false;
+  const overlay = document.getElementById('doc-present-overlay');
+  const canvasContainer = document.getElementById('canvas-container');
+  if (overlay) overlay.style.display = 'flex';
+  if (canvasContainer) canvasContainer.style.display = 'none';
+  const slideCanvas = document.getElementById('doc-slide-canvas');
+  const annoCanvas = document.getElementById('doc-anno-canvas');
+  if (!window._docSlideCtx || !window._docAnnoCtx) {
+    enterPresentationMode();
+  } else {
+    setupDocAnnotationEvents(annoCanvas);
+    renderDocSlide(window._docCurrentSlide || 0);
+    resetDocZoom();
+  }
+  updateDocDownloadUI();
+  const ch = window._wbChannel;
+  const isHost = (State.user && (State.user.role === 'tutor' || State.user.role === 'admin')) || window._isLabHost;
+  if (ch && isHost) {
+    try { ch.send({ type: 'broadcast', event: 'doc-show', payload: { current: window._docCurrentSlide || 0 } }); } catch(e) {}
+  }
+}
+
+function hidePresentationMode() {
+  saveCurrentAnnotations();
+  const overlay = document.getElementById('doc-present-overlay');
+  const canvasContainer = document.getElementById('canvas-container');
+  if (overlay) overlay.style.display = 'none';
+  if (canvasContainer) canvasContainer.style.display = 'flex';
+  removeDocAnnotationEvents();
+  window._docHidden = true;
+  updateDocDownloadUI();
+  const ch = window._wbChannel;
+  const isHost = (State.user && (State.user.role === 'tutor' || State.user.role === 'admin')) || window._isLabHost;
+  if (ch && isHost) {
+    try { ch.send({ type: 'broadcast', event: 'doc-hide', payload: { current: window._docCurrentSlide || 0 } }); } catch(e) {}
+  }
+}
+
+async function downloadPresentationAsPDF() {
+  if (!window._docSlides || !window._docSlides.length) {
+    toast('No document loaded to download.', 'err');
+    return;
+  }
+  if (!window.jspdf) {
+    toast('Loading PDF engine...', 'info');
+    try { await ensureJsPDF(); } catch(e) { toast('PDF engine failed.', 'err'); return; }
+  }
+  const { jsPDF } = window.jspdf;
+  const width = window._docCW || 1280;
+  const height = window._docCH || 720;
+  const doc = new jsPDF('l', 'px', [width, height]);
+  toast('Generating annotated document...', 'info');
+  for (let i = 0; i < window._docSlides.length; i++) {
+    if (i > 0) doc.addPage([width, height], 'l');
+    const exportCanvas = document.createElement('canvas');
+    exportCanvas.width = width;
+    exportCanvas.height = height;
+    const exportCtx = exportCanvas.getContext('2d');
+    const slideImg = new Image();
+    await new Promise((resolve) => { slideImg.onload = resolve; slideImg.src = window._docSlides[i]; });
+    exportCtx.drawImage(slideImg, 0, 0, width, height);
+    if (window._docAnnotations[i]) {
+      const annoImg = new Image();
+      await new Promise((resolve) => { annoImg.onload = resolve; annoImg.src = window._docAnnotations[i]; });
+      exportCtx.drawImage(annoImg, 0, 0, width, height);
+    }
+    const imageData = exportCanvas.toDataURL('image/jpeg', 0.95);
+    doc.addImage(imageData, 'JPEG', 0, 0, width, height);
+  }
+  doc.save(`annotated-doc-${Date.now()}.pdf`);
+}
+
+function updateDocDownloadUI() {
+  const downloadBtn = document.getElementById('wb-doc-download-btn');
+  if (downloadBtn) {
+    downloadBtn.style.display = (window._docSlides && window._docSlides.length) ? 'inline-flex' : 'none';
   }
 }
 
@@ -4202,16 +4313,7 @@ function enterPresentationMode() {
 }
 
 function closePresentationMode() {
-  document.getElementById('doc-present-overlay').style.display = 'none';
-  document.getElementById('canvas-container').style.display = 'flex';
-  removeDocAnnotationEvents();
-  // Broadcast exit to students
-  const ch = window._wbChannel;
-  const isHost = (State.user && (State.user.role === 'tutor' || State.user.role === 'admin')) || window._isLabHost;
-  if (ch && isHost) try { ch.send({ type: 'broadcast', event: 'doc-exit', payload: {} }); } catch(e) {}
-  window._docSlides = [];
-  window._docAnnotations = {};
-  window._docZoom = 1.0;
+  hidePresentationMode();
 }
 
 function zoomDoc(delta) {
@@ -4621,6 +4723,30 @@ function setupDocStudentListeners(channel) {
     })
     .on('broadcast', { event: 'doc-enter' }, () => {
       // Legacy handler — ignore, replaced by doc-enter-start + doc-slide-data
+    })
+    .on('broadcast', { event: 'doc-hide' }, () => {
+      const overlay = document.getElementById('doc-present-overlay');
+      const cc = document.getElementById('canvas-container');
+      if (overlay) overlay.style.display = 'none';
+      if (cc) cc.style.display = 'flex';
+      toast('Presentation hidden by tutor', 'info');
+    })
+    .on('broadcast', { event: 'doc-show' }, (msg) => {
+      window._docCurrentSlide = msg.payload?.current || window._docCurrentSlide || 0;
+      window._docStudentMode = true;
+      if (window._docSlides && window._docSlides.length) {
+        enterPresentationMode();
+        setTimeout(() => {
+          ['doc-tool-pen','doc-tool-highlight','doc-tool-arrow','doc-tool-text','doc-tool-laser','doc-tool-img'].forEach(id => {
+            const el = document.getElementById(id); if (el) el.style.display = 'none';
+          });
+          const prevBtn = document.querySelector('[onclick="docPrevSlide()"]');
+          const nextBtn = document.querySelector('[onclick="docNextSlide()"]');
+          if (prevBtn) prevBtn.style.pointerEvents = 'none';
+          if (nextBtn) nextBtn.style.pointerEvents = 'none';
+        }, 400);
+        toast('Tutor resumed document presentation', 'info');
+      }
     })
     .on('broadcast', { event: 'doc-exit' }, () => {
       window._docStudentMode = false;

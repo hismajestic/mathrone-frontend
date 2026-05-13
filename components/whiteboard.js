@@ -110,7 +110,8 @@
         <button class="wb-btn" id="tool-laser" onclick="setSTEMTool('laser')" title="Laser Pointer"><i data-lucide="target" style="width:14px;height:14px"></i> Laser</button>
         <button class="wb-btn host-only" onclick="document.getElementById('wb-bg-upload').click()" title="Upload Worksheet/Image"><i data-lucide="image-plus" style="width:14px;height:14px"></i> Upload</button>
         <input type="file" id="wb-bg-upload" accept="image/*" style="display:none" onchange="uploadWBBackground(this)">
-        <button class="wb-btn host-only" id="tool-present" onclick="document.getElementById('wb-doc-upload').click()" title="Present PDF, PowerPoint or Word document" style="background:rgba(245,166,35,0.25);color:#F5A623;border:1px solid rgba(245,166,35,0.4);"><i data-lucide="presentation" style="width:14px;height:14px"></i> Present Doc</button>
+        <button class="wb-btn host-only" id="tool-present" onclick="handlePresentDocButton()" title="Present PDF, PowerPoint or Word document" style="background:rgba(245,166,35,0.25);color:#F5A623;border:1px solid rgba(245,166,35,0.4);"><i data-lucide="presentation" style="width:14px;height:14px"></i> Present Doc</button>
+        <button class="wb-btn host-only" id="wb-doc-download-btn" onclick="downloadPresentationAsPDF()" style="display:none;background:rgba(56,189,248,0.15);color:#38bdf8;border:1px solid rgba(56,189,248,0.4);"><i data-lucide="download" style="width:14px;height:14px"></i> Download Doc</button>
         <input type="file" id="wb-doc-upload" accept=".pdf,.ppt,.pptx,.doc,.docx" style="display:none" onchange="openPresentationDoc(this)">
 
         <div class="tool-sep" style="width:1px; height:28px; background:rgba(255,255,255,0.2); margin:0 4px;"></div>
@@ -275,6 +276,7 @@
       <span id="doc-zoom-label" style="color:#fff;font-size:11px;min-width:35px">100%</span>
       <button onclick="zoomDoc(0.1)" class="wb-btn" style="padding:4px 8px;">➕</button>
       <button onclick="resetDocZoom()" class="wb-btn" style="padding:4px 8px;">🔄</button>
+      <button onclick="toggleDocFullscreen()" class="wb-btn" style="padding:4px 8px;" title="Fullscreen presentation">⛶ Full</button>
     </div>
 
     <div style="margin-left:auto;display:flex;gap:6px;align-items:center;">
@@ -285,7 +287,8 @@
         <option value="8">Thick</option>
         <option value="14">Bold</option>
       </select>
-      <button onclick="closePresentationMode()" class="wb-btn" style="background:#EF4444;color:#fff;padding:4px 10px;font-size:11px;">✕ Exit</button>
+      <button onclick="downloadPresentationAsPDF()" class="wb-btn" style="background:#2563eb;color:#fff;padding:4px 10px;font-size:11px;">⬇️ Download</button>
+      <button onclick="closePresentationMode()" class="wb-btn" style="background:#EF4444;color:#fff;padding:4px 10px;font-size:11px;">✕ Hide</button>
     </div>
   </div>
 

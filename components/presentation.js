@@ -1,6 +1,8 @@
 // ── Document Presentation Functions ─────────────────────────────────────────
 // These were missing from whiteboard.js — loaded separately via index.html
 
+window._docHidden = window._docHidden || false;
+
 async function openPresentationDoc(input) {
   const file = input.files[0];
   if (!file) return;
@@ -35,7 +37,9 @@ async function openPresentationDoc(input) {
       window._docSlides = slides;
       window._docCurrentSlide = 0;
       window._docAnnotations = {};
+      window._docHidden = false;
       enterPresentationMode();
+      if (typeof updateDocDownloadUI === 'function') updateDocDownloadUI();
     } catch(e) {
       toast('PDF load failed: ' + e.message, 'err');
     }
@@ -55,6 +59,8 @@ async function openPresentationDoc(input) {
   vp.appendChild(iframe);
   overlay.style.display = 'flex';
   document.getElementById('canvas-container').style.display = 'none';
+  window._docHidden = false;
+  if (typeof updateDocDownloadUI === 'function') updateDocDownloadUI();
   toast('Document loaded - students can see it in real time', 'info');
 }
 
@@ -78,7 +84,7 @@ function enterPresentationMode() {
     window._docSlideCtx = slideCanvas.getContext('2d');
     window._docAnnoCtx  = annoCanvas.getContext('2d');
     window._docZoom = 1;
-    renderDocSlide(0);
+    renderDocSlide(window._docCurrentSlide || 0);
     buildThumbStrip();
     setupDocAnnotationEvents(annoCanvas);
     docSetTool('pen');
@@ -100,15 +106,37 @@ function enterPresentationMode() {
 }
 
 function closePresentationMode() {
+  saveCurrentAnnotations();
   const overlay = document.getElementById('doc-present-overlay');
   const cc = document.getElementById('canvas-container');
   if (overlay) overlay.style.display = 'none';
   if (cc) cc.style.display = 'flex';
   removeDocAnnotationEvents();
-  window._docSlides = [];
+  window._docHidden = true;
   window._docStudentMode = false;
+  if (typeof updateDocDownloadUI === 'function') updateDocDownloadUI();
   const ch = window._wbChannel;
-  if (ch) try { ch.send({ type: 'broadcast', event: 'doc-exit', payload: {} }); } catch(e) {}
+  if (ch) try { ch.send({ type: 'broadcast', event: 'doc-hide', payload: {} }); } catch(e) {}
+}
+
+function showPresentationMode() {
+  if (!window._docSlides || !window._docSlides.length) {
+    toast('Upload a document first to present.', 'err');
+    return;
+  }
+  window._docHidden = false;
+  const overlay = document.getElementById('doc-present-overlay');
+  const cc = document.getElementById('canvas-container');
+  if (overlay) overlay.style.display = 'flex';
+  if (cc) cc.style.display = 'none';
+  if (!window._docSlideCtx || !window._docAnnoCtx) {
+    enterPresentationMode();
+    return;
+  }
+  setupDocAnnotationEvents(document.getElementById('doc-anno-canvas'));
+  renderDocSlide(window._docCurrentSlide || 0);
+  resetDocZoom();
+  if (typeof updateDocDownloadUI === 'function') updateDocDownloadUI();
 }
 
 function zoomDoc(delta) {
@@ -125,6 +153,74 @@ function applyDocZoom() {
   const label = document.getElementById('doc-zoom-label');
   if (container) container.style.transform = 'scale(' + (window._docZoom || 1) + ')';
   if (label) label.textContent = Math.round((window._docZoom || 1) * 100) + '%';
+}
+
+function saveCurrentAnnotations() {
+  const C = document.getElementById('doc-anno-canvas');
+  if (!C) return;
+  window._docAnnotations = window._docAnnotations || {};
+  window._docAnnotations[window._docCurrentSlide] = C.toDataURL();
+}
+
+async function ensureJsPDF() {
+  if (window.jspdf) return;
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+    s.onload = () => resolve();
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+async function downloadPresentationAsPDF() {
+  if (!window._docSlides || !window._docSlides.length) {
+    toast('No presentation slides available to download.', 'err');
+    return;
+  }
+  if (!window.jspdf) {
+    toast('Loading PDF engine...', 'info');
+    try { await ensureJsPDF(); } catch (e) { toast('PDF engine failed.', 'err'); return; }
+  }
+  const { jsPDF } = window.jspdf;
+  const width = window._docCW || 1280;
+  const height = window._docCH || 720;
+  const doc = new jsPDF('l', 'px', [width, height]);
+  toast('Generating annotated document...', 'info');
+  for (let i = 0; i < window._docSlides.length; i++) {
+    if (i > 0) doc.addPage([width, height], 'l');
+    const exportCanvas = document.createElement('canvas');
+    exportCanvas.width = width;
+    exportCanvas.height = height;
+    const exportCtx = exportCanvas.getContext('2d');
+    const slideImg = new Image();
+    await new Promise((resolve) => { slideImg.onload = resolve; slideImg.src = window._docSlides[i]; });
+    exportCtx.drawImage(slideImg, 0, 0, width, height);
+    if (window._docAnnotations && window._docAnnotations[i]) {
+      const annoImg = new Image();
+      await new Promise((resolve) => { annoImg.onload = resolve; annoImg.src = window._docAnnotations[i]; });
+      exportCtx.drawImage(annoImg, 0, 0, width, height);
+    }
+    const imageData = exportCanvas.toDataURL('image/jpeg', 0.95);
+    doc.addImage(imageData, 'JPEG', 0, 0, width, height);
+  }
+  doc.save(`annotated-doc-${Date.now()}.pdf`);
+}
+
+function updateDocDownloadUI() {
+  const downloadBtn = document.getElementById('wb-doc-download-btn');
+  if (!downloadBtn) return;
+  downloadBtn.style.display = (window._docSlides && window._docSlides.length) ? 'inline-flex' : 'none';
+}
+
+function toggleDocFullscreen() {
+  const overlay = document.getElementById('doc-present-overlay');
+  if (!overlay) return;
+  if (!document.fullscreenElement) {
+    overlay.requestFullscreen?.().catch(() => {});
+  } else {
+    document.exitFullscreen?.().catch(() => {});
+  }
 }
 
 function triggerFloatingImage() { document.getElementById('doc-float-img-upload')?.click(); }

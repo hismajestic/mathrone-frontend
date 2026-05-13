@@ -942,9 +942,10 @@ async function openNewsPost(slugOrId){
     const isLoggedIn = !!State.user
     render(`
     <style>
-      .news-article-body h1{font-size:28px;font-weight:800;color:var(--navy);margin:16px 0 8px}
-      .news-article-body h2{font-size:22px;font-weight:700;color:var(--navy);margin:14px 0 6px}
-      .news-article-body h3{font-size:18px;font-weight:700;color:var(--navy);margin:12px 0 6px}
+      .news-article-body h2{font-size:26px;font-weight:800;color:var(--navy);margin:32px 0 16px;line-height:1.2;border-bottom:1px solid var(--g100);padding-bottom:8px}
+      .news-article-body h3{font-size:20px;font-weight:700;color:var(--navy);margin:24px 0 12px;line-height:1.3}
+      .news-article-body h4{font-size:18px;font-weight:700;color:var(--blue);margin:20px 0 10px}
+      .news-article-body p{margin-bottom:1.5rem;line-height:1.8}
       .news-article-body p{margin:0 0 14px;line-height:1.8;font-size:15px;color:var(--g600)}
       .news-article-body ul,.news-article-body ol{padding-left:24px;margin-bottom:14px}
       .news-article-body li{margin-bottom:6px;line-height:1.7;font-size:15px;color:var(--g600)}
@@ -1144,6 +1145,26 @@ async function openNewsPost(slugOrId){
     const fullTitle   = p.title + ' | Mathrone Academy Rwanda'
     document.title = fullTitle
     document.querySelector('meta[name="description"]')?.setAttribute('content', articleDesc)
+    
+    // SEO: Inject Meta Keywords from Tags
+    if(p.tags && p.tags.length > 0) {
+      let keyMeta = document.querySelector('meta[name="keywords"]');
+      if(!keyMeta) {
+        keyMeta = document.createElement('meta');
+        keyMeta.name = "keywords";
+        document.head.appendChild(keyMeta);
+      }
+      keyMeta.setAttribute('content', p.tags.join(', '));
+    }
+
+    // SEO: Absolute Canonical URL (prevents duplicate content issues)
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if(!canonical) {
+      canonical = document.createElement('link');
+      canonical.rel = "canonical";
+      document.head.appendChild(canonical);
+    }
+    canonical.setAttribute('href', articleUrl);
     document.querySelector('meta[property="og:title"]')?.setAttribute('content', fullTitle)
     document.querySelector('meta[property="og:description"]')?.setAttribute('content', articleDesc)
     document.querySelector('meta[property="og:url"]')?.setAttribute('content', articleUrl)
@@ -2084,10 +2105,26 @@ function applyNewsFormatBlock(value){
   const editor = document.getElementById('news-editor')
   if(!editor) return
   editor.focus()
-  // execCommand needs angle-bracket wrapped tag on some browsers
-  document.execCommand('formatBlock', false, '<' + value + '>')
-  // Re-sync the dropdown after applying
-  setTimeout(updateNewsFormatSelect, 0)
+  
+  // If we want a header, ensure we aren't inside a span that ruins the tag
+  if(['h2','h3','h4'].includes(value)) {
+    document.execCommand('removeFormat', false, null);
+  }
+
+  document.execCommand('formatBlock', false, value);
+  
+  // Manual Cleanup: Some browsers wrap in <font> or <span> inside headers
+  setTimeout(() => {
+    const sel = window.getSelection();
+    if (sel.rangeCount > 0) {
+      let container = sel.getRangeAt(0).commonAncestorContainer;
+      if (container.nodeType === 3) container = container.parentNode;
+      if (container.tagName.toLowerCase() === value) {
+         container.removeAttribute('style'); // Remove MS Word inline styles
+      }
+    }
+    updateNewsFormatSelect();
+  }, 10);
 }
 
 function updateNewsFormatSelect(){
@@ -2355,7 +2392,8 @@ async function openNewsModal(postId = null){
                 <button type="button" onclick="insertNewsEmbed()" title="Embed YouTube or iframe" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;gap:4px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"/><path d="m10 15 5-3-5-3z"/></svg> Embed</button>
                 <button type="button" onclick="insertNewsTable()" title="Insert table" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;gap:4px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/></svg> Table</button>
                 <button type="button" onclick="insertNewsFormula()" title="Insert math formula (LaTeX)" style="border:1px solid #7c3aed;background:#f5f3ff;padding:4px 10px;border-radius:4px;cursor:pointer;font-weight:600;color:#7c3aed;display:inline-flex;align-items:center;gap:4px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="12" x="2" y="6" rx="2"/><path d="m7 12 2 2 6-6"/><path d="M17 10h.01"/><path d="M17 14h.01"/></svg> Formula</button>
-                <button type="button" onclick="insertAdPlaceholder()" style="border:1px solid #F5A623;background:#FFF8ED;padding:4px 10px;border-radius:4px;cursor:pointer;font-weight:600;color:#b45309;display:inline-flex;align-items:center;gap:4px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 19-9-9 19-2-8-8-2z"/></svg> Ad</button>
+                <button type="button" onclick="insertAdPlaceholder()" style="border:1px solid #F5A623;background:#FFF8ED;padding:4px 10px;border-radius:4px;cursor:pointer;font-weight:600;color:#b45309;display:inline-flex;align-items:center;gap:4px"><i data-lucide="megaphone" style="width:14px;height:14px"></i> Ad</button>
+<button type="button" onclick="insertWhatsAppCTA()" style="border:1px solid #25D366;background:#f0fdf4;padding:4px 10px;border-radius:4px;cursor:pointer;font-weight:600;color:#15803d;display:inline-flex;align-items:center;gap:4px" title="Insert WhatsApp Invite"><i data-lucide="message-circle" style="width:14px;height:14px"></i> WhatsApp</button>
                 <input type="file" id="news-img-upload" accept="image/*" style="display:none" onchange="insertNewsImage(this)"/>
                 <input type="color" onchange="document.execCommand('foreColor',false,this.value)" title="Text color" style="border:1px solid var(--g200);border-radius:4px;width:32px;height:28px;cursor:pointer;padding:2px"/>
                 <input type="color" onchange="document.execCommand('hiliteColor',false,this.value)" title="Highlight color" style="border:1px solid var(--g200);border-radius:4px;width:32px;height:28px;cursor:pointer;padding:2px;background:#ffff00"/>
@@ -2504,7 +2542,32 @@ async function submitNews(postId){
   // Clean up editor UI artifacts before saving
   const editor = document.getElementById('news-editor')
   if(editor){
-    // 1. Unwrap image resize wrappers — bake width into img style
+    // --- SEO HEADING CLEANUP ---
+    // Detect bold/large paragraphs pasted from Word and convert to H2/H3
+    editor.querySelectorAll('p, div').forEach(el => {
+      const style = el.getAttribute('style') || '';
+      const fontSize = parseInt(el.style.fontSize) || 0;
+      const isBold = style.includes('bold') || el.querySelector('strong') || el.tagName === 'B';
+      
+      if (isBold && fontSize >= 18) {
+        const h2 = document.createElement('h2');
+        h2.innerHTML = el.innerHTML;
+        el.replaceWith(h2);
+      } else if (isBold && fontSize >= 14) {
+        const h3 = document.createElement('h3');
+        h3.innerHTML = el.innerHTML;
+        el.replaceWith(h3);
+      }
+    });
+
+    // Remove all MsoNormal classes and generic Word tags
+    const cleanHtml = editor.innerHTML
+      .replace(/class="MsoNormal"/g, '')
+      .replace(/style="mso-[^"]*"/g, '')
+      .replace(/<o:p><\/o:p>/g, '');
+    editor.innerHTML = cleanHtml;
+    
+    // 1. Unwrap image resize wrappers. bake width into img style
     editor.querySelectorAll('.img-resize-wrapper').forEach(wrapper=>{
       const img = wrapper.querySelector('img')
       if(img){
@@ -2532,6 +2595,40 @@ async function submitNews(postId){
     editor.querySelectorAll('table').forEach(t => delete t.dataset.tblInit)
   }
   const title      = document.getElementById('news-title')?.value?.trim()
+  const editor = document.getElementById('news-editor')
+  
+  if(editor) {
+    // SEO FIX: Convert fake Word headings to real HTML tags
+    editor.querySelectorAll('p, div, span').forEach(el => {
+      const style = el.getAttribute('style') || '';
+      const text = el.innerText.trim();
+      if(!text) return;
+
+      // If it looks like a heading (Bold + Big), make it an H2
+      if ((style.includes('bold') || el.tagName === 'B' || el.querySelector('strong')) && 
+          (style.includes('pt') || style.includes('px'))) {
+         const size = parseInt(style.match(/(\d+)(pt|px)/)?.[1] || 0);
+         if (size >= 18) {
+           const h2 = document.createElement('h2');
+           h2.innerHTML = el.innerHTML;
+           el.replaceWith(h2);
+         } else if (size >= 14) {
+           const h3 = document.createElement('h3');
+           h3.innerHTML = el.innerHTML;
+           el.replaceWith(h3);
+         }
+      }
+    });
+
+    // SCRUB JUNK: Remove MS Word classes, internal tracking, and inline font-families
+    let html = editor.innerHTML;
+    html = html.replace(/class="MsoNormal"/g, '');
+    html = html.replace(/style="mso-[^"]*"/g, '');
+    html = html.replace(/font-family:[^;"]*;?/g, '');
+    html = html.replace(/<o:p>.*?<\/o:p>/g, '');
+    html = html.replace(/<span>\s*<\/span>/g, ''); // Remove empty spans
+    editor.innerHTML = html;
+  }
   const description= document.getElementById('news-description')?.value?.trim()||null
   const content    = document.getElementById('news-editor')?.innerHTML?.trim()
   const category   = document.getElementById('news-cat')?.value
@@ -3173,4 +3270,33 @@ function applyCrop(){
 function closeCropModal(){
   if(window._cropper){ window._cropper.destroy(); window._cropper = null }
   document.getElementById('crop-modal')?.remove()
+}
+function insertWhatsAppCTA() {
+  const editor = document.getElementById('news-editor');
+  if (!editor) return;
+  editor.focus();
+
+  const ctaHtml = `
+    <div style="display:flex; align-items:center; justify-content:center; gap:12px; padding:10px 16px; background:#f0fdf4; border:1px solid #25d366; border-radius:12px; margin:20px 0; flex-wrap:wrap; font-family:'DM Sans', sans-serif;" contenteditable="false">
+      <span style="font-size:13px; font-weight:800; color:#166534; display:flex; align-items:center; gap:6px;">
+        <i data-lucide="bell-ring" style="width:16px; height:16px; color:#25d366"></i> Stay Updated:
+      </span>
+      
+      <a href="https://whatsapp.com/channel/0029Vb6tCI2EFeXi8jhfjM2E" target="_blank" 
+         style="background:#25d366; color:#fff; text-decoration:none; padding:6px 14px; border-radius:8px; font-size:12px; font-weight:700; display:inline-flex; align-items:center; gap:6px; transition:opacity 0.2s;">
+         <i data-lucide="external-link" style="width:14px; height:14px"></i> Follow Channel
+      </a>
+      
+      <a href="https://chat.whatsapp.com/IYb1bEphQJJ9g9V2KdvQui" target="_blank" 
+         style="background:#fff; color:#166534; border:1.5px solid #25d366; text-decoration:none; padding:5px 13px; border-radius:8px; font-size:12px; font-weight:700; display:inline-flex; align-items:center; gap:6px;">
+         <i data-lucide="users" style="width:14px; height:14px"></i> Join Discussion Group
+      </a>
+    </div>
+    <p><br></p>`;
+
+  document.execCommand('insertHTML', false, ctaHtml);
+  
+  // Refresh Lucide icons so the newly inserted icons appear immediately
+  if (window.lucide) window.lucide.createIcons();
+  toast('WhatsApp CTA inserted! ✅');
 }
