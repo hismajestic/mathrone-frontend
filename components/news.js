@@ -2539,72 +2539,15 @@ function generateSuggestedTags(){
 }
 
 async function submitNews(postId){
-  // Clean up editor UI artifacts before saving
-  const editor = document.getElementById('news-editor')
+  const editor = document.getElementById('news-editor');
+  
   if(editor){
     // --- SEO HEADING CLEANUP ---
-    // Detect bold/large paragraphs pasted from Word and convert to H2/H3
-    editor.querySelectorAll('p, div').forEach(el => {
-      const style = el.getAttribute('style') || '';
-      const fontSize = parseInt(el.style.fontSize) || 0;
-      const isBold = style.includes('bold') || el.querySelector('strong') || el.tagName === 'B';
-      
-      if (isBold && fontSize >= 18) {
-        const h2 = document.createElement('h2');
-        h2.innerHTML = el.innerHTML;
-        el.replaceWith(h2);
-      } else if (isBold && fontSize >= 14) {
-        const h3 = document.createElement('h3');
-        h3.innerHTML = el.innerHTML;
-        el.replaceWith(h3);
-      }
-    });
-
-    // Remove all MsoNormal classes and generic Word tags
-    const cleanHtml = editor.innerHTML
-      .replace(/class="MsoNormal"/g, '')
-      .replace(/style="mso-[^"]*"/g, '')
-      .replace(/<o:p><\/o:p>/g, '');
-    editor.innerHTML = cleanHtml;
-    
-    // 1. Unwrap image resize wrappers. bake width into img style
-    editor.querySelectorAll('.img-resize-wrapper').forEach(wrapper=>{
-      const img = wrapper.querySelector('img')
-      if(img){
-        img.style.width = wrapper.offsetWidth + 'px'
-        img.style.height = 'auto'
-        img.style.maxWidth = '100%'
-        img.style.display = 'block'
-        img.style.float = wrapper.style.float || 'none'
-        img.style.marginLeft = wrapper.style.marginLeft || 'auto'
-        img.style.marginRight = wrapper.style.marginRight || 'auto'
-        const tb = wrapper.querySelector('#img-resize-toolbar')
-        if(tb) tb.remove()
-        wrapper.parentNode.insertBefore(img, wrapper)
-        wrapper.remove()
-      }
-    })
-    // 2. Remove table toolbars
-    editor.querySelectorAll('.tbl-minitoolbar').forEach(el => el.remove())
-    // 3. Remove column resize handles
-    editor.querySelectorAll('.col-resize-handle').forEach(el => el.remove())
-    // 4. Clean up selection classes
-    editor.querySelectorAll('.tbl-sel').forEach(el => el.classList.remove('tbl-sel'))
-    editor.querySelectorAll('.tbl-selected').forEach(el => el.classList.remove('tbl-selected'))
-    // 5. Clear init flag so handles re-attach next edit session
-    editor.querySelectorAll('table').forEach(t => delete t.dataset.tblInit)
-  }
-  const title      = document.getElementById('news-title')?.value?.trim()
-  const editor = document.getElementById('news-editor')
-  
-  if(editor) {
-    // SEO FIX: Convert fake Word headings to real HTML tags
     editor.querySelectorAll('p, div, span').forEach(el => {
       const style = el.getAttribute('style') || '';
       const text = el.innerText.trim();
       if(!text) return;
 
-      // If it looks like a heading (Bold + Big), make it an H2
       if ((style.includes('bold') || el.tagName === 'B' || el.querySelector('strong')) && 
           (style.includes('pt') || style.includes('px'))) {
          const size = parseInt(style.match(/(\d+)(pt|px)/)?.[1] || 0);
@@ -2620,48 +2563,73 @@ async function submitNews(postId){
       }
     });
 
-    // SCRUB JUNK: Remove MS Word classes, internal tracking, and inline font-families
-    let html = editor.innerHTML;
-    html = html.replace(/class="MsoNormal"/g, '');
-    html = html.replace(/style="mso-[^"]*"/g, '');
-    html = html.replace(/font-family:[^;"]*;?/g, '');
-    html = html.replace(/<o:p>.*?<\/o:p>/g, '');
-    html = html.replace(/<span>\s*<\/span>/g, ''); // Remove empty spans
-    editor.innerHTML = html;
-  }
-  const description= document.getElementById('news-description')?.value?.trim()||null
-  const content    = document.getElementById('news-editor')?.innerHTML?.trim()
-  const category   = document.getElementById('news-cat')?.value
-  const tags       = document.getElementById('news-tags')?.value?.trim()?.split(',').map(t=>t.trim()).filter(t=>t)||[]
-  const is_featured= document.getElementById('news-featured')?.checked||false
-  const source_name= document.getElementById('news-source-name')?.value?.trim()||null
-  const source_url = document.getElementById('news-source-url')?.value?.trim()||null
+    // SCRUB JUNK
+    let scrubHtml = editor.innerHTML;
+    scrubHtml = scrubHtml.replace(/class="MsoNormal"/g, '')
+                 .replace(/style="mso-[^"]*"/g, '')
+                 .replace(/font-family:[^;"]*;?/g, '')
+                 .replace(/<o:p>.*?<\/o:p>/g, '')
+                 .replace(/<span>\s*<\/span>/g, '');
+    editor.innerHTML = scrubHtml;
 
-  // Get image_url: manual field first, then first img in editor
-  let image_url = document.getElementById('news-image')?.value?.trim()||null
-  if(!image_url){
-    const editorHtml = document.getElementById('news-editor')?.innerHTML||''
-    const match = editorHtml.match(/<img[^>]+src=["']([^"']+)["']/i)
-    if(match && match[1]) image_url = match[1]
+    // Unwrap image resize wrappers
+    editor.querySelectorAll('.img-resize-wrapper').forEach(wrapper=>{
+      const img = wrapper.querySelector('img');
+      if(img){
+        img.style.width = wrapper.offsetWidth + 'px';
+        img.style.height = 'auto';
+        img.style.maxWidth = '100%';
+        img.style.display = 'block';
+        img.style.float = wrapper.style.float || 'none';
+        const tb = wrapper.querySelector('#img-resize-toolbar');
+        if(tb) tb.remove();
+        wrapper.parentNode.insertBefore(img, wrapper);
+        wrapper.remove();
+      }
+    });
+
+    editor.querySelectorAll('.tbl-minitoolbar, .col-resize-handle').forEach(el => el.remove());
+    editor.querySelectorAll('.tbl-sel, .tbl-selected').forEach(el => {
+        el.classList.remove('tbl-sel');
+        el.classList.remove('tbl-selected');
+    });
+    editor.querySelectorAll('table').forEach(t => delete t.dataset.tblInit);
   }
 
- if(!title){ toast('Please add a title','err'); return }
-if(!content || content === '<br>'){ toast('Please add content','err'); return }
-const slug = document.getElementById('news-slug')?.value?.trim() ||
-  title.toLowerCase().trim().replace(/[^a-z0-9\s-]/g,'').replace(/\s+/g,'-')
+  // --- Collect Data ---
+  const title       = document.getElementById('news-title')?.value?.trim();
+  const description = document.getElementById('news-description')?.value?.trim() || null;
+  const content     = editor ? editor.innerHTML.trim() : '';
+  const category    = document.getElementById('news-cat')?.value;
+  const tags        = document.getElementById('news-tags')?.value?.trim()?.split(',').map(t=>t.trim()).filter(t=>t) || [];
+  const is_featured = document.getElementById('news-featured')?.checked || false;
+  const source_name = document.getElementById('news-source-name')?.value?.trim() || null;
+  const source_url  = document.getElementById('news-source-url')?.value?.trim() || null;
+
+  let image_url = document.getElementById('news-image')?.value?.trim() || null;
+  if(!image_url && editor){
+    const match = editor.innerHTML.match(/<img[^>]+src=["']([^"']+)["']/i);
+    if(match && match[1]) image_url = match[1];
+  }
+
+  if(!title){ toast('Please add a title','err'); return; }
+  if(!content || content === '<br>'){ toast('Please add content','err'); return; }
+  
+  const slug = document.getElementById('news-slug')?.value?.trim() || 
+               title.toLowerCase().trim().replace(/[^a-z0-9\s-]/g,'').replace(/\s+/g,'-');
 
   try{
     if(postId){
-      await api(`/news/${postId}`, { method:'PATCH', body: JSON.stringify({ title, slug, description, content, category, tags, image_url, source_name, source_url, is_featured }) })
-      toast('Post updated! ✅')
+      await api(`/news/${postId}`, { method:'PATCH', body: JSON.stringify({ title, slug, description, content, category, tags, image_url, source_name, source_url, is_featured }) });
+      toast('Post updated! ✅');
     } else {
-      await api('/news/', { method:'POST', body: JSON.stringify({ title, slug, description, content, category, tags, image_url, source_name, source_url, is_featured }) })
-      toast('Post published! ✅')
+      await api('/news/', { method:'POST', body: JSON.stringify({ title, slug, description, content, category, tags, image_url, source_name, source_url, is_featured }) });
+      toast('Post published! ✅');
     }
-    document.querySelector('.modal-overlay')?.remove()
-    renderPublicNews()
-  }catch(e){
-    toast(e.message,'err')
+    document.querySelector('.modal-overlay')?.remove();
+    renderPublicNews();
+  } catch(e) {
+    toast(e.message,'err');
   }
 }
 
