@@ -644,7 +644,7 @@
               'Education News': '/news',
               'About Us': '/about',
               'Careers': '/news',
-              'Contact Us': 'javascript:void(0)', // Prevent hash jump
+              'Contact Us': '/#contact',
               'Privacy Policy': '/privacy',
               'Terms of Service': '/terms'
             };

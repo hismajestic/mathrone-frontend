@@ -1611,7 +1611,8 @@ async function submitResetPassword(token){
     err.textContent = e.message
   }
 }
-function handleFooterLink(l){
+function handleFooterLink(l, event){
+  if(event) event.preventDefault(); 
   console.log('Footer link clicked:', l)
   if(l==='Privacy Policy') navigate('privacy')
 
@@ -1625,7 +1626,17 @@ function handleFooterLink(l){
   else if(l==='Contact Us') {
     window.scrollToContact(event);
 }
-  else if(l==='How It Works') document.querySelector('.steps-grid')?.scrollIntoView()
+  else if(l==='How It Works') {
+    const el = document.querySelector('.steps-grid');
+    if(el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      navigate('landing');
+      setTimeout(() => {
+        document.querySelector('.steps-grid')?.scrollIntoView({ behavior: 'smooth' });
+      }, 600);
+    }
+  }
 }
 function animateCount(id, target, duration, suffix, isDecimal){
   const el = document.getElementById(id)
