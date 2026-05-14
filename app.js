@@ -396,12 +396,15 @@ function closeMenuOnOutside(e) {
   }
 }
 window.scrollToContact = function(e) {
-  if (e) e.preventDefault();
+  if (e && e.preventDefault) e.preventDefault();
   
+  // Always close the mobile menu if it's open
+  if (typeof closeMenu === 'function') closeMenu();
+
   const performScroll = () => {
-    const el = document.querySelector(".contact-grid");
+    const el = document.getElementById("contact");
     if (el) {
-      const offset = 80; // Offset for the sticky header
+      const offset = 80; // Space for sticky header
       const bodyRect = document.body.getBoundingClientRect().top;
       const elementRect = el.getBoundingClientRect().top;
       const elementPosition = elementRect - bodyRect;
@@ -415,11 +418,12 @@ window.scrollToContact = function(e) {
   };
 
   if (State.page !== 'landing') {
+    // Navigate home first
     navigate('landing');
-    // Increase timeout slightly to ensure full DOM paint
+    // Wait for the HTML to actually be rendered into the DOM
     setTimeout(performScroll, 600);
   } else {
-    closeMenu();
+    // Already on landing page, scroll immediately
     performScroll();
   }
 }
@@ -1619,9 +1623,8 @@ function handleFooterLink(l){
   else if(l==='Careers') navigate('news','career')
   else if(l==='Terms of Service') navigate('terms')
   else if(l==='Contact Us') {
-    if(event) event.preventDefault(); 
-    window.scrollToContact();
-  }
+    window.scrollToContact(event);
+}
   else if(l==='How It Works') document.querySelector('.steps-grid')?.scrollIntoView()
 }
 function animateCount(id, target, duration, suffix, isDecimal){

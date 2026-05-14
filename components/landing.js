@@ -315,7 +315,7 @@
     <a href="/shop" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:17px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="navigate('shop', null, event)">Shop</a>
     <a href="/majestic-lab" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:17px;color:var(--gold);cursor:pointer;padding:5px 8px;white-space:nowrap;font-weight:700" onclick="navigate('majestic-lab', null, event)"> Majestic Lab</a>
     <a href="/about" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:17px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="navigate('about', null, event)">About Us</a>
-    <a href="#contact" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:17px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="event.preventDefault(); window.scrollToContact()">Contact Us</a>
+    <a href="/#contact" class="btn-o" style="text-decoration:none;border:none;background:none;font-size:17px;color:#fff;cursor:pointer;padding:5px 8px;white-space:nowrap" onclick="window.scrollToContact(event)">Contact Us</a>
   </div>
 
   <!-- RIGHT SIDE -->
@@ -551,7 +551,7 @@
     <div class="lsection-inner">
       <h2 class="stitle">Get In Touch</h2>
       <p class="ssub">Have a question? We'd love to hear from you</p>
-      <div class="contact-grid">
+      <div id="contact" class="contact-grid">
         <div>
           <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:6px">Send us a message</div>
           <div style="font-size:13px;color:var(--g400);margin-bottom:20px">We typically respond within 24 hours on business days.</div>
@@ -605,8 +605,7 @@
       <div class="footer-grid">
         <div>
           <div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:12px"> Mathrone Academy</div>
-          <div style="font-size:13px;color:rgba(255,255,255,0.5);line-height:1.7;margin-bottom:20px">Mathrone Academy connects ambitious students with expert tutors and provides high-quality learning tools from notebooks to educational kits for personalised success,at home or online.</div>
-          <div class="footer-social" style="margin-top:16px;">
+          <div style="font-size:13px;color:rgba(255,255,255,0.5);line-height:1.7;margin-bottom:20px">Mathrone Academy connects ambitious students with expert tutors and provides high-quality learning tools from notebooks to educational kits for personalised success,at home or online. Registered Office: KG 11 Ave, Kiyovu, Kigali.</div>          <div class="footer-social" style="margin-top:16px;">
             <a href="https://facebook.com/mathroneacademy" target="_blank" class="social-icon" style="background:#1877f2;">
               <svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
             </a>

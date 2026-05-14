@@ -299,7 +299,7 @@
           <canvas id="doc-slide-canvas" style="display:block; background:#fff;"></canvas>
           <canvas id="doc-anno-canvas" style="position:absolute; top:0; left:0; cursor:crosshair; pointer-events:none;"></canvas>
           <div id="doc-floating-items" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:495;"></div>
-  <div id="doc-textboxes" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:496;" id="doc-textboxes"></div>
+  <div id="doc-textboxes" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:496;"></div>
           <div id="doc-laser-dot" style="display:none;position:absolute;width:15px;height:15px;background:#ff0000;border-radius:50%;pointer-events:none;z-index:500;box-shadow:0 0 10px #f00,0 0 20px #f00;transform:translate(-50%,-50%);transition:left 0.04s linear,top 0.04s linear;"></div>
           
         </div>
