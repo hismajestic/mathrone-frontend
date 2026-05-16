@@ -750,8 +750,14 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
     // Article count 
     const statEl = document.getElementById('pn-stat-articles')
     if(statEl){
-      const uniqueIds = new Set([...allPosts, ...featuredPosts].map(p => p.id))
-      statEl.textContent = uniqueIds.size + '+'
+      try {
+        // Fetch the true total from our new backend endpoint
+        const res = await fetch(API_URL + '/news/count/total').then(r => r.json());
+        statEl.textContent = (res.count || 0) + '+';
+      } catch(e) {
+        const uniqueIds = new Set([...allPosts, ...featuredPosts].map(p => p.id))
+        statEl.textContent = uniqueIds.size + '+';
+      }
     }
 
     // Trending sidebar
@@ -1021,8 +1027,11 @@ async function openNewsPost(slugOrId){
           <a href="${p.source_url}" target="_blank" class="btn btn-primary btn-sm">🔗 Visit Source →</a>
         </div>` : ''}
 
+        <!-- Admin actions -->
+        <div id="admin-news-actions" style="margin-top:32px;display:flex;gap:10px"></div>
+
         <!-- Share buttons -->
-        <div style="margin-top:32px;padding:20px;background:var(--sky);border-radius:12px">
+        <div style="margin-top:20px;padding:20px;background:var(--sky);border-radius:12px">
           <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:12px">📤 Share this article</div>
           <div style="display:flex;gap:10px;flex-wrap:wrap">
             <!-- WhatsApp -->
@@ -1065,8 +1074,6 @@ async function openNewsPost(slugOrId){
             <div class="loader-center"><div class="spinner"></div></div>
           </div>
         </div>
-<!-- Admin actions -->
-        <div id="admin-news-actions" style="margin-top:32px;display:flex;gap:10px"></div>
       </div>
       <div id="modal-root"></div>
 
