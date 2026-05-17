@@ -452,7 +452,8 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
     .pn-trend-cat{font-size:10px;color:#8A98B8;letter-spacing:0.05em;text-transform:uppercase;font-weight:600;margin-top:2px}
     .pn-tag{padding:4px 10px;border:1px solid #E5E2DA;border-radius:20px;font-size:12px;font-weight:500;color:#6B6B80;cursor:pointer;transition:all 0.15s;background:transparent;font-family:'DM Sans',sans-serif}
     .pn-tag:hover{border-color:#1A5FFF;color:#1A5FFF;background:#F0F4FF}
-    .pn-ncard{background:#fff;border:1px solid #E5E2DA;border-radius:10px;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;transition:transform 0.2s,box-shadow 0.2s,border-color 0.2s}
+    .pn-ncard{background:#fff;border:1px solid #E5E2DA;border-radius:10px;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;transition:transform 0.2s,box-shadow 0.2s,border-color 0.2s; min-height: 100%;}
+    .ad-provider-card { cursor: default !important; transform: none !important; box-shadow: none !important; }
     .pn-ncard:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(10,15,44,0.08);border-color:#D0CEC6}
     .pn-ncard-img{width:100%;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;font-size:40px;flex-shrink:0}
     .pn-ncard-img.blue{background:linear-gradient(135deg,#E3F0FF,#B8D4F5)}
@@ -849,7 +850,14 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
             </div>
             ${posts.length ? `
             <div class="pn-grid-3">
-              ${posts.map(p => newsCard(p, false)).join('')}
+              ${posts.map((p, index) => {
+                const card = newsCard(p, false);
+                // Inject an ad card after the 3rd and 7th article
+                if (index === 2 || index === 6) {
+                  return card + renderInFeedAd();
+                }
+                return card;
+              }).join('')}
             </div>` : `
             <div style="text-align:center;padding:60px 20px;color:#8A98B8">
               <div style="font-size:48px;margin-bottom:12px">📰</div>
@@ -887,6 +895,18 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
       </div>
     </div>
     <div id="modal-root"></div>`
+
+    // Trigger In-feed Ads to load
+    setTimeout(() => {
+      try {
+        const adSlots = document.querySelectorAll('#pn-content .adsbygoogle');
+        adSlots.forEach(slot => {
+          if (!slot.dataset.adStatus) { // Prevent double-loading
+            (window.adsbygoogle = window.adsbygoogle || []).push({});
+          }
+        });
+      } catch (err) { console.error("AdSense Feed trigger failed", err); }
+    }, 500);
 
   } catch(e) {
     document.getElementById('pn-content').innerHTML = `<div style="text-align:center;padding:60px;color:#8A98B8">Failed to load news. Please try again.</div>`
@@ -957,10 +977,7 @@ async function openNewsPost(slugOrId){
       'https://mathroneacademy.com/news/' + (p.slug || p.id)
     );
     const isLoggedIn = !!State.user
-    // PRIORITY: Use custom description strictly. Fallback to a longer snippet (160 chars) only if null.
-    const articleDesc = (p.description && p.description.trim() !== '') 
-      ? p.description.trim() 
-      : (p.content || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160);
+    
 
     
     render(`
@@ -3313,4 +3330,18 @@ function insertWhatsAppCTA() {
   // Refresh Lucide icons so the newly inserted icons appear immediately
   if (window.lucide) window.lucide.createIcons();
   toast('WhatsApp CTA inserted! ✅');
+}
+function renderInFeedAd() {
+  return `
+    <div class="pn-ncard ad-provider-card" style="background:#fff; border:1px solid var(--g100); display:flex; flex-direction:column; min-height:300px; overflow:hidden;">
+      <div style="padding:8px; font-size:10px; color:#8A98B8; text-transform:uppercase; font-weight:700; border-bottom:1px solid #f1f3f7">Sponsored</div>
+      <div style="flex:1; display:flex; align-items:center; justify-content:center; padding:10px;">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-format="fluid"
+             data-ad-layout-key="-fb+5w+4e-db+86"
+             data-ad-client="ca-pub-4145600853778757"
+             data-ad-slot="9530260876"></ins>
+      </div>
+    </div>`;
 }
