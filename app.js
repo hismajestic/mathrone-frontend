@@ -487,7 +487,7 @@ window.scrollToContact = function(e) {
       await loadComponent('landing'); renderLanding()
       setTimeout(loadUnreadCount, 200)
     }
-   function navigate(page, tab = null, event = null) {
+   async function navigate(page, tab = null, event = null) {
   const authPages = ['login', 'register', 'forgot-password', 'reset-password'];
   const privateAppPages = ['dashboard','sessions','messages','profile','notifications','tutors','forum','exam','quiz','cart','wishlist','my-orders','admin-tutors','admin-students','admin-sessions','admin-payments','admin-exam','admin-shop','my-courses','admin-courses'];
   
@@ -496,242 +496,103 @@ window.scrollToContact = function(e) {
     State.lastPublicTab = tab;
   }
 
-  // SEO: If a real event is passed, prevent full reload but keep the 'href' behavior for bots
   if (event && event.preventDefault) {
     if (!event.ctrlKey && !event.shiftKey && !event.metaKey && event.button !== 1) {
       event.preventDefault();
     } else {
-      return; // Let browser open in new tab if user uses Ctrl+Click
+      return;
     }
   }
 
-  // Memory: Save current page before switching, unless it's an auth page
   if (!authPages.includes(State.page)) {
     State.prevPage = State.page;
     State.prevTab = State.tab;
   }
   
- State.page = page;
- State.tab = tab;
-  // State.data is preserved to keep search filters/temp data alive
-  renderPage();
-  
-  // IMMEDIATE SEO UPDATE (Before API calls)
-  // Comprehensive Page Titles for SEO and User Navigation
-      const titles = {
-        landing:         'Mathrone Academy| Best Private Tutors in Rwanda',
-        news:            'Education News & Scholarships Rwanda | Mathrone Academy',
-        shop:            'Learning Store |Buy School Materials in Kigali',
-        about:           'About Us |Mathrone Academy',
-        privacy:         'Privacy Policy | Mathrone Academy',
-        terms:           'Terms & Conditions | Mathrone Academy',
-        login:           'Sign In | Mathrone Academy',
-        register:        'Join Mathrone Academy | Register Today',
-        quiz:            'AI Quiz | Mathrone Academy',
-        dashboard:       'Dashboard | Mathrone Academy',
-        forum:           'Community Forum | Mathrone Academy',
-        sessions:        'My Sessions | Mathrone Academy',
-        messages:        'Messages | Mathrone Academy',
-        profile:         'My Profile | Mathrone Academy',
-        notifications:   'Notifications | Mathrone Academy',
-        tutors:          'Find a Math, Science or Language Tutor | Mathrone',
-        'admin-tutors':  'Manage Tutors | Mathrone Academy',
-        'admin-students':'Manage Students | Mathrone Academy',
-        'admin-sessions':'Manage Sessions | Mathrone Academy',
-        'admin-payments':'Payments | Mathrone Academy',
-        'admin-exam':    'Exam Manager | Mathrone Academy',
-        'admin-shop':    'Shop Manager | Mathrone Academy',
-        exam:            'Written Exam | Mathrone Academy',
-        cart:            'My Shopping Cart | Mathrone Store',
-        wishlist:        'My Wishlist | Mathrone Academy',
-        'my-orders':     'My Orders | Mathrone Academy',
-        'majestic-lab':  'Majestic Lab | Professional Virtual STEM Lab for Schools',
-        'courses':       'Online Courses | Mathrone Academy',
-        'my-courses':    'My Courses | Mathrone Academy',
-         'admin-courses': 'Courses Manager | Mathrone Academy',
-      }
+  State.page = page;
+  State.tab = tab;
 
-      // Dynamic Meta Descriptions to help Google ranking
-      const descriptions = {
-        landing: 'Mathrone Academy connects ambitious students with hand-picked, vetted tutors for personalised 1-on-1 learning — online or at home in Rwanda.',
-        news: 'Stay updated with the latest education news, scholarships, government updates and career opportunities in Rwanda.',
-        shop: 'Buy quality learning materials — notebooks, geometry sets, science kits and more. Delivered to your door in Rwanda.',
-        about: 'Learn about Mathrone Academy — our mission, team and story of connecting students with the best tutors in Rwanda.',
-        register: 'Join Mathrone Academy today. Find a tutor or apply to become one.',
-        tutors: 'Search our directory of qualified tutors in Kigali for REB, IGCSE and University levels.',
-        'majestic-lab': 'Equip your school with the Majestic Lab. A professional virtual STEM workspace with 3D shapes, whiteboard sync, and interactive teaching tools for Rwandan educators.',
-      }
+  const urlMap = {
+    landing: '/', news: '/news', shop: '/shop', about: '/about', privacy: '/privacy', 
+    terms: '/terms', login: '/login', register: '/register', dashboard: '/dashboard', 
+    forum: '/forum', sessions: '/sessions', messages: '/messages', profile: '/profile',
+    notifications: '/notifications', tutors: '/tutors', quiz: '/quiz', cart: '/cart', 
+    wishlist: '/wishlist', 'my-orders': '/my-orders', 'admin-tutors': '/admin-tutors',
+    'admin-students': '/admin-students', 'admin-sessions': '/admin-sessions',
+    'admin-payments': '/admin-payments', 'admin-exam': '/admin-exam',
+    'admin-shop': '/admin-shop', 'courses': '/courses', 'my-courses': '/my-courses',
+    'admin-courses': '/admin-courses', 'majestic-lab': '/majestic-lab',
+  };
 
-      // Update the browser title
-      document.title = titles[page] || 'Mathrone Academy';
+  let newUrl = urlMap[page];
+  if (!newUrl) {
+    if (page.startsWith('news-article/')) newUrl = '/news/' + page.replace('news-article/', '');
+    else if (page.startsWith('shop-product-')) newUrl = '/shop/' + page.replace('shop-product-', '');
+    else if (page.startsWith('course-')) newUrl = '/course/' + page.replace('course-', '');
+    else if (page.startsWith('verify/')) newUrl = '/verify/' + page.replace('verify/', '');
+    else if (page.startsWith('reset/')) newUrl = '/reset/' + page.replace('reset/', '');
+    else if (page.startsWith('report/')) newUrl = '/report/' + page.replace('report/', '');
+    else newUrl = '/';
+  }
 
-      // Update Meta Description for SEO
-      const metaDesc = document.querySelector('meta[name="description"]');
-      if (metaDesc && descriptions[page]) {
-        metaDesc.setAttribute('content', descriptions[page]);
-      }
-      
-      const ogDesc = document.querySelector('meta[property="og:description"]');
-      if (ogDesc && descriptions[page]) {
-        ogDesc.setAttribute('content', descriptions[page]);
-      }
+  if (window.location.pathname !== newUrl) {
+    history.pushState({ page, tab, scroll: 0 }, document.title, newUrl);
+  }
 
-      // Reset noindex (in case user navigated from a 404)
-      document.getElementById('meta-robots-noindex')?.remove()
-      const privatePages = ['dashboard','messages','profile','sessions','notifications','cart','wishlist','my-orders','forum','exam','quiz','admin-tutors','admin-students','admin-sessions','admin-payments','admin-exam','admin-shop','login','register','my-courses','admin-courses']
-      
-      if (privatePages.includes(page) || page.startsWith('verify/') || page.startsWith('reset/') || page.startsWith('admin')) {
-        const ni = document.createElement('meta')
-        ni.id = 'meta-robots-noindex'
-        ni.name = 'robots'
-        ni.content = 'noindex, nofollow'
-        document.head.appendChild(ni)
-        document.querySelector('meta[name="robots"]')?.setAttribute('content', 'noindex, nofollow')
-      } else {
-        document.querySelector('meta[name="robots"]')?.setAttribute('content', 'index, follow')
-      }
+  // CRITICAL: Wait for components to finish rendering and setting dynamic meta
+  await renderPage();
 
-      // Update og:title to match page title
-      const ogTitle = document.querySelector('meta[property="og:title"]')
-      if (ogTitle) ogTitle.setAttribute('content', titles[page] || 'Mathrone Academy')
-      const twTitle = document.querySelector('meta[name="twitter:title"]')
-      if (twTitle) twTitle.setAttribute('content', titles[page] || 'Mathrone Academy')
+  const titles = {
+    landing: 'Mathrone Academy | Best Private Tutors in Rwanda',
+    news: 'Education News & Scholarships Rwanda | Mathrone Academy',
+    shop: 'Learning Store | Buy School Materials in Kigali',
+    about: 'About Us | Mathrone Academy',
+    privacy: 'Privacy Policy | Mathrone Academy',
+    terms: 'Terms & Conditions | Mathrone Academy',
+    login: 'Sign In | Mathrone Academy',
+    register: 'Join Mathrone Academy | Register Today',
+    quiz: 'AI Quiz | Mathrone Academy',
+    dashboard: 'Dashboard | Mathrone Academy',
+    forum: 'Community Forum | Mathrone Academy',
+    sessions: 'My Sessions | Mathrone Academy',
+    messages: 'Messages | Mathrone Academy',
+    profile: 'My Profile | Mathrone Academy',
+    notifications: 'Notifications | Mathrone Academy',
+    tutors: 'Find a Math, Science or Language Tutor | Mathrone',
+    'admin-tutors': 'Manage Tutors | Mathrone Academy',
+    'admin-students': 'Manage Students | Mathrone Academy',
+    'admin-sessions': 'Manage Sessions | Mathrone Academy',
+    'admin-payments': 'Payments | Mathrone Academy',
+    'admin-exam': 'Exam Manager | Mathrone Academy',
+    'admin-shop': 'Shop Manager | Mathrone Academy',
+    exam: 'Written Exam | Mathrone Academy',
+    cart: 'My Shopping Cart | Mathrone Store',
+    wishlist: 'My Wishlist | Mathrone Academy',
+    'my-orders': 'My Orders | Mathrone Academy',
+    'majestic-lab': 'Majestic Lab | Professional Virtual STEM Lab for Schools',
+    'courses': 'Online Courses | Mathrone Academy',
+    'my-courses': 'My Courses | Mathrone Academy',
+    'admin-courses': 'Courses Manager | Mathrone Academy',
+  };
 
-      // Remove page-specific schemas when navigating away
-      ;['article-schema','product-schema','breadcrumb-schema'].forEach(id => {
-        document.getElementById(id)?.remove()
-      })
+  const descriptions = {
+    landing: 'Mathrone Academy connects ambitious students with vetted tutors for 1-on-1 learning in Rwanda.',
+    news: 'Stay updated with the latest education news, scholarships, and career opportunities in Rwanda.',
+    shop: 'Buy quality learning materials — notebooks, geometry sets, and science kits delivered in Rwanda.',
+    'majestic-lab': 'A professional virtual STEM workspace with 3D shapes and whiteboard sync for Rwandan schools.'
+  };
 
-      // Inject BreadcrumbList schema
-      const breadcrumbMap = {
-        news:    [{ name:'Home', url:'/' }, { name:'Education News', url:'/news' }],
-        shop:    [{ name:'Home', url:'/' }, { name:'Learning Store', url:'/shop' }],
-        tutors:  [{ name:'Home', url:'/' }, { name:'Find a Tutor', url:'/tutors' }],
-        about:   [{ name:'Home', url:'/' }, { name:'About Us', url:'/about' }],
-        privacy: [{ name:'Home', url:'/' }, { name:'Privacy Policy', url:'/privacy' }],
-        terms:   [{ name:'Home', url:'/' }, { name:'Terms & Conditions', url:'/terms' }],
-        'majestic-lab': [{ name:'Home', url:'/' }, { name:'Majestic Lab', url:'/majestic-lab' }],
-      };
-      
-      // Dynamic logic for Articles and Products
-      if(page.startsWith('news-article/')) {
-         breadcrumbMap[page] = [
-           { name:'Home', url:'/' }, 
-           { name:'News', url:'/news' },
-           { name: document.title.split('|')[0].trim(), url: window.location.pathname }
-         ];
-      } else if(page.startsWith('shop-product-')) {
-         breadcrumbMap[page] = [
-           { name:'Home', url:'/' }, 
-           { name:'Shop', url:'/shop' },
-           { name: document.title.split('|')[0].trim(), url: window.location.pathname }
-         ];
-      }
+  // SEO GUARD: If URL is dynamic (article, product, course), DO NOT overwrite meta
+  const isDynamic = page.includes('article/') || page.includes('product-') || page.includes('course-') || page.startsWith('report/');
 
-      if (breadcrumbMap[page]) {
-        const BASE = 'https://mathroneacademy.com'
-        const bcSchema = document.createElement('script')
-        bcSchema.id = 'breadcrumb-schema'
-        bcSchema.type = 'application/ld+json'
-        bcSchema.textContent = JSON.stringify({
-          '@context': 'https://schema.org',
-          '@type': 'BreadcrumbList',
-          'itemListElement': breadcrumbMap[page].map((item, i) => ({
-            '@type': 'ListItem',
-            'position': i + 1,
-            'name': item.name,
-            'item': BASE + item.url
-          }))
-        })
-        document.head.appendChild(bcSchema)
-      }
+  if (!isDynamic) {
+    if (titles[page]) document.title = titles[page];
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc && descriptions[page]) metaDesc.setAttribute('content', descriptions[page]);
+  }
 
-      // Keep canonical and og:url in sync with the real URL
-      const urlMap2 = {
-        landing: 'https://mathroneacademy.com/',
-        news: 'https://mathroneacademy.com/news',
-        shop: 'https://mathroneacademy.com/shop',
-        about: 'https://mathroneacademy.com/about',
-        privacy: 'https://mathroneacademy.com/privacy',
-        terms: 'https://mathroneacademy.com/terms',
-        'majestic-lab': 'https://mathroneacademy.com/majestic-lab',
-      }
-      const canonicalHref = urlMap2[page] || null
-      if (canonicalHref) {
-        document.querySelector('link[rel="canonical"]')?.setAttribute('href', canonicalHref)
-        document.querySelector('meta[property="og:url"]')?.setAttribute('content', canonicalHref)
-      }
-
-      localStorage.setItem('tc_page', page)
-      localStorage.setItem('tc_tab', tab || '')
-      // Clear any saved lab session when navigating away from it
-      if (page !== 'public-lab') localStorage.removeItem('tc_lab_token');
-
-      // Push a real URL into the address bar (SEO + shareable links)
-      const urlMap = {
-        landing: '/', 
-        news: '/news', 
-        shop: '/shop', 
-        about: '/about',
-        privacy: '/privacy', 
-        terms: '/terms', 
-        login: '/login',
-        register: '/register', 
-        dashboard: '/dashboard', 
-        forum: '/forum',
-        sessions: '/sessions', 
-        messages: '/messages', 
-        profile: '/profile',
-        notifications: '/notifications', 
-        tutors: '/tutors',
-        quiz: '/quiz',
-        cart: '/cart', 
-        wishlist: '/wishlist', 
-        'my-orders': '/my-orders',
-        'admin-tutors': '/admin-tutors',
-        'admin-students': '/admin-students',
-        'admin-sessions': '/admin-sessions',
-        'admin-payments': '/admin-payments',
-        'admin-exam': '/admin-exam',
-        'admin-shop': '/admin-shop',
-        'courses':        '/courses',
-        'my-courses':     '/my-courses',
-        'admin-courses':  '/admin-courses',
-        'majestic-lab':   '/majestic-lab',
-      };
-
-      let newUrl = urlMap[page];
-      
-      // Handle dynamic routes for News, Shop, and Courses
-      if (!newUrl) {
-        if (page.startsWith('news-article/')) {
-          newUrl = '/news/' + page.replace('news-article/', '');
-        } else if (page.startsWith('shop-product-')) {
-          newUrl = '/shop/' + page.replace('shop-product-', '');
-        } else if (page.startsWith('course-lessons-')) {
-          newUrl = null; // private — no public URL needed
-        } else if (page.startsWith('course-')) {
-          newUrl = '/course/' + page.replace('course-', '');
-        } else if (page.startsWith('verify/')) {
-          newUrl = '/verify/' + page.replace('verify/', '');
-        } else if (page.startsWith('reset/')) {
-          newUrl = '/reset/' + page.replace('reset/', '');
-        } else if (page.startsWith('report/')) {
-          newUrl = '/report/' + page.replace('report/', '');
-        } else {
-          newUrl = '/';
-        }
-      }
-
-      if (window.location.pathname !== newUrl) {
-        // Save current scroll position before pushing new state
-        history.replaceState({ ...history.state, scroll: window.scrollY }, document.title, window.location.pathname);
-        history.pushState({ page, tab, scroll: 0 }, document.title, newUrl);
-      }
-
-      renderPage()
-      setTimeout(loadUnreadCount, 200)
-    }
+  setTimeout(loadUnreadCount, 200);
+}
 function openStandaloneVideoCall(sessionId) {
   const roomName = `MathroneMajesticV5_${sessionId.replace(/[^a-zA-Z0-9]/g, '')}`;
   const isTutor = State.user && (State.user.role === 'tutor' || State.user.role === 'admin');

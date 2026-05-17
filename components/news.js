@@ -330,7 +330,10 @@ function resizeSelectedImg(width, align=null){
 }
 function newsCard(p, featured){
   const cat = NEWS_CATEGORIES.find(c=>c.id===p.category) || NEWS_CATEGORIES[0]
-  const excerpt = p.content.replace(/<[^>]*>/g,'').slice(0,110)
+  // Priority: Use description field if it exists, otherwise fallback to content snippet
+const excerpt = (p.description && p.description.trim() !== '') 
+  ? p.description.slice(0, 140) 
+  : p.content.replace(/<[^>]*>/g,'').replace(/\s+/g, ' ').trim().slice(0, 110) + '...';
   const imgColor = {news:'blue',scholarship:'gold',government:'green',career:'red',abroad:'navy',resources:'purple'}
   const articleUrl = p.slug ? `/news/${p.slug}` : `/news/${p.id}`;
 return `
@@ -349,7 +352,7 @@ return `
       <div class="pn-ncard-title" style="margin:6px 0 2px 0; padding: 0 2px; line-height:1.2; font-size: 13px; font-weight: 800; color:var(--navy); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${p.title}</div>
       
       <!-- Excerpt: Zero padding on left/right -->
-      <div class="pn-ncard-excerpt" style="margin:0; padding: 0 2px; font-size:11px; color:var(--g600); line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${excerpt}</div>
+      <div class="pn-ncard-excerpt" style="margin:4px 0 8px 0; padding: 0 8px; font-size:12px; color:var(--g600); line-height:1.5; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">${excerpt}</div>
       
       <div class="pn-ncard-footer" style="margin-top:auto; padding: 6px 2px 2px; border-top:1px solid var(--g50); display:flex; align-items:center; font-size:9px; color:var(--g400);">
         <span>${fmtShort(p.created_at)} • ${p.views_count||0} views</span>
@@ -1153,10 +1156,21 @@ async function openNewsPost(slugOrId){
       }
     }, 200)
     const articleUrl = 'https://mathroneacademy.com/news/' + articleSlug
-    const articleDesc = p.description || (p.content.replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim().slice(0,155) + '...')
-    const articleImg  = p.image_url || 'https://mathroneacademy.com/og-banner.jpg'
-    const fullTitle   = p.title + ' | Mathrone Academy Rwanda'
-    document.title = fullTitle
+    // Priority: Use description field if it exists, otherwise fallback to content snippet
+const excerpt = (p.description && p.description.trim() !== '') 
+  ? p.description.slice(0, 140) 
+  : p.content.replace(/<[^>]*>/g,'').replace(/\s+/g, ' ').trim().slice(0, 110) + '...';
+const articleImg  = p.image_url || 'https://mathroneacademy.com/og-banner.jpg'
+const fullTitle   = p.title + ' | Mathrone Academy Rwanda'
+document.title = fullTitle
+// Force set description attribute
+let metaD = document.querySelector('meta[name="description"]');
+if(!metaD) {
+  metaD = document.createElement('meta');
+  metaD.name = "description";
+  document.head.appendChild(metaD);
+}
+metaD.setAttribute('content', articleDesc);
     document.querySelector('meta[name="description"]')?.setAttribute('content', articleDesc)
     
     // SEO: Inject Meta Keywords from Tags

@@ -81,7 +81,7 @@ export async function onRequest(context) {
   const userAgent = request.headers.get('user-agent') || '';
 
   // Define isBot so the worker knows who is visiting
-  const isBot = /googlebot|bingbot|yandex|duckduckbot|slurp|baiduspider|whatsapp|telegram|twitterbot|facebookexternalhit|linkedinbot|slackbot|discordbot|crawler|spider|bot/i.test(userAgent);
+  const isBot = /googlebot|mediapartners-google|adsbot-google|bingbot|yandex|duckduckbot|slurp|baiduspider|whatsapp|telegram|twitterbot|facebookexternalhit|linkedinbot|slackbot|discordbot|crawler|spider|bot/i.test(userAgent);
 
   // Preflight
   if (request.method === 'OPTIONS') {
