@@ -588,7 +588,11 @@ window.scrollToContact = function(e) {
   if (!isDynamic) {
     if (titles[page]) document.title = titles[page];
     const metaDesc = document.querySelector('meta[name="description"]');
-    if (metaDesc && descriptions[page]) metaDesc.setAttribute('content', descriptions[page]);
+    if (metaDesc && descriptions[page]) {
+        metaDesc.setAttribute('content', descriptions[page]);
+        // Also update OG for safety
+        document.querySelector('meta[property="og:description"]')?.setAttribute('content', descriptions[page]);
+    }
   }
 
   setTimeout(loadUnreadCount, 200);

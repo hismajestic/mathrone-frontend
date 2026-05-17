@@ -939,28 +939,30 @@ async function subscribeNewsletter(){
 
 async function openNewsPost(slugOrId){
   try{
-    // Try to fetch by slug first, fallback to ID for backward compatibility
     let p;
-    try {
-      p = await api('/news/by-slug/' + slugOrId);
-    } catch (e) {
-      // Fallback to ID-based lookup
-      p = await api('/news/' + slugOrId);
-    }
+    try { p = await api('/news/by-slug/' + slugOrId); } 
+    catch (e) { p = await api('/news/' + slugOrId); }
+    
     const cat = NEWS_CATEGORIES.find(c=>c.id===p.category) || NEWS_CATEGORIES[0]
-    const isLoggedIn = !!State.user
-    // PRIORITY: Use custom description strictly. Fallback to a longer snippet (160 chars) only if null.
+    
+    // SEO CRITICAL: Set metadata IMMEDIATELY before rendering HTML
     const articleDesc = (p.description && p.description.trim() !== '') 
       ? p.description.trim() 
       : (p.content || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160);
 
-    // Initial meta set
     setPageMeta(
       p.title + ' | Mathrone Academy Rwanda',
       articleDesc,
       p.image_url || 'https://mathroneacademy.com/og-banner.jpg',
       'https://mathroneacademy.com/news/' + (p.slug || p.id)
     );
+    const isLoggedIn = !!State.user
+    // PRIORITY: Use custom description strictly. Fallback to a longer snippet (160 chars) only if null.
+    const articleDesc = (p.description && p.description.trim() !== '') 
+      ? p.description.trim() 
+      : (p.content || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160);
+
+    
     render(`
     <style>
       .news-article-body h2{font-size:26px;font-weight:800;color:var(--navy);margin:32px 0 16px;line-height:1.2;border-bottom:1px solid var(--g100);padding-bottom:8px}
@@ -1027,7 +1029,15 @@ async function openNewsPost(slugOrId){
         </div>
 
         <!-- Content (image_url is already inside content, don't show it twice) -->
-       <div class="news-article-body">${(p.content || '').replace(/<table[^>]*data-ad-placeholder="true"[^>]*>.*?<\/table>/gs, `<div style="margin:16px 0;text-align:center"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="XXXXXXXXXX" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});<\/script></div>`)}</div>
+       <div class="news-article-body">${(p.content || '').replace(/<table[^>]*data-ad-placeholder="true"[^>]*>.*?<\/table>/gs, `
+        <div style="margin:24px 0;" class="ad-slot-wrapper">
+          <ins class="adsbygoogle"
+               style="display:block; text-align:center;"
+               data-ad-layout="in-article"
+               data-ad-format="fluid"
+               data-ad-client="ca-pub-4145600853778757"
+               data-ad-slot="9530260876"></ins>
+        </div>`)}</div>
 
         <!-- Source link -->
         ${p.source_url ? `
@@ -1159,6 +1169,14 @@ async function openNewsPost(slugOrId){
         } else if(body.textContent.includes('\\(') || body.textContent.includes('$$')){
           try{ await ensureMathJax(); await MathJax.typesetPromise([body]) }catch(e){}
         }
+
+        // 3. Trigger AdSense to load the ads we just injected
+        try {
+          const adSlots = body.querySelectorAll('.adsbygoogle');
+          adSlots.forEach(() => {
+            (window.adsbygoogle = window.adsbygoogle || []).push({});
+          });
+        } catch (e) { console.error("AdSense trigger failed", e); }
       }
     }, 200)
     const articleUrl = 'https://mathroneacademy.com/news/' + articleSlug;
