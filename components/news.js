@@ -3332,16 +3332,13 @@ function insertWhatsAppCTA() {
   toast('WhatsApp CTA inserted! ✅');
 }
 function renderInFeedAd() {
+  // If AdSense is approved, return the code we had before.
+  // For now, let's show a "House Ad" to look professional for the Google Reviewer.
   return `
-    <div class="pn-ncard ad-provider-card" style="background:#fff; border:1px solid var(--g100); display:flex; flex-direction:column; min-height:300px; overflow:hidden;">
-      <div style="padding:8px; font-size:10px; color:#8A98B8; text-transform:uppercase; font-weight:700; border-bottom:1px solid #f1f3f7">Sponsored</div>
-      <div style="flex:1; display:flex; align-items:center; justify-content:center; padding:10px;">
-        <ins class="adsbygoogle"
-             style="display:block"
-             data-ad-format="fluid"
-             data-ad-layout-key="-fb+5w+4e-db+86"
-             data-ad-client="ca-pub-4145600853778757"
-             data-ad-slot="9530260876"></ins>
-      </div>
+    <div class="pn-ncard" style="background:var(--navy); border:none; display:flex; flex-direction:column; min-height:280px; overflow:hidden; justify-content:center; align-items:center; text-align:center; padding:20px; color:#fff; cursor:pointer;" onclick="navigate('register')">
+      <div style="font-size:24px; margin-bottom:10px;">🎓</div>
+      <div style="font-family:'Playfair Display',serif; font-size:18px; font-weight:700; margin-bottom:8px;">Need an Expert Tutor?</div>
+      <p style="font-size:13px; opacity:0.8; margin-bottom:15px;">Get 1-on-1 help with Math, Science, and more. Online or at Home.</p>
+      <span style="background:#F5C842; color:var(--navy); padding:8px 16px; border-radius:6px; font-size:12px; font-weight:800;">Get Started →</span>
     </div>`;
 }

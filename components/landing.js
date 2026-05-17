@@ -3,7 +3,13 @@
     // ════════════════════════════════════════════════════════════
    
   function renderLanding() {
-  render(`
+    setPageMeta(
+      "Mathrone Academy | Best Private Tutors in Rwanda",
+      "Connect with vetted expert tutors for online and home tutoring in Kigali and across Rwanda. Curriculum-aligned courses for REB, IGCSE, and more.",
+      "https://mathroneacademy.com/og-banner.jpg",
+      "https://mathroneacademy.com/"
+    );
+    render(`
   <style>
     .lnav{display:flex;align-items:center;justify-content:space-between;padding:10px 24px;border-bottom:1px solid rgba(255,255,255,0.08);position:sticky;top:0;background:#1e3a8a;z-index:100;flex-wrap:nowrap;gap:8px}
     .lbrand{font-size:20px;font-weight:700;color:#fff;cursor:pointer;background:none;border:none;display:flex;align-items:left;gap:8px;flex-shrink:0}
@@ -253,7 +259,7 @@
     @keyframes chcIn{0%{opacity:0;clip-path:circle(0% at 100% 0%)}100%{opacity:1;clip-path:circle(150% at 100% 0%)}}
     @keyframes chcGlow{0%,100%{box-shadow:-4px 4px 28px 4px rgba(245,158,11,0.2)}50%{box-shadow:-8px 8px 50px 12px rgba(245,158,11,0.5)}}
       @keyframes dotPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(1.8)}}
-    .chc-wrap{position:absolute;top:0;right:0;width:400px;height:400px;cursor:pointer;z-index:0;overflow:hidden;border-radius:0 0 0 100%;animation:chcIn 1s cubic-bezier(.4,0,.2,1) 0.8s both,chcGlow 4s ease-in-out 2s infinite;transition:all 0.3s}
+    .chc-wrap{position:absolute;top:80px;right:0;width:400px;height:400px;cursor:pointer;z-index:0;overflow:hidden;border-radius:0 0 0 100%;animation:chcIn 1s cubic-bezier(.4,0,.2,1) 0.8s both,chcGlow 4s ease-in-out 2s infinite;transition:all 0.3s}
     .chc-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top}
     .chc-overlay{position:absolute;inset:0;background:linear-gradient(225deg,rgba(6,14,36,0.82) 0%,rgba(6,14,36,0.6) 55%,transparent 100%);transition:background 0.3s}
     .chc-wrap:hover .chc-overlay{background:linear-gradient(225deg,rgba(6,14,36,0.92) 0%,rgba(6,14,36,0.72) 60%,transparent 100%)}
@@ -339,6 +345,7 @@
       <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=600&q=75&fm=webp" 
      srcset="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=600&q=75&fm=webp 600w, https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1200&q=75&fm=webp 1200w"
      sizes="(max-width: 768px) 600px, 1200px"
+     width="1200" height="800"
      alt="Mathrone Academy Hero" fetchpriority="high" decoding="async" style="width:100%;height:100%;object-fit:cover;display:block"/>
       <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(30,58,138,0.88) 0%,rgba(37,99,235,0.82) 100%)"></div>
     </div>
@@ -686,7 +693,13 @@
   }, 300)
 }
     function renderMajesticLabPage(){
-  render(`
+      setPageMeta(
+        "Majestic Lab | Professional Virtual STEM Lab for Schools in Rwanda",
+        "Empower teachers with 3D geometry, interactive whiteboards, and live student sync. The ultimate virtual laboratory built for Rwandan secondary schools.",
+        "https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/lab1.png",
+        "https://mathroneacademy.com/majestic-lab"
+      );
+      render(`
   <style>
     @keyframes slideLabImages { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
     .lab-slider-container { background: #0A0F2C; padding: 40px 0; overflow: hidden; position: relative; border-top: 1px solid rgba(255,255,255,0.1); border-bottom: 1px solid rgba(255,255,255,0.1); }
@@ -1074,7 +1087,8 @@
 }
 
     function renderTerms(){
-  render(`
+      setPageMeta("Terms & Conditions | Mathrone Academy", "Read our terms of service and usage guidelines.", null, "https://mathroneacademy.com/terms");
+      render(`
   <nav style="display:flex;align-items:center;justify-content:space-between;padding:14px 48px;border-bottom:1px solid var(--g100);background:#fff;position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:10px">
     <button onclick="navigate('landing')" style="display:flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer">
       <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" alt="Mathrone Academy logo" loading="lazy" decoding="async" style="height:34px;width:auto"/>
@@ -1270,6 +1284,7 @@
         title:'Limitation of Liability',
         content:`
         <ul>
+          <li><strong>Third-Party Content:</strong> Our platform contains advertisements served by Google AdSense and links to external sites. We are not responsible for the content, privacy policies, or practices of third-party vendors or advertisers.</li>
           <li>Mathrone Academy provides the platform on an "as is" and "as available" basis. We do not warrant that the platform will be uninterrupted, error-free, or secure at all times.</li>
           <li>We are not liable for any indirect, incidental, special, or consequential damages arising from your use of the platform.</li>
           <li>Our total liability to any user for any claim arising from use of the platform shall not exceed the amount paid by that user in the 30 days prior to the claim.</li>
@@ -1355,7 +1370,8 @@
   `)
 }
     function renderPrivacyPolicy(){
-  render(`
+      setPageMeta("Privacy Policy | Mathrone Academy", "How we protect and manage your data at Mathrone Academy.", null, "https://mathroneacademy.com/privacy");
+      render(`
   <style>
     .pp-nav{display:flex;align-items:center;justify-content:space-between;padding:16px 48px;border-bottom:1px solid var(--g100);background:#fff;position:sticky;top:0;z-index:100}
     .pp-body{max-width:800px;margin:0 auto;padding:56px 48px}
@@ -1425,8 +1441,14 @@
     <h2 class="pp-h2">5. Children's Privacy</h2>
     <p class="pp-p">Mathrone Academy serves students of all ages including minors. We take extra care to protect the privacy of children on our platform. Parental consent is required during student registration for users under 18. Parents may request access to, correction of, or deletion of their child's data at any time by contacting us.</p>
 
-    <h2 class="pp-h2">6. Cookies & Tracking</h2>
-    <p class="pp-p">Our platform uses browser localStorage to maintain your login session and save your preferences. We do not use third-party tracking cookies or advertising trackers. No data is shared with advertising networks.</p>
+    <h2 class="pp-h2">6. Advertising & Cookies</h2>
+    <p class="pp-p">Mathrone Academy uses <strong>Google AdSense</strong> to serve advertisements on our platform. To ensure you see relevant ads, we follow these practices:</p>
+    <ul class="pp-ul">
+      <li>Third-party vendors, including Google, use cookies to serve ads based on your prior visits to our website or other websites.</li>
+      <li>Google's use of advertising cookies enables it and its partners to serve ads to you based on your visit to Mathrone Academy and/or other sites on the Internet.</li>
+      <li>You may opt out of personalized advertising by visiting <a href="https://www.google.com/settings/ads" target="_blank" style="color:var(--blue)">Ads Settings</a>.</li>
+      <li>We also use browser localStorage to maintain your secure login session and save your individual UI preferences.</li>
+    </ul>
 
     <h2 class="pp-h2">7. Data Retention</h2>
     <p class="pp-p">We retain your personal data for as long as your account is active. If you request account deletion, your personal data will be permanently removed within 30 days, except where retention is required by law or for legitimate business purposes such as payment records.</p>
@@ -1469,7 +1491,13 @@
 }
 
    function renderAboutUs(){
-  render(`
+    setPageMeta(
+      "About Us | Mathrone Academy Rwanda",
+      "Learn about the mission, values, and the team behind Mathrone Academy. We are transforming education in East Africa through personalized learning.",
+      "https://mathroneacademy.com/og-banner.jpg",
+      "https://mathroneacademy.com/about"
+    );
+    render(`
   <style>
     .about-nav{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--g100);background:#fff;position:sticky;top:0;z-index:100}
     .about-hero{background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 100%);padding:60px 20px;text-align:center}
@@ -1520,6 +1548,12 @@
         <div style="font-size:11px;font-weight:700;color:var(--blue);letter-spacing:0.08em;margin-bottom:12px">OUR MISSION</div>
         <h2 class="about-h2">Majestic Learning.<br/>Royal Results.</h2>
         <p class="about-p">Mathrone Academy was founded with a single purpose to make high-quality, personalised education accessible to every student in Rwanda and beyond.</p>
+<div style="display:flex; gap:16px; margin:24px 0; padding:20px; background:#fff; border-radius:12px; border:1px solid var(--g100); flex-wrap:wrap;">
+  <div style="flex:1; min-width:80px; text-align:center;"><div id="about-stat-tutors" style="font-size:22px; font-weight:800; color:var(--blue)">0</div><div style="font-size:10px; color:var(--g400); text-transform:uppercase;">Tutors</div></div>
+  <div style="flex:1; min-width:80px; text-align:center;"><div id="about-stat-students" style="font-size:22px; font-weight:800; color:var(--blue)">0</div><div style="font-size:10px; color:var(--g400); text-transform:uppercase;">Students</div></div>
+  <div style="flex:1; min-width:80px; text-align:center;"><div id="about-stat-rating" style="font-size:22px; font-weight:800; color:var(--blue)">0.0</div><div style="font-size:10px; color:var(--g400); text-transform:uppercase;">Rating</div></div>
+  <div style="flex:1; min-width:80px; text-align:center;"><div id="about-stat-sat" style="font-size:22px; font-weight:800; color:var(--blue)">0%</div><div style="font-size:10px; color:var(--g400); text-transform:uppercase;">Success</div></div>
+</div>
         <p class="about-p">We believe that the right tutor can transform a student's life. That's why we hand-pick, vet, and continuously evaluate every tutor on our platform to ensure the highest standards of teaching excellence.</p>
         <p class="about-p">Our name says it all <strong>Mathrone</strong> comes from <em>Majestic Throne</em>. We want every student who learns with us to sit on the throne of their own potential.</p>
       </div>
@@ -1670,7 +1704,9 @@ async function renderVerifyEmail(token){
     render(`
     <div style="min-height:100vh;background:linear-gradient(135deg,#1e3a8a,#2563eb);display:flex;align-items:center;justify-content:center;padding:20px">
       <div style="background:#fff;border-radius:20px;padding:48px;text-align:center;max-width:440px;width:100%">
-        <div style="color:var(--green);margin-bottom:20px;display:flex;justify-content:center"><i data-lucide="check-circle-2" style="width:48px;height:<div style="color:var(--red);margin-bottom:20px;display:flex;justify-content:center"><i data-lucide="x-circle" style="width:48px;height:48px"></i></div>48px"></i></div>
+        <div style="color:var(--red);margin-bottom:20px;display:flex;justify-content:center">
+  <i data-lucide="x-circle" style="width:48px;height:48px"></i>
+</div>
         <h2 style="color:var(--navy);margin-bottom:8px">Invalid Link</h2>
         <p style="color:var(--g400);font-size:14px;margin-bottom:24px">This verification link is invalid or has already been used.</p>
         <button class="btn btn-primary" onclick="navigate('login')">Back to Login</button>
