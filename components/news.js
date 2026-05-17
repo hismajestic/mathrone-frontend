@@ -949,17 +949,18 @@ async function openNewsPost(slugOrId){
     }
     const cat = NEWS_CATEGORIES.find(c=>c.id===p.category) || NEWS_CATEGORIES[0]
     const isLoggedIn = !!State.user
-    // Priority: Use description field for SEO, otherwise fallback to content snippet
+    // PRIORITY: Use custom description strictly. Fallback to a longer snippet (160 chars) only if null.
     const articleDesc = (p.description && p.description.trim() !== '') 
-      ? p.description 
-      : (p.content || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 155);
+      ? p.description.trim() 
+      : (p.content || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160);
 
+    // Initial meta set
     setPageMeta(
       p.title + ' | Mathrone Academy Rwanda',
       articleDesc,
-      p.image_url || '',
+      p.image_url || 'https://mathroneacademy.com/og-banner.jpg',
       'https://mathroneacademy.com/news/' + (p.slug || p.id)
-    )
+    );
     render(`
     <style>
       .news-article-body h2{font-size:26px;font-weight:800;color:var(--navy);margin:32px 0 16px;line-height:1.2;border-bottom:1px solid var(--g100);padding-bottom:8px}
@@ -1161,39 +1162,37 @@ async function openNewsPost(slugOrId){
       }
     }, 200)
     const articleUrl = 'https://mathroneacademy.com/news/' + articleSlug;
-    const articleImg  = p.image_url || 'https://mathroneacademy.com/og-banner.jpg';
-    const fullTitle   = p.title + ' | Mathrone Academy Rwanda';
+    const articleImg = p.image_url || 'https://mathroneacademy.com/og-banner.jpg';
+    const fullTitle  = p.title + ' | Mathrone Academy Rwanda';
     
+    // Update Title
     document.title = fullTitle;
 
-    // Force set description attribute across all meta tags
-    let metaD = document.querySelector('meta[name="description"]');
-    if(!metaD) {
-      metaD = document.createElement('meta');
-      metaD.name = "description";
-      document.head.appendChild(metaD);
-    }
-    metaD.setAttribute('content', articleDesc);
-    
-    // SEO: Inject Meta Keywords from Tags
-    if(p.tags && p.tags.length > 0) {
-      let keyMeta = document.querySelector('meta[name="keywords"]');
-      if(!keyMeta) {
-        keyMeta = document.createElement('meta');
-        keyMeta.name = "keywords";
-        document.head.appendChild(keyMeta);
+    // Synchronize all Meta Description Tags (Standard, OG, and Twitter)
+    const metaSelectors = ['meta[name="description"]', 'meta[property="og:description"]', 'meta[name="twitter:description"]'];
+    metaSelectors.forEach(sel => {
+      let el = document.querySelector(sel);
+      if(!el && sel.includes('name="description"')) {
+        el = document.createElement('meta'); el.name = "description"; document.head.appendChild(el);
       }
-      keyMeta.setAttribute('content', p.tags.join(', '));
-    }
+      if(el) el.setAttribute('content', articleDesc);
+    });
 
-    // SEO: Absolute Canonical URL (prevents duplicate content issues)
-    let canonical = document.querySelector('link[rel="canonical"]');
-    if(!canonical) {
-      canonical = document.createElement('link');
-      canonical.rel = "canonical";
-      document.head.appendChild(canonical);
+    // Synchronize Images
+    document.querySelector('meta[property="og:image"]')?.setAttribute('content', articleImg);
+    document.querySelector('meta[name="twitter:image"]')?.setAttribute('content', articleImg);
+
+    // Synchronize Canonical and URL
+    document.querySelector('link[rel="canonical"]')?.setAttribute('href', articleUrl);
+    document.querySelector('meta[property="og:url"]')?.setAttribute('content', articleUrl);
+
+    // Update Keywords from Tags
+    if(p.tags && p.tags.length > 0) {
+      let keyMeta = document.querySelector('meta[name="keywords"]') || document.createElement('meta');
+      keyMeta.name = "keywords";
+      keyMeta.setAttribute('content', p.tags.join(', '));
+      if(!document.querySelector('meta[name="keywords"]')) document.head.appendChild(keyMeta);
     }
-    canonical.setAttribute('href', articleUrl);
     document.querySelector('meta[property="og:title"]')?.setAttribute('content', fullTitle)
     document.querySelector('meta[property="og:description"]')?.setAttribute('content', articleDesc)
     document.querySelector('meta[property="og:url"]')?.setAttribute('content', articleUrl)
