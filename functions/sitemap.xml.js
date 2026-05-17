@@ -21,7 +21,7 @@ export async function onRequest(context) {
   try {
     // News articles
     const newsRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/news_posts?select=slug,updated_at&slug=not.is.null&order=updated_at.desc`,
+      `${SUPABASE_URL}/rest/v1/news_posts?select=slug,category,updated_at&slug=not.is.null&order=updated_at.desc`,
       {
         headers: {
           apikey: SUPABASE_ANON_KEY,
@@ -34,7 +34,7 @@ export async function onRequest(context) {
       for (const a of articles) {
         if (!a.slug) continue
         const lastmod = a.updated_at ? a.updated_at.split('T')[0] : today
-        dynamicUrls += urlTag(`${BASE}/news/${a.slug}`, lastmod, 'weekly', '0.7')
+        dynamicUrls += urlTag(`${BASE}/news/${a.category || 'education'}/${a.slug}`, lastmod, 'weekly', '0.7')
       }
     }
 

@@ -3304,11 +3304,14 @@ function bootFromUrl() {
   let clean = path.replace(/^\//, '').replace(/\/$/, '');
 
   if (clean === '' || clean === 'index.html') {
-    State.page = 'landing';
-  } else if (clean === 'news') {
-    State.page = 'news';
-  } else if (clean.startsWith('news/')) {
-    State.page = 'news-article/' + clean.replace('news/', '');
+      State.page = 'landing';
+    } else if (clean === 'news') {
+      State.page = 'news';
+    } else if (clean.startsWith('news/')) {
+      // Handles /news/category/slug or /news/slug
+      const parts = clean.split('/');
+      const slug = parts.length > 2 ? parts[2] : parts[1];
+      State.page = 'news-article/' + slug;
    } else if (clean === 'courses') {
     State.page = 'courses';
   } else if (clean === 'my-courses') {
