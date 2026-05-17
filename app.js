@@ -529,7 +529,11 @@ window.scrollToContact = function(e) {
     if (page.startsWith('news-article/')) {
       const slug = page.replace('news-article/', '');
       const cat = window._currentArticleCategory || 'education';
-      newUrl = `/news/${cat}/${slug}`;
+      // If _currentArticleCategory hasn't been set yet for this slug,
+      // read it from the card's href which is already correct
+      const cardLink = document.querySelector(`a[href*="/news/"][href$="/${slug}"]`);
+      const hrefCat = cardLink ? cardLink.getAttribute('href').split('/')[2] : null;
+      newUrl = `/news/${hrefCat || cat}/${slug}`;
     }
     else if (page.startsWith('shop-product-')) newUrl = '/shop/' + page.replace('shop-product-', '');
     else if (page.startsWith('course-')) newUrl = '/course/' + page.replace('course-', '');
