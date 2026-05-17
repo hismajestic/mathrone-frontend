@@ -526,7 +526,11 @@ window.scrollToContact = function(e) {
 
   let newUrl = urlMap[page];
   if (!newUrl) {
-    if (page.startsWith('news-article/')) newUrl = '/news/' + page.replace('news-article/', '');
+    if (page.startsWith('news-article/')) {
+      const slug = page.replace('news-article/', '');
+      const cat = window._currentArticleCategory || 'education';
+      newUrl = `/news/${cat}/${slug}`;
+    }
     else if (page.startsWith('shop-product-')) newUrl = '/shop/' + page.replace('shop-product-', '');
     else if (page.startsWith('course-')) newUrl = '/course/' + page.replace('course-', '');
     else if (page.startsWith('verify/')) newUrl = '/verify/' + page.replace('verify/', '');
@@ -3308,9 +3312,10 @@ function bootFromUrl() {
     } else if (clean === 'news') {
       State.page = 'news';
     } else if (clean.startsWith('news/')) {
-      // Handles /news/category/slug or /news/slug
       const parts = clean.split('/');
-      const slug = parts.length > 2 ? parts[2] : parts[1];
+      // If URL is /news/scholarship/my-post (length 3), slug is index 2
+      // If URL is /news/my-post (length 2), slug is index 1
+      const slug = parts.length >= 3 ? parts[2] : parts[1];
       State.page = 'news-article/' + slug;
    } else if (clean === 'courses') {
     State.page = 'courses';

@@ -329,13 +329,15 @@ function resizeSelectedImg(width, align=null){
   }
 }
 function newsCard(p, featured){
-  const cat = NEWS_CATEGORIES.find(c=>c.id===p.category) || NEWS_CATEGORIES[0]
+  const cat = NEWS_CATEGORIES.find(c=>c.id===p.category) || NEWS_CATEGORIES[0];
+    window._currentArticleCategory = p.category || 'education';
   // Priority: Use description field if it exists, otherwise fallback to content snippet
 const excerpt = (p.description && p.description.trim() !== '') 
   ? p.description.slice(0, 140) 
   : p.content.replace(/<[^>]*>/g,'').replace(/\s+/g, ' ').trim().slice(0, 110) + '...';
   const imgColor = {news:'blue',scholarship:'gold',government:'green',career:'red',abroad:'navy',resources:'purple'}
-  const articleUrl = p.slug ? `/news/${p.slug}` : `/news/${p.id}`;
+  const catFolder = (p.category === 'news' || !p.category) ? 'education' : p.category;
+  const articleUrl = p.slug ? `/news/${catFolder}/${p.slug}` : `/news/${catFolder}/${p.id}`;
 return `
   <a href="${articleUrl}" class="pn-ncard" style="text-decoration: none; color: inherit; display: flex; flex-direction: column; border: 1px solid var(--g100); background:#fff;" onclick="navigate('news-article/${p.slug || p.id}', null, event)">
    <div style="position:relative; width:100%; aspect-ratio: 16/10; flex-shrink:0; overflow:hidden;">
@@ -743,7 +745,8 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
     const sidebarEl = document.getElementById('pn-sidebar-items')
     if(sidebarEl && sidebarPosts.length){
       sidebarEl.innerHTML = sidebarPosts.map((p,i) => {
-        const cat = NEWS_CATEGORIES.find(c=>c.id===p.category) || NEWS_CATEGORIES[0]
+        const cat = NEWS_CATEGORIES.find(c=>c.id===p.category) || NEWS_CATEGORIES[0];
+    window._currentArticleCategory = p.category || 'education';
         return `<div class="pn-sidebar-item" onclick="openNewsPost('${p.id}')">
           <div class="pn-sidebar-num">0${i+2}</div>
           <div><div class="pn-sidebar-cat">${cat.label}</div><div class="pn-sidebar-title">${p.title}</div></div>
@@ -766,7 +769,8 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
 
     // Trending sidebar
     const trendingHtml = popularPosts.length ? popularPosts.map((p,i) => {
-      const cat = NEWS_CATEGORIES.find(c=>c.id===p.category) || NEWS_CATEGORIES[0]
+      const cat = NEWS_CATEGORIES.find(c=>c.id===p.category) || NEWS_CATEGORIES[0];
+    window._currentArticleCategory = p.category || 'education';
       return `<div class="pn-trend-item" onclick="openNewsPost('${p.id}')">
         <div class="pn-trend-num">0${i+1}</div>
         <div>
@@ -779,7 +783,8 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
     // More to read sidebar
     const moreToRead = allPosts.slice(0,3)
     const moreHtml = moreToRead.map(p => {
-      const cat = NEWS_CATEGORIES.find(c=>c.id===p.category) || NEWS_CATEGORIES[0]
+      const cat = NEWS_CATEGORIES.find(c=>c.id===p.category) || NEWS_CATEGORIES[0];
+    window._currentArticleCategory = p.category || 'education';
       const imgColor = {news:'blue',scholarship:'gold',government:'green',career:'red',abroad:'navy',resources:'purple'}
       return `<div onclick="openNewsPost('${p.id}')" style="display:flex;gap:10px;padding:10px 1rem;border-bottom:1px solid #E5E2DA;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background='#F2F0EA'" onmouseout="this.style.background=''">
         <div class="pn-ncard-img ${imgColor[p.category]||'blue'}" style="width:64px;height:50px;aspect-ratio:unset;border-radius:6px;flex-shrink:0;font-size:22px">${cat.icon}</div>
@@ -963,7 +968,8 @@ async function openNewsPost(slugOrId){
     try { p = await api('/news/by-slug/' + slugOrId); } 
     catch (e) { p = await api('/news/' + slugOrId); }
     
-    const cat = NEWS_CATEGORIES.find(c=>c.id===p.category) || NEWS_CATEGORIES[0]
+    const cat = NEWS_CATEGORIES.find(c=>c.id===p.category) || NEWS_CATEGORIES[0];
+    window._currentArticleCategory = p.category || 'education';
     
     // SEO CRITICAL: Set metadata IMMEDIATELY before rendering HTML
     const articleDesc = (p.description && p.description.trim() !== '') 
@@ -974,7 +980,7 @@ async function openNewsPost(slugOrId){
       p.title + ' | Mathrone Academy Rwanda',
       articleDesc,
       p.image_url || 'https://mathroneacademy.com/og-banner.jpg',
-      'https://mathroneacademy.com/news/' + (p.slug || p.id)
+      'https://mathroneacademy.com/news/' + ((p.category === 'news' || !p.category) ? 'education' : p.category) + '/' + (p.slug || p.id)
     );
     const isLoggedIn = !!State.user
     
@@ -1076,27 +1082,27 @@ async function openNewsPost(slugOrId){
               WhatsApp
             </a>
             <!-- Facebook -->
-            <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent('https://mathroneacademy.com/news/' + (p.slug || p.id))}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;background:#1877f2;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600">
+            <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent('https://mathroneacademy.com/news/' + ((p.category === 'news' || !p.category) ? 'education' : p.category) + '/' + (p.slug || p.id))}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;background:#1877f2;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
               Facebook
             </a>
             <!-- X (formerly Twitter) -->
-            <a href="https://x.com/intent/post?text=${encodeURIComponent(p.title + ' — Mathrone Academy')}&url=${encodeURIComponent('https://mathroneacademy.com/news/' + (p.slug || p.id))}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;background:#000;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600">
+            <a href="https://x.com/intent/post?text=${encodeURIComponent(p.title + ' — Mathrone Academy')}&url=${encodeURIComponent('https://mathroneacademy.com/news/' + ((p.category === 'news' || !p.category) ? 'education' : p.category) + '/' + (p.slug || p.id))}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;background:#000;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.261 5.632L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/></svg>
               Post on X
             </a>
             <!-- LinkedIn -->
-            <a href="https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent('https://mathroneacademy.com/news/' + (p.slug || p.id))}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;background:#0a66c2;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600">
+            <a href="https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent('https://mathroneacademy.com/news/' + ((p.category === 'news' || !p.category) ? 'education' : p.category) + '/' + (p.slug || p.id))}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;background:#0a66c2;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
               LinkedIn
             </a>
             <!-- Telegram -->
-            <a href="https://t.me/share/url?url=${encodeURIComponent('https://mathroneacademy.com/news/' + (p.slug || p.id))}&text=${encodeURIComponent(p.title)}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;background:#2AABEE;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600">
+            <a href="https://t.me/share/url?url=${encodeURIComponent('https://mathroneacademy.com/news/' + ((p.category === 'news' || !p.category) ? 'education' : p.category) + '/' + (p.slug || p.id))}&text=${encodeURIComponent(p.title)}" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:6px;background:#2AABEE;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
               Telegram
             </a>
             <!-- Copy Link -->
-            <button onclick="navigator.clipboard.writeText('https://mathroneacademy.com/news/${p.slug || p.id}').then(()=>toast('Link copied! 🔗'))" style="display:inline-flex;align-items:center;gap:6px;background:var(--g100);color:var(--navy);border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600">
+            <button onclick="navigator.clipboard.writeText('https://mathroneacademy.com/news/' + ((p.category === 'news' || !p.category) ? 'education' : p.category) + '/' + (p.slug || p.id)).then(()=>toast('Link copied! 🔗'))" style="display:inline-flex;align-items:center;gap:6px;background:var(--g100);color:var(--navy);border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
               Copy Link
             </button>
@@ -1196,7 +1202,7 @@ async function openNewsPost(slugOrId){
         } catch (e) { console.error("AdSense trigger failed", e); }
       }
     }, 200)
-    const articleUrl = 'https://mathroneacademy.com/news/' + articleSlug;
+    const articleUrl = 'https://mathroneacademy.com/news/' + ((p.category === 'news' || !p.category) ? 'education' : p.category) + '/' + articleSlug;
     const articleImg = p.image_url || 'https://mathroneacademy.com/og-banner.jpg';
     const fullTitle  = p.title + ' | Mathrone Academy Rwanda';
     
@@ -1269,7 +1275,7 @@ articleSchema.textContent = JSON.stringify({
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
-    "@id": 'https://mathroneacademy.com/news/' + (p.slug || p.id)
+    "@id": 'https://mathroneacademy.com/news/' + ((p.category === 'news' || !p.category) ? 'education' : p.category) + '/' + (p.slug || p.id)
   }
 })
 document.head.appendChild(articleSchema)
@@ -1286,7 +1292,7 @@ breadcrumbSchema.textContent = JSON.stringify({
   "itemListElement": [
     { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://mathroneacademy.com/" },
     { "@type": "ListItem", "position": 2, "name": "News", "item": "https://mathroneacademy.com/news" },
-    { "@type": "ListItem", "position": 3, "name": p.title, "item": "https://mathroneacademy.com/news/" + (p.slug || p.id) }
+    { "@type": "ListItem", "position": 3, "name": p.title, "item": "https://mathroneacademy.com/news/" + ((p.category === 'news' || !p.category) ? 'education' : p.category) + '/' + (p.slug || p.id) }
   ]
 })
 document.head.appendChild(breadcrumbSchema)
@@ -1348,7 +1354,8 @@ document.head.appendChild(breadcrumbSchema)
     document.getElementById('trending-news').innerHTML = '<p style="color:var(--g400);font-style:italic;text-align:center">Failed to load trending news</p>'
   }
   // Update URL for refresh support
-  history.pushState({ page: 'news-article/' + (p.slug || p.id), tab: null }, document.title, '/news/' + (p.slug || p.id))
+  const currentCat = (p.category === 'news' || !p.category) ? 'education' : p.category;
+  history.pushState({ page: 'news-article/' + (p.slug || p.id), tab: null }, document.title, `/news/${currentCat}/${p.slug || p.id}`)
   }catch(e){
     toast(e.message,'err')
   }

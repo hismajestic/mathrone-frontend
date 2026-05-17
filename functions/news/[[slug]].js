@@ -1,6 +1,8 @@
 export async function onRequest(context) {
   const { params, request } = context
-  const slugOrId = params.slug
+  const slugParts = params.slug;
+  // Takes the last part of the URL as the slug (handles /news/cat/slug)
+  const slugOrId = Array.isArray(slugParts) ? slugParts[slugParts.length - 1] : slugParts;
   const userAgent = request.headers.get('user-agent') || ''
   const BASE = 'https://mathroneacademy.com'
   const API  = 'https://mathrone-backend.onrender.com/api/v1'
@@ -25,7 +27,7 @@ export async function onRequest(context) {
 
     const title       = esc(article.title || 'Mathrone Academy News')
     const slug        = article.slug || article.id
-    const url         = `${BASE}/news/${slug}`
+    const url         = `${BASE}/news/${(article.category === 'news' || !article.category) ? 'education' : article.category}/${slug}`
     const image       = article.image_url || `${BASE}/og-banner.jpg`
     const plainText   = (article.content || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
     const trimmed = plainText.length > 155 ? plainText.slice(0, plainText.lastIndexOf(' ', 155)) + '…' : plainText

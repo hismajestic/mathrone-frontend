@@ -34,7 +34,8 @@ export async function onRequest(context) {
       for (const a of articles) {
         if (!a.slug) continue
         const lastmod = a.updated_at ? a.updated_at.split('T')[0] : today
-        dynamicUrls += urlTag(`${BASE}/news/${a.category || 'education'}/${a.slug}`, lastmod, 'weekly', '0.7')
+        const sitemapCat = (a.category === 'news' || !a.category) ? 'education' : a.category;
+        dynamicUrls += urlTag(`${BASE}/news/${sitemapCat}/${a.slug}`, lastmod, 'weekly', '0.7')
       }
     }
 
