@@ -949,9 +949,14 @@ async function openNewsPost(slugOrId){
     }
     const cat = NEWS_CATEGORIES.find(c=>c.id===p.category) || NEWS_CATEGORIES[0]
     const isLoggedIn = !!State.user
+    // Priority: Use description field for SEO, otherwise fallback to content snippet
+    const articleDesc = (p.description && p.description.trim() !== '') 
+      ? p.description 
+      : (p.content || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 155);
+
     setPageMeta(
       p.title + ' | Mathrone Academy Rwanda',
-      (p.content || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 155),
+      articleDesc,
       p.image_url || '',
       'https://mathroneacademy.com/news/' + (p.slug || p.id)
     )
@@ -1155,23 +1160,20 @@ async function openNewsPost(slugOrId){
         }
       }
     }, 200)
-    const articleUrl = 'https://mathroneacademy.com/news/' + articleSlug
-    // Priority: Use description field if it exists, otherwise fallback to content snippet
-const excerpt = (p.description && p.description.trim() !== '') 
-  ? p.description.slice(0, 140) 
-  : p.content.replace(/<[^>]*>/g,'').replace(/\s+/g, ' ').trim().slice(0, 110) + '...';
-const articleImg  = p.image_url || 'https://mathroneacademy.com/og-banner.jpg'
-const fullTitle   = p.title + ' | Mathrone Academy Rwanda'
-document.title = fullTitle
-// Force set description attribute
-let metaD = document.querySelector('meta[name="description"]');
-if(!metaD) {
-  metaD = document.createElement('meta');
-  metaD.name = "description";
-  document.head.appendChild(metaD);
-}
-metaD.setAttribute('content', articleDesc);
-    document.querySelector('meta[name="description"]')?.setAttribute('content', articleDesc)
+    const articleUrl = 'https://mathroneacademy.com/news/' + articleSlug;
+    const articleImg  = p.image_url || 'https://mathroneacademy.com/og-banner.jpg';
+    const fullTitle   = p.title + ' | Mathrone Academy Rwanda';
+    
+    document.title = fullTitle;
+
+    // Force set description attribute across all meta tags
+    let metaD = document.querySelector('meta[name="description"]');
+    if(!metaD) {
+      metaD = document.createElement('meta');
+      metaD.name = "description";
+      document.head.appendChild(metaD);
+    }
+    metaD.setAttribute('content', articleDesc);
     
     // SEO: Inject Meta Keywords from Tags
     if(p.tags && p.tags.length > 0) {
