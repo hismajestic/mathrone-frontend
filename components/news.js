@@ -1052,15 +1052,7 @@ async function openNewsPost(slugOrId){
         </div>
 
         <!-- Content (image_url is already inside content, don't show it twice) -->
-       <div class="news-article-body">${(p.content || '').replace(/<table[^>]*data-ad-placeholder="true"[^>]*>.*?<\/table>/gs, `
-        <div style="margin:24px 0;" class="ad-slot-wrapper">
-          <ins class="adsbygoogle"
-               style="display:block; text-align:center;"
-               data-ad-layout="in-article"
-               data-ad-format="fluid"
-               data-ad-client="ca-pub-4145600853778757"
-               data-ad-slot="9530260876"></ins>
-        </div>`)}</div>
+       <div class="news-article-body">${(p.content || '')}</div>  
 
         <!-- Source link -->
         ${p.source_url ? `
