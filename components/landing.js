@@ -638,7 +638,7 @@
         </div>
         ${[['PLATFORM',['Find a Tutor','Become a Tutor','How It Works','Majestic Lab','Education News']],
            ['COMPANY',['About Us','Careers']],
-           ['SUPPORT',['Help Centre','Contact Us','Privacy Policy','Terms of Service']]
+           ['SUPPORT',['Contact Us','Privacy Policy','Terms of Service']]
           ].map(([ht,links])=>`
         <div>
           <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.9);margin-bottom:14px;letter-spacing:0.08em">${ht}</div>
@@ -1393,7 +1393,7 @@
 
   <div class="pp-body">
     <h1 class="pp-title">Privacy Policy</h1>
-    <div class="pp-date">Last updated: March 2025</div>
+    <div class="pp-date">Last updated: May 2026</div>
 
     <p class="pp-p">At Mathrone Academy, we are committed to protecting the privacy and security of our users students, parents, tutors, and administrators. This Privacy Policy explains how we collect, use, store, and protect your personal information when you use our platform.</p>
 
@@ -1446,8 +1446,9 @@
     <ul class="pp-ul">
       <li>Third-party vendors, including Google, use cookies to serve ads based on your prior visits to our website or other websites.</li>
       <li>Google's use of advertising cookies enables it and its partners to serve ads to you based on your visit to Mathrone Academy and/or other sites on the Internet.</li>
-      <li>You may opt out of personalized advertising by visiting <a href="https://www.google.com/settings/ads" target="_blank" style="color:var(--blue)">Ads Settings</a>.</li>
+      <li>You may opt out of personalized advertising by visiting <a href="https://www.google.com/settings/ads" target="_blank" style="color:var(--blue)">Ads Settings</a> and <a href="https://policies.google.com/privacy" target="_blank" style="color:var(--blue)">Google Privacy Policy</a>.</li>
       <li>We also use browser localStorage to maintain your secure login session and save your individual UI preferences.</li>
+      <li>We use cookies and similar tracking technologies (including those from Google AdSense) to enhance user experience, analyze site traffic, and serve relevant advertisements.</li>
     </ul>
 
     <h2 class="pp-h2">7. Data Retention</h2>
@@ -1482,7 +1483,7 @@
   </div>
 
   <div style="background:#0f172a;padding:20px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
-    <div style="font-size:13px;color:rgba(255,255,255,0.5)">© 2025 Mathrone Academy. All rights reserved.</div>
+    <div style="font-size:13px;color:rgba(255,255,255,0.5)">© 2026 Mathrone Academy. All rights reserved.</div>
     <button onclick="navigate('terms')" style="font-size:13px;color:rgba(255,255,255,0.5);background:none;border:none;cursor:pointer">Terms & Conditions</button>
     <button onclick="navigate('landing')" style="font-size:13px;color:rgba(255,255,255,0.5);background:none;border:none;cursor:pointer">← Back to Home</button>
     
