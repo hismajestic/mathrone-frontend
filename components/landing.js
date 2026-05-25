@@ -1648,7 +1648,7 @@
 
   <!-- FOOTER -->
   <div style="background:#0f172a;padding:20px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
-    <div style="font-size:13px;color:rgba(255,255,255,0.5)">© 2025 Mathrone Academy. All rights reserved.</div>
+    <div style="font-size:13px;color:rgba(255,255,255,0.5)">© 2026 Mathrone Academy. All rights reserved.</div>
     <button onclick="navigate('landing')" style="font-size:13px;color:rgba(255,255,255,0.5);background:none;border:none;cursor:pointer">← Back to Home</button>
   </div>
   `)
