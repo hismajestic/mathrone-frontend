@@ -2,28 +2,43 @@
 // COURSES — Public shop + checkout + student access
 // ══════════════════════════════════════════════════
 
+// Map Course Categories to global CATEGORIES + Academic Curricula
 const COURSE_CURRICULA = [
-  { id: 'REB',        label: 'REB / CBC',                      icon: '<i data-lucide="map-pin" style="width:16px;height:16px"></i>' },
-  { id: 'IGCSE',      label: 'IGCSE / Cambridge',               icon: '<i data-lucide="graduation-cap" style="width:16px;height:16px"></i>' },
-  { id: 'IB',         label: 'IB (Baccalaureate)',              icon: '<i data-lucide="globe" style="width:16px;height:16px"></i>' },
-  { id: 'French',     label: 'French Curriculum',               icon: '<i data-lucide="languages" style="width:16px;height:16px"></i>' },
-  { id: 'University', label: 'University / Higher Ed',          icon: '<i data-lucide="building-2" style="width:16px;height:16px"></i>' },
+  { id: 'REB',          label: 'REB / CBC (Rwanda)',           icon: '<i data-lucide="map-pin"></i>' },
+  { id: 'IGCSE',        label: 'IGCSE / Cambridge',             icon: '<i data-lucide="graduation-cap"></i>' },
+  { id: 'IB',           label: 'IB (Baccalaureate)',            icon: '<i data-lucide="globe"></i>' },
+  { id: 'French',       label: 'French Curriculum',             icon: '<i data-lucide="languages"></i>' },
+  { id: 'University',   label: 'University / Higher Ed',        icon: '<i data-lucide="building-2"></i>' },
+  { id: 'DigitalSkills',label: 'Digital Skills / Tech',         icon: '<i data-lucide="monitor"></i>' },
+  { id: 'GlobalSkills', label: 'Global / Skills / MMO',         icon: '<i data-lucide="earth"></i>' },
+  { id: 'Professional', label: 'Professional Development',      icon: '<i data-lucide="briefcase"></i>' },
+  { id: 'Languages',    label: 'Languages',                     icon: '<i data-lucide="message-circle"></i>' },
+  { id: 'Music',        label: 'Music & Arts',                  icon: '<i data-lucide="music"></i>' },
+  { id: 'Other',        label: 'Other / General',               icon: '<i data-lucide="folder"></i>' },
 ]
+
 const COURSE_LEVELS = {
-  REB:        ['P1','P2','P3','P4','P5','P6','S1','S2','S3','S4','S5','S6'],
-  IGCSE:      ['Year 7','Year 8','Year 9','Year 10','Year 11','AS Level','A2 Level'],
-  IB:         ['MYP 1','MYP 2','MYP 3','MYP 4','MYP 5','DP Year 1','DP Year 2'],
-  French:     ['6ème','5ème','4ème','3ème','2nde','1ère','Terminale'],
-  University: ['Year 1','Year 2','Year 3','Year 4','Masters'],
+  REB:           ['P1','P2','P3','P4','P5','P6','S1','S2','S3','S4','S5','S6','National Exam Prep'],
+  IGCSE:         ['Year 7','Year 8','Year 9','Year 10','Year 11','AS Level','A2 Level'],
+  IB:            ['MYP 1','MYP 2','MYP 3','MYP 4','MYP 5','DP Year 1','DP Year 2'],
+  French:        ['6ème','5ème','4ème','3ème','2nde','1ère','Terminale'],
+  University:    ['Undergraduate','Masters','PhD','Professional Cert'],
+  DigitalSkills: ['Beginner','Intermediate','Advanced','Professional'],
+  GlobalSkills:  ['All Levels', 'Beginner', 'Advanced', 'Expert'],
+  Professional:  ['Foundational','Mid-Level','Executive'],
+  Languages:     ['A1 (Beginner)','A2','B1','B2','C1','C2','All Levels'],
+  Music:         ['Beginner','Intermediate','Advanced'],
+  Other:         ['All Levels'],
 }
 const COURSE_SUBJECTS = [
-  'Mathematics','Physics','Chemistry','Biology',
-  'Geography','History','Economics','Entrepreneurship',
-  'English','French','Kinyarwanda','Kiswahili',
-  'Computer Science','General Science','Social Studies',
-  'Literature','Music','Physical Education','Other'
+  'Mathematics','Physics','Chemistry','Biology','Computer Science',
+  'Literature in English','History','Geography','Economics','Entrepreneurship',
+  'AI & Prompting','Content Creation','Digital Marketing','Making Money Online',
+  'English','French','Kinyarwanda','Kiswahili','Spanish',
+  'CV & Interview Skills','Public Speaking','Leadership','Financial Literacy',
+  'Web Development','Graphic Design','Video Editing','Photography'
 ]
-const COURSE_TERMS = ['Term 1','Term 2','Term 3','Full Year']
+const COURSE_TERMS = ['Self-Paced','Workshop','Bootcamp','Term 1','Term 2','Term 3','Full Year']
 
 function _levelOptions(curriculum, selected) {
   return (COURSE_LEVELS[curriculum] || []).map(l =>
@@ -352,7 +367,9 @@ function courseCard(c, isLoggedIn, isCourseGuest) {
 
       <div style="font-size:12px;color:#64748b;margin-bottom:8px;line-height:1.5;">
         By <span style="font-weight:700;color:#334155">Mathrone Academy</span><br/>
-        ${c.subject || 'General'} • ${c.level || 'All Levels'}
+        <span style="color:var(--blue);font-weight:600">${c.subject || 'Skill Course'}</span> 
+        ${c.level ? ` • ${c.level}` : ''}
+        ${c.term && c.term !== 'Self-Paced' ? ` • ${c.term}` : ''}
       </div>
 
       <!-- View Details Pill -->
@@ -430,12 +447,16 @@ async function renderCourseDetail(slugParam) {
         '@context': 'https://schema.org',
         '@type': 'Course',
         name: c.title,
-        description: c.description || '',
-        url: BASE + '/course-' + slug,
-        provider: { '@type': 'Organization', name: 'Mathrone Academy', url: BASE },
-        ...(c.image_url ? { image: c.image_url } : {}),
-        ...(c.price != null ? { offers: { '@type': 'Offer', price: c.price, priceCurrency: 'RWF', availability: 'https://schema.org/InStock' } } : {}),
-        ...(c.subject ? { about: { '@type': 'Thing', name: c.subject } } : {})
+        description: (c.description || '').slice(0, 200),
+        url: BASE + '/course/' + (c.slug || c.id),
+        provider: { '@type': 'Organization', name: 'Mathrone Academy', url: 'https://mathroneacademy.com' },
+        image: c.image_url || 'https://mathroneacademy.com/og-banner.jpg',
+        offers: {
+          '@type': 'Offer',
+          'price': c.price || '0',
+          'priceCurrency': 'RWF',
+          'category': c.curriculum || 'Skill'
+        }
       }
     })
     // Also update og:url and canonical for this course
@@ -486,15 +507,20 @@ async function renderCourseDetail(slugParam) {
         <h2 style="font-size:18px;font-weight:800;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:8px"><i data-lucide="list-checks" style="width:20px;height:20px;color:var(--blue)"></i> What You'll Learn</h2>
         <div style="display:flex;flex-direction:column;gap:10px">
           ${displayLessons.map((l, i) => {
-            const clickAction = `toast('Enroll in the course to access full lessons.', 'info')`;
+            // Fix: If it's a free preview, allow opening the player
+            const clickAction = l.is_free_preview 
+              ? `openLessonPlayer('${l.id}')` 
+              : `toast('Enroll in the course to access this lesson.', 'info')`;
             const displayImg = l.image_url || c.image_url;
             return `
             <div onclick="${clickAction}" style="background:#fff;border:1px solid #e5e7eb;border-radius:4px;overflow:hidden;margin-bottom:16px;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,0.05);transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
               <div style="display:flex;align-items:center;">
                 <div style="width:clamp(120px, 30vw, 160px);aspect-ratio:16/9;background:#1E2845;flex-shrink:0;position:relative;overflow:hidden;border-radius:4px 0 0 4px;">
                    ${displayImg ? `<img src="${displayImg}" style="width:100%;height:100%;object-fit:contain;object-position:center;opacity:0.9;display:block;background:#1E2845;"/>` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:#1e3a8a;color:#fff;font-size:24px;font-weight:800;">${l.order_num || i+1}</div>`}
-                   <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.4);">
-                     <i data-lucide="lock" style="width:24px;height:24px;color:#fff;opacity:0.9"></i>
+                   <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,${l.is_free_preview ? '0.1' : '0.4'});">
+                     ${l.is_free_preview 
+                        ? `<div style="background:var(--blue);color:#fff;font-size:9px;font-weight:800;padding:3px 8px;border-radius:4px;position:absolute;top:8px;left:8px">FREE PREVIEW</div><i data-lucide="play-circle" style="width:28px;height:28px;color:#fff"></i>` 
+                        : `<i data-lucide="lock" style="width:24px;height:24px;color:#fff;opacity:0.9"></i>`}
                    </div>
                 </div>
                 <div style="padding:16px;flex:1;display:flex;flex-direction:column;justify-content:center;">
@@ -1037,6 +1063,7 @@ async function renderAdminCourses() {
       api('/courses/admin/all'),
       api('/courses/admin/orders')
     ])
+    window._adminAllCourses = courses
     const pendingOrders = orders.filter(o => o.status === 'pending').length
 
     render(dashWrap('admin-courses', `
@@ -1062,10 +1089,10 @@ async function renderAdminCourses() {
         </div>
         <div style="padding:14px">
           <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:2px">${c.title}</div>
-          <div style="font-size:12px;color:var(--g400);margin-bottom:8px">${c.subject || '—'} ${c.level ? '• ' + c.level : ''}</div>
+          <div style="font-size:12px;color:var(--g400);margin-bottom:8px">${c.curriculum ? `<span style="background:#eff6ff;color:#1d4ed8;font-size:10px;font-weight:700;padding:1px 6px;border-radius:999px;margin-right:4px">${c.curriculum}</span>` : ''}${c.subject || '—'} ${c.level ? '• ' + c.level : ''}</div>
           <div style="font-size:16px;font-weight:800;color:var(--navy);margin-bottom:12px">${c.price > 0 ? 'RWF ' + Number(c.price).toLocaleString() : 'FREE'}</div>
           <div style="display:flex;gap:6px">
-            <button class="btn btn-ghost btn-sm" style="flex:1" onclick="openEditCourseModal(${JSON.stringify(c).replace(/"/g,'&quot;')})"><i data-lucide="edit" style="width:14px;height:14px;margin-right:4px"></i> Edit</button>
+            <button class="btn btn-ghost btn-sm" style="flex:1" onclick="openEditCourseModal('${c.id}')"><i data-lucide="edit" style="width:14px;height:14px;margin-right:4px"></i> Edit</button>
             <button class="btn btn-ghost btn-sm" onclick="manageLessons('${c.id}','${(c.title||'').replace(/'/g,"\\'")}')"><i data-lucide="list-video" style="width:14px;height:14px;margin-right:4px"></i> Lessons</button>
             <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteCourseAdmin('${c.id}','${(c.title||'').replace(/'/g,"\\'")}')"><i data-lucide="trash-2" style="width:16px;height:16px"></i></button>
           </div>
@@ -1319,25 +1346,26 @@ function openAddCourseModal(existing = null) {
           </div>
         </div>
         <div class="form-group">
-          <label class="form-label">Curriculum</label>
-          <select class="input" id="c-curriculum" onchange="updateCourseLevelOptions(this.value)">
-            ${COURSE_CURRICULA.map(cu => `<option value="${cu.id}" ${(existing?.curriculum||'REB') === cu.id ? 'selected' : ''}>${cu.icon} ${cu.label}</option>`).join('')}
-          </select>
-        </div>
+  <label class="form-label">Category / Curriculum</label>
+  <select class="input" id="c-curriculum" onchange="updateCourseLevelOptions(this.value, '')">
+    <option value="">— Select Category —</option>
+    ${COURSE_CURRICULA.map(cu => `<option value="${cu.id}" ${(existing?.curriculum||'') === cu.id ? 'selected' : ''}>${cu.label}</option>`).join('')}
+  </select>
+</div>
         <div class="grid-2">
           <div class="form-group">
-            <label class="form-label">Academic Level</label>
+            <label class="form-label">Course Level</label>
             <select class="input" id="c-level">
               <option value="">— Select Level —</option>
               ${_levelOptions(existing?.curriculum || 'REB', existing?.level)}
             </select>
           </div>
           <div class="form-group">
-            <label class="form-label">Subject</label>
-            <select class="input" id="c-subject">
-              <option value="">— Select Subject —</option>
-              ${COURSE_SUBJECTS.map(s => `<option value="${s}" ${existing?.subject === s ? 'selected' : ''}>${s}</option>`).join('')}
-            </select>
+            <label class="form-label">Subject / Skill Name *</label>
+            <input class="input" id="c-subject" list="subject-suggestions" value="${existing?.subject || ''}" placeholder="e.g. AI Prompting"/>
+            <datalist id="subject-suggestions">
+              ${COURSE_SUBJECTS.map(s => `<option value="${s}">`).join('')}
+            </datalist>
           </div>
         </div>
         <div class="form-group">
@@ -1390,21 +1418,33 @@ function openAddCourseModal(existing = null) {
   </div>`
 }
 
-function openEditCourseModal(c) { openAddCourseModal(c) }
+function openEditCourseModal(idOrObj) {
+  if (typeof idOrObj === 'string') {
+    const c = (window._adminAllCourses || []).find(x => x.id === idOrObj)
+    if (!c) { toast('Course data not found — please refresh', 'err'); return }
+    openAddCourseModal(c)
+  } else {
+    openAddCourseModal(idOrObj)
+  }
+}
 
-function updateCourseLevelOptions(curriculum) {
+function updateCourseLevelOptions(curriculum, selectedLevel = '') {
   const levelSel = document.getElementById('c-level')
   if (!levelSel) return
-  levelSel.innerHTML = '<option value="">— Select Level —</option>' + _levelOptions(curriculum, '')
+  levelSel.innerHTML = '<option value="">— Select Level —</option>' + _levelOptions(curriculum, selectedLevel)
 }
 
 function _getCourseFormData() {
+  const subjectInput = document.getElementById('c-subject');
   return {
     title:        document.getElementById('c-title')?.value?.trim(),
     slug:         document.getElementById('c-slug')?.value?.trim(),
     price:        parseFloat(document.getElementById('c-price')?.value) || 0,
+    curriculum:   document.getElementById('c-curriculum')?.value || null,
     level:        document.getElementById('c-level')?.value || null,
-    subject:      document.getElementById('c-subject')?.value?.trim() || null,
+    // This captures the typed value from your new flexible datalist input
+    subject:      subjectInput ? subjectInput.value.trim() : null,
+    term:         document.getElementById('c-term')?.value || null,
     description:  document.getElementById('c-desc')?.value?.trim() || null,
     image_url:    document.getElementById('c-image')?.value?.trim() || null,
     video_url:    document.getElementById('c-video')?.value?.trim() || null,
@@ -1532,9 +1572,18 @@ function openAddLessonModal(courseId, existingIdOrObj = null) {
           </div>
         </div>
         <div class="form-group">
-          <label class="form-label">Unit / Module Name (optional)</label>
-          <input class="input" id="l-module" value="${existing?.module_title || ''}" placeholder="e.g. Unit 1: Algebra"/>
-          <div style="font-size:11px;color:var(--g400);margin-top:4px">Lessons with the same module name will be grouped together automatically.</div>
+          <label class="form-label">Module / Section Name (optional)</label>
+          <input class="input" id="l-module" value="${existing?.module_title || ''}" placeholder="e.g. Module 1: Getting Started or Unit 1: Algebra"/>
+          <div style="font-size:11px;color:var(--g400);margin-top:4px">Use this to group lessons (e.g., 'Step 1', 'Theory', 'Practical').</div>
+        </div>
+        <div class="form-group">
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:12px;background:#f0fdf4;border:1.5px dashed #bbf7d0;border-radius:10px">
+            <input type="checkbox" id="l-free-preview" ${existing?.is_free_preview ? 'checked' : ''} style="width:18px;height:18px"/>
+            <div>
+              <div style="font-size:13px;font-weight:800;color:#166534">🔓 Set as Free Preview Lesson</div>
+              <div style="font-size:11px;color:#15803d">Public visitors can watch this lesson without buying the course. Great for marketing!</div>
+            </div>
+          </label>
         </div>
         <div class="grid-2">
           <div class="form-group">
@@ -1989,7 +2038,8 @@ function _getLessonFormData() {
     video_url:      document.getElementById('l-video')?.value?.trim() || null,
     duration_mins:  parseInt(document.getElementById('l-duration')?.value) || 0,
     order_num:      parseInt(document.getElementById('l-order')?.value) || 1,
-    is_free_preview: false,
+    // Fix: Read the actual checkbox value
+    is_free_preview: document.getElementById('l-free-preview')?.checked || false,
     image_url:      document.getElementById('l-image')?.value?.trim() || null,
     content:        document.getElementById('l-content')?.value || null,
     notes:          document.getElementById('l-notes')?.value?.trim() || null,

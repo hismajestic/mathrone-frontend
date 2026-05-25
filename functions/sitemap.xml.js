@@ -41,7 +41,7 @@ export async function onRequest(context) {
 
     // Public courses
     const coursesRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/courses?select=id,slug,updated_at&is_published=eq.true`,
+      `${SUPABASE_URL}/rest/v1/courses?select=id,slug,title,updated_at&is_published=eq.true`,
       {
         headers: {
           apikey: SUPABASE_ANON_KEY,

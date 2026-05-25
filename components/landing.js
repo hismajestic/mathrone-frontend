@@ -259,12 +259,12 @@
     @keyframes chcIn{0%{opacity:0;clip-path:circle(0% at 100% 0%)}100%{opacity:1;clip-path:circle(150% at 100% 0%)}}
     @keyframes chcGlow{0%,100%{box-shadow:-4px 4px 28px 4px rgba(245,158,11,0.2)}50%{box-shadow:-8px 8px 50px 12px rgba(245,158,11,0.5)}}
       @keyframes dotPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(1.8)}}
-    .chc-wrap{position:absolute;top:80px;right:0;width:400px;height:400px;cursor:pointer;z-index:0;overflow:hidden;border-radius:0 0 0 100%;animation:chcIn 1s cubic-bezier(.4,0,.2,1) 0.8s both,chcGlow 4s ease-in-out 2s infinite;transition:all 0.3s}
+    .chc-wrap{position:absolute;top:0;right:0;width:400px;height:400px;cursor:pointer;z-index:1;overflow:hidden;border-radius:0 0 0 100%;animation:chcIn 1s cubic-bezier(.4,0,.2,1) 0.8s both,chcGlow 4s ease-in-out 2s infinite;transition:all 0.3s}
     .chc-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top}
     .chc-overlay{position:absolute;inset:0;background:linear-gradient(225deg,rgba(6,14,36,0.82) 0%,rgba(6,14,36,0.6) 55%,transparent 100%);transition:background 0.3s}
     .chc-wrap:hover .chc-overlay{background:linear-gradient(225deg,rgba(6,14,36,0.92) 0%,rgba(6,14,36,0.72) 60%,transparent 100%)}
     .chc-border{position:absolute;inset:0;border-radius:0 0 0 100%;border:2px solid rgba(245,158,11,0.55);border-top:none;border-right:none;pointer-events:none}
-    .chc-content{position:absolute;top:35px;right:25px;width:300px;text-align:right}
+    .chc-content{position:absolute;top:45px;right:25px;width:300px;text-align:right}
     .chc-label{font-size:11px;font-weight:800;color:#f59e0b;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;justify-content:flex-end;gap:6px}
     .chc-dot{width:8px;height:8px;border-radius:50%;background:#f59e0b;animation:dotPulse 2s ease-in-out infinite;flex-shrink:0;display:inline-block}
     .chc-title{font-size:22px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:10px;font-family:'Playfair Display',serif}

@@ -26,6 +26,30 @@ export async function onRequest(context) {
     const description = plainText.slice(0, 160);
 
     // Build a semantic HTML page for the bot to read
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "Course",
+      "name": course.title,
+      "description": description,
+      "provider": {
+        "@type": "Organization",
+        "name": "Mathrone Academy",
+        "sameAs": "https://mathroneacademy.com"
+      },
+      "image": image,
+      "offers": {
+        "@type": "Offer",
+        "price": course.price || "0",
+        "priceCurrency": "RWF",
+        "availability": "https://schema.org/InStock"
+      },
+      "hasCourseInstance": {
+        "@type": "CourseInstance",
+        "courseMode": "Online",
+        "courseWorkload": course.duration_mins ? `PT${course.duration_mins}M` : "PT10H"
+      }
+    };
+
     const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -33,24 +57,28 @@ export async function onRequest(context) {
   <title>${title}</title>
   <meta name="description" content="${description}"/>
   <link rel="canonical" href="${url}"/>
-
   <meta property="og:type" content="article"/>
   <meta property="og:title" content="${title}"/>
   <meta property="og:description" content="${description}"/>
   <meta property="og:image" content="${image}"/>
   <meta property="og:url" content="${url}"/>
   <meta property="og:site_name" content="Mathrone Academy"/>
-
-  <meta name="twitter:card" content="summary_large_image"/>
-  <meta name="twitter:title" content="${title}"/>
-  <meta name="twitter:description" content="${description}"/>
-  <meta name="twitter:image" content="${image}"/>
+  <script type="application/ld+json">${JSON.stringify(schema)}</script>
 </head>
 <body>
-  <h1>${course.title}</h1>
-  <p><strong>Subject:</strong> ${course.subject} | <strong>Level:</strong> ${course.level}</p>
-  <img src="${image}" alt="${course.title}" />
-  <p>${plainText}</p>
+  <article>
+    <h1>${course.title}</h1>
+    <nav>Subject: ${course.subject} | Level: ${course.level} | Curriculum: ${course.curriculum || 'General'}</nav>
+    <img src="${image}" alt="${course.title}" style="max-width:800px;"/>
+    <section>
+      <h2>About this course</h2>
+      <p>${plainText}</p>
+      <p>Price: ${course.price > 0 ? 'RWF ' + Number(course.price).toLocaleString() : 'Free'}</p>
+    </section>
+    <footer>
+      <a href="${url}">Enroll in this course at Mathrone Academy</a>
+    </footer>
+  </article>
 </body>
 </html>`;
 
