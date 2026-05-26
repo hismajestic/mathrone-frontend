@@ -267,9 +267,9 @@
     .chc-content{position:absolute;top:45px;right:25px;width:300px;text-align:right}
     .chc-label{font-size:11px;font-weight:800;color:#f59e0b;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;justify-content:flex-end;gap:6px}
     .chc-dot{width:8px;height:8px;border-radius:50%;background:#f59e0b;animation:dotPulse 2s ease-in-out infinite;flex-shrink:0;display:inline-block}
-    .chc-title{font-size:22px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:10px;font-family:'Playfair Display',serif}
-    .chc-sub{font-size:13px;color:rgba(255,255,255,0.8);line-height:1.5;margin-bottom:16px}
-    .chc-pills{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;margin-bottom:16px}
+    .chc-title{font-size:22px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:6px;font-family:'Playfair Display',serif}
+    .chc-sub{font-size:13px;color:rgba(255,255,255,0.8);line-height:1.5;margin-bottom:10px}
+    .chc-pills{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end;margin-bottom:10px}
     .chc-pill{display:inline-flex;align-items:center;gap:4px;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.35);color:#f59e0b;font-size:10px;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap}
     .chc-cta{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:800;color:#0f172a;background:#f59e0b;padding:8px 18px;border-radius:999px;transition:transform 0.2s}
     .chc-wrap:hover .chc-cta{transform:scale(1.05)}
@@ -361,7 +361,7 @@
           <span>Online Courses</span>
         </div>
        <div class="chc-title">Master Any Skill, Pass Any Exam</div>
-<div class="chc-sub">From National Exam Prep to Digital Marketing and Professional Skills. Expert-led video courses for Rwanda.</div>
+<div class="chc-sub">From National Exam Prep to Digital Marketing and Professional Skills. Expert-led video courses for Rwanda and the world.</div>
 <div class="chc-pills">
   <span class="chc-pill"><i data-lucide="monitor" style="width:8px;height:8px"></i>Digital Marketing</span>
   <span class="chc-pill"><i data-lucide="video" style="width:8px;height:8px"></i>Video Editing</span>
@@ -369,14 +369,18 @@
   <span class="chc-pill"><i data-lucide="calculator" style="width:8px;height:8px"></i>National Exams</span>
   <span class="chc-pill"><i data-lucide="briefcase" style="width:8px;height:8px"></i>Business</span>
   <span class="chc-pill"><i data-lucide="plus-circle" style="width:8px;height:8px"></i>MMO Skills</span>
+  <span class="chc-pill"><i data-lucide="sparkles" style="width:8px;height:8px"></i>And More</span>
+</div>
+<div style="display:flex;justify-content:flex-end">
+  <div class="chc-cta"><i data-lucide="arrow-right" style="width:12px;height:12px"></i> Click here &amp; Start Learning</div>
 </div>
         </div>
       </div>
     </div>
     <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center">
       <div class="htag"> Majestic Learning. Royal Results.</div>
-      <h1 class="htitle">Never Fall Behind in Class <span>Ever Again</span></h1>
-      <p class="hsub">Teacher absent? Missed a topic? Or just need a better explanation? Mathrone Academy is your academic safety net. Access expert 1-on-1 tutors, REB-aligned video courses, and an AI Tutor to guarantee your success and provides high-quality learning tools  from notebooks to educational kits for personalised success,at home or online..</p>
+      <h1 class="htitle">Your Learning. Your Rules. <span>Your Throne.</span></h1>
+      <p class="hsub">Whether you're a student catching up, a professional levelling up, or a teacher delivering world-class lessons — Mathrone Academy has everything you need. Expert tutors, video courses, AI Tutor, Majestic Lab, and a full learning store.</p>
       <div class="hbtns">
         <a href="/register" class="btn-hero-o" onclick="navigate('register', null, event)" style="background:#0e172b; border-color:var(--gold); text-decoration:none;"> Start Learning</a>
         <a href="/register" class="btn-hero-o" onclick="navigate('register', 'tutor', event)" style="text-decoration:none;">Become a Tutor</a>
@@ -405,7 +409,7 @@
           </div>
           <div class="chc-mobile-banner-cta">
             <i data-lucide="arrow-right" style="width:10px;height:10px"></i>
-            <span>Explore Courses</span>
+            <span>Click here &amp; Start Learning</span>
           </div>
         </div>
       </div>
@@ -467,23 +471,13 @@
     <div style="max-width:1100px;margin:0 auto">
       <h2 class="stitle">Meet Our Tutors</h2>
       <p class="ssub">Qualified, passionate educators ready to help your child succeed</p>
-      <div style="overflow:hidden;position:relative">
+      <div style="overflow:hidden;position:relative" id="tutors-slider-wrap">
         <div id="tutors-slider" style="display:flex;gap:20px;animation:slideLeft 20s linear infinite;width:max-content">
-          ${[...Array(2)].flatMap(()=>[
-            ['KM','#1e40af','Kamali Mugisha','BSc Mathematics, University of Rwanda',['Mathematics','Physics'],'4.9','48'],
-            ['AN','#065f46','Amina Nziza','MEd English Language, KIE',['English','French'],'5.0','31'],
-            ['BK','#7c3aed','Bruno Kalisa','BSc Chemistry & Biology, UR',['Chemistry','Biology'],'4.7','22'],
-            ['JM','#b45309','Jean Mutesi','Digital Marketing & Web Design',['Digital Skills','Web Dev'],'4.8','15'],
-            ['RN','#be185d','Rachel Nyiraneza','MBA Business & Entrepreneurship',['Business','Finance'],'4.9','27'],
-            ['DU','#0e7490','David Uwimana','Video Production & Editing',['Video Editing','CapCut'],'4.7','19'],
-          ]).map(([ini,bg,name,qual,subs,rat,rev])=>`
-          <div style="background:#fff;border:1px solid var(--g100);border-radius:16px;padding:24px;min-width:220px;max-width:220px">
-            <div style="width:52px;height:52px;border-radius:50%;background:${bg};display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;margin-bottom:14px">${ini}</div>
-            <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:2px">${name}</div>
-            <div style="font-size:11px;color:var(--g400);margin-bottom:10px">${qual}</div>
-            <div>${subs.map(s=>`<span style="background:#e0e7ff;color:#1e40af;font-size:11px;padding:3px 8px;border-radius:999px;margin-right:4px">${s}</span>`).join('')}</div>
-            <div style="color:#f59e0b;font-size:13px;margin-top:10px">★★★★★ <span style="color:var(--g400);font-size:11px">${rat} · ${rev} reviews</span></div>
-          </div>`).join('')}
+          <div style="display:flex;gap:20px">
+            <div style="background:#f0f2f5;border-radius:16px;width:220px;min-width:220px;height:160px;animation:skeletonPulse 1.4s ease-in-out infinite"></div>
+            <div style="background:#f0f2f5;border-radius:16px;width:220px;min-width:220px;height:160px;animation:skeletonPulse 1.4s ease-in-out infinite"></div>
+            <div style="background:#f0f2f5;border-radius:16px;width:220px;min-width:220px;height:160px;animation:skeletonPulse 1.4s ease-in-out infinite"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -563,6 +557,8 @@
           <input class="cinput" id="contact-email" type="email" placeholder="Email address"/>
           <input class="cinput" id="contact-subject" placeholder="Subject"/>
           <textarea class="cinput" id="contact-message" rows="4" placeholder="Your message..."></textarea>
+          <!-- Honeypot: hidden from real users, bots fill it in -->
+          <input id="contact-hp" name="website" autocomplete="off" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none"/>
           <button class="btn-g" id="contact-btn" style="padding:12px 28px" onclick="submitContactForm()">Send Message →</button>
         </div>
         <div>
@@ -685,6 +681,57 @@
       _animate('stat-students',6,   '+',  false)
       _animate('stat-rating',  4.8, '',  true)
       _animate('stat-sat',     96,  '%',  false)
+    }
+
+    // Load tutors into slider — always show 6 featured + live approved tutors
+    const FEATURED_TUTORS = [
+      ['KM','#1e40af','Kamali Mugisha','BSc Mathematics, University of Rwanda',['Mathematics','Physics'],'4.9','48'],
+      ['AN','#065f46','Amina Nziza','MEd English Language, KIE',['English','French'],'5.0','31'],
+      ['BK','#7c3aed','Bruno Kalisa','BSc Chemistry & Biology, UR',['Chemistry','Biology'],'4.7','22'],
+      ['JM','#b45309','Jean Mutesi','Digital Marketing & Web Design',['Digital Skills','Web Dev'],'4.8','15'],
+      ['RN','#be185d','Rachel Nyiraneza','MBA Business & Entrepreneurship',['Business','Finance'],'4.9','27'],
+      ['DU','#0e7490','David Uwimana','Video Production & Editing',['Video Editing','CapCut'],'4.7','19'],
+    ]
+    const makeFeaturedCard = ([ini,bg,name,qual,subs,rat,rev]) =>
+      `<div style="background:#fff;border:1px solid var(--g100);border-radius:16px;padding:24px;min-width:220px;max-width:220px;flex-shrink:0">
+        <div style="width:52px;height:52px;border-radius:50%;background:${bg};display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;margin-bottom:14px">${ini}</div>
+        <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:2px">${name}</div>
+        <div style="font-size:11px;color:var(--g400);margin-bottom:10px">${qual}</div>
+        <div>${subs.map(s=>`<span style="background:#e0e7ff;color:#1e40af;font-size:11px;padding:3px 8px;border-radius:999px;margin-right:4px">${s}</span>`).join('')}</div>
+        <div style="color:#f59e0b;font-size:13px;margin-top:10px">&#9733;&#9733;&#9733;&#9733;&#9733; <span style="color:var(--g400);font-size:11px">${rat} &middot; ${rev} reviews</span></div>
+      </div>`
+    const colors = ['#1e40af','#065f46','#7c3aed','#b45309','#be185d','#0e7490']
+    const makeLiveCard = (t, i) => {
+      const ini = (t.profiles?.full_name||'T').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()
+      const subs = (t.subjects||[]).slice(0,2)
+      const rat = (t.rating||0).toFixed(1)
+      const rev = t.total_reviews||0
+      return `<div style="background:#fff;border:1px solid var(--g100);border-radius:16px;padding:24px;min-width:220px;max-width:220px;flex-shrink:0">
+        <div style="width:52px;height:52px;border-radius:50%;background:${colors[i%colors.length]};display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;margin-bottom:14px">${ini}</div>
+        <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:2px">${t.profiles?.full_name||'\u2014'}</div>
+        <div style="font-size:11px;color:var(--g400);margin-bottom:10px">${t.qualification||''}</div>
+        <div>${subs.map(s=>`<span style="background:#e0e7ff;color:#1e40af;font-size:11px;padding:3px 8px;border-radius:999px;margin-right:4px">${s}</span>`).join('')}</div>
+        <div style="color:#f59e0b;font-size:13px;margin-top:10px">&#9733;&#9733;&#9733;&#9733;&#9733; <span style="color:var(--g400);font-size:11px">${rat} &middot; ${rev} reviews</span></div>
+      </div>`
+    }
+    const slider = document.getElementById('tutors-slider')
+    if(slider){
+      // Start immediately with featured cards so slider is never blank
+      const featuredHTML = FEATURED_TUTORS.map(makeFeaturedCard).join('')
+      slider.innerHTML = featuredHTML + featuredHTML
+      slider.style.animation = 'slideLeft 20s linear infinite'
+      // Then try to load live tutors and prepend them
+      try{
+        const res = await fetch(API_URL + '/tutors/search?limit=12&available_only=false').then(r=>r.json())
+        const liveTutors = (res.data||res||[]).filter(t=>t.profiles?.full_name)
+        if(liveTutors.length){
+          const liveHTML = liveTutors.map((t,i)=>makeLiveCard(t,i)).join('')
+          const combined = featuredHTML + liveHTML
+          slider.innerHTML = combined + combined
+          const total = FEATURED_TUTORS.length + liveTutors.length
+          slider.style.animation = `slideLeft ${Math.max(20, total*3)}s linear infinite`
+        }
+      }catch(e){ /* keep featured cards already shown */ }
     }
   }, 300)
 }

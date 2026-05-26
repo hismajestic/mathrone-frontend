@@ -22,7 +22,7 @@ function setPageMeta(title, description, imageUrl, canonicalUrl) {
 
 // NEW: Client-side Supabase connection for Whiteboard
 const SB_URL = "https://hdpkjomganndiiprnpok.supabase.co";
-const SB_KEY = window.__SB_CFG__ || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkcGtqb21nYW5uZGlpcHJucG9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxMTU5ODEsImV4cCI6MjA4ODY5MTk4MX0.cNA9Eira3m5Bv0v1EFIOdzOMF08avbxYs4zKwIVleLM";
+const SB_KEY = window.__SB_CFG__;
 
 // Define a variable, but don't initialize yet to avoid the crash
 let supabaseClient = null;
@@ -1536,6 +1536,8 @@ function animateCount(id, target, duration, suffix, isDecimal){
   requestAnimationFrame(step)
 }
 async function submitContactForm(){
+  // Honeypot check — bots fill hidden fields, humans don't
+  if(document.getElementById('contact-hp')?.value){ return }
   const name    = document.getElementById('contact-name')?.value?.trim()
   const email   = document.getElementById('contact-email')?.value?.trim()
   const subject = document.getElementById('contact-subject')?.value?.trim()

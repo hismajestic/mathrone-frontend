@@ -10,7 +10,7 @@ Allow: /course/
 Allow: /about
 Allow: /privacy
 Allow: /terms
-allow: /majestic-lab
+Allow: /majestic-lab
 
 # Private authenticated pages
 Disallow: /dashboard
