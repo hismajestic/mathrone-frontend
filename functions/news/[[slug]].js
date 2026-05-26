@@ -25,6 +25,16 @@ export async function onRequest(context) {
 
     if (!article || article.detail) return context.next()
 
+    // --- SEO REDIRECT LOGIC ---
+    const correctCat = (article.category === 'news' || !article.category) ? 'education' : article.category;
+    const pathParts = new URL(request.url).pathname.split('/'); 
+    const urlCat = pathParts[2]; // gets 'education' or 'scholarship' from /news/category/slug
+
+    if (urlCat !== correctCat) {
+      return Response.redirect(`${BASE}/news/${correctCat}/${slugOrId}`, 301);
+    }
+    // --------------------------
+
     const title       = esc(article.title || 'Mathrone Academy News')
     const slug        = article.slug || article.id
     const url         = `${BASE}/news/${(article.category === 'news' || !article.category) ? 'education' : article.category}/${slug}`

@@ -186,8 +186,8 @@ async function renderCoursesShop() {
   ${nav}
   <div style="max-width:1100px;margin:0 auto;padding:24px 16px">
     <div style="margin-bottom:24px">
-      <h1 style="font-size:22px;font-weight:800;color:var(--navy);margin-bottom:4px;line-height:1.2"> Learn Anything, Anytime</h1>
-      <p style="font-size:13px;color:var(--g400);">Expert-led video courses aligned to Rwanda's curriculum.</p>
+      <h1 style="font-size:24px;font-weight:900;color:var(--navy);margin-bottom:6px;line-height:1.2;display:flex;align-items:center;gap:10px;font-family:'Playfair Display',serif"><i data-lucide="sparkles" style="width:24px;height:24px;color:var(--gold)"></i> The Majestic Course Marketplace</h1>
+<p style="font-size:14px;color:var(--g600);margin-bottom:20px;max-width:700px">Unlock world-class education from anywhere. Explore expert-led video courses covering <strong>High-Income Digital Skills</strong>, <strong>Professional Certifications</strong>, and <strong>Academic Excellence</strong> aligned to the Rwandan curriculum.</p>
     </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
       ${[1,2,3,4,5,6].map(()=>`
@@ -243,11 +243,17 @@ async function renderCoursesShop() {
     render(`
     ${nav}
     <div class="m-courses-container" style="max-width:1100px;margin:0 auto;padding:24px 16px">
-      <div class="m-courses-header" style="margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px">
-        <div style="flex:1;min-width:300px">
-          <h1 style="font-size:22px;font-weight:800;color:var(--navy);margin-bottom:4px;line-height:1.2;display:flex;align-items:center;gap:8px"><i data-lucide="book-open-check" style="width:24px;height:24px;color:var(--blue)"></i> Your Academic Safety Net</h1>
-          <p style="font-size:13px;color:var(--g400);margin:0">Teacher unavailable or need a better explanation? Keep your grades up with expert-led video courses aligned to the Rwandan curriculum.</p>
-        </div>
+     <div class="m-courses-header" style="margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px">
+  <div style="flex:1;min-width:300px">
+    <h1 style="font-size:24px;font-weight:900;color:var(--navy);margin-bottom:6px;line-height:1.2;display:flex;align-items:center;gap:10px;font-family:'Playfair Display',serif">
+      <i data-lucide="sparkles" style="width:24px;height:24px;color:var(--gold)"></i> The Majestic Course Marketplace
+    </h1>
+    <p style="font-size:14px;color:var(--g600);margin:0;max-width:600px;line-height:1.5">
+      Unlock world-class education from anywhere. Explore expert-led video courses covering 
+      <strong>High-Income Digital Skills</strong>, <strong>Professional Certifications</strong>, 
+      and <strong>Academic Excellence</strong> aligned to the Rwandan curriculum.
+    </p>
+  </div>
         
         <div style="position:relative;width:100%;max-width:320px">
           <input class="input" id="course-search-input" value="${query}" placeholder="Search courses or subjects..." oninput="handleCourseSearchInput(this.value)" onkeydown="if(event.key==='Enter') { const url = new URL(window.location); url.searchParams.set('q', this.value); window.history.pushState({}, '', url); renderCoursesShop(); }" style="padding-left:40px;height:44px;border-radius:12px"/>
@@ -281,7 +287,11 @@ window.playCourseCardVideo = function(e, id, url) {
     const playBtn = cover.querySelector('.play-btn-circle');
     if (playBtn) playBtn.innerHTML = '<div class="spinner" style="width:24px;height:24px;border-width:3px;border-color:var(--blue);border-top-color:transparent"></div>';
     
-    iframe.src = url; // Inject URL to start buffering
+    // Lockdown Params: rel=0 (hide other channels), modestbranding=1 (hide logo), iv_load_policy=3 (hide annotations)
+    // This prevents related videos from other channels (rel=0) 
+// and hides the YouTube logo (modestbranding=1)
+const lockdownUrl = url + (url.includes('?') ? '&' : '?') + "rel=0&modestbranding=1&iv_load_policy=3&showinfo=0&disablekb=1&controls=1&autohide=1";
+    iframe.src = lockdownUrl;
     // Wait for the iframe to actually load before hiding the cover
     iframe.onload = () => {
       cover.style.opacity = '0';
@@ -315,7 +325,12 @@ function courseCard(c, isLoggedIn, isCourseGuest) {
   const cleanUrl = ytId ? `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1&showinfo=0&controls=1` : inlineVideoUrl;
   
   // If there's a video, play it. If not, clicking the cover natively navigates to course details.
-  const clickAction = cleanUrl ? `playCourseCardVideo(event, '${c.id}', '${cleanUrl.replace(/'/g, "\\'")}')` : `navigate('course-${c.slug || c.id}', null, event)`;
+  // Build the SEO state string
+const courseCat = (c.curriculum || 'general').toLowerCase();
+const courseSlug = c.slug || c.id;
+const seoState = `course-${courseCat}--${courseSlug}`;
+
+const clickAction = cleanUrl ? `playCourseCardVideo(event, '${c.id}', '${cleanUrl.replace(/'/g, "\\'")}')` : `navigate('${seoState}', null, event)`;
 
   return `
   <div class="m-course-card" style="background:#fff;border:1px solid #e8ecf0;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .2s,transform .2s;"
@@ -360,7 +375,7 @@ function courseCard(c, isLoggedIn, isCourseGuest) {
     <!-- Body Area -->
     <div class="m-course-body" style="padding:16px;flex:1;display:flex;flex-direction:column;gap:0">
       
-      <a href="/course/${c.slug||c.id}" onclick="navigate('course-${c.slug||c.id}', null, event)"
+      <a href="/course/${courseCat}/${courseSlug}" onclick="navigate('${seoState}', null, event)"
            style="display:block;text-decoration:none;font-size:16px;font-weight:800;color:#0f172a;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:6px;cursor:pointer;word-break:break-word;overflow-wrap:break-word;">
         ${c.title}
       </a>
@@ -373,7 +388,7 @@ function courseCard(c, isLoggedIn, isCourseGuest) {
       </div>
 
       <!-- View Details Pill -->
-      <a href="/course/${c.slug||c.id}" onclick="navigate('course-${c.slug||c.id}', null, event)"
+      <a href="/course/${courseCat}/${courseSlug}" onclick="navigate('${seoState}', null, event)"
          style="display:inline-flex;align-items:center;gap:3px;padding:4px 12px;border-radius:999px;border:1.5px solid #bfdbfe;background:#eff6ff;font-size:11px;font-weight:600;color:#1d4ed8;text-decoration:none;width:fit-content;transition:background .15s;margin-top:4px;margin-bottom:12px;"
          onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
         View full details →
@@ -413,6 +428,10 @@ async function renderCourseDetail(slugParam) {
     slug = parts[0];
     query = decodeURIComponent(parts[1]).toLowerCase();
   }
+  // Strip category prefix: "digitalskills--graphic-design-course" → "graphic-design-course"
+  if (slug.includes('--')) {
+    slug = slug.split('--').slice(1).join('--');
+  }
 
   render(`
   <nav style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--g100);background:#fff;position:sticky;top:0;z-index:100">
@@ -436,36 +455,47 @@ async function renderCourseDetail(slugParam) {
       if (filtered.length > 0) displayLessons = filtered;
     }
 
-    // ── SEO: update meta for this public course page ──
-    const BASE = 'https://mathroneacademy.pages.dev'
-    updatePageSEO({
-      title: c.title,
-      description: (c.description || `Learn ${c.title} on Mathrone Academy. ${c.subject ? c.subject + ' course' : ''} ${c.level ? '— ' + c.level : ''} — available online in Rwanda.`).slice(0, 160),
-      url: BASE + '/course-' + slug,
-      noindex: false,
-      schema: {
-        '@context': 'https://schema.org',
-        '@type': 'Course',
-        name: c.title,
-        description: (c.description || '').slice(0, 200),
-        url: BASE + '/course/' + (c.slug || c.id),
-        provider: { '@type': 'Organization', name: 'Mathrone Academy', url: 'https://mathroneacademy.com' },
-        image: c.image_url || 'https://mathroneacademy.com/og-banner.jpg',
-        offers: {
-          '@type': 'Offer',
-          'price': c.price || '0',
-          'priceCurrency': 'RWF',
-          'category': c.curriculum || 'Skill'
-        }
+    // ── SEO: Enhanced Course Meta & Schema ──
+    const BASE = 'https://mathroneacademy.com';
+    const courseUrl = `${BASE}/course/${c.slug || c.id}`;
+    const courseDesc = (c.description || `Master ${c.title} with expert-led video lessons at Mathrone Academy. Aligned with Rwanda curriculum for ${c.level || 'all levels'}.`).slice(0, 160);
+    
+    // Set standard and social meta tags
+    setPageMeta(
+  `${c.title} - Learn & Master in Rwanda | Mathrone`,
+  `Enroll in ${c.title}. ${c.description ? c.description.slice(0,140) : 'Master this subject with expert-led video lessons, quizzes and certificate of completion at Mathrone Academy.'}`,
+  c.image_url || `${BASE}/og-banner.jpg`,
+  courseUrl
+);
+
+    // Inject Course Schema for Google "Rich Results" (shows price & provider in search)
+    const existingSchema = document.getElementById('course-schema');
+    if(existingSchema) existingSchema.remove();
+    const schemaScript = document.createElement('script');
+    schemaScript.id = 'course-schema';
+    schemaScript.type = 'application/ld+json';
+    schemaScript.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Course",
+      "name": c.title,
+      "description": courseDesc,
+      "provider": { 
+        "@type": "Organization", 
+        "name": "Mathrone Academy", 
+        "sameAs": BASE,
+        "logo": `${BASE}/favicon.png`
+      },
+      "image": c.image_url || `${BASE}/og-banner.jpg`,
+      "offers": {
+        "@type": "Offer",
+        "category": "Education",
+        "price": c.price || "0",
+        "priceCurrency": "RWF",
+        "availability": "https://schema.org/InStock",
+        "seller": { "@type": "Organization", "name": "Mathrone Academy" }
       }
-    })
-    // Also update og:url and canonical for this course
-    const ogUrl = document.querySelector('meta[property="og:url"]')
-    if (ogUrl) ogUrl.setAttribute('content', BASE + '/course-' + slug)
-    const ogImg = document.querySelector('meta[property="og:image"]')
-    if (ogImg && c.image_url) ogImg.setAttribute('content', c.image_url)
-    let canon = document.querySelector('link[rel="canonical"]')
-    if (canon) canon.setAttribute('href', BASE + '/course-' + slug)
+    });
+    document.head.appendChild(schemaScript);
     // ─────────────────────────────────────────────────
 
     render(`
@@ -479,11 +509,21 @@ async function renderCourseDetail(slugParam) {
       <div style="margin-bottom:32px;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:24px;">
         <div style="flex:1;min-width:300px;">
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
-            ${c.level ? `<span style="background:var(--sky);color:var(--blue);font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px">${c.level}</span>` : ''}
-            ${c.subject ? `<span style="background:var(--sky);color:var(--blue);font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px">${c.subject}</span>` : ''}
+            <!-- Professional Badge -->
+            <span style="background:var(--navy);color:#fff;font-size:10px;font-weight:800;padding:4px 12px;border-radius:4px;letter-spacing:1px;text-transform:uppercase;">
+              ${c.curriculum || 'Skill Certification'}
+            </span>
+            <!-- Contextual Badge (Subject/Topic) -->
+            ${c.subject ? `<span style="background:var(--sky);color:var(--blue);font-size:11px;font-weight:700;padding:4px 12px;border-radius:4px">${c.subject}</span>` : ''}
+            <!-- Targeted Audience Badge -->
+            ${c.level ? `<span style="background:#f1f5f9;color:var(--g600);font-size:11px;font-weight:700;padding:4px 12px;border-radius:4px">Target: ${c.level}</span>` : ''}
           </div>
-          <h1 style="font-size:28px;font-weight:900;color:var(--navy);margin-bottom:12px;line-height:1.2;word-break:break-word;overflow-wrap:break-word;">${c.title}</h1>
-          <p style="font-size:15px;color:var(--g600);line-height:1.6;max-width:600px;word-break:break-word;overflow-wrap:break-word;">${c.description || ''}</p>
+          <h1 style="font-size:32px;font-weight:900;color:var(--navy);margin-bottom:12px;line-height:1.2;font-family:'Playfair Display',serif;">${c.title}</h1>
+          
+          <div style="background:#f8fafc; border-left:4px solid var(--blue); padding:16px; border-radius:0 12px 12px 0; margin-bottom:20px;">
+             <div style="font-size:12px; font-weight:800; color:var(--blue); text-transform:uppercase; margin-bottom:4px;">Course Overview</div>
+             <p style="font-size:15px;color:var(--g600);line-height:1.6;margin:0;white-space:pre-line;">${c.description || 'No description available.'}</p>
+          </div>
         </div>
         
         <!-- Action Card -->
@@ -507,34 +547,21 @@ async function renderCourseDetail(slugParam) {
         <h2 style="font-size:18px;font-weight:800;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:8px"><i data-lucide="list-checks" style="width:20px;height:20px;color:var(--blue)"></i> What You'll Learn</h2>
         <div style="display:flex;flex-direction:column;gap:10px">
           ${displayLessons.map((l, i) => {
-            // Fix: If it's a free preview, allow opening the player
-            const clickAction = l.is_free_preview 
-              ? `openLessonPlayer('${l.id}')` 
-              : `toast('Enroll in the course to access this lesson.', 'info')`;
-            const displayImg = l.image_url || c.image_url;
+            const isFree = l.is_free_preview;
+            const clickAction = isFree ? `openLessonPlayer('${l.id}')` : `toast('Enroll in the course to unlock this lesson.', 'info')`;
             return `
-            <div onclick="${clickAction}" style="background:#fff;border:1px solid #e5e7eb;border-radius:4px;overflow:hidden;margin-bottom:16px;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,0.05);transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-              <div style="display:flex;align-items:center;">
-                <div style="width:clamp(120px, 30vw, 160px);aspect-ratio:16/9;background:#1E2845;flex-shrink:0;position:relative;overflow:hidden;border-radius:4px 0 0 4px;">
-                   ${displayImg ? `<img src="${displayImg}" style="width:100%;height:100%;object-fit:contain;object-position:center;opacity:0.9;display:block;background:#1E2845;"/>` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:#1e3a8a;color:#fff;font-size:24px;font-weight:800;">${l.order_num || i+1}</div>`}
-                   <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,${l.is_free_preview ? '0.1' : '0.4'});">
-                     ${l.is_free_preview 
-                        ? `<div style="background:var(--blue);color:#fff;font-size:9px;font-weight:800;padding:3px 8px;border-radius:4px;position:absolute;top:8px;left:8px">FREE PREVIEW</div><i data-lucide="play-circle" style="width:28px;height:28px;color:#fff"></i>` 
-                        : `<i data-lucide="lock" style="width:24px;height:24px;color:#fff;opacity:0.9"></i>`}
-                   </div>
-                </div>
-                <div style="padding:16px;flex:1;display:flex;flex-direction:column;justify-content:center;">
-                  <h3 style="font-size:15px;font-weight:700;color:#111827;margin-bottom:4px;line-height:1.3;">${l.title}</h3>
-                  <p style="font-size:12px;color:#6b7280;margin-bottom:6px;">Mathrone Academy, Instructor</p>
-                  <div style="display:flex;gap:4px;color:#10b981;font-size:12px;">
-                    ★ ★ ★ ★ ★ <span style="color:#9ca3af;margin-left:4px;">${l.duration_mins ? `${l.duration_mins} min` : 'Video Lesson'}</span>
-                  </div>
-                </div>
+            <div onclick="${clickAction}" style="display:flex; align-items:center; gap:16px; padding:12px; border-bottom:1px solid var(--g50); cursor:pointer; transition:background 0.2s;" onmouseover="this.style.background='var(--g50)'" onmouseout="this.style.background='transparent'">
+              <div style="width:32px; height:32px; border-radius:50%; background:${isFree ? 'var(--blue)' : 'var(--g100)'}; color:${isFree ? '#fff' : 'var(--g400)'}; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:12px; font-weight:800;">
+                ${isFree ? '<i data-lucide="play" style="width:14px;height:14px;fill:currentColor"></i>' : i+1}
               </div>
-              <div style="background:#374151;padding:10px 16px;">
-                <div style="display:flex;align-items:center;gap:12px;">
-                  <div style="width:100%;height:4px;background:#4b5563;border-radius:2px;overflow:hidden;"></div>
-                  <span style="font-size:11px;color:#9ca3af;white-space:nowrap;">Locked</span>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:14px; font-weight:700; color:var(--navy); display:flex; align-items:center; gap:8px;">
+                  <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${l.title}</span>
+                  ${isFree ? `<span style="background:#10b981; color:#fff; font-size:9px; padding:2px 6px; border-radius:4px; font-weight:900; flex-shrink:0;">FREE PREVIEW</span>` : ''}
+                </div>
+                <div style="font-size:12px; color:var(--g400); margin-top:2px; display:flex; align-items:center; gap:12px;">
+                  <span style="display:flex; align-items:center; gap:4px;"><i data-lucide="clock" style="width:12px;height:12px"></i> ${l.duration_mins || 0} mins</span>
+                  ${!isFree ? `<span style="display:flex; align-items:center; gap:4px; color:var(--g300)"><i data-lucide="lock" style="width:12px;height:12px"></i> Locked</span>` : `<span style="color:var(--blue); font-weight:700;">Watch Now</span>`}
                 </div>
               </div>
             </div>`;
@@ -600,6 +627,7 @@ async function renderCourseDetail(slugParam) {
       </div>
     </div>
     <div id="modal-root"></div>`)
+  if (window.lucide) window.lucide.createIcons();
 
   } catch(e) {
     toast(e.message, 'err')
@@ -805,19 +833,33 @@ function openLessonPlayer(lessonId) {
     const ytMatch = l.video_url.match(/(?:embed\/|v=|youtu\.be\/)([\w-]{11})/);
     const ytId = ytMatch ? ytMatch[1] : '';
     const thumbUrl = ytId ? `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg` : '';
-    const cleanUrl = ytId ? `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1&showinfo=0&controls=1` : l.video_url;
+    // Enhanced Lockdown: rel=0 hides related videos from other channels, 
+    // modestbranding=1 removes the logo from the control bar.
+    const cleanUrl = ytId ? `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1&showinfo=0&iv_load_policy=3&controls=1&disablekb=1` : l.video_url;
     
      videoHtml = `
-    <div style="position:relative;padding-bottom:56.25%;height:0;background:#000;border-radius:0;overflow:hidden;border-bottom:1px solid var(--g100)">
-      <div id="lesson-vid-cover" onclick="const btn=this.querySelector('div[style*=\\'border-radius:50%\\']'); if(btn) btn.innerHTML='<div class=\\'spinner\\' style=\\'width:28px;height:28px;border-width:3px;border-color:#fff;border-top-color:transparent\\'></div>'; const iframe=document.getElementById('lesson-vid-iframe'); iframe.src='${cleanUrl}'; iframe.onload = () => { this.style.opacity='0'; setTimeout(()=>this.style.display='none',300); }" 
-           style="position:absolute;top:0;left:0;width:100%;height:100%;cursor:pointer;background:#000 url('${thumbUrl}') center/cover no-repeat;display:flex;align-items:center;justify-content:center;z-index:2;transition:opacity 0.3s">
-        <div style="width:64px;height:64px;background:var(--blue);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(26,95,255,0.4);transition:transform 0.2s" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:4px"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+    <div style="position:relative;padding-bottom:56.25%;height:0;background:#000;overflow:hidden;border-bottom:1px solid var(--g100)">
+      <!-- Mathrone Shield Cover: Prevents users from seeing YT suggested videos/titles initially -->
+      <div id="lesson-vid-cover" onclick="const iframe=document.getElementById('lesson-vid-iframe'); iframe.src='${cleanUrl}'; this.style.opacity='0'; setTimeout(()=>this.style.display='none',300);" 
+           style="position:absolute;top:0;left:0;width:100%;height:100%;cursor:pointer;background:#000 url('${thumbUrl}') center/cover no-repeat;display:flex;align-items:center;justify-content:center;z-index:10;transition:opacity 0.4s">
+        
+        <!-- Branded Tint -->
+        <div style="position:absolute;inset:0;background:rgba(13,27,64,0.45);backdrop-filter:blur(2px);"></div>
+        
+        <!-- Large Play Button -->
+        <div style="position:relative;z-index:11;width:80px;height:80px;background:var(--blue);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 40px rgba(0,0,0,0.5);border:3px solid rgba(255,255,255,0.2)">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        </div>
+        
+        <div style="position:absolute;bottom:20px;left:20px;z-index:11;color:#fff;text-align:left;">
+           <div style="font-size:10px;font-weight:800;letter-spacing:1px;opacity:0.8;">OFFICIAL COURSE CONTENT</div>
+           <div style="font-size:18px;font-weight:800;font-family:'Playfair Display',serif;">${l.title}</div>
         </div>
       </div>
+
       <iframe id="lesson-vid-iframe" src=""
         style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;z-index:1"
-        allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe>
+        allow="autoplay; encrypted-media; picture-in-picture"></iframe>
     </div>`;
   }
 
@@ -1169,16 +1211,16 @@ async function memberEnrollCourse(courseId, courseTitle, price) {
   const priceDisplay = price > 0 ? 'RWF ' + Number(price).toLocaleString() : 'FREE'
   const payNote = price > 0
     ? `
-      <div style="font-weight:800;color:var(--navy);margin-bottom:8px;">How to pay via MoMo/Airtel:</div>
-      <ol style="padding-left:16px;margin-bottom:12px;display:flex;flex-direction:column;gap:6px">
-        <li>Dial <strong>*182*8*1*178251#</strong> 
-        <li>Or send money directly to <strong>0786 684 285</strong> (Mathrone Academy)</li>
-        <li>Click "Submit Request" below.</li>
-        <li>Send a screenshot of your payment message to our WhatsApp.</li>
-      </ol>
-      <div>Once confirmed, admin will instantly unlock the course for you.</div>
+      <div style="font-weight:800;color:var(--navy);margin-bottom:10px;display:flex;align-items:center;gap:6px;"><i data-lucide="zap" style="width:16px;height:16px;color:var(--gold);fill:var(--gold)"></i> Instant Activation Guide:</div>
+      <div style="background:#fff; border:1.5px solid var(--blue); border-radius:10px; padding:12px; margin-bottom:12px; box-shadow:inset 0 2px 4px rgba(0,0,0,0.02)">
+        <div style="margin-bottom:8px; font-size:13px;">1. Dial <strong>*182*8*1*178251#</strong></div>
+        <div style="margin-bottom:8px; font-size:13px;">2. Pay <strong>RWF ${Number(price).toLocaleString()}</strong></div>
+        <div style="margin-bottom:8px; font-size:13px;">3. Enter the <strong>MoMo Reference</strong> below</div>
+        <div style="font-size:13px;">4. Click <strong>Submit</strong> to unlock course</div>
+      </div>
+      <div style="font-size:11px; color:var(--g400); line-height:1.4;">Payment is verified automatically. Your course will be accessible in your <strong>My Courses</strong> tab immediately after admin confirmation.</div>
       `
-    : 'This is a free course. Click below to enroll and start learning immediately.'
+    : 'This course is free. Click below to start learning immediately! 🚀';
 
   modalRoot.innerHTML = `
   <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
@@ -2056,28 +2098,48 @@ function _getLessonFormData() {
   }
 }
 
-function handlePdfResourceUpload(event) {
-  const file = event.target.files?.[0]
-  if (!file) return
-  const reader = new FileReader()
-  reader.onload = e => {
-    const list = document.getElementById('resources-list')
-    const div = document.createElement('div')
-    div.className = 'res-row'
-    div.style.cssText = 'display:flex;gap:8px;align-items:center;background:#fff5f5;border:1px solid #fca5a5;border-radius:8px;padding:10px'
+async function handlePdfResourceUpload(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  
+  const labelInput = event.target.parentElement.querySelector('input[data-key="label"]');
+  const btn = event.target.previousElementSibling; // The upload button
+  
+  const fd = new FormData();
+  fd.append('file', file);
+
+  try {
+    toast('Uploading document...', 'info');
+    const res = await fetch(API_URL + '/courses/admin/upload-resource', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + getToken() },
+      body: fd
+    });
+    
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Upload failed');
+
+    const list = document.getElementById('resources-list');
+    const div = document.createElement('div');
+    div.className = 'res-row';
+    div.style.cssText = 'display:flex;gap:8px;align-items:center;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px';
     div.innerHTML = `
       <span style="font-size:20px">📄</span>
       <input class="input" style="flex:1;min-width:0" value="${file.name}" data-key="label"/>
-      <input class="input" style="flex:2;min-width:0;font-size:11px;color:var(--g400)" value="${e.target.result}" data-key="url" readonly title="Base64 PDF data"/>
+      <input class="input" style="flex:2;min-width:0;font-size:11px;" value="${data.url}" data-key="url" readonly/>
       <select class="input" style="width:90px;flex-shrink:0" data-key="type">
-        <option value="pdf" selected>📄 PDF</option>
+        <option value="pdf" ${file.name.endsWith('.pdf') ? 'selected' : ''}>📄 PDF</option>
+        <option value="doc" ${file.name.includes('doc') ? 'selected' : ''}>📝 Doc</option>
+        <option value="link">🔗 Link</option>
       </select>
-      <button onclick="this.closest('.res-row').remove()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:18px;flex-shrink:0">×</button>`
-    list.appendChild(div)
-    toast('PDF added to resources ✅')
+      <button onclick="this.closest('.res-row').remove()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:18px;flex-shrink:0">✕</button>`;
+    
+    list.appendChild(div);
+    toast('Document linked successfully ✅');
+  } catch (e) {
+    toast(e.message, 'err');
   }
-  reader.readAsDataURL(file)
-  event.target.value = ''
+  event.target.value = '';
 }
 
 function previewVideo() {

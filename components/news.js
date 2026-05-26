@@ -665,7 +665,7 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
   }
 
   try{
-    const newsBase = API_URL + '/news/?' + (activeCategory ? `category=${activeCategory}&` : '') + (searchQuery ? `search=${encodeURIComponent(searchQuery)}` : '')
+    const newsBase = API_URL + '/news/?limit=100&' + (activeCategory ? `category=${activeCategory}&` : '') + (searchQuery ? `search=${encodeURIComponent(searchQuery)}` : '')
     // Try localStorage stale cache first for instant render, then refresh in background
     const LS_KEY = 'news_cache_v1'
     const LS_TTL = 5 * 60 * 1000 // 5 minutes
@@ -702,7 +702,8 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
       }
     }
 
-    const posts = allPosts.filter(p => !p.is_featured)
+    // If a category is selected, show everything. If viewing "All", hide featured from the bottom list to avoid duplicates.
+    const posts = (activeCategory || searchQuery) ? allPosts : allPosts.filter(p => !p.is_featured);
     // Populate ticker with real post titles
     const tickerEl = document.getElementById('pn-ticker')
     if(tickerEl){
@@ -840,7 +841,7 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
           <section style="margin-bottom:2.5rem">
             <div class="pn-section-hdr">
               <h2 class="pn-section-title"> Featured</h2>
-              <button class="pn-view-all" onclick="renderPublicNews()">View all →</button>
+              <button class="pn-view-all" onclick="document.getElementById('latest-section-anchor').scrollIntoView({behavior:'smooth'})">See Latest ↓</button>
             </div>
             <div class="pn-grid-3">
               ${featuredPosts.map(p => newsCard(p, true)).join('')}
@@ -850,8 +851,8 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
 
           <section>
             <div class="pn-section-hdr">
-              <h2 class="pn-section-title">${activeCategory ? (NEWS_CATEGORIES.find(c=>c.id===activeCategory)?.label||'Latest') : 'Latest Articles'}</h2>
-              <button class="pn-view-all" onclick="renderPublicNews()">View all →</button>
+              <h2 id="latest-section-anchor" class="pn-section-title">${activeCategory ? (NEWS_CATEGORIES.find(c=>c.id===activeCategory)?.label||'Latest') : 'Latest Articles'}</h2>
+              <button class="pn-view-all" onclick="renderPublicNews('${activeCategory || ''}')">Refresh →</button>
             </div>
             ${posts.length ? `
             <div class="pn-grid-3">

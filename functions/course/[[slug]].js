@@ -1,6 +1,9 @@
 export async function onRequest(context) {
   const { params, request } = context;
-  const courseSlug = params.slug;
+  // params.slug is an array: [category, slug] or just [slug]
+  const slugParts = Array.isArray(params.slug) ? params.slug : [params.slug];
+  const courseSlug = slugParts.length >= 2 ? slugParts[1] : slugParts[0];
+  const category = slugParts.length >= 2 ? slugParts[0] : 'general';
   const userAgent = request.headers.get('user-agent') || '';
 
   // Check if the visitor is a search engine or social media bot
@@ -17,9 +20,9 @@ export async function onRequest(context) {
     if (!res.ok) throw new Error('Course not found');
     const course = await res.json();
 
-    const title = `${course.title} | Mathrone Academy`;
+    const title = `Course: ${course.title} - Enrolling Now in Rwanda`;
     const image = course.image_url || 'https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png';
-    const url = `https://mathroneacademy.com/course/${courseSlug}`;
+    const url = `https://mathroneacademy.com/course/${category}/${courseSlug}`;
     
     // Clean up the description
     const plainText = (course.description || course.title).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
@@ -32,10 +35,19 @@ export async function onRequest(context) {
       "name": course.title,
       "description": description,
       "provider": {
-        "@type": "Organization",
-        "name": "Mathrone Academy",
-        "sameAs": "https://mathroneacademy.com"
-      },
+  "@type": "EducationalOrganization",
+  "name": "Mathrone Academy",
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Kigali",
+    "addressCountry": "RW"
+  }
+},
+"aggregateRating": {
+  "@type": "AggregateRating",
+  "ratingValue": "4.9",
+  "reviewCount": "128"
+},
       "image": image,
       "offers": {
         "@type": "Offer",

@@ -536,7 +536,12 @@ window.scrollToContact = function(e) {
       newUrl = `/news/${hrefCat || cat}/${slug}`;
     }
     else if (page.startsWith('shop-product-')) newUrl = '/shop/' + page.replace('shop-product-', '');
-    else if (page.startsWith('course-')) newUrl = '/course/' + page.replace('course-', '');
+    else if (page.startsWith('course-')) {
+      const parts = page.replace('course-', '').split('--'); 
+      const cat = parts[0];
+      const slug = parts[1];
+      newUrl = `/course/${cat}/${slug}`;
+    }
     else if (page.startsWith('verify/')) newUrl = '/verify/' + page.replace('verify/', '');
     else if (page.startsWith('reset/')) newUrl = '/reset/' + page.replace('reset/', '');
     else if (page.startsWith('report/')) newUrl = '/report/' + page.replace('report/', '');
@@ -3317,9 +3322,11 @@ function bootFromUrl() {
       State.page = 'news';
     } else if (clean.startsWith('news/')) {
       const parts = clean.split('/');
-      // If URL is /news/scholarship/my-post (length 3), slug is index 2
-      // If URL is /news/my-post (length 2), slug is index 1
+      // If URL is /news/cat/slug, parts[2] is the slug. 
+      // If URL is just /news/slug, parts[1] is the slug.
       const slug = parts.length >= 3 ? parts[2] : parts[1];
+      
+      // SEO Protection: If a category is missing or we want to enforce canonicals
       State.page = 'news-article/' + slug;
    } else if (clean === 'courses') {
     State.page = 'courses';
@@ -3328,7 +3335,12 @@ function bootFromUrl() {
   } else if (clean === 'admin-courses') {
     State.page = 'admin-courses';
   } else if (clean.startsWith('course/')) {
-    State.page = 'course-' + clean.replace('course/', '');
+    const parts = clean.split('/'); // [course, category, slug]
+    if (parts.length >= 3) {
+      State.page = 'course-' + parts[1] + '--' + parts[2];
+    } else {
+      State.page = 'course-' + 'general' + '--' + parts[1];
+    }
   } else if (clean === 'shop') {
     State.page = 'shop';
   } else if (clean.startsWith('shop/') && clean !== 'shop') {

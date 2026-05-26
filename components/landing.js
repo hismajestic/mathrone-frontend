@@ -360,20 +360,16 @@
           <i data-lucide="graduation-cap" style="width:10px;height:10px;color:#f59e0b"></i>
           <span>Online Courses</span>
         </div>
-        <div class="chc-title">Pass National Exams at Ease</div>
-        <div class="chc-sub">REB · IGCSE · IB · French · Uni-expert video lessons for every exam.</div>
-        <div class="chc-pills">
-          <span class="chc-pill"><i data-lucide="calculator" style="width:8px;height:8px"></i>Maths</span>
-          <span class="chc-pill"><i data-lucide="flask-conical" style="width:8px;height:8px"></i>Sciences</span>
-          <span class="chc-pill"><i data-lucide="monitor" style="width:8px;height:8px"></i>Digital</span>
-          <span class="chc-pill"><i data-lucide="trending-up" style="width:8px;height:8px"></i>Business</span>
-          <span class="chc-pill"><i data-lucide="video" style="width:8px;height:8px"></i>Video Editing</span>
-          <span class="chc-pill"><i data-lucide="code-2" style="width:8px;height:8px"></i>Web Dev</span>
-          <span class="chc-pill"><i data-lucide="plus-circle" style="width:8px;height:8px"></i>Others</span>
-        </div>
-        <div class="chc-cta">
-          <i data-lucide="arrow-right" style="width:11px;height:11px"></i>
-          <span>Explore Courses</span>
+       <div class="chc-title">Master Any Skill, Pass Any Exam</div>
+<div class="chc-sub">From National Exam Prep to Digital Marketing and Professional Skills. Expert-led video courses for Rwanda.</div>
+<div class="chc-pills">
+  <span class="chc-pill"><i data-lucide="monitor" style="width:8px;height:8px"></i>Digital Marketing</span>
+  <span class="chc-pill"><i data-lucide="video" style="width:8px;height:8px"></i>Video Editing</span>
+  <span class="chc-pill"><i data-lucide="code-2" style="width:8px;height:8px"></i>Web Development</span>
+  <span class="chc-pill"><i data-lucide="calculator" style="width:8px;height:8px"></i>National Exams</span>
+  <span class="chc-pill"><i data-lucide="briefcase" style="width:8px;height:8px"></i>Business</span>
+  <span class="chc-pill"><i data-lucide="plus-circle" style="width:8px;height:8px"></i>MMO Skills</span>
+</div>
         </div>
       </div>
     </div>

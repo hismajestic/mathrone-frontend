@@ -55,7 +55,8 @@ export async function onRequest(context) {
         if (!c.id) continue
         const lastmod = c.updated_at ? c.updated_at.split('T')[0] : today
         const urlIdentifier = c.slug || c.id
-        dynamicUrls += urlTag(`${BASE}/course/${urlIdentifier}`, lastmod, 'weekly', '0.8')
+        const cat = (c.curriculum || 'general').toLowerCase()
+        dynamicUrls += urlTag(`${BASE}/course/${cat}/${urlIdentifier}`, lastmod, 'weekly', '0.8')
       }
     }
 
