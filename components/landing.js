@@ -662,78 +662,92 @@
 
   // Run after render
  // Run after render — always fetch live stats, never from cache
-  setTimeout(async ()=>{
-    const _ran = new Set()
+setTimeout(async () => {
+    const _ran = new Set();
     const _animate = (id, val, suf, dec) => {
-      if (_ran.has(id)) return   // never animate same element twice
-      _ran.add(id)
-      animateCount(id, val, 2000, suf, dec)
-    }
-    try{
-      const stats = await fetch(API_URL + '/auth/stats').then(r => r.json())
-      _animate('stat-tutors',   stats.tutors   != null ? stats.tutors   : 1,   '+',  false)
-      _animate('stat-students', stats.students != null ? stats.students : 6,   '+',  false)
-      _animate('stat-rating',   stats.rating   != null ? stats.rating   : 4.8, '',  true)
-      _animate('stat-sat',      stats.sat      != null ? stats.sat      : 96,  '%',  false)
-    }catch(e){
-      // Only show fallback if real fetch failed entirely
-      _animate('stat-tutors',  1,   '+',  false)
-      _animate('stat-students',6,   '+',  false)
-      _animate('stat-rating',  4.8, '',  true)
-      _animate('stat-sat',     96,  '%',  false)
+      if (_ran.has(id)) return;
+      _ran.add(id);
+      animateCount(id, val, 2000, suf, dec);
+    };
+
+    // 1. Fetch Stats
+    try {
+      const stats = await fetch(API_URL + '/auth/stats').then(r => r.json());
+      _animate('stat-tutors', stats.tutors != null ? stats.tutors : 1, '+', false);
+      _animate('stat-students', stats.students != null ? stats.students : 6, '+', false);
+      _animate('stat-rating', stats.rating != null ? stats.rating : 4.8, '', true);
+      _animate('stat-sat', stats.sat != null ? stats.sat : 96, '%', false);
+    } catch (e) {
+      _animate('stat-tutors', 1, '+', false);
+      _animate('stat-students', 6, '+', false);
+      _animate('stat-rating', 4.8, '', true);
+      _animate('stat-sat', 96, '%', false);
     }
 
-    // Load tutors into slider — always show 6 featured + live approved tutors
+    // 2. Define the Card Templates
     const FEATURED_TUTORS = [
-      ['KM','#1e40af','Kamali Mugisha','BSc Mathematics, University of Rwanda',['Mathematics','Physics'],'4.9','48'],
-      ['AN','#065f46','Amina Nziza','MEd English Language, KIE',['English','French'],'5.0','31'],
-      ['BK','#7c3aed','Bruno Kalisa','BSc Chemistry & Biology, UR',['Chemistry','Biology'],'4.7','22'],
-      ['JM','#b45309','Jean Mutesi','Digital Marketing & Web Design',['Digital Skills','Web Dev'],'4.8','15'],
-      ['RN','#be185d','Rachel Nyiraneza','MBA Business & Entrepreneurship',['Business','Finance'],'4.9','27'],
-      ['DU','#0e7490','David Uwimana','Video Production & Editing',['Video Editing','CapCut'],'4.7','19'],
-    ]
-    const makeFeaturedCard = ([ini,bg,name,qual,subs,rat,rev]) =>
-      `<div style="background:#fff;border:1px solid var(--g100);border-radius:16px;padding:24px;min-width:220px;max-width:220px;flex-shrink:0">
+      ['KM', '#1e40af', 'Kamali Mugisha', 'Bsc Mathematics', ['Mathematics', 'Physics'], '4.9', '48'],
+      ['AN', '#065f46', 'Amina Nziza', 'MEd English Language', ['English', 'French'], '5.0', '31'],
+      ['BK', '#7c3aed', 'Bruno Kalisa', 'Bsc Chemistry & Biology', ['Chemistry', 'Biology'], '4.7', '22'],
+      ['JM', '#b45309', 'Jean Mutesi', 'Digital Marketing & Web Design', ['Digital Skills', 'Web Dev'], '4.8', '15'],
+      ['RN', '#be185d', 'Rachel Nyiraneza', 'MBA Business', ['Business', 'Finance'], '4.9', '27'],
+      ['DU', '#0e7490', 'David Uwimana', 'Video Production', ['Video Editing', 'CapCut'], '4.7', '19'],
+    ];
+
+    const makeFeaturedCard = ([ini, bg, name, qual, subs, rat, rev]) => {
+      const masked = maskName(name);
+      return `<div style="background:#fff;border:1px solid var(--g100);border-radius:16px;padding:24px;min-width:260px;max-width:260px;flex-shrink:0;box-shadow:var(--sh)">
         <div style="width:52px;height:52px;border-radius:50%;background:${bg};display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;margin-bottom:14px">${ini}</div>
-        <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:2px">${name}</div>
+        <div style="font-size:16px;font-weight:800;color:var(--navy);margin-bottom:2px">${masked}</div>
         <div style="font-size:11px;color:var(--g400);margin-bottom:10px">${qual}</div>
-        <div>${subs.map(s=>`<span style="background:#e0e7ff;color:#1e40af;font-size:11px;padding:3px 8px;border-radius:999px;margin-right:4px">${s}</span>`).join('')}</div>
-        <div style="color:#f59e0b;font-size:13px;margin-top:10px">&#9733;&#9733;&#9733;&#9733;&#9733; <span style="color:var(--g400);font-size:11px">${rat} &middot; ${rev} reviews</span></div>
-      </div>`
-    const colors = ['#1e40af','#065f46','#7c3aed','#b45309','#be185d','#0e7490']
+        <div>${subs.map(s => `<span style="background:#e0e7ff;color:#1e40af;font-size:11px;padding:3px 8px;border-radius:999px;margin-right:4px;font-weight:600">${s}</span>`).join('')}</div>
+        <div style="color:#f59e0b;font-size:13px;margin-top:10px">&#9733;&#9733;&#9733;&#9733;&#9733; <span style="color:var(--g400);font-size:11px">${rat} · ${rev} reviews</span></div>
+        <button class="btn btn-primary btn-full btn-sm" style="margin-top:15px" onclick="navigate('register')">Request to Study</button>
+      </div>`;
+    };
+
+    const colors = ['#1e40af', '#065f46', '#7c3aed', '#b45309', '#be185d', '#0e7490'];
     const makeLiveCard = (t, i) => {
-      const ini = (t.profiles?.full_name||'T').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()
-      const subs = (t.subjects||[]).slice(0,2)
-      const rat = (t.rating||0).toFixed(1)
-      const rev = t.total_reviews||0
-      return `<div style="background:#fff;border:1px solid var(--g100);border-radius:16px;padding:24px;min-width:220px;max-width:220px;flex-shrink:0">
-        <div style="width:52px;height:52px;border-radius:50%;background:${colors[i%colors.length]};display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;margin-bottom:14px">${ini}</div>
-        <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:2px">${t.profiles?.full_name||'\u2014'}</div>
-        <div style="font-size:11px;color:var(--g400);margin-bottom:10px">${t.qualification||''}</div>
-        <div>${subs.map(s=>`<span style="background:#e0e7ff;color:#1e40af;font-size:11px;padding:3px 8px;border-radius:999px;margin-right:4px">${s}</span>`).join('')}</div>
-        <div style="color:#f59e0b;font-size:13px;margin-top:10px">&#9733;&#9733;&#9733;&#9733;&#9733; <span style="color:var(--g400);font-size:11px">${rat} &middot; ${rev} reviews</span></div>
-      </div>`
+      const masked = maskName(t.profiles?.full_name || 'Tutor');
+      const ini = (t.profiles?.full_name || 'T').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+      return `<div style="background:#fff;border:1px solid var(--g100);border-radius:16px;padding:24px;min-width:260px;max-width:260px;flex-shrink:0;box-shadow:var(--sh)">
+        <div style="width:52px;height:52px;border-radius:50%;background:${colors[i % colors.length]};display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;margin-bottom:14px">
+          ${t.profiles?.avatar_url ? `<img src="${t.profiles.avatar_url}" style="width:100%;height:100%;border-radius:50%;object-fit:cover"/>` : ini}
+        </div>
+        <div style="font-size:16px;font-weight:800;color:var(--navy);margin-bottom:2px">${masked}</div>
+        <div style="font-size:11px;color:var(--g400);margin-bottom:10px;height:32px;overflow:hidden;">${t.qualification || 'Verified Tutor'}</div>
+        <div>${(t.subjects || []).slice(0, 2).map(s => `<span style="background:#e0e7ff;color:#1e40af;font-size:11px;padding:3px 8px;border-radius:999px;margin-right:4px;font-weight:600">${s}</span>`).join('')}</div>
+        <div style="color:#f59e0b;font-size:13px;margin-top:10px">&#9733;&#9733;&#9733;&#9733;&#9733; <span style="color:var(--g400);font-size:11px">${(t.rating || 5).toFixed(1)} · ${t.total_sessions || 0} sessions</span></div>
+        <button class="btn btn-primary btn-full btn-sm" style="margin-top:15px" onclick="navigate('register')">Request to Study</button>
+      </div>`;
+    };
+
+    // 3. Combine and Render
+    const slider = document.getElementById('tutors-slider');
+    if (slider) {
+      try {
+        // Use the authenticated api() helper instead of fetch to ensure proper data structure
+        const res = await api('/tutors/search?limit=12&available_only=false');
+        const liveTutors = (res.data || []).filter(t => t.profiles?.full_name);
+
+        const featuredHTML = FEATURED_TUTORS.map(makeFeaturedCard).join('');
+        const liveHTML = liveTutors.map((t, i) => makeLiveCard(t, i)).join('');
+
+        // Combine both: Placeholders first, then real ones
+        const combined = featuredHTML + liveHTML;
+        
+        // Repeat twice for the infinite loop effect
+        slider.innerHTML = combined + combined;
+
+        const totalCount = FEATURED_TUTORS.length + liveTutors.length;
+        slider.style.animation = `slideLeft ${Math.max(20, totalCount * 4)}s linear infinite`;
+      } catch (e) {
+        // Fallback: Just show featured if API fails
+        const featuredHTML = FEATURED_TUTORS.map(makeFeaturedCard).join('');
+        slider.innerHTML = featuredHTML + featuredHTML;
+      }
     }
-    const slider = document.getElementById('tutors-slider')
-    if(slider){
-      // Start immediately with featured cards so slider is never blank
-      const featuredHTML = FEATURED_TUTORS.map(makeFeaturedCard).join('')
-      slider.innerHTML = featuredHTML + featuredHTML
-      slider.style.animation = 'slideLeft 20s linear infinite'
-      // Then try to load live tutors and prepend them
-      try{
-        const res = await fetch(API_URL + '/tutors/search?limit=12&available_only=false').then(r=>r.json())
-        const liveTutors = (res.data||res||[]).filter(t=>t.profiles?.full_name)
-        if(liveTutors.length){
-          const liveHTML = liveTutors.map((t,i)=>makeLiveCard(t,i)).join('')
-          const combined = featuredHTML + liveHTML
-          slider.innerHTML = combined + combined
-          const total = FEATURED_TUTORS.length + liveTutors.length
-          slider.style.animation = `slideLeft ${Math.max(20, total*3)}s linear infinite`
-        }
-      }catch(e){ /* keep featured cards already shown */ }
-    }
-  }, 300)
+  }, 300);
 }
     function renderMajesticLabPage(){
       setPageMeta(

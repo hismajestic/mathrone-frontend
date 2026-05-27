@@ -97,7 +97,7 @@ var FORUM_CATEGORIES = [
         <div style="display:flex;align-items:center;gap:14px;padding:16px;border:1px solid var(--g100);border-radius:var(--rs)">
           ${avi(a.tutors?.profiles?.full_name||'T', 48, a.tutors?.profiles?.avatar_url||null)}
           <div style="min-width:0;flex:1">
-            <div style="font-weight:700;color:var(--navy)">${a.tutors?.profiles?.full_name||'Tutor'}</div>
+            <div style="font-weight:700;color:var(--navy)">${maskName(a.tutors?.profiles?.full_name)}</div>
             <div style="font-size:12px;color:var(--g400);margin-top:2px">${a.subject} • ${a.mode}</div>
             <div style="margin-top:6px;display:flex;gap:6px;align-items:center">
               ${statusBadge(a.is_active?'approved':'cancelled')}

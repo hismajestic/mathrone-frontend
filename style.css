@@ -2280,14 +2280,30 @@
     display: none; 
   }
   
-  .m-course-card {
-    flex: 0 0 85% !important; /* 85% width lets the edge of the next card peek in */
-    border-radius: 12px !important;
-    border: 1px solid #e8ecf0 !important;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06) !important;
-    scroll-snap-align: center; /* Snaps the card perfectly to the middle of the screen */
-  }
-
+    .m-course-card {
+      background:#fff;
+      border:1px solid rgba(13, 27, 64, 0.06);
+      border-radius:16px; /* Smoother corners */
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1); /* Masterclass-style animation */
+    }
+    .m-course-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 40px rgba(13, 27, 64, 0.12) !important;
+      border-color: var(--blue);
+    }
+    /* AdSense container styling */
+    .ad-placement-container {
+      margin: 32px 0;
+      padding: 16px;
+      background: #f8faff;
+      border-radius: 12px;
+      text-align: center;
+      min-height: 100px;
+      border: 1px dashed var(--g200);
+    }
   .m-course-img-wrap {
     height: 160px !important; 
   }
@@ -2324,4 +2340,3 @@
 img {
   content-visibility: auto;
 }
-

@@ -17,6 +17,21 @@ const COURSE_CURRICULA = [
   { id: 'Other',        label: 'Other / General',               icon: '<i data-lucide="folder"></i>' },
 ]
 
+// Category badge styles — shown on every course card
+const CATEGORY_BADGE = {
+  REB:           { label: 'REB / CBC', color: '#065f46', bg: '#dcfce7', icon: 'map-pin' },
+  IGCSE:         { label: 'IGCSE',     color: '#1e40af', bg: '#dbeafe', icon: 'graduation-cap' },
+  IB:            { label: 'IB',        color: '#6d28d9', bg: '#ede9fe', icon: 'globe' },
+  French:        { label: 'French',    color: '#92400e', bg: '#fef3c7', icon: 'languages' },
+  University:    { label: 'Uni',       color: '#0e7490', bg: '#cffafe', icon: 'building-2' },
+  DigitalSkills: { label: 'Digital',   color: '#1d4ed8', bg: '#eff6ff', icon: 'monitor' },
+  GlobalSkills:  { label: 'Global',    color: '#0f766e', bg: '#ccfbf1', icon: 'earth' },
+  Professional:  { label: 'Pro',       color: '#7c3aed', bg: '#f5f3ff', icon: 'briefcase' },
+  Languages:     { label: 'Language',  color: '#be185d', bg: '#fce7f3', icon: 'message-circle' },
+  Music:         { label: 'Music',     color: '#9a3412', bg: '#fff7ed', icon: 'music' },
+  Other:         { label: 'Course',    color: '#374151', bg: '#f3f4f6', icon: 'folder' },
+}
+
 const COURSE_LEVELS = {
   REB:           ['P1','P2','P3','P4','P5','P6','S1','S2','S3','S4','S5','S6','National Exam Prep'],
   IGCSE:         ['Year 7','Year 8','Year 9','Year 10','Year 11','AS Level','A2 Level'],
@@ -210,7 +225,32 @@ async function renderCoursesShop() {
     
     // Store globally so the search function can access it safely without JSON stringify issues
     window._allPublicCourses = allCourses;
-    
+
+    // Build smart suggestions: match category (curriculum) + level from enrolled courses
+    if (isLoggedIn && window._myCoursesList && window._myCoursesList.length) {
+      const enrolledIds      = new Set(window._myCoursesList.map(c => c.id));
+      const enrolledSubjects = new Set(window._myCoursesList.map(c => c.subject).filter(Boolean));
+      const enrolledCurricula= new Set(window._myCoursesList.map(c => c.curriculum).filter(Boolean));
+      const enrolledLevels   = new Set(window._myCoursesList.map(c => c.level).filter(Boolean));
+      // Score each non-enrolled course: +2 same curriculum, +1 same subject, +1 same level
+      const scored = allCourses
+        .filter(c => !enrolledIds.has(c.id))
+        .map(c => {
+          let score = 0;
+          if (enrolledCurricula.has(c.curriculum)) score += 2;
+          if (enrolledSubjects.has(c.subject))     score += 1;
+          if (enrolledLevels.has(c.level))         score += 1;
+          return { c, score };
+        })
+        .filter(x => x.score > 0)
+        .sort((a, b) => b.score - a.score);
+      window._suggestedCourses = scored.slice(0, 4).map(x => x.c);
+      window._enrolledCourseIds = enrolledIds;
+    } else {
+      window._suggestedCourses = [];
+      window._enrolledCourseIds = isLoggedIn ? new Set((window._myCoursesList || []).map(c => c.id)) : new Set();
+    }
+
     // Apply search filter if any
     const searchParams = new URLSearchParams(window.location.search)
     const query = searchParams.get('q') || ''
@@ -261,6 +301,25 @@ async function renderCoursesShop() {
           <div id="course-search-suggestions" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--g200);border-radius:8px;box-shadow:0 10px 25px rgba(0,0,0,0.1);z-index:50;margin-top:4px;max-height:250px;overflow-y:auto"></div>
         </div>
       </div>
+      ${window._suggestedCourses && window._suggestedCourses.length ? (() => {
+        const cats = [...new Set(window._suggestedCourses.map(c => c.curriculum).filter(Boolean))];
+        const label = cats.length ? cats.join(' & ') : 'Your Subjects';
+        return `
+      <div style="margin-bottom:32px;background:linear-gradient(135deg,#fffbeb,#fef3c7);border:1px solid #fde68a;border-radius:16px;padding:20px 20px 16px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <i data-lucide="sparkles" style="width:18px;height:18px;color:#d97706"></i>
+          <h2 style="font-size:16px;font-weight:800;color:#92400e;margin:0">Because you're studying ${label}</h2>
+        </div>
+        <p style="font-size:12px;color:#b45309;margin:0 0 14px 26px">These courses match your current learning path</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px">
+          ${window._suggestedCourses.map(c => courseCard(c, isLoggedIn, false, true)).join('')}
+        </div>
+      </div>`;
+      })() : ''}
+
+      <h2 style="font-size:16px;font-weight:800;color:var(--navy);margin-bottom:12px;display:flex;align-items:center;gap:8px">
+        <i data-lucide="library" style="width:18px;height:18px;color:var(--blue)"></i> All Courses
+      </h2>
       <div class="m-courses-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
         ${cards}
       </div>
@@ -300,10 +359,13 @@ const lockdownUrl = url + (url.includes('?') ? '&' : '?') + "rel=0&modestbrandin
   }
 };
 
-function courseCard(c, isLoggedIn, isCourseGuest) {
-  const enrollAction = isLoggedIn
-    ? `memberEnrollCourse('${c.id}','${(c.title||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}',${c.price})`
-    : `openLoginPrompt('${c.id}','${(c.title||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}',${c.price})`
+function courseCard(c, isLoggedIn, isCourseGuest, isSuggested) {
+  const isAlreadyEnrolled = !!(window._enrolledCourseIds && window._enrolledCourseIds.has(c.id));
+  const enrollAction = isAlreadyEnrolled
+    ? `navigate('course-lessons-${c.id}')`
+    : isLoggedIn
+      ? `memberEnrollCourse('${c.id}','${(c.title||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}',${c.price})`
+      : `openLoginPrompt('${c.id}','${(c.title||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}',${c.price})`
   
   const lessonCount = c.lesson_count || (c.lessons && c.lessons.length) || (c.preview_lessons && c.preview_lessons.length) || 0;
   const lessonText = lessonCount > 0 ? `${lessonCount} Lessons` : `Video Lessons`;
@@ -375,6 +437,16 @@ const clickAction = cleanUrl ? `playCourseCardVideo(event, '${c.id}', '${cleanUr
     <!-- Body Area -->
     <div class="m-course-body" style="padding:16px;flex:1;display:flex;flex-direction:column;gap:0">
       
+      ${(() => {
+        const badge = CATEGORY_BADGE[c.curriculum] || CATEGORY_BADGE['Other'];
+        return `<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+          <span style="display:inline-flex;align-items:center;gap:4px;background:${badge.bg};color:${badge.color};font-size:10px;font-weight:800;padding:3px 8px;border-radius:4px;letter-spacing:0.4px;text-transform:uppercase">
+            <i data-lucide="${badge.icon}" style="width:10px;height:10px"></i> ${badge.label}
+          </span>
+          ${c.is_exam_prep ? `<span style="display:inline-flex;align-items:center;gap:3px;background:#fef9c3;color:#713f12;font-size:10px;font-weight:800;padding:3px 8px;border-radius:4px;text-transform:uppercase"><i data-lucide="file-check" style="width:10px;height:10px"></i> Exam Prep</span>` : ''}
+        </div>`;
+      })()}
+
       <a href="/course/${courseCat}/${courseSlug}" onclick="navigate('${seoState}', null, event)"
            style="display:block;text-decoration:none;font-size:16px;font-weight:800;color:#0f172a;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:6px;cursor:pointer;word-break:break-word;overflow-wrap:break-word;">
         ${c.title}
@@ -406,12 +478,12 @@ const clickAction = cleanUrl ? `playCourseCardVideo(event, '${c.id}', '${cleanUr
         </div>
       </div>
 
-      <!-- Enroll CTA (Triggers Login if Guest) -->
+      <!-- Enroll CTA / Continue Learning if already enrolled -->
       <button onclick="event.stopPropagation(); ${enrollAction}"
-        style="width:100%;background:var(--blue);color:#fff;border:none;padding:10px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;transition:background .15s"
-        onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='var(--blue)'">
-        <i data-lucide="graduation-cap" style="width:16px;height:16px"></i>
-        ${c.price > 0 ? 'Enroll Now' : 'Get Course for Free'}
+        style="width:100%;background:${isAlreadyEnrolled ? '#059669' : 'var(--blue)'};color:#fff;border:none;padding:10px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;transition:background .15s"
+        onmouseover="this.style.background='${isAlreadyEnrolled ? '#047857' : '#1d4ed8'}'" onmouseout="this.style.background='${isAlreadyEnrolled ? '#059669' : 'var(--blue)'}'">
+        <i data-lucide="${isAlreadyEnrolled ? 'play-circle' : 'graduation-cap'}" style="width:16px;height:16px"></i>
+        ${isAlreadyEnrolled ? 'Continue Learning' : c.price > 0 ? 'Enroll Now' : 'Get Course for Free'}
       </button>
     </div>
   </div>`
@@ -520,10 +592,24 @@ async function renderCourseDetail(slugParam) {
           </div>
           <h1 style="font-size:32px;font-weight:900;color:var(--navy);margin-bottom:12px;line-height:1.2;font-family:'Playfair Display',serif;">${c.title}</h1>
           
-          <div style="background:#f8fafc; border-left:4px solid var(--blue); padding:16px; border-radius:0 12px 12px 0; margin-bottom:20px;">
-             <div style="font-size:12px; font-weight:800; color:var(--blue); text-transform:uppercase; margin-bottom:4px;">Course Overview</div>
-             <p style="font-size:15px;color:var(--g600);line-height:1.6;margin:0;white-space:pre-line;">${c.description || 'No description available.'}</p>
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:20px; margin-bottom:30px;">
+          <div style="background:#fff; border:1px solid var(--g100); padding:20px; border-radius:12px;">
+             <div style="font-size:12px; font-weight:800; color:var(--blue); text-transform:uppercase; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+               <i data-lucide="check-circle" style="width:16px;height:16px"></i> Why take this course?
+             </div>
+             <p style="font-size:14px;color:var(--g600);line-height:1.6;margin:0;">${c.description || 'Master this subject with our expert-led curriculum designed specifically for Rwandan academic standards.'}</p>
           </div>
+          <div style="background:var(--navy); color:#fff; padding:20px; border-radius:12px; display:flex; flex-direction:column; justify-content:center;">
+             <div style="font-size:11px; font-weight:700; opacity:0.7; text-transform:uppercase; margin-bottom:8px;">Course Statistics</div>
+             <div style="display:flex; gap:20px;">
+                <div><div style="font-size:18px; font-weight:800;">${displayLessons.length}</div><div style="font-size:10px; opacity:0.6;">Lessons </div></div>
+                <div style="width:1px; background:rgba(255,255,255,0.1);"></div>
+                <div><div style="font-size:18px; font-weight:800;">Full</div><div style="font-size:10px; opacity:0.6;">Lifetime Access</div></div>
+                <div style="width:1px; background:rgba(255,255,255,0.1);"></div>
+                <div><div style="font-size:18px; font-weight:800;">Verified</div><div style="font-size:10px; opacity:0.6;">Certificate</div></div>
+             </div>
+          </div>
+      </div>
         </div>
         
         <!-- Action Card -->
@@ -696,6 +782,7 @@ async function renderMyCourses() {
       headers: { Authorization: 'Bearer ' + getToken() }
     })
     const courses = await res.json()
+    window._myCoursesList = courses; // stored for progress loader
 
     render(dashWrap('my-courses', `
     <div class="page-header">
@@ -714,8 +801,10 @@ async function renderMyCourses() {
     </div>` : ''}
 
     ${courses.length ? `
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px">
-      ${courses.map(c => `
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px" id="my-courses-grid">
+      ${courses.map(c => {
+        const badge = CATEGORY_BADGE[c.curriculum] || CATEGORY_BADGE['Other'];
+        return `
       <div style="background:#fff;border-radius:14px;border:1px solid var(--g100);overflow:hidden;cursor:pointer;transition:box-shadow .2s"
         onclick="navigate('course-lessons-${c.id}')"
         onmouseover="this.style.boxShadow='0 4px 20px rgba(0,0,0,0.08)'"
@@ -723,16 +812,29 @@ async function renderMyCourses() {
         <div style="height:140px;background:#1E2845;position:relative;overflow:hidden">
           ${c.image_url ? `<img src="${c.image_url}" alt="${c.title}" loading="lazy" style="width:100%;height:100%;object-fit:contain;object-position:center;opacity:0.95"/>` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:linear-gradient(135deg,#1E3A8A,#2563EB);font-size:48px">🎓</div>`}
           <div style="position:absolute;bottom:10px;left:12px;background:rgba(0,0,0,0.5);color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:999px;backdrop-filter:blur(4px)">✅ Enrolled</div>
-          ${c.level ? `<div style="position:absolute;top:10px;right:12px;background:rgba(255,255,255,0.9);color:var(--navy);font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px">${c.level}</div>` : ''}
+          <span style="position:absolute;top:10px;left:10px;display:inline-flex;align-items:center;gap:3px;background:${badge.bg};color:${badge.color};font-size:9px;font-weight:800;padding:2px 7px;border-radius:4px;text-transform:uppercase;opacity:0.95">
+            <i data-lucide="${badge.icon}" style="width:9px;height:9px"></i> ${badge.label}
+          </span>
+          ${c.level ? `<div style="position:absolute;top:10px;right:10px;background:rgba(255,255,255,0.9);color:var(--navy);font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px">${c.level}</div>` : ''}
         </div>
         <div style="padding:16px">
-          <div style="font-size:15px;font-weight:800;color:var(--navy);margin-bottom:6px">${c.title}</div>
-          ${c.description ? `<div style="font-size:12px;color:var(--g400);line-height:1.5;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word;overflow-wrap:break-word;">${c.description}</div>` : ''}
-          <button style="width:100%;background:var(--blue);color:#fff;border:none;padding:9px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700">
-            ▶ Continue Learning
+          <div style="font-size:15px;font-weight:800;color:var(--navy);margin-bottom:4px">${c.title}</div>
+          ${c.subject ? `<div style="font-size:11px;color:var(--blue);font-weight:600;margin-bottom:8px">${c.subject}</div>` : ''}
+          <!-- Progress bar (filled via JS after mount) -->
+          <div style="margin-bottom:12px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+              <span style="font-size:11px;color:var(--g400);font-weight:600;display:flex;align-items:center;gap:4px"><i data-lucide="bar-chart-2" style="width:11px;height:11px"></i> Progress</span>
+              <span id="prog-pct-${c.id}" style="font-size:11px;font-weight:800;color:var(--blue)">—</span>
+            </div>
+            <div style="height:6px;background:#e5e7eb;border-radius:999px;overflow:hidden">
+              <div id="prog-bar-${c.id}" style="height:100%;width:0%;background:linear-gradient(90deg,#3b82f6,#10b981);border-radius:999px;transition:width 0.6s ease"></div>
+            </div>
+          </div>
+          <button style="width:100%;background:var(--blue);color:#fff;border:none;padding:9px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px">
+            <i data-lucide="play-circle" style="width:15px;height:15px"></i> Continue Learning
           </button>
         </div>
-      </div>`).join('')}
+      </div>`}).join('')}
     </div>` : `
     <div class="empty-state">
       <div class="empty-icon">📚</div>
@@ -742,21 +844,54 @@ async function renderMyCourses() {
     </div>`}
     `))
   } catch(e) { toast(e.message, 'err') }
+
+  // Load real progress for each enrolled course
+  setTimeout(async () => {
+    const enrolledCourses = window._myCoursesList || [];
+    for (const c of enrolledCourses) {
+      try {
+        const prog = await api('/courses/my/' + c.id + '/progress');
+        const completed = (prog.completed_lesson_ids || []).length;
+        // Use the total count provided directly by the progress API
+        const total = prog.total_lessons || 0; 
+        
+        if (total > 0) {
+          const pct = Math.round((completed / total) * 100);
+          const bar = document.getElementById('prog-bar-' + c.id);
+          const lbl = document.getElementById('prog-pct-' + c.id);
+          if (bar) bar.style.width = pct + '%';
+          if (lbl) lbl.textContent = pct + '%';
+          if (bar && pct === 100) bar.style.background = '#10b981';
+        } else {
+          const lbl = document.getElementById('prog-pct-' + c.id);
+          if (lbl) lbl.textContent = '0%';
+          const bar = document.getElementById('prog-bar-' + c.id);
+          if (bar) bar.style.width = '0%';
+        }
+      } catch(_) {}
+    }
+    if (window.lucide) window.lucide.createIcons();
+  }, 300);
 }
 
 // ── Student: Course Lessons ──────────────────────────────────────────────────
 async function renderCourseLessons(courseId) {
   if (!State.user || !localStorage.getItem('tc_access')) { navigate('login'); return }
-  const isCourseGuest = _isCourseGuestAccount()
+  const cleanId = courseId.split('--')[0];
   render(dashWrap('my-courses', `<div class="loader-center"><div class="spinner"></div></div>`))
 
   try {
-     const res = await fetch(API_URL + '/courses/my/' + courseId + '/lessons', {
-      headers: { Authorization: 'Bearer ' + getToken() }
-    })
-    if (!res.ok) throw new Error('Access denied or course not found')
-    const lessons = await res.json()
-    window._currentLessons = lessons
+    const [lessonRes, progressRes] = await Promise.all([
+      fetch(API_URL + '/courses/my/' + cleanId + '/lessons', { headers: { Authorization: 'Bearer ' + getToken() } }),
+      api('/courses/my/' + cleanId + '/progress')
+    ]);
+    
+    if (!lessonRes.ok) throw new Error('Access denied or course not found');
+    const lessons = await lessonRes.json();
+    const completedIds = progressRes.completed_lesson_ids || [];
+    
+    window._currentLessons = lessons;
+    window._currentCourseCompletedIds = completedIds;
 
     render(dashWrap('my-courses', `
     <div class="page-header">
@@ -783,32 +918,41 @@ async function renderCourseLessons(courseId) {
           }
           return `
           ${moduleHeader}
-          <div onclick="openLessonPlayer('${l.id}')" style="background:#fff;border:1px solid #e5e7eb;border-radius:4px;overflow:hidden;margin-bottom:8px;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,0.05);transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-            <div style="display:flex;align-items:center;">
-              <div style="width:clamp(120px, 30vw, 160px);aspect-ratio:16/9;background:#1E2845;flex-shrink:0;position:relative;overflow:hidden;">
-                 ${l.image_url 
-                   ? `<img src="${l.image_url}" style="width:100%;height:100%;object-fit:contain;object-position:center;display:block;background:#1E2845;"/>` 
-                   : `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:#1e3a8a;color:#fff;font-size:24px;font-weight:800;">${l.order_num || i+1}</div>`
-                 }
-                 <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.25);">
-                   <i data-lucide="play-circle" style="width:32px;height:32px;color:#fff;opacity:0.9"></i>
-                 </div>
-              </div>
-              <div style="padding:16px;flex:1;display:flex;flex-direction:column;justify-content:center;">
-                <h3 style="font-size:15px;font-weight:700;color:#111827;margin-bottom:4px;line-height:1.3;">${l.title}</h3>
-                <p style="font-size:12px;color:#6b7280;margin-bottom:6px;">Mathrone Academy, Instructor</p>
-                <div style="display:flex;gap:4px;color:#10b981;font-size:12px;">
-                  ★ ★ ★ ★ ★ <span style="color:#9ca3af;margin-left:4px;">${l.duration_mins ? `${l.duration_mins} min` : 'Video Lesson'}</span>
+          <div onclick="openLessonPlayer('${l.id}')" 
+               style="background:#fff;border:1px solid ${window._currentCourseCompletedIds.includes(l.id) ? '#d1fae5' : '#e5e7eb'};border-radius:12px;overflow:hidden;margin-bottom:10px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.06);transition:all 0.2s ease;" 
+               onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(0,0,0,0.1)'" 
+               onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 2px 8px rgba(0,0,0,0.06)'">
+            <div style="display:flex;align-items:stretch;">
+              <div style="width:clamp(110px,28vw,150px);aspect-ratio:16/9;background:#0D1B40;flex-shrink:0;position:relative;overflow:hidden;">
+                ${l.image_url 
+                  ? `<img src="${l.image_url}" style="width:100%;height:100%;object-fit:cover;display:block;"/>` 
+                  : `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:linear-gradient(135deg,#1e3a8a,#1d4ed8);color:#fff;font-size:22px;font-weight:800;letter-spacing:-1px;">${l.order_num || i+1}</div>`
+                }
+                <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.22);">
+                  <div style="width:36px;height:36px;background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.6);border-radius:50%;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                  </div>
                 </div>
+                ${window._currentCourseCompletedIds.includes(l.id) ? `<div style="position:absolute;top:6px;right:6px;background:#10b981;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg></div>` : ''}
+              </div>
+              <div style="padding:14px 16px;flex:1;display:flex;flex-direction:column;justify-content:center;gap:5px;min-width:0;">
+                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                  <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--blue);background:#eff6ff;padding:2px 7px;border-radius:999px;">Lesson ${l.order_num || i+1}</span>
+                  ${l.duration_mins ? `<span style="font-size:10px;color:#6b7280;background:#f3f4f6;padding:2px 7px;border-radius:999px;">⏱ ${l.duration_mins} min</span>` : ''}
+                </div>
+                <h3 style="font-size:14px;font-weight:700;color:#111827;line-height:1.35;margin:0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${l.title}</h3>
+                <div style="font-size:11px;color:${window._currentCourseCompletedIds.includes(l.id) ? '#059669' : '#9ca3af'};font-weight:600;display:flex;align-items:center;gap:4px;">
+                  ${window._currentCourseCompletedIds.includes(l.id) 
+                    ? `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> Completed` 
+                    : `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg> Not started`}
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;padding-right:14px;flex-shrink:0;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
               </div>
             </div>
-            <div style="background:#374151;padding:10px 16px;">
-              <div style="display:flex;align-items:center;gap:12px;">
-                <div style="width:100%;height:4px;background:#4b5563;border-radius:2px;overflow:hidden;position:relative;">
-                   <div style="width:${i===0?'100%':i===1?'40%':'0%'};height:100%;background:#10b981;border-radius:2px;"></div>
-                </div>
-                <span style="font-size:11px;color:#9ca3af;white-space:nowrap;">${i===0?'Completed':i===1?'In progress':'Not started'}</span>
-              </div>
+            <div style="height:3px;background:#f3f4f6;">
+              <div style="width:${window._currentCourseCompletedIds.includes(l.id) ? '100%' : '0%'};height:100%;background:linear-gradient(90deg,#10b981,#34d399);border-radius:0 2px 2px 0;transition:width 0.6s ease;"></div>
             </div>
           </div>`;
         }).join('');
@@ -824,9 +968,43 @@ async function renderCourseLessons(courseId) {
   } catch(e) { toast(e.message, 'err') }
 }
 
+async function markLessonComplete(lessonId, courseId) {
+  // 1. Determine if we are completing or un-completing
+  const isCurrentlyDone = (window._currentCourseCompletedIds || []).includes(lessonId);
+  const targetStatus = !isCurrentlyDone; 
+
+  try {
+    await api('/courses/my/lessons/progress', {
+      method: 'POST',
+      body: JSON.stringify({ 
+        lesson_id: lessonId, 
+        course_id: courseId.split('--')[0], // Ensure no extra strings
+        completed: targetStatus 
+      })
+    });
+
+    toast(targetStatus ? 'Lesson completed! ✅' : 'Lesson marked as incomplete', 'ok');
+    
+    if (typeof bustCache === 'function') {
+      bustCache('/courses/my/' + courseId.split('--')[0] + '/progress');
+    }
+    
+    // 2. Refresh UI
+    renderCourseLessons(courseId); 
+    
+    // 3. Close the player modal so the student sees the updated list
+    const overlay = document.querySelector('.modal-overlay');
+    if(overlay) overlay.remove();
+
+  } catch (e) { 
+    toast('Update failed. Please try again.', 'err'); 
+  }
+}
+
 function openLessonPlayer(lessonId) {
   const l = window._currentLessons?.find(x => x.id === lessonId);
   if (!l) { toast('Lesson not found', 'err'); return; }
+  const courseId = l.course_id;
   
   let videoHtml = '';
   if (l.video_url) {
@@ -894,6 +1072,21 @@ function openLessonPlayer(lessonId) {
      </div>`;
   }
 
+  // Completion Button
+  let completeBtnHtml = '';
+  if (State.user) {
+    const isDone = (window._currentCourseCompletedIds || []).includes(l.id);
+    completeBtnHtml = `
+    <div style="padding:0 20px 20px; margin-top:-10px">
+      <button onclick="markLessonComplete('${l.id}', '${courseId}')" 
+              class="btn ${isDone ? 'btn-ghost' : 'btn-success'}" 
+              style="width:100%; justify-content:center; gap:8px; border:${isDone ? '1px solid var(--red)' : 'none'}; color:${isDone ? 'var(--red)' : '#fff'};">
+        <i data-lucide="${isDone ? 'rotate-ccw' : 'check-circle'}"></i> 
+        ${isDone ? 'Undo Completion' : 'Mark as Completed'}
+      </button>
+    </div>`;
+  }
+
   // AI Tutor CTA (Only for logged-in users)
   let aiHtml = '';
   if (State.user) {
@@ -908,9 +1101,9 @@ function openLessonPlayer(lessonId) {
     </div>`;
   }
 
-  // Free Preview CTA (Shown ONLY if it is marked as a Free Preview)
+  // Free Preview CTA (Shown ONLY to guests looking at a Free Preview)
   let ctaHtml = '';
-  if (l.is_free_preview) {
+  if (l.is_free_preview && !State.user) {
      ctaHtml = `<div style="padding:24px 20px; background:linear-gradient(135deg, var(--navy), var(--blue)); color:#fff; text-align:center; border-radius:0 0 12px 12px; margin-top:auto;">
        <div style="font-size:28px; margin-bottom:12px;">🚀</div>
        <h3 style="font-size:20px; font-weight:800; margin-bottom:10px; color:#fff;">Ready to master this topic?</h3>
@@ -954,6 +1147,7 @@ function openLessonPlayer(lessonId) {
         ${notesHtml}
         ${resHtml}
         ${aiHtml}
+        ${completeBtnHtml}
         ${ctaHtml}
         ${!videoHtml && !contentHtml && !notesHtml && !resHtml && !aiHtml && !ctaHtml ? `<div style="padding:40px; text-align:center; color:var(--g400);">No content available for this lesson.</div>` : ''}
       </div>

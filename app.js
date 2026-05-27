@@ -356,13 +356,21 @@ function _get(id) { return _dataRegistry[id]; }
   
   document.getElementById('app').innerHTML = html; 
   
-  // Smart Scroll Restoration
+  // AdSense & Bot Helper: Notify Google that the page "reloaded"
+  if (window.adsbygoogle) {
+      try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
+  }
+
   if (State.restoreScrollPos) {
     window.scrollTo(0, State.restoreScrollPos);
     State.restoreScrollPos = null;
   } else {
     window.scrollTo(0, 0);
   }
+  
+  // Professional Touch: Re-init icons and math for every new page
+  if (window.lucide) window.lucide.createIcons();
+  if (window.MathJax) MathJax.typesetPromise();
   
   if (window.lucide) {
     window.lucide.createIcons();
@@ -537,10 +545,13 @@ window.scrollToContact = function(e) {
     }
     else if (page.startsWith('shop-product-')) newUrl = '/shop/' + page.replace('shop-product-', '');
     else if (page.startsWith('course-')) {
-      const parts = page.replace('course-', '').split('--'); 
-      const cat = parts[0];
-      const slug = parts[1];
-      newUrl = `/course/${cat}/${slug}`;
+      const content = page.replace('course-', '');
+      if (content.includes('--')) {
+        const parts = content.split('--');
+        newUrl = `/course/${parts[0]}/${parts[1]}`;
+      } else {
+        newUrl = `/course/general/${content}`;
+      }
     }
     else if (page.startsWith('verify/')) newUrl = '/verify/' + page.replace('verify/', '');
     else if (page.startsWith('reset/')) newUrl = '/reset/' + page.replace('reset/', '');
@@ -957,6 +968,10 @@ async function renderForum(activeCategory = null){
           
               <button onclick="openPost('${p.id}')" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--g400);padding:0">💬 Comment</button>
               <button data-like="${p.id}" data-count="${p.likes||0}" onclick="event.stopPropagation();likePost('${p.id}')" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--g400);padding:0">❤️ ${p.likes||0}</button>
+              ${p.author_id===State.user.id?`
+                <button onclick="event.stopPropagation();openEditPostModal('${p.id}','${p.title.replace(/'/g,"\\'")}',\`${p.content.replace(/`/g,'\\`')}\`,'${p.category}')" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--blue);padding:0">✏️ Edit</button>
+                <button onclick="event.stopPropagation();deleteOwnPost('${p.id}','${p.title.replace(/'/g,"\\'")}' )" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--red);padding:0">🗑️ Delete</button>
+              `:''}
               ${State.user.role==='admin'?`<button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="event.stopPropagation();deletePost('${p.id}','${p.title.replace(/'/g,"\\'")}')" ><i data-lucide="trash-2" style="width:16px;height:16px"></i> Delete</button>`:''}
             </div>
           </div>
@@ -1131,6 +1146,68 @@ async function pinPost(postId){
   }
 }
 
+function openEditPostModal(postId, title, content, category){
+  document.getElementById('modal-root').innerHTML = `
+  <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title" style="display:flex;align-items:center;gap:8px"><i data-lucide="pencil" style="width:20px;height:20px"></i> Edit Post</span>
+        <button class="modal-close" onclick="document.querySelector('.modal-overlay').remove()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select class="input" id="edit-post-cat">
+            ${FORUM_CATEGORIES.map(c=>`<option value="${c.id}" ${c.id===category?'selected':''}>${c.icon} ${c.label}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Title</label>
+          <input class="input" id="edit-post-title" value="${title.replace(/"/g,'&quot;')}"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Content</label>
+          <textarea class="input" id="edit-post-content" rows="5">${content}</textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="document.querySelector('.modal-overlay').remove()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitEditPost('${postId}')">Save Changes ✅</button>
+      </div>
+    </div>
+  </div>`
+  if(window.lucide) window.lucide.createIcons()
+}
+
+async function submitEditPost(postId){
+  const title    = document.getElementById('edit-post-title')?.value?.trim()
+  const content  = document.getElementById('edit-post-content')?.value?.trim()
+  const category = document.getElementById('edit-post-cat')?.value
+  if(!title)   { toast('Title is required','err'); return }
+  if(!content) { toast('Content is required','err'); return }
+  try{
+    await api(`/forum/posts/${postId}`, { method:'PATCH', body: JSON.stringify({ title, content, category }) })
+    document.querySelector('.modal-overlay')?.remove()
+    toast('Post updated ✅')
+    bustCache('/forum')
+    renderForum()
+  }catch(e){
+    toast(e.message,'err')
+  }
+}
+
+async function deleteOwnPost(postId, title){
+  if(!confirm('Delete your post "' + title + '"? This cannot be undone.')) return
+  try{
+    await api(`/forum/posts/${postId}`, { method:'DELETE' })
+    toast('Post deleted ✅')
+    bustCache('/forum')
+    renderForum()
+  }catch(e){
+    toast(e.message,'err')
+  }
+}
+
 
  
     // ════════════════════════════════════════════════════════════
@@ -1170,6 +1247,17 @@ function updatePageSEO(params) {
                + `?width=${width}&format=webp&quality=80`;
       }
       return url;
+    }
+
+    function maskName(name) {
+      if (!name || name === '—' || name === '?') return name;
+      // Don't mask for admins
+      if (State.user?.role === 'admin') return name;
+      
+      const parts = name.trim().split(/\s+/);
+      if (parts.length <= 1) return parts[0];
+      // Returns "Firstname S."
+      return parts[0] + ' ' + parts[1][0] + '.';
     }
 
     function avi(name = '?', size = 40, url = null) {
@@ -1669,7 +1757,7 @@ async function submitProgress(sessionId){
     <div style="display:flex;flex-direction:column;gap:12px">
       ${list.map(s => {
           const other = State.user.role === 'student'
-            ? (s.tutors?.profiles?.full_name || 'Tutor')
+            ? maskName(s.tutors?.profiles?.full_name)
             : (s.students?.profiles?.full_name || 'Student')
           return `
         <div class="page-header">
@@ -1857,7 +1945,7 @@ ${s.mode !== 'home' ? `<button class="btn btn-ghost btn-sm" onclick="openStandal
         <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
           ${avi(t.profiles?.full_name || 'T', 50)}
           <div style="min-width:0">
-            <div style="font-weight:700;color:var(--navy);font-size:15px">${t.profiles?.full_name || '—'}</div>
+            <div style="font-weight:700;color:var(--navy);font-size:15px">${maskName(t.profiles?.full_name)}</div>
             <div style="font-size:12px;color:var(--g400);margin-top:2px">${t.qualification || '—'}</div>
             <div class="stars" style="margin-top:4px">${stars(t.rating)} <span style="color:var(--g400);font-size:11px">(${t.total_reviews})</span></div>
           </div>
@@ -2135,7 +2223,7 @@ async function deleteSelectedMsgs(){
         <div class="chat-item ${active?.id === c.id ? 'active' : ''}" onclick="State.data.activeConv=JSON.parse('${JSON.stringify(c).replace(/'/g, "\\'")}');renderMessages()">
           ${avi(c.other_user?.full_name || '?', 38)}
           <div style="min-width:0">
-            <div style="font-weight:600;font-size:13px;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.other_user?.full_name || 'Unknown'}</div>
+            <div style="font-weight:600;font-size:13px;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.other_user?.role === 'tutor' ? maskName(c.other_user?.full_name) : (c.other_user?.full_name || 'Unknown')}</div>
             <div style="font-size:11px;color:var(--g400);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.last_message || 'No messages yet'}</div>
           </div>
         </div>`).join('') : `<div style="padding:24px;text-align:center;color:var(--g400);font-size:13px">No conversations yet</div>`}
@@ -2145,7 +2233,7 @@ async function deleteSelectedMsgs(){
         <div style="padding:14px 18px;border-bottom:1px solid var(--g100);display:flex;align-items:center;gap:11px;background:#fff">
           ${avi(active.other_user?.full_name || '?', 38)}
           <div>
-            <div style="font-weight:700;font-size:14px;color:var(--navy)">${active.other_user?.full_name || '—'}</div>
+            <div style="font-weight:700;font-size:14px;color:var(--navy)">${active.other_user?.role === 'tutor' ? maskName(active.other_user?.full_name) : (active.other_user?.full_name || '—')}</div>
             <div style="font-size:11px;color:var(--green)">● Active</div>
           </div>
         </div>
@@ -4970,3 +5058,106 @@ async function submitCreateInstAdmin(instId) {
     btn.disabled = false; btn.textContent = 'Create Account →';
   }
 }
+/// 1. THE HELPER FUNCTION (Must be global to work with onclick)
+window.saveCookieChoice = function(choice) {
+  localStorage.setItem('cookie_consent_choice', choice);
+  const banner = document.getElementById('cookie-notice');
+  if (banner) {
+    banner.style.transition = "all 0.4s ease";
+    banner.style.opacity = "0";
+    banner.style.transform = "translateY(20px)";
+    setTimeout(() => banner.remove(), 400);
+  }
+  
+  if(choice === 'all') {
+    toast("Preferences saved! Happy learning 🎓", "ok");
+  } else {
+    toast("Essential cookies only applied.", "info");
+  }
+};
+
+// ── HORIZONTAL PROFESSIONAL COOKIE BAR ──
+window.saveCookieChoice = function(choice) {
+  localStorage.setItem('cookie_consent_choice', choice);
+  const banner = document.getElementById('cookie-notice');
+  if (banner) {
+    banner.style.transform = "translateY(100%)";
+    banner.style.opacity = "0";
+    setTimeout(() => banner.remove(), 400);
+  }
+  toast(choice === 'all' ? "Preferences saved! 🎓" : "Essential cookies only applied.", "ok");
+};
+
+function initAdSenseCookies() {
+  if (localStorage.getItem('cookie_consent_choice')) return;
+
+  const banner = document.createElement('div');
+  banner.id = 'cookie-notice';
+  
+  // Bar Styling: Full width at the bottom
+  banner.style.cssText = `
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    background: #fff;
+    z-index: 999999;
+    padding: 12px 24px;
+    box-shadow: 0 -5px 25px rgba(0,0,0,0.15);
+    border-top: 1px solid var(--g200);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: slideUp 0.5s ease;
+  `;
+
+  // Inner container to keep content centered on big screens
+  banner.innerHTML = `
+    <div style="max-width: 1200px; width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
+      
+      <!-- Left: Icon + Text -->
+      <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 300px;">
+        <div style="color: var(--blue); flex-shrink: 0; display: flex; align-items: center;">
+          <i data-lucide="cookie" style="width: 22px; height: 22px;"></i>
+        </div>
+        <p style="font-size: 13px; color: var(--navy); margin: 0; line-height: 1.4;">
+          <strong style="font-weight: 800;">Privacy:</strong> We use cookies to personalize your dashboard, remember progress, and power the <span style="color: var(--blue); font-weight: 700;">Majestic Lab</span>.
+          <a onclick="navigate('privacy')" style="color: var(--g400); cursor: pointer; text-decoration: underline; margin-left: 8px;">Privacy Policy</a>
+        </p>
+      </div>
+
+      <!-- Right: Buttons -->
+      <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
+        <div style="display: flex; align-items: center; gap: 6px; margin-right: 15px; border-right: 1px solid var(--g100); padding-right: 15px;" class="hide-mobile">
+           <i data-lucide="shield-check" style="width: 16px; height: 16px; color: var(--green);"></i>
+           <span style="font-size: 11px; font-weight: 600; color: var(--g400);">Data Protected</span>
+        </div>
+        <button onclick="saveCookieChoice('essential')" class="btn btn-ghost btn-sm" style="min-height: 36px; padding: 0 15px;">
+          Essential Only
+        </button>
+        <button onclick="saveCookieChoice('all')" class="btn btn-primary btn-sm" style="min-height: 36px; padding: 0 15px;">
+          Accept All
+        </button>
+      </div>
+
+    </div>
+    
+    <style>
+      @keyframes slideUp {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
+      }
+      @media (max-width: 768px) {
+        #cookie-notice { padding: 16px !important; }
+        #cookie-notice > div { flex-direction: column !important; text-align: center !important; gap: 15px !important; }
+        .hide-mobile { display: none !important; }
+      }
+    </style>
+  `;
+
+  document.body.appendChild(banner);
+  if (window.lucide) window.lucide.createIcons();
+}
+
+setTimeout(initAdSenseCookies, 3000);
