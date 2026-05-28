@@ -496,30 +496,36 @@ async function renderCoursesShop() {
     // Build pagination bar
     const showingFrom = totalCourses === 0 ? 0 : pageStart + 1;
     const showingTo   = Math.min(pageStart + COURSES_PER_PAGE, totalCourses);
-    const maxPageButtons = 6;
+    
     let pageButtons = '';
-    for (let p = 1; p <= Math.min(totalPages, maxPageButtons); p++) {
+    // Show up to 5 page numbers around the current page
+    let startP = Math.max(1, window._coursesPage - 2);
+    let endP = Math.min(totalPages, startP + 4);
+    if (endP - startP < 4) startP = Math.max(1, endP - 4);
+
+    for (let p = startP; p <= endP; p++) {
       const active = p === window._coursesPage;
       pageButtons += `<button onclick="window._coursesPage=${p};renderCoursesShop()"
-        style="min-width:36px;height:36px;border-radius:8px;border:1.5px solid ${active ? 'var(--blue)' : '#e2e8f0'};
-               background:${active ? 'var(--blue)' : '#fff'};color:${active ? '#fff' : 'var(--navy)'};
-               font-size:14px;font-weight:700;cursor:pointer;padding:0 10px;transition:all .15s">${p}</button>`;
+        style="min-width:40px;height:40px;border-radius:50%;border:1px solid ${active ? 'var(--blue)' : 'transparent'};
+               background:${active ? 'var(--blue)' : 'transparent'};color:${active ? '#fff' : 'var(--navy)'};
+               font-size:14px;font-weight:700;cursor:pointer;margin:0 2px;">${p}</button>`;
     }
+
     const paginationHtml = totalPages <= 1 ? '' : `
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:32px;padding-top:20px;border-top:1px solid #f0f2f5;">
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:20px;margin-top:48px;padding-top:30px;border-top:1px solid #eee;">
+      <div style="display:flex;align-items:center;gap:10px;">
         <button onclick="if(window._coursesPage>1){window._coursesPage--;renderCoursesShop();}" ${window._coursesPage<=1?'disabled':''} 
-          style="height:36px;padding:0 16px;border-radius:8px;border:1.5px solid #e2e8f0;background:#fff;color:var(--navy);font-size:14px;font-weight:600;cursor:pointer;opacity:${window._coursesPage<=1?'0.4':'1'}">
-          Previous
+          style="height:40px;padding:0 20px;border-radius:20px;border:1px solid #ddd;background:#fff;font-weight:700;cursor:pointer;opacity:${window._coursesPage<=1?'0.5':'1'}">
+          « Previous
         </button>
-        ${pageButtons}
+        <div style="display:flex;align-items:center;">${pageButtons}</div>
         <button onclick="if(window._coursesPage<${totalPages}){window._coursesPage++;renderCoursesShop();}" ${window._coursesPage>=totalPages?'disabled':''}
-          style="height:36px;padding:0 16px;border-radius:8px;border:1.5px solid #e2e8f0;background:#fff;color:var(--navy);font-size:14px;font-weight:600;cursor:pointer;opacity:${window._coursesPage>=totalPages?'0.4':'1'}">
-          Next
+          style="height:40px;padding:0 20px;border-radius:20px;border:1px solid #ddd;background:#fff;font-weight:700;cursor:pointer;opacity:${window._coursesPage>=totalPages?'0.5':'1'}">
+          Next »
         </button>
       </div>
-      <div style="font-size:13px;color:#64748b;font-weight:500">
-        Showing ${showingFrom}–${showingTo} of ${totalCourses} Courses
+      <div style="font-size:13px;color:#94a3b8;font-weight:600;letter-spacing:0.5px">
+        SHOWING ${showingFrom} TO ${showingTo} OF ${totalCourses} COURSES
       </div>
     </div>`;
 

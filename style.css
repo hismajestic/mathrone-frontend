@@ -2254,31 +2254,24 @@
     background: #fff;
   }
 }
-/* ═══════════════════════════════════════
-   MOBILE COURSE CARDS (Swipeable Carousel)
-═══════════════════════════════════════ */
-@media (max-width: 768px) {
-  .m-courses-container { padding: 16px 0 !important; overflow: hidden !important; }
-  .m-courses-header { padding-left: 16px; padding-right: 16px; }
-  
-  /* Creates the horizontal scrolling row */
-  .m-courses-grid {
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    gap: 16px !important;
-    background: transparent !important;
-    padding: 4px 16px 24px 16px !important;
-    margin: 0 !important;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; /* Hides scrollbar in Firefox */
-  }
-  
-  /* Hides scrollbar in Chrome/Safari */
-  .m-courses-grid::-webkit-scrollbar {
-    display: none; 
-  }
+
+.m-courses-grid {
+          display: grid;
+          /* Force 4 columns on PC */
+          grid-template-columns: repeat(4, 1fr);
+          gap: 24px;
+        }
+        @media (max-width: 1100px) {
+          .m-courses-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (max-width: 850px) {
+          .m-courses-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+          /* Force 1 column on Mobile */
+          .m-courses-grid { grid-template-columns: 1fr !important; }
+        }
+      
   
     .m-course-card {
       background:#fff;
@@ -2325,7 +2318,7 @@
   .m-course-body > div[style*="border-top"] > div:last-child { font-size: 18px !important; }
   
   .m-course-body button { font-size: 14px !important; padding: 10px !important; }
-}
+
 .cart-grid { display: grid; grid-template-columns: 1fr 340px; gap: 24px; align-items: start; }
 @media (max-width: 768px) {
   .cart-grid { grid-template-columns: 1fr !important; }
