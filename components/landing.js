@@ -397,7 +397,7 @@
             <i data-lucide="graduation-cap" style="width:9px;height:9px;color:#f59e0b"></i>
             <span>Online Courses</span>
           </div>
-          <div class="chc-mobile-banner-title">Pass National Exams at Ease</div>
+          <div class="chc-mobile-banner-title">Master Any Skill, Pass Any Exam</div>
           <div class="chc-mobile-banner-pills">
             <span class="chc-pill"><i data-lucide="calculator" style="width:8px;height:8px"></i>Maths</span>
           <span class="chc-pill"><i data-lucide="flask-conical" style="width:8px;height:8px"></i>Sciences</span>
