@@ -51,7 +51,7 @@ export async function onRequest(context) {
 
     // Category label map
     const catLabels = {
-      news:'Education News', scholarship:'Scholarships', government:'Government Updates',
+      news:'Education News', scholarship:'Scholarships',
       career:'Career Opportunities', abroad:'Study Abroad', resources:'Learning Resources'
     }
     const catLabel = catLabels[article.category] || 'Education News'

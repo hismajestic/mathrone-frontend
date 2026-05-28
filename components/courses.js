@@ -78,68 +78,254 @@ function _isCourseGuestAccount() {
   return (State.user.email || '').endsWith('@student.mathrone.rw')
 }
 
+// ── Course search synonym + fuzzy engine ────────────────────────────────────
+const _COURSE_SYNONYMS = {
+  'math':        ['mathematics','math','maths','algebra','calculus','statistics','trigonometry','arithmetic'],
+  'maths':       ['mathematics','math','maths','algebra','calculus','statistics','trigonometry','arithmetic'],
+  'mathematics': ['mathematics','math','maths','algebra','calculus','statistics','trigonometry','arithmetic'],
+  'calc':        ['calculus','mathematics','math'],
+  'stats':       ['statistics','mathematics','data'],
+  'phy':         ['physics','physical','physical science'],
+  'phys':        ['physics','physical','physical science'],
+  'physics':     ['physics','physical','physical science'],
+  'chem':        ['chemistry','chemical','physical science'],
+  'chemistry':   ['chemistry','chemical'],
+  'bio':         ['biology','life science','science'],
+  'biology':     ['biology','life science','science'],
+  'sci':         ['science','physics','chemistry','biology'],
+  'science':     ['science','physics','chemistry','biology','physical science'],
+  'cs':          ['computer science','ict','programming','coding','computing','software'],
+  'comp':        ['computer science','ict','programming','computing'],
+  'ict':         ['ict','computer science','computing','programming'],
+  'computer':    ['computer science','ict','computing','programming'],
+  'prog':        ['programming','coding','computer science','software','development'],
+  'code':        ['coding','programming','computer science','software','web development'],
+  'coding':      ['coding','programming','computer science','software'],
+  'web':         ['web development','programming','html','css','javascript','coding'],
+  'html':        ['web development','html','coding'],
+  'js':          ['javascript','web development','coding','programming'],
+  'python':      ['python','programming','coding','data science','computer science'],
+  'data':        ['data science','statistics','analytics','computer science','python'],
+  'ai':          ['artificial intelligence','machine learning','ai','data science','programming'],
+  'ml':          ['machine learning','ai','artificial intelligence','data science'],
+  'eng':         ['english','literature','language','writing','grammar'],
+  'english':     ['english','literature','language','writing','grammar'],
+  'lit':         ['literature','english','reading','writing'],
+  'writing':     ['writing','english','literature','grammar','communication'],
+  'gram':        ['grammar','english','writing','language'],
+  'french':      ['french','français','language'],
+  'fre':         ['french','français','language'],
+  'kiny':        ['kinyarwanda','language'],
+  'kinyarwanda': ['kinyarwanda','language'],
+  'swah':        ['kiswahili','swahili','language'],
+  'kiswahili':   ['kiswahili','swahili','language'],
+  'span':        ['spanish','language'],
+  'econ':        ['economics','economy','business','finance','entrepreneurship'],
+  'economics':   ['economics','economy','business','finance','entrepreneurship'],
+  'biz':         ['business','entrepreneurship','economics','management'],
+  'business':    ['business','entrepreneurship','economics','management','marketing'],
+  'entre':       ['entrepreneurship','business','startup'],
+  'mmo':         ['making money online','digital skills','entrepreneurship','freelancing'],
+  'money':       ['making money online','financial literacy','economics','entrepreneurship'],
+  'freelan':     ['freelancing','making money online','digital skills'],
+  'market':      ['marketing','digital marketing','business','entrepreneurship'],
+  'digital':     ['digital skills','digital marketing','ict','computer science','coding'],
+  'geo':         ['geography','environment','earth'],
+  'geography':   ['geography','environment','earth'],
+  'hist':        ['history','social studies','humanities'],
+  'history':     ['history','social studies'],
+  'acc':         ['accounting','bookkeeping','finance','financial literacy'],
+  'accounting':  ['accounting','bookkeeping','finance','financial literacy'],
+  'fin':         ['finance','financial literacy','accounting','economics'],
+  'invest':      ['investment','finance','economics','financial literacy'],
+  'photo':       ['photography','camera','visual','art','design'],
+  'photography': ['photography','camera','visual','design'],
+  'video':       ['video editing','filmmaking','production','content creation'],
+  'film':        ['filmmaking','video editing','production'],
+  'content':     ['content creation','digital marketing','social media','video editing'],
+  'social':      ['social media','digital marketing','content creation'],
+  'design':      ['graphic design','design','art','visual','photoshop'],
+  'graphic':     ['graphic design','design','visual','photoshop'],
+  'art':         ['art','design','visual','graphic design','photography'],
+  'music':       ['music','music theory','audio','sound'],
+  'speak':       ['public speaking','communication','presentation','leadership'],
+  'public speaking':['public speaking','communication','presentation'],
+  'lead':        ['leadership','management','business','professional development'],
+  'cv':          ['cv','interview','career','professional development','job'],
+  'interview':   ['interview','cv','career','professional development','job'],
+  'career':      ['career','professional development','cv','interview'],
+  'exam':        ['exam prep','examination','revision','past papers'],
+  'revision':    ['revision','exam prep','study'],
+  'rreb':        ['reb','cbc','rwanda','curriculum'],
+  'reb':         ['reb','cbc','rwanda','curriculum','rwandan'],
+  'cbc':         ['cbc','reb','rwanda','curriculum'],
+  'igcse':       ['igcse','cambridge','o level','a level'],
+  'cambridge':   ['cambridge','igcse','o level','a level'],
+  'ib':          ['ib','international baccalaureate','diploma'],
+  'uni':         ['university','higher education','undergraduate','degree'],
+  'university':  ['university','higher education','undergraduate','degree'],
+  'degree':      ['degree','university','undergraduate','higher education'],
+  'beginner':    ['beginner','introduction','basics','starter','fundamentals'],
+  'intro':       ['introduction','beginner','basics','fundamentals'],
+  'advanced':    ['advanced','expert','professional','mastery'],
+  'pro':         ['professional','advanced','expert','certification'],
+  'cert':        ['certificate','certification','professional','diploma'],
+  'diploma':     ['diploma','certificate','certification'],
+  'free':        ['free','no cost'],
+}
+
+function _expandQuery(raw) {
+  const key = raw.trim().toLowerCase()
+  // Direct hit
+  if (_COURSE_SYNONYMS[key]) return [...new Set([key, ..._COURSE_SYNONYMS[key]])]
+  // Prefix match across all keys and their aliases
+  const hits = new Set([key])
+  for (const [canon, aliases] of Object.entries(_COURSE_SYNONYMS)) {
+    if (canon.startsWith(key) || aliases.some(a => a.startsWith(key))) {
+      hits.add(canon)
+      aliases.forEach(a => hits.add(a))
+    }
+  }
+  return [...hits]
+}
+
+function _scoreCourseSuggestion(c, terms, rawQ) {
+  // Returns numeric relevance score (higher = better match)
+  let score = 0
+  const title       = (c.title       || '').toLowerCase()
+  const subject     = (c.subject     || '').toLowerCase()
+  const description = (c.description || '').toLowerCase()
+  const curriculum  = (c.curriculum  || '').toLowerCase()
+  const level       = (c.level       || '').toLowerCase()
+  const tags        = ((c.tags || []).join(' ')).toLowerCase()
+
+  for (const term of terms) {
+    const t = term.toLowerCase()
+    if (title.includes(t))       score += title.startsWith(t) ? 10 : 6
+    if (subject === t)            score += 8
+    if (subject.includes(t))     score += 5
+    if (curriculum.includes(t))  score += 4
+    if (level.includes(t))       score += 3
+    if (tags.includes(t))        score += 3
+    if (description.includes(t)) score += 2
+  }
+  // Bonus: raw query directly in title
+  if (title.includes(rawQ))    score += 4
+  if (subject.includes(rawQ))  score += 3
+  return score
+}
+
+function _scoreLessonSuggestion(lesson, terms, rawQ) {
+  let score = 0
+  const title   = (lesson.title   || '').toLowerCase()
+  const content = (lesson.content || '').toLowerCase()
+  const notes   = (lesson.notes   || '').toLowerCase()
+  for (const term of terms) {
+    const t = term.toLowerCase()
+    if (title.includes(t))   score += title.startsWith(t) ? 8 : 5
+    if (content.includes(t)) score += 2
+    if (notes.includes(t))   score += 1
+  }
+  if (title.includes(rawQ)) score += 3
+  return score
+}
+
 window.handleCourseSearchInput = function(val) {
-  const suggestionsBox = document.getElementById('course-search-suggestions');
-  if(!suggestionsBox) return;
-  if(!val || val.length < 2) { suggestionsBox.style.display = 'none'; return; }
-  
-  const courses = window._allPublicCourses || [];
-  const q = val.toLowerCase();
-  
-  let results = [];
+  const suggestionsBox = document.getElementById('course-search-suggestions')
+  if (!suggestionsBox) return
+
+  // Clear + close when empty
+  if (!val || val.length < 2) {
+    suggestionsBox.style.display = 'none'
+    if (!val || val.length === 0) {
+      const url = new URL(window.location)
+      url.searchParams.delete('q')
+      window.history.replaceState({}, '', url)
+      window._coursesPage = 1
+      renderCoursesShop()
+    }
+    return
+  }
+
+  const courses = window._allPublicCourses || []
+  const rawQ    = val.trim().toLowerCase()
+  const terms   = _expandQuery(rawQ)
+
+  const courseResults  = []
+  const lessonResults  = []
+  const seenCourseIds  = new Set()
 
   courses.forEach(c => {
-    const courseText = [c.title, c.description, c.subject, c.level].filter(Boolean).join(' ').toLowerCase();
-    const courseMatch = courseText.includes(q);
+    const courseScore = _scoreCourseSuggestion(c, terms, rawQ)
 
-    const allLessons = [...(c.preview_lessons || []), ...(c.lessons || [])];
-    const uniqueLessons = Array.from(new Map(allLessons.map(l => [l.id, l])).values());
-    
-    const matchingLessons = uniqueLessons.filter(l => l.title.toLowerCase().includes(q));
+    const allLessons    = [...(c.preview_lessons || []), ...(c.lessons || [])]
+    const uniqueLessons = Array.from(new Map(allLessons.map(l => [l.id, l])).values())
 
-    if (courseMatch && matchingLessons.length === 0) {
-      results.push({
-        type: 'course',
-        course: c,
+    uniqueLessons.forEach(l => {
+      const ls = _scoreLessonSuggestion(l, terms, rawQ)
+      if (ls > 0) {
+        lessonResults.push({ type: 'lesson', course: c, lesson: l, score: ls + courseScore * 0.2,
+          text: l.title, subtext: `In: ${c.title}` })
+        seenCourseIds.add(c.id)
+      }
+    })
+
+    if (courseScore > 0 && !seenCourseIds.has(c.id)) {
+      courseResults.push({ type: 'course', course: c, score: courseScore,
         text: c.title,
-        subtext: [c.subject, c.level].filter(Boolean).join(' • ')
-      });
+        subtext: [c.subject, c.level, c.curriculum].filter(Boolean).join(' • ') })
     }
+  })
 
-    matchingLessons.forEach(l => {
-      results.push({
-        type: 'lesson',
-        course: c,
-        lesson: l,
-        text: l.title,
-        subtext: `Lesson in ${c.title}`
-      });
-    });
-  });
+  // Sort each bucket by score, merge: top courses first then lessons
+  courseResults.sort((a, b) => b.score - a.score)
+  lessonResults.sort((a, b) => b.score - a.score)
+  const merged = [...courseResults.slice(0, 4), ...lessonResults.slice(0, 3)].slice(0, 7)
 
-  const filtered = results.slice(0, 6);
-  
-  if(filtered.length === 0) {
-    suggestionsBox.innerHTML = '<div style="padding:12px 16px;font-size:13px;color:var(--g400)">No matches found</div>';
-    suggestionsBox.style.display = 'block';
-    return;
+  if (merged.length === 0) {
+    suggestionsBox.innerHTML = `
+      <div style="padding:14px 16px;font-size:13px;color:var(--g400);display:flex;align-items:center;gap:8px">
+        <i data-lucide="search-x" style="width:14px;height:14px;flex-shrink:0"></i>
+        No courses found for "<strong>${val}</strong>"
+      </div>`
+    suggestionsBox.style.display = 'block'
+    if (window.lucide) window.lucide.createIcons()
+    return
   }
-  
-   suggestionsBox.innerHTML = filtered.map(item => `
-    <div onclick="navigate('course-${item.course.slug || item.course.id}?q=${encodeURIComponent(q)}')" 
-         style="padding:12px 16px;cursor:pointer;font-size:13px;font-weight:600;color:var(--navy);border-bottom:1px solid var(--g50);display:flex;align-items:center;gap:10px" 
-         onmouseover="this.style.background='var(--sky)'" 
+
+  // Highlight matching text
+  function highlight(text, q) {
+    const idx = text.toLowerCase().indexOf(q)
+    if (idx === -1) return text
+    return text.slice(0, idx) + `<mark style="background:#fef9c3;color:var(--navy);border-radius:2px;padding:0 1px">${text.slice(idx, idx + q.length)}</mark>` + text.slice(idx + q.length)
+  }
+
+  suggestionsBox.innerHTML = merged.map((item, i) => `
+    <div onclick="document.getElementById('course-search-suggestions').style.display='none';const url=new URL(window.location);url.searchParams.set('q','${encodeURIComponent(rawQ)}');window.history.pushState({},'',url);window._coursesPage=1;renderCoursesShop()"
+         style="padding:11px 16px;cursor:pointer;border-bottom:1px solid var(--g50);display:flex;align-items:center;gap:10px;${i===0?'border-radius:8px 8px 0 0':''}"
+         onmouseover="this.style.background='var(--sky)'"
          onmouseout="this.style.background='#fff'">
-      <i data-lucide="${item.type === 'lesson' ? 'play-circle' : 'search'}" style="width:14px;height:14px;color:var(--g400);flex-shrink:0"></i> 
-      <div style="display:flex;flex-direction:column;min-width:0">
-        <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.text}</span>
-        <span style="font-size:11px;color:var(--g400);font-weight:400;margin-top:2px">${item.subtext}</span>
+      <div style="width:32px;height:32px;border-radius:8px;background:${item.type==='lesson'?'#f0fdf4':'var(--sky)'};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <i data-lucide="${item.type==='lesson'?'play-circle':'book-open'}" style="width:15px;height:15px;color:${item.type==='lesson'?'var(--green)':'var(--blue)'}"></i>
       </div>
-    </div>
-  `).join('');
-  
-  suggestionsBox.style.display = 'block';
-  if (window.lucide) window.lucide.createIcons();
+      <div style="display:flex;flex-direction:column;min-width:0;flex:1">
+        <span style="font-size:13px;font-weight:600;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${highlight(item.text, rawQ)}</span>
+        <span style="font-size:11px;color:var(--g400);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.subtext}</span>
+      </div>
+      ${item.type==='lesson'?`<span style="font-size:10px;font-weight:700;color:var(--green);background:#f0fdf4;padding:2px 6px;border-radius:4px;flex-shrink:0">LESSON</span>`:`<span style="font-size:10px;font-weight:700;color:var(--blue);background:var(--sky);padding:2px 6px;border-radius:4px;flex-shrink:0">COURSE</span>`}
+    </div>`).join('')
+
+  // "See all results" footer
+  suggestionsBox.innerHTML += `
+    <div onclick="document.getElementById('course-search-suggestions').style.display='none';const url=new URL(window.location);url.searchParams.set('q','${encodeURIComponent(rawQ)}');window.history.pushState({},'',url);window._coursesPage=1;renderCoursesShop()"
+         style="padding:10px 16px;cursor:pointer;font-size:12px;font-weight:700;color:var(--blue);text-align:center;border-radius:0 0 8px 8px"
+         onmouseover="this.style.background='var(--sky)'"
+         onmouseout="this.style.background='#fff'">
+      🔍 See all results for "${val}"
+    </div>`
+
+  suggestionsBox.style.display = 'block'
+  if (window.lucide) window.lucide.createIcons()
 }
 
 // Close suggestions on outside click
@@ -225,6 +411,27 @@ async function renderCoursesShop() {
     
     // Store globally so the search function can access it safely without JSON stringify issues
     window._allPublicCourses = allCourses;
+    window._coursesPage = window._coursesPage || 1;
+    const COURSES_PER_PAGE = 40; // 4 cols × 10 rows
+
+    // Inject ItemList schema for Google
+    const BASE = 'https://mathroneacademy.com';
+    const schemaEl = document.getElementById('dynamic-schema');
+    if (schemaEl) {
+      schemaEl.textContent = JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "name": "Online Courses — Mathrone Academy",
+        "url": `${BASE}/courses`,
+        "numberOfItems": allCourses.length,
+        "itemListElement": allCourses.slice(0, 50).map((c, i) => ({
+          "@type": "ListItem",
+          "position": i + 1,
+          "url": `${BASE}/course/${(c.curriculum||'general').toLowerCase()}/${c.slug||c.id}`,
+          "name": c.title,
+        }))
+      });
+    }
 
     // Build smart suggestions: match category (curriculum) + level from enrolled courses
     if (isLoggedIn && window._myCoursesList && window._myCoursesList.length) {
@@ -255,34 +462,70 @@ async function renderCoursesShop() {
     const searchParams = new URLSearchParams(window.location.search)
     const query = searchParams.get('q') || ''
     
+    if (query) window._coursesPage = 1;
     let courses = allCourses;
     if (query) {
-      const q = query.toLowerCase();
+      const rawQ = query.trim().toLowerCase()
+      const terms = _expandQuery(rawQ)
       courses = allCourses.filter(c => {
-        // Combine all searchable text into one block for flexible matching
-        const textToSearch = [
-          c.title,
-          c.description,
-          c.subject,
-          c.level,
-          ...(c.preview_lessons || []).map(l => l.title),
-          ...(c.lessons || []).map(l => l.title)
-        ].filter(Boolean).join(' ').toLowerCase();
-        
-        return textToSearch.includes(q);
-      });
+        // Course-level score
+        if (_scoreCourseSuggestion(c, terms, rawQ) > 0) return true
+        // Lesson-level match
+        const allLessons = [...(c.preview_lessons || []), ...(c.lessons || [])]
+        return allLessons.some(l => _scoreLessonSuggestion(l, terms, rawQ) > 0)
+      })
+      // Sort by relevance so best matches appear first
+      courses.sort((a, b) =>
+        _scoreCourseSuggestion(b, terms, rawQ) - _scoreCourseSuggestion(a, terms, rawQ)
+      )
     }
 
-    const cards = courses.length ? courses.map(c => courseCard(c, isLoggedIn)).join('') : `
+    const totalCourses = courses.length;
+    const totalPages = Math.max(1, Math.ceil(totalCourses / COURSES_PER_PAGE));
+    if (window._coursesPage > totalPages) window._coursesPage = 1;
+    const pageStart = (window._coursesPage - 1) * COURSES_PER_PAGE;
+    const pageCourses = courses.slice(pageStart, pageStart + COURSES_PER_PAGE);
+
+    const cards = pageCourses.length ? pageCourses.map(c => courseCard(c, isLoggedIn)).join('') : `
     <div class="empty-state" style="grid-column:1/-1">
       <div class="empty-icon" style="color:var(--g400)"><i data-lucide="book-open" style="width:48px;height:48px;stroke-width:1.5"></i></div>
       <div class="empty-title">No courses found</div>
       <div class="empty-sub">Check back soon or try a different search.</div>
     </div>`
 
+    // Build pagination bar
+    const showingFrom = totalCourses === 0 ? 0 : pageStart + 1;
+    const showingTo   = Math.min(pageStart + COURSES_PER_PAGE, totalCourses);
+    const maxPageButtons = 6;
+    let pageButtons = '';
+    for (let p = 1; p <= Math.min(totalPages, maxPageButtons); p++) {
+      const active = p === window._coursesPage;
+      pageButtons += `<button onclick="window._coursesPage=${p};renderCoursesShop()"
+        style="min-width:36px;height:36px;border-radius:8px;border:1.5px solid ${active ? 'var(--blue)' : '#e2e8f0'};
+               background:${active ? 'var(--blue)' : '#fff'};color:${active ? '#fff' : 'var(--navy)'};
+               font-size:14px;font-weight:700;cursor:pointer;padding:0 10px;transition:all .15s">${p}</button>`;
+    }
+    const paginationHtml = totalPages <= 1 ? '' : `
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:32px;padding-top:20px;border-top:1px solid #f0f2f5;">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <button onclick="if(window._coursesPage>1){window._coursesPage--;renderCoursesShop();}" ${window._coursesPage<=1?'disabled':''} 
+          style="height:36px;padding:0 16px;border-radius:8px;border:1.5px solid #e2e8f0;background:#fff;color:var(--navy);font-size:14px;font-weight:600;cursor:pointer;opacity:${window._coursesPage<=1?'0.4':'1'}">
+          Previous
+        </button>
+        ${pageButtons}
+        <button onclick="if(window._coursesPage<${totalPages}){window._coursesPage++;renderCoursesShop();}" ${window._coursesPage>=totalPages?'disabled':''}
+          style="height:36px;padding:0 16px;border-radius:8px;border:1.5px solid #e2e8f0;background:#fff;color:var(--navy);font-size:14px;font-weight:600;cursor:pointer;opacity:${window._coursesPage>=totalPages?'0.4':'1'}">
+          Next
+        </button>
+      </div>
+      <div style="font-size:13px;color:#64748b;font-weight:500">
+        Showing ${showingFrom}–${showingTo} of ${totalCourses} Courses
+      </div>
+    </div>`;
+
     render(`
     ${nav}
-    <div class="m-courses-container" style="max-width:1100px;margin:0 auto;padding:24px 16px">
+    <div class="m-courses-container" style="max-width:1400px;margin:0 auto;padding:24px 16px">
      <div class="m-courses-header" style="margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px">
   <div style="flex:1;min-width:300px">
     <h1 style="font-size:24px;font-weight:900;color:var(--navy);margin-bottom:6px;line-height:1.2;display:flex;align-items:center;gap:10px;font-family:'Playfair Display',serif">
@@ -296,7 +539,8 @@ async function renderCoursesShop() {
   </div>
         
         <div style="position:relative;width:100%;max-width:320px">
-          <input class="input" id="course-search-input" value="${query}" placeholder="Search courses or subjects..." oninput="handleCourseSearchInput(this.value)" onkeydown="if(event.key==='Enter') { const url = new URL(window.location); url.searchParams.set('q', this.value); window.history.pushState({}, '', url); renderCoursesShop(); }" style="padding-left:40px;height:44px;border-radius:12px"/>
+          <input class="input" id="course-search-input" value="${query}" placeholder="Search courses, subjects, lessons..." oninput="handleCourseSearchInput(this.value)" onkeydown="if(event.key==='Enter'){document.getElementById('course-search-suggestions').style.display='none';const url=new URL(window.location);url.searchParams.set('q',this.value.trim());window.history.pushState({}, '',url);window._coursesPage=1;renderCoursesShop()}" style="padding-left:40px;padding-right:36px;height:44px;border-radius:12px"/>
+          ${query ? `<button onclick="document.getElementById('course-search-input').value='';document.getElementById('course-search-suggestions').style.display='none';const url=new URL(window.location);url.searchParams.delete('q');window.history.pushState({},'',url);window._coursesPage=1;renderCoursesShop()" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--g400);font-size:18px;line-height:1;padding:0" title="Clear search">×</button>` : ''}
           <i data-lucide="search" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--g400);width:18px;height:18px"></i>
           <div id="course-search-suggestions" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--g200);border-radius:8px;box-shadow:0 10px 25px rgba(0,0,0,0.1);z-index:50;margin-top:4px;max-height:250px;overflow-y:auto"></div>
         </div>
@@ -320,9 +564,23 @@ async function renderCoursesShop() {
       <h2 style="font-size:16px;font-weight:800;color:var(--navy);margin-bottom:12px;display:flex;align-items:center;gap:8px">
         <i data-lucide="library" style="width:18px;height:18px;color:var(--blue)"></i> All Courses
       </h2>
-      <div class="m-courses-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
+      <style>
+        .m-courses-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 16px;
+        }
+        @media (max-width: 900px) {
+          .m-courses-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 540px) {
+          .m-courses-grid { grid-template-columns: 1fr; }
+        }
+      </style>
+      <div class="m-courses-grid">
         ${cards}
       </div>
+      ${paginationHtml}
     </div>
     <div style="background:#0f172a;padding:24px 32px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-top:48px">
       <div style="font-size:13px;color:rgba(255,255,255,0.4)">© 2026 Mathrone Academy</div>
@@ -395,12 +653,12 @@ const seoState = `course-${courseCat}--${courseSlug}`;
 const clickAction = cleanUrl ? `playCourseCardVideo(event, '${c.id}', '${cleanUrl.replace(/'/g, "\\'")}')` : `navigate('${seoState}', null, event)`;
 
   return `
-  <div class="m-course-card" style="background:#fff;border:1px solid #e8ecf0;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .2s,transform .2s;"
+  <article class="m-course-card" style="background:#fff;border:1px solid #e8ecf0;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .2s,transform .2s;"
        onmouseover="this.style.boxShadow='0 8px 32px rgba(0,0,0,0.10)';this.style.transform='translateY(-2px)'"
        onmouseout="this.style.boxShadow='none';this.style.transform='translateY(0)'">
 
     <!-- Image / Video Area -->
-    <div class="m-course-img-wrap" style="position:relative;width:100%;height:160px;background:#1E2845;overflow:hidden;flex-shrink:0;border-bottom:1px solid #f0f2f5;">
+    <div class="m-course-img-wrap" style="position:relative;width:100%;padding-top:56.25%;background:#1E2845;overflow:hidden;flex-shrink:0;border-bottom:1px solid #f0f2f5;">
       
       <!-- Cover Container -->
       <div id="card-vid-cover-${c.id}" 
@@ -486,7 +744,7 @@ const clickAction = cleanUrl ? `playCourseCardVideo(event, '${c.id}', '${cleanUr
         ${isAlreadyEnrolled ? 'Continue Learning' : c.price > 0 ? 'Enroll Now' : 'Get Course for Free'}
       </button>
     </div>
-  </div>`
+  </article>`
 }
 
 // ── Public: Course Detail Page ──────────────────────────────────────────────
@@ -597,7 +855,14 @@ async function renderCourseDetail(slugParam) {
              <div style="font-size:12px; font-weight:800; color:var(--blue); text-transform:uppercase; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
                <i data-lucide="check-circle" style="width:16px;height:16px"></i> Why take this course?
              </div>
-             <p style="font-size:14px;color:var(--g600);line-height:1.6;margin:0;">${c.description || 'Master this subject with our expert-led curriculum designed specifically for Rwandan academic standards.'}</p>
+             <div style="font-size:14px;color:var(--g600);line-height:1.6;margin:0;display:flex;flex-direction:column;gap:12px">${
+               (c.description || 'Master this subject with our expert-led curriculum designed specifically for Rwandan academic standards.')
+                 .split(/\n\s*\n|\r\n\s*\r\n/)
+                 .map(para => para.trim())
+                 .filter(para => para.length > 0)
+                 .map(para => `<p style="margin:0">${para.replace(/\n/g,'<br>')}</p>`)
+                 .join('')
+             }</div>
           </div>
           <div style="background:var(--navy); color:#fff; padding:20px; border-radius:12px; display:flex; flex-direction:column; justify-content:center;">
              <div style="font-size:11px; font-weight:700; opacity:0.7; text-transform:uppercase; margin-bottom:8px;">Course Statistics</div>

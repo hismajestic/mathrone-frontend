@@ -341,7 +341,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--g50);color:var(--g800);ov
     <section style="margin-bottom:40px">
       <h2 style="font-size:22px;font-weight:700;color:#0D1B40">Online Courses in Rwanda</h2>
       <p style="font-size:15px;line-height:1.7;color:#4A5578">Mathrone Academy offers expert-led video courses for students and professionals in Rwanda. From National Exam Preparation to Digital Marketing, Video Editing, Web Development, and Business Skills &mdash; learn at your own pace from anywhere.</p>
-      <p style="font-size:15px;line-height:1.7;color:#4A5578"><a href="/courses" style="color:#1A5FFF">Browse all courses &rarr;</a></p>
+      <ul style="font-size:15px;line-height:2;color:#4A5578;padding-left:20px;margin-top:12px">
+        <li><a href="/courses" style="color:#1A5FFF">Mathematics &amp; Science Courses</a> — Algebra, Calculus, Physics, Chemistry, Biology</li>
+        <li><a href="/courses" style="color:#1A5FFF">Digital Skills Courses</a> — Web Development, Graphic Design, Video Editing, Coding, Digital Marketing</li>
+        <li><a href="/courses" style="color:#1A5FFF">Professional Development Courses</a> — Leadership, CV Writing, Public Speaking, Financial Literacy</li>
+        <li><a href="/courses" style="color:#1A5FFF">Language Courses</a> — English, French, Kinyarwanda, Kiswahili</li>
+        <li><a href="/courses" style="color:#1A5FFF">REB / CBC Exam Preparation</a> — National Exam Prep for Primary &amp; Secondary levels</li>
+        <li><a href="/courses" style="color:#1A5FFF">Making Money Online &amp; Freelancing</a> — Content Creation, Social Media, Entrepreneurship</li>
+      </ul>
+      <p style="font-size:15px;line-height:1.7;color:#4A5578;margin-top:12px"><a href="/courses" style="color:#1A5FFF">Browse all courses &rarr;</a></p>
     </section>
     <section style="margin-bottom:40px">
       <h2 style="font-size:22px;font-weight:700;color:#0D1B40">Majestic Lab &mdash; Virtual STEM Lab for Schools</h2>
@@ -368,10 +376,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--g50);color:var(--g800);ov
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   "itemListElement": [
-    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://mathroneacademy.com/" }
+    { "@type": "ListItem", "position": 1, "name": "Home",    "item": "https://mathroneacademy.com/" },
+    { "@type": "ListItem", "position": 2, "name": "Courses", "item": "https://mathroneacademy.com/courses" },
+    { "@type": "ListItem", "position": 3, "name": "News",    "item": "https://mathroneacademy.com/news" },
+    { "@type": "ListItem", "position": 4, "name": "Shop",    "item": "https://mathroneacademy.com/shop" },
+    { "@type": "ListItem", "position": 5, "name": "Majestic Lab", "item": "https://mathroneacademy.com/majestic-lab" }
   ]
 }
 </script>
+
+<!-- Dynamic schema slot — filled by JS for course/news/product pages -->
+<script type="application/ld+json" id="dynamic-schema">{}</script>
 
 <!-- Supabase must load before app.js -->
 <!-- Move to very bottom and use async where possible -->

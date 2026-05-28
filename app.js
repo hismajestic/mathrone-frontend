@@ -78,7 +78,6 @@ const CATEGORY_LEVELS = {
 var NEWS_CATEGORIES = [
   { id: 'news',        icon: '<i data-lucide="newspaper" style="width:24px;height:24px"></i>', label: 'Education News',      color: '#3b82f6' },
   { id: 'scholarship', icon: '<i data-lucide="graduation-cap" style="width:24px;height:24px"></i>', label: 'Scholarships',         color: '#8b5cf6' },
-  { id: 'government',  icon: '<i data-lucide="landmark" style="width:24px;height:24px"></i>', label: 'Government Updates',   color: '#059669' },
   { id: 'career',      icon: '<i data-lucide="briefcase" style="width:24px;height:24px"></i>', label: 'Career Opportunities', color: '#f59e0b' },
   { id: 'abroad',      icon: '<i data-lucide="globe-2" style="width:24px;height:24px"></i>', label: 'Study Abroad',         color: '#ef4444' },
   { id: 'resources',   icon: '<i data-lucide="library" style="width:24px;height:24px"></i>', label: 'Learning Resources',   color: '#06b6d4' },
@@ -1929,13 +1928,13 @@ ${s.mode !== 'home' ? `<button class="btn btn-ghost btn-sm" onclick="openStandal
     <div class="page-header"><div><h1 class="page-title">Find a Tutor</h1><p class="page-subtitle">${res.total || 0} tutors available</p></div></div>
     <div class="card" style="padding:20px;margin-bottom:22px">
       <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
-        <div style="flex:1;min-width:140px"><label class="form-label">Subject</label><input class="input" id="fs-subject" value="${params.subject || ''}" placeholder="Math, Physics..."/></div>
+        <div style="flex:1;min-width:140px"><label class="form-label">Subject</label><input class="input" id="fs-subject" value="${params.subject || ''}" placeholder="Math, Physics..." oninput="if(!this.value.trim()){State.data.searchParams={...State.data.searchParams,subject:''};renderTutorSearch()}"/></div>
         <div style="flex:1;min-width:120px"><label class="form-label">Level</label>
           <select class="input" id="fs-level"><option value="">Any level</option><option ${params.level === 'Primary' ? 'selected' : ''}>Primary</option><option ${params.level === 'Secondary' ? 'selected' : ''}>Secondary</option><option ${params.level === 'University' ? 'selected' : ''}>University</option></select></div>
         <div style="flex:1;min-width:120px"><label class="form-label">Mode</label>
           <select class="input" id="fs-mode"><option value="">Any mode</option><option value="online" ${params.mode === 'online' ? 'selected' : ''}>Online</option><option value="home" ${params.mode === 'home' ? 'selected' : ''}>Home</option></select></div>
         <button class="btn btn-primary" onclick="searchTutors()">Search</button>
-        <button class="btn btn-ghost" onclick="State.data.searchParams={};renderTutorSearch()">Clear</button>
+        <button class="btn btn-ghost" onclick="State.data.searchParams={};document.getElementById('fs-subject').value='';document.getElementById('fs-level').value='';document.getElementById('fs-mode').value='';renderTutorSearch()">Clear</button>
       </div>
     </div>
     ${tutors.length ? `
@@ -1957,8 +1956,10 @@ ${s.mode !== 'home' ? `<button class="btn btn-ghost btn-sm" onclick="openStandal
           <span>📚 ${t.experience_years} yrs exp</span>
           <span>📍 ${t.teaching_modes?.join(', ') || 'Online'}</span>
         </div>
-        ${t.bio ? `<p style="font-size:12px;color:var(--g600);line-height:1.5;margin-bottom:14px">${t.bio.slice(0, 100)}${t.bio.length > 100 ? '...' : ''}</p>` : ''}
+        ${t.bio ? `<p style="font-size:12px;color:var(--g600);line-height:1.5;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">${t.bio}</p>
+        ${t.bio.length > 120 ? `<button onclick="openTutorProfileModal(${JSON.stringify(t).replace(/"/g,'&quot;')})" style="background:none;border:none;color:var(--blue);font-size:12px;font-weight:600;cursor:pointer;padding:0;margin-bottom:10px">Read full bio →</button>` : '<div style="margin-bottom:10px"></div>'}` : '<div style="margin-bottom:14px"></div>'}
         <div style="display:flex; flex-direction:column; gap:8px;">
+          <button class="btn btn-ghost btn-full btn-sm" onclick="openTutorProfileModal(${JSON.stringify(t).replace(/"/g,'&quot;')})">👤 View Full Profile</button>
           ${(State.data.assignedTutorIds || []).includes(t.profile_id) ?
             ` <div style="display:flex; gap:6px;">
                 <button class="btn btn-success btn-sm" style="flex:1" onclick="openBookingModal('${t.id}', '${(t.subjects[0]||'General')}', '${(t.profiles?.full_name || '').replace(/'/g, "\\'")}')">📅 Book Now</button>
@@ -1980,6 +1981,85 @@ ${s.mode !== 'home' ? `<button class="btn btn-ghost btn-sm" onclick="openStandal
         mode: document.getElementById('fs-mode')?.value,
       }
       renderTutorSearch()
+    }
+
+    function openTutorProfileModal(t) {
+      if (typeof t === 'string') t = JSON.parse(t.replace(/&quot;/g, '"'))
+      const isAssigned = (State.data.assignedTutorIds || []).includes(t.profile_id)
+      const actionBtn = isAssigned
+        ? `<div style="display:flex;gap:10px">
+            <button class="btn btn-success" style="flex:1" onclick="document.querySelector('.modal-overlay').remove();openBookingModal('${t.id}','${(t.subjects?.[0]||'General')}','${(t.profiles?.full_name||'').replace(/'/g,"\\'")}')">📅 Book a Session</button>
+            <button class="btn btn-ghost" onclick="document.querySelector('.modal-overlay').remove();openMessageModal('${t.profile_id}','${(t.profiles?.full_name||'').replace(/'/g,"\\'")}')">💬 Chat</button>
+           </div>`
+        : `<button class="btn btn-primary btn-full" onclick="document.querySelector('.modal-overlay').remove();requestTutor('${t.id}')">Request to Study with ${t.profiles?.full_name?.split(' ')[0]}</button>`
+
+      document.getElementById('modal-root').innerHTML = `
+      <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
+        <div class="modal" style="max-width:540px;max-height:90vh;overflow-y:auto">
+          <div class="modal-header" style="position:sticky;top:0;background:#fff;z-index:1">
+            <span class="modal-title">Tutor Profile</span>
+            <button class="modal-close" onclick="document.querySelector('.modal-overlay').remove()">✕</button>
+          </div>
+          <div class="modal-body" style="padding:24px">
+
+            <!-- Header -->
+            <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+              ${avi(t.profiles?.full_name||'T', 64, t.profiles?.avatar_url||null)}
+              <div>
+                <div style="font-size:20px;font-weight:800;color:var(--navy)">${maskName(t.profiles?.full_name)}</div>
+                <div style="font-size:13px;color:var(--g400);margin-top:3px">${t.qualification||'—'}</div>
+                <div class="stars" style="margin-top:6px">${stars(t.rating)} <span style="font-size:12px;color:var(--g400)">(${t.total_reviews} review${t.total_reviews===1?'':'s'})</span></div>
+              </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px">
+              <div style="background:var(--sky);border-radius:10px;padding:12px;text-align:center">
+                <div style="font-size:20px;font-weight:800;color:var(--blue)">${t.experience_years||0}</div>
+                <div style="font-size:11px;color:var(--g400);margin-top:2px">Yrs Experience</div>
+              </div>
+              <div style="background:#f0fdf4;border-radius:10px;padding:12px;text-align:center">
+                <div style="font-size:20px;font-weight:800;color:var(--green)">${t.total_reviews||0}</div>
+                <div style="font-size:11px;color:var(--g400);margin-top:2px">Reviews</div>
+              </div>
+              <div style="background:#fef9c3;border-radius:10px;padding:12px;text-align:center">
+                <div style="font-size:20px;font-weight:800;color:#b45309">${(t.teaching_modes||[]).length||1}</div>
+                <div style="font-size:11px;color:var(--g400);margin-top:2px">Teaching Modes</div>
+              </div>
+            </div>
+
+            <!-- Subjects -->
+            <div style="margin-bottom:18px">
+              <div style="font-size:11px;font-weight:800;color:var(--g400);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Subjects</div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px">
+                ${(t.subjects||[]).map(s=>`<span class="badge badge-blue">${s}</span>`).join('')||'—'}
+              </div>
+            </div>
+
+            <!-- Teaching Modes -->
+            <div style="margin-bottom:18px">
+              <div style="font-size:11px;font-weight:800;color:var(--g400);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Teaching Modes</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                ${(t.teaching_modes||['Online']).map(m=>`<span style="background:var(--g50);border:1px solid var(--g100);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:600;color:var(--navy)">📍 ${m}</span>`).join('')}
+              </div>
+            </div>
+
+            <!-- Full Bio -->
+            ${t.bio ? `
+            <div style="margin-bottom:20px">
+              <div style="font-size:11px;font-weight:800;color:var(--g400);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">About</div>
+              <div style="font-size:14px;color:var(--g600);line-height:1.7;background:var(--g50);border-radius:10px;padding:16px;border-left:3px solid var(--blue)">
+                ${t.bio.split(/\n+/).filter(p=>p.trim()).map(p=>`<p style="margin:0 0 10px 0">${p.trim()}</p>`).join('')}
+              </div>
+            </div>` : ''}
+
+          </div>
+          <div class="modal-footer" style="position:sticky;bottom:0;background:#fff;border-top:1px solid var(--g100);padding:16px 24px">
+            ${actionBtn}
+          </div>
+        </div>
+      </div>`
+      if (window.lucide) window.lucide.createIcons()
     }
 
     function openMessageModal(recipientId, recipientName) {
@@ -2234,7 +2314,14 @@ async function deleteSelectedMsgs(){
           ${avi(active.other_user?.full_name || '?', 38)}
           <div>
             <div style="font-weight:700;font-size:14px;color:var(--navy)">${active.other_user?.role === 'tutor' ? maskName(active.other_user?.full_name) : (active.other_user?.full_name || '—')}</div>
-            <div style="font-size:11px;color:var(--green)">● Active</div>
+            ${(() => {
+              const otherId = active.other_user?.id;
+              const presence = window._onlineUsers || {};
+              const isOnline = otherId && Object.keys(presence).some(k => k === otherId || (presence[k] || []).some(p => p.user_id === otherId));
+              return isOnline
+                ? `<div style="font-size:11px;color:var(--green);display:flex;align-items:center;gap:4px"><span style="width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block"></span> Online</div>`
+                : `<div style="font-size:11px;color:var(--g400);display:flex;align-items:center;gap:4px"><span style="width:7px;height:7px;border-radius:50%;background:var(--g300);display:inline-block"></span> Offline</div>`;
+            })()}
           </div>
         </div>
         <div class="msgs-area" id="msgs-area">
@@ -2948,7 +3035,7 @@ async function saveTutorStatus(tutorId){
               <td>${r.level||'—'}</td>
               <td>${r.mode||'—'}</td>
               <td style="font-size:12px;color:var(--g600)">${r.notes||'—'}</td>
-              <td><button class="btn btn-primary btn-sm" onclick="openRequestAssignModal('${r.id}','${r.students?.id}','${(r.students?.profiles?.full_name||'').replace(/'/g,"\\'")}',${JSON.stringify(approved).replace(/"/g,'&quot;')})">Assign Tutor</button></td>
+              <td><button class="btn btn-primary btn-sm" onclick="openRequestAssignModal('${r.id}','${r.students?.id}','${(r.students?.profiles?.full_name||'').replace(/'/g,"\\'")}',${JSON.stringify(approved).replace(/"/g,'&quot;')},${JSON.stringify(r).replace(/"/g,'&quot;')})">Assign Tutor</button></td>
             </tr>`).join('')}
           </tbody>
         </table>
@@ -3050,34 +3137,57 @@ async function saveTutorStatus(tutorId){
     `))
   } catch(e){ toast(e.message,'err') }
 }
-    async function openRequestAssignModal(requestId, studentId, studentName, approved) {
+    async function openRequestAssignModal(requestId, studentId, studentName, approved, request) {
+      if (typeof approved === 'string') approved = JSON.parse(approved.replace(/&quot;/g, '"'))
+      if (typeof request === 'string') request = JSON.parse(request.replace(/&quot;/g, '"'))
+      const reqSubject  = request?.subject  || '—'
+      const reqMode     = request?.mode     || 'online'
+      const reqLevel    = request?.level    || '—'
+      const reqNotes    = request?.notes    || ''
       const modalHtml = `
   <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
-    <div class="modal-box" style="max-width:420px">
-      <h3 style="margin-bottom:16px;color:var(--navy)">Assign Tutor to ${studentName}</h3>
-      <div class="form-group">
-        <label class="form-label">Select Tutor</label>
-        <select class="input" id="req-tutor-select">
-          <option value="">— Choose approved tutor —</option>
-          ${approved.map(t => `<option value="${t.id}">${t.profiles?.full_name || 'Unknown'} — ${(t.subjects || []).join(', ')}</option>`).join('')}
-        </select>
+    <div class="modal" style="max-width:460px">
+      <div class="modal-header">
+        <span class="modal-title">Assign Tutor — ${studentName}</span>
+        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
       </div>
-      <div style="display:flex;gap:10px;margin-top:18px">
-        <button class="btn btn-primary btn-full" onclick="submitRequestAssign('${requestId}','${studentId}')">Assign ✅</button>
+      <div class="modal-body">
+        <div style="background:var(--sky);border-radius:var(--rs);padding:14px;margin-bottom:16px">
+          <div style="font-weight:700;color:var(--navy);margin-bottom:8px">📋 Student's Request</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px">
+            <div><span style="color:var(--g400)">Subject:</span> <strong>${reqSubject}</strong></div>
+            <div><span style="color:var(--g400)">Level:</span> <strong>${reqLevel}</strong></div>
+            <div><span style="color:var(--g400)">Mode:</span> <strong>${reqMode}</strong></div>
+            <div><span style="color:var(--g400)">Notes:</span> <strong>${reqNotes || '—'}</strong></div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Select Tutor *</label>
+          <select class="input" id="req-tutor-select">
+            <option value="">— Choose approved tutor —</option>
+            ${approved.map(t => {
+              const modes = (t.teaching_modes || []).map(m => m.toUpperCase()).join('/');
+              return `<option value="${t.id}">${t.profiles?.full_name || 'Unknown'} [${modes}] — ${(t.subjects || []).join(', ')}</option>`;
+            }).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
         <button class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitRequestAssign('${requestId}','${studentId}','${reqSubject}','${reqMode}','${reqNotes.replace(/'/g,"\\'")}')">Assign ✅</button>
       </div>
     </div>
   </div>`
       document.getElementById('modal-root').insertAdjacentHTML('beforeend', modalHtml)
     }
 
-    async function submitRequestAssign(requestId, studentId) {
+    async function submitRequestAssign(requestId, studentId, subject, mode, notes) {
       const tutorId = document.getElementById('req-tutor-select')?.value
       if (!tutorId) { toast('Please select a tutor', 'err'); return }
       try {
         await api(`/students/admin/requests/${requestId}/assign`, {
           method: 'PATCH',
-          body: JSON.stringify({ tutor_id: tutorId })
+          body: JSON.stringify({ tutor_id: tutorId, subject, mode, notes: notes || null })
         })
         document.querySelector('.modal-overlay')?.remove()
         toast('Tutor assigned successfully! ✅')

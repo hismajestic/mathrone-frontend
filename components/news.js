@@ -335,7 +335,7 @@ function newsCard(p, featured){
 const excerpt = (p.description && p.description.trim() !== '') 
   ? p.description.slice(0, 140) 
   : p.content.replace(/<[^>]*>/g,'').replace(/\s+/g, ' ').trim().slice(0, 110) + '...';
-  const imgColor = {news:'blue',scholarship:'gold',government:'green',career:'red',abroad:'navy',resources:'purple'}
+  const imgColor = {news:'blue',scholarship:'gold',career:'red',abroad:'navy',resources:'purple'}
   const catFolder = (p.category === 'news' || !p.category) ? 'education' : p.category;
   const articleUrl = p.slug ? `/news/${catFolder}/${p.slug}` : `/news/${catFolder}/${p.id}`;
 return `
@@ -468,7 +468,7 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
     .pn-ncard-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:3px;margin-bottom:0.6rem;align-self:flex-start}
     .pn-ncard-badge.news{background:#E3F0FF;color:#1A5FFF}
     .pn-ncard-badge.scholarship{background:#FFF9E3;color:#8A5F00}
-    .pn-ncard-badge.government{background:#E3F5EC;color:#0A5A35}
+    
     .pn-ncard-badge.career{background:#FFF0E8;color:#8A3500}
     .pn-ncard-badge.abroad{background:#EAF0FF;color:#2D1AA0}
     .pn-ncard-badge.resources{background:#F0E8FF;color:#5A0A8A}
@@ -553,7 +553,7 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
             <span class="pn-hero-date">${new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</span>
           </div>
           <h1 class="pn-hero-h1">Your <em>edge</em> in education starts with staying informed</h1>
-          <p class="pn-hero-sub">Scholarships, government policy, career pathways, and academic news all in one place made for you.</p>
+          <p class="pn-hero-sub">Scholarships, career pathways, study abroad opportunities, and academic news all in one place made for you.</p>
         </div>
         <div class="pn-hero-stats">
           <div><div class="pn-stat-num" id="pn-stat-articles">—</div><div class="pn-stat-lbl">Articles Published</div></div>
@@ -786,7 +786,7 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
     const moreHtml = moreToRead.map(p => {
       const cat = NEWS_CATEGORIES.find(c=>c.id===p.category) || NEWS_CATEGORIES[0];
     window._currentArticleCategory = p.category || 'education';
-      const imgColor = {news:'blue',scholarship:'gold',government:'green',career:'red',abroad:'navy',resources:'purple'}
+      const imgColor = {news:'blue',scholarship:'gold',career:'red',abroad:'navy',resources:'purple'}
       return `<div onclick="openNewsPost('${p.id}')" style="display:flex;gap:10px;padding:10px 1rem;border-bottom:1px solid #E5E2DA;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background='#F2F0EA'" onmouseout="this.style.background=''">
         <div class="pn-ncard-img ${imgColor[p.category]||'blue'}" style="width:64px;height:50px;aspect-ratio:unset;border-radius:6px;flex-shrink:0;font-size:22px">${cat.icon}</div>
         <div style="flex:1;min-width:0">
