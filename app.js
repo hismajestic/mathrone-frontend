@@ -622,7 +622,7 @@ window.scrollToContact = function(e) {
 }
 function openStandaloneVideoCall(sessionId) {
   const roomName = `MathroneMajesticV5_${sessionId.replace(/[^a-zA-Z0-9]/g, '')}`;
-  const isTutor = State.user && (State.user.role === 'tutor' || State.user.role === 'admin');
+  const isTutor = State.user && (['tutor', 'teacher', 'admin'].includes(State.user.role));
   const displayName = encodeURIComponent((isTutor ? '👨‍🏫 ' : '🎓 ') + (State.user?.full_name || 'User'));
   const url = `https://meet.jit.si/${roomName}`
     + `#config.prejoinPageEnabled=false`
@@ -643,10 +643,10 @@ function closeAuth() {
 
 // Global stub — works before whiteboard.js loads
 function renderWhiteboard(sessionId) {
-  // Push a history entry so browser Back returns to dashboard, not login
+  // Push state without changing the URL to dashboard, to keep the /lab/[token] URL valid on refresh
   const prevUrl = window.location.pathname;
   history.replaceState({ ...history.state, scroll: window.scrollY }, document.title, prevUrl);
-  history.pushState({ page: 'dashboard', tab: State.tab, scroll: 0 }, document.title, '/dashboard');
+  
   loadComponent('whiteboard').then(() => {
     if (typeof window._doRenderWhiteboard === 'function') {
       window._doRenderWhiteboard(sessionId);
@@ -3748,7 +3748,8 @@ window.toggleMenu = function() {
 };
 async function renderPublicLab(token) {
   localStorage.setItem('tc_lab_token', token);
-  const isHost = State.user && (State.user.role === 'tutor' || State.user.role === 'admin');
+  State.data.labToken = token; // Persist in active state
+  const isHost = !!(State.user && ['tutor', 'teacher', 'admin', 'institution_admin'].includes(State.user.role));
   
   let effectiveSessionId = token;
 
@@ -3771,7 +3772,7 @@ async function renderPublicLab(token) {
     window._wbGuestName = check.name || 'Guest';
     window._wbInstitutionName = check.institution_name || '';
     window._labInstitutionId = check.institution_id || null;
-    window._isLabHost = true; // Renters get host privileges
+    window._isLabHost = check.is_host === true; 
     
     // Safely assign the session ID inside the scope where 'check' exists
     const hashSession = window.location.hash ? window.location.hash.replace('#', '') : null;
@@ -4109,7 +4110,7 @@ function showPresentationMode() {
   }
   updateDocDownloadUI();
   const ch = window._wbChannel;
-  const isHost = (State.user && (State.user.role === 'tutor' || State.user.role === 'admin')) || window._isLabHost;
+  const isHost = (State.user && (['tutor', 'teacher', 'admin'].includes(State.user.role))) || window._isLabHost;
   if (ch && isHost) {
     try { ch.send({ type: 'broadcast', event: 'doc-show', payload: { current: window._docCurrentSlide || 0 } }); } catch(e) {}
   }
@@ -4125,7 +4126,7 @@ function hidePresentationMode() {
   window._docHidden = true;
   updateDocDownloadUI();
   const ch = window._wbChannel;
-  const isHost = (State.user && (State.user.role === 'tutor' || State.user.role === 'admin')) || window._isLabHost;
+  const isHost = (State.user && (['tutor', 'teacher', 'admin'].includes(State.user.role))) || window._isLabHost;
   if (ch && isHost) {
     try { ch.send({ type: 'broadcast', event: 'doc-hide', payload: { current: window._docCurrentSlide || 0 } }); } catch(e) {}
   }

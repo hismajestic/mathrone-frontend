@@ -2059,21 +2059,19 @@
   }
 
   /* Hide low-priority toolbar items on mobile to save space */
-  @media (max-width: 768px) {
-    #wb-toolbar-el .tool-sep { display: none !important; }
-    #wb-toolbar-el button[onclick*="addGraduatedRuler"],
-    #wb-toolbar-el button[onclick*="addProtractor"],
-    #wb-toolbar-el button[onclick*="addSetSquare"],
-    #wb-toolbar-el button[onclick*="addCompass"],
-    #wb-toolbar-el button[onclick*="addNumberLine"],
-    #wb-toolbar-el button[onclick*="addMathAxes"],
-    #wb-toolbar-el button[onclick*="add3DAxes"],
-    #wb-toolbar-el button[onclick*="toggleGreekPanel"],
-    #wb-toolbar-el button[onclick*="toggleSciFormulas"],
-    #wb-toolbar-el #wb-fill,
-    #wb-toolbar-el #wb-width {
-      display: none !important;
-    }
+  #wb-toolbar-el .tool-sep { display: none !important; }
+  #wb-toolbar-el button[onclick*="addGraduatedRuler"],
+  #wb-toolbar-el button[onclick*="addProtractor"],
+  #wb-toolbar-el button[onclick*="addSetSquare"],
+  #wb-toolbar-el button[onclick*="addCompass"],
+  #wb-toolbar-el button[onclick*="addNumberLine"],
+  #wb-toolbar-el button[onclick*="addMathAxes"],
+  #wb-toolbar-el button[onclick*="add3DAxes"],
+  #wb-toolbar-el button[onclick*="toggleGreekPanel"],
+  #wb-toolbar-el button[onclick*="toggleSciFormulas"],
+  #wb-toolbar-el #wb-fill,
+  #wb-toolbar-el #wb-width {
+    display: none !important;
   }
   .wb-btn { 
     flex-shrink: 0 !important; 
@@ -2181,7 +2179,7 @@
     }
 
 /* ── Majestic Lab: host-only controls hidden for students ── */
-.host-only { display: none !important; }
+.host-only { display: none; }
 
 /* Majestic Lab: Encourage Landscape Mode on Mobile */
 #rotate-device-overlay {

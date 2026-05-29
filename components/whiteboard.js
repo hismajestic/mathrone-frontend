@@ -1,17 +1,21 @@
 ﻿window._doRenderWhiteboard = async function renderWhiteboard(sessionId) {
   updatePageSEO({ title: "STEM Majestic Lab", description: "Visual STEM learning board.", url: `/whiteboard/${sessionId}`, noindex: true });
   
+  function isMajesticHost() {
+    const role = String(State.user?.role || '').toLowerCase();
+    const hostRoles = ['tutor', 'teacher', 'admin', 'institution_admin', 'moderator', 'host'];
+    return hostRoles.includes(role) || window._isLabHost === true;
+  }
+
+  // Set host status immediately before any rendering
+  window._isLabHost = isMajesticHost();
+
   if (!window.fabric) {
       document.getElementById('app').innerHTML = '<div class="loader-center" style="flex-direction:column; gap:10px;"><div class="spinner"></div><div style="color:var(--navy);font-weight:700;">Loading Majestic Lab...</div></div>';
   }
   
   await ensureFabric();
-  ensureMathJax(); // Load async in background so lab opens instantly
-  
-  const isTutor = State.user && (State.user.role === 'tutor' || State.user.role === 'admin');
-      
-      // FIX: Do not overwrite the host status if it was already granted by a valid rental link
-      window._isLabHost = isTutor || window._isLabHost === true;
+  ensureMathJax();
       
       // Expose institution name for PDF branding (set externally before renderWhiteboard is called)
       if (!window._wbInstitutionName) window._wbInstitutionName = '';
@@ -328,31 +332,48 @@
   `;
   render(html);
   // --- BUSINESS PROTECTION: HOST vs GUEST ---
-  setTimeout(() => {
-    const isHost = (State.user && (State.user.role === 'tutor' || State.user.role === 'admin')) || window._isLabHost;
-    
+  const updateHostControls = () => {
+    const role = String(State.user?.role || '').toLowerCase();
+    const hostRoles = ['tutor', 'teacher', 'admin', 'institution_admin', 'moderator', 'host'];
+    const isHost = hostRoles.includes(role) || window._isLabHost;
+    window._isLabHost = isHost;
+
+    const hostButtons = document.querySelectorAll('.host-only');
+    const mainToolbar = document.getElementById('wb-toolbar-el');
     if (isHost) {
-      // Show professional tools for the Business Owner/Teacher
-      document.querySelectorAll('.host-only').forEach(el => { 
-        el.style.setProperty('display', 'inline-flex', 'important'); 
+      if (mainToolbar) mainToolbar.style.display = 'flex';
+      hostButtons.forEach(el => {
+        el.style.setProperty('display', 'inline-flex', 'important');
+        el.style.visibility = 'visible';
+        el.style.opacity = '1';
       });
+      console.log("Majestic Lab: Host tools enabled ✅");
     } else {
-      // GUEST MODE: Hide the main toolbar and restricted actions
-      const mainToolbar = document.getElementById('wb-toolbar-el');
       if (mainToolbar) mainToolbar.style.display = 'none';
-      
-      // Prevent Guests from deleting Host objects
-      canvas.on('object:selected', (e) => {
-        if (e.target && e.target.id && !e.target.id.startsWith('guest_')) {
-          canvas.discardActiveObject();
-          toast("Viewing Mode: You cannot modify Business Owner assets.", "info");
-        }
+      hostButtons.forEach(el => {
+        el.style.setProperty('display', 'none', 'important');
       });
-      
+      // Prevent Guests from deleting Host objects
+      try {
+        const c = window.wbInstance;
+        if (c) {
+          c.on('object:selected', (e) => {
+            if (e.target && e.target.id && !e.target.id.startsWith('guest_')) {
+              c.discardActiveObject();
+              toast("Viewing Mode: You cannot modify Business Owner assets.", "info");
+            }
+          });
+        }
+      } catch(e) {}
       // Context menu protection
       document.addEventListener('contextmenu', e => e.preventDefault());
     }
-  }, 50);
+  };
+
+  setTimeout(updateHostControls, 300);
+  setTimeout(updateHostControls, 1200);
+  window.addEventListener('load', updateHostControls);
+  window.addEventListener('statechange', updateHostControls);
   // --- IP PROTECTION ---
   document.addEventListener('contextmenu', e => { if(document.getElementById('wb-canvas-el')) e.preventDefault(); });
   document.addEventListener('keydown', e => {
@@ -604,7 +625,7 @@ async function initWhiteboardSync(sessionId) {
     try { window.wbInstance.dispose(); } catch(e) {}
     window.wbInstance = null;
   }
-  const isTutor = State.user && (State.user.role === 'tutor' || State.user.role === 'admin');
+  const isTutor = State.user && (['tutor', 'teacher', 'admin'].includes(State.user.role));
   const isMobile = window.innerWidth < 768;
   const headerEl = document.getElementById('wb-header');
   const toolbarEl = document.querySelector('.wb-toolbar');
@@ -619,19 +640,24 @@ async function initWhiteboardSync(sessionId) {
   const canvas = new fabric.Canvas('wb-canvas-el', { width: boardWidth, height: boardHeight, isDrawingMode: true });
   window.wbInstance = canvas;
 
-  // Recalculate after first paint — toolbar height is only accurate post-render
-  requestAnimationFrame(() => {
+  // Recalculate after first paint — use a slight delay to ensure CSS transitions finished
+  setTimeout(() => {
     const hEl = document.getElementById('wb-header');
-    const tEl = document.getElementById('wb-toolbar-el') || document.querySelector('.wb-toolbar');
+    const tEl = document.getElementById('wb-toolbar-el');
     const sEl = document.getElementById('wb-status');
-    const used = (hEl ? hEl.offsetHeight : 60) + (tEl ? tEl.offsetHeight : 48) + (sEl ? sEl.offsetHeight : 22) + 4;
-    const MIN_HEIGHT = 1600;
-    const correctedH = Math.max(window.innerHeight - used, MIN_HEIGHT);
-    if (Math.abs(correctedH - canvas.height) > 4) {
-      canvas.setHeight(correctedH);
-      canvas.renderAll();
-    }
-  });
+    const hH = hEl ? hEl.getBoundingClientRect().height : 60;
+    const tH = tEl ? tEl.getBoundingClientRect().height : 48;
+    const sH = sEl ? sEl.getBoundingClientRect().height : 22;
+    
+    const used = hH + tH + sH + 5;
+    const correctedH = Math.max(window.innerHeight - used, 1000);
+    
+    canvas.setDimensions({ 
+      width: Math.max(window.innerWidth, 1600), 
+      height: correctedH 
+    });
+    canvas.renderAll();
+  }, 200);
   const triggerCloudSave = () => {
     if (isTutor) {
         clearTimeout(window._saveTimeout);
@@ -645,7 +671,7 @@ canvas.on('path:created', triggerCloudSave);
 
   // --- CLOUD PERSISTENCE LOGIC ---
   window.saveToCloud = async () => {
-    const isHost = State.user && (State.user.role === 'tutor' || State.user.role === 'admin');
+    const isHost = State.user && (['tutor', 'teacher', 'admin'].includes(State.user.role));
     if (!isHost) return;
     const data = canvas.toJSON(['id']);
     // Save locally as backup always
@@ -1822,9 +1848,8 @@ canvas.on('path:created', triggerCloudSave);
   // --- JITSI (Tutor as Moderator) ---
   window.toggleSplitScreen = () => {
     const roomName = `MathroneMajesticV5_${sessionId.replace(/[^a-zA-Z0-9]/g, '')}`;
-    const isTutor2 = State.user && (State.user.role === 'tutor' || State.user.role === 'admin');
-    const isGuestHost = window._isLabHost === true;
-    const displayName = encodeURIComponent((isTutor2 || isGuestHost ? '👨‍🏫 ' : '🎓 ') + (State.user?.full_name || (window._wbGuestName || 'User')));
+    const isTeacher = (State.user && ['tutor', 'teacher', 'admin', 'institution_admin'].includes(State.user.role)) || window._isLabHost === true;
+    const displayName = encodeURIComponent((isTeacher ? '👨‍🏫 ' : '🎓 ') + (State.user?.full_name || (window._wbGuestName || 'User')));
     // Build proper Jitsi URL � config keys go after # with & separators, userInfo uses JSON
     const jitsiUrl = `https://meet.jit.si/${roomName}`
       + `#config.prejoinPageEnabled=false`
@@ -2035,7 +2060,7 @@ canvas.on('path:created', triggerCloudSave);
       liveCtx.stroke();
     })
     .on('broadcast', { event: 'load-sim' }, (msg) => {
-      const isHost = (State.user && (State.user.role === 'tutor' || State.user.role === 'admin')) || window._isLabHost;
+      const isHost = (State.user && (['tutor', 'teacher', 'admin'].includes(State.user.role))) || window._isLabHost;
       if (isHost) return;
       const overlay = document.getElementById('sim-overlay');
       const iframe = document.getElementById('sim-iframe');
@@ -2052,7 +2077,7 @@ canvas.on('path:created', triggerCloudSave);
     })
     
     .on('broadcast', { event: 'close-sim' }, () => {
-      const isHost = (State.user && (State.user.role === 'tutor' || State.user.role === 'admin')) || window._isLabHost;
+      const isHost = (State.user && (['tutor', 'teacher', 'admin'].includes(State.user.role))) || window._isLabHost;
       if (isHost) return;
       const iframe = document.getElementById('sim-iframe');
       const overlay = document.getElementById('sim-overlay');
@@ -2076,7 +2101,7 @@ canvas.on('path:created', triggerCloudSave);
       window._laserTimer = setTimeout(() => { if(dot) dot.style.display = 'none'; }, 2000);
     })
     .on('broadcast', { event: 'jitsi-start' }, (msg) => {
-      const isHost2 = State.user && (State.user.role === 'tutor' || State.user.role === 'admin');
+      const isHost2 = State.user && (['tutor', 'teacher', 'admin'].includes(State.user.role));
       const isHostByFlag = window._isLabHost === true;
       if (isHost2 || isHostByFlag) return;
       const room = msg.payload.room;
@@ -2154,7 +2179,7 @@ canvas.on('path:created', triggerCloudSave);
     })
     .on('presence', { event: 'join' }, ({ newPresences }) => {
       // Logic: If a new student joins, the Tutor automatically sends the current board state
-      const iAmHost = (State.user && (State.user.role === 'tutor' || State.user.role === 'admin')) || window._isLabHost;
+      const iAmHost = (State.user && (['tutor', 'teacher', 'admin'].includes(State.user.role))) || window._isLabHost;
       if (iAmHost && window.wbInstance && newPresences.length > 0) {
         const currentJson = window.wbInstance.toJSON(['id']);
         channel.send({ 
@@ -2221,7 +2246,7 @@ canvas.on('path:created', triggerCloudSave);
     
     canvas.on('mouse:move', (e) => {
       const pt = canvas.getPointer(e.e);
-      const isHost = State.user && (State.user.role === 'tutor' || State.user.role === 'admin');
+      const isHost = State.user && (['tutor', 'teacher', 'admin'].includes(State.user.role));
       const now = Date.now();
 
       if (window._activeWBTool === 'laser' && isHost) {
@@ -2308,7 +2333,7 @@ canvas.on('path:created', triggerCloudSave);
     .on('broadcast', { event: 'rtc-call-started' }, async (msg) => {
       if (_rtcIsMe(msg)) return;
 
-      const iAmHost = (State.user && (State.user.role === 'tutor' || State.user.role === 'admin')) || window._isLabHost;
+      const iAmHost = (State.user && (['tutor', 'teacher', 'admin'].includes(State.user.role))) || window._isLabHost;
       window._rtcRemoteName = msg.payload.name;
 
       if (msg.payload.isReply) {
@@ -2347,7 +2372,7 @@ canvas.on('path:created', triggerCloudSave);
     })
     .on('broadcast', { event: 'rtc-offer' }, async (msg) => {
       if (_rtcIsMe(msg)) return;
-      const iAmHost = (State.user && (State.user.role === 'tutor' || State.user.role === 'admin')) || window._isLabHost;
+      const iAmHost = (State.user && (['tutor', 'teacher', 'admin'].includes(State.user.role))) || window._isLabHost;
       if (iAmHost) return; 
       _rtcPendingOffer = msg.payload.sdp;
       if (_rtcStarted) {
@@ -2484,7 +2509,7 @@ function _rtcHidePanel() {
 function _rtcSetBtn(active) {
   const btn = document.getElementById('lab-video-btn');
   const shareBtn = document.getElementById('share-screen-btn');
-  const iAmHost = !!(State.user && (State.user.role === 'tutor' || State.user.role === 'admin')) || !!window._isLabHost;
+  const iAmHost = !!(State.user && (['tutor', 'teacher', 'admin'].includes(State.user.role))) || !!window._isLabHost;
 
   if (!btn) return;
   if (active) {
@@ -2624,7 +2649,7 @@ window.toggleLabVideo = async () => {
   document.getElementById('lab-remote-video')?.play().catch(()=>{});
 
   if (_rtcStarted) { window.stopLabVideo(); return; }
-  _rtcIsHost = !!(State.user && (State.user.role === 'tutor' || State.user.role === 'admin')) || !!window._isLabHost;
+  _rtcIsHost = !!(State.user && ['tutor', 'teacher', 'admin', 'institution_admin'].includes(State.user.role)) || !!window._isLabHost;
 
   try {
     await _rtcGetMedia();
@@ -3354,6 +3379,17 @@ function _renderOCTSwatches(studioMode) {
     swatchWrap.appendChild(b);
   });
 }
+
+// ── Present Doc button handler ──────────────────────────────────────────────
+window.handlePresentDocButton = function handlePresentDocButton() {
+  if (window._docSlides && window._docSlides.length && !window._docHidden) {
+    closePresentationMode();
+  } else if (window._docSlides && window._docSlides.length && window._docHidden) {
+    showPresentationMode();
+  } else {
+    document.getElementById('wb-doc-upload')?.click();
+  }
+};
 
 // Concurrent session check, media cleanup, and smart routing
 window.exitMajesticLab = function exitMajesticLab() {
