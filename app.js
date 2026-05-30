@@ -1434,8 +1434,9 @@ function fmtShort(dt) {
         links = `
       <span class="sidebar-section">Portal</span>
       <button class="sidebar-item ${active === 'dashboard' ? 'active' : ''}" onclick="navigate('dashboard')"><i data-lucide="school" class="sidebar-ic" style="width:18px;height:18px"></i>My Institution</button>
+      <button class="sidebar-item ${active === 'shop' ? 'active' : ''}" onclick="navigate('shop')"><i data-lucide="shopping-bag" class="sidebar-ic" style="width:18px;height:18px"></i>Learning Store</button>
       <span class="sidebar-section">Account</span>
-      <button class="sidebar-item ${active === 'profile' ? 'active' : ''}" onclick="navigate('profile')"><i data-lucide="user" class="sidebar-ic" style="width:18px;height:18px"></i>Profile</button>
+      <button class="sidebar-item ${active === 'profile' ? 'active' : ''}" onclick="navigate('profile')"><i data-lucide="user" class="sidebar-ic" style="width:18px;height:18px;"></i >Profile</button>
       <button class="sidebar-item ${active === 'notifications' ? 'active' : ''}" onclick="navigate('notifications')"><i data-lucide="bell" class="sidebar-ic" style="width:18px;height:18px"></i>Notifications</button>
       <button class="sidebar-item ${active === 'news' ? 'active' : ''}" onclick="navigate('news')"><i data-lucide="newspaper" class="sidebar-ic" style="width:18px;height:18px"></i>Education News</button>`
       }

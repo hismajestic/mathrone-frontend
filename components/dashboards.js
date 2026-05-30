@@ -1769,43 +1769,50 @@ async function submitExam(attemptId, autoSubmit = false){
             <div style="font-size:13px;color:#991B1B">Your subscription expired on ${expiresLabel}. Teacher links can no longer be activated. <strong>Contact Mathrone to renew.</strong></div>
           </div>` : ''}
 
-          <!-- Generate Teacher Link -->
-          <div class="card" style="padding:24px;margin-bottom:24px">
+     <div class="card" style="padding:24px;margin-bottom:24px">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
               <div>
                 <h3 style="font-size:16px;font-weight:700;color:var(--navy);display:flex;align-items:center;gap:8px">
                   <i data-lucide="share-2" style="width:16px;height:16px;color:var(--blue)"></i> Teacher Access Links
                 </h3>
-                <p style="font-size:12px;color:var(--g400);margin-top:3px">Generate a secure lab link for each teacher. ${totalSeats} concurrent session${totalSeats!==1?'s':''} allowed.</p>
               </div>
-              <button class="btn btn-primary btn-sm" onclick="openInstitutionAdminGenerateModal()" ${isExpired ? 'disabled title="Subscription expired"' : ''}>
-                <i data-lucide="plus" style="width:14px;height:14px"></i> New Link
-              </button>
+              <div style="display:flex; gap:10px;">
+                 <button id="bulk-delete-btn" class="btn btn-danger btn-sm" style="display:none; background:var(--red);" onclick="deleteSelectedTokens()">
+                   <i data-lucide="trash-2" style="width:14px;height:14px"></i> Clean Selected (<span id="selected-count">0</span>)
+                 </button>
+                 <button class="btn btn-primary btn-sm" onclick="openInstitutionAdminGenerateModal()" ${isExpired ? 'disabled' : ''}>
+                   <i data-lucide="plus" style="width:14px;height:14px"></i> New Link
+                 </button>
+              </div>
             </div>
 
-            <!-- Links Table -->
             <div id="inst-admin-tokens-list">
               ${tokens.length ? `
               <div class="table-wrap"><table>
-                <thead><tr><th>Teacher Name</th><th>Created</th><th>Expires</th><th>Status</th><th>Action</th></tr></thead>
+                <thead><tr>
+                  <th style="width:40px"><input type="checkbox" id="select-all-tokens" onclick="toggleAllTokens(this.checked)"></th>
+                  <th>Teacher Name</th><th>Expires</th><th>Status</th><th>Action</th>
+                </tr></thead>
                 <tbody>${tokens.map(t => {
                   const expired = new Date(t.expires_at) < new Date();
                   const status = t.is_revoked ? 'revoked' : expired ? 'expired' : 'active';
                   const statusColor = { active: 'var(--green)', expired: 'var(--orange)', revoked: 'var(--red)' }[status];
                   const link = window.location.origin + '/lab/' + t.token;
                   return `<tr>
+                    <td><input type="checkbox" class="token-checkbox" data-id="${t.id}" onchange="updateSelectedCount()"></td>
                     <td data-label="Teacher"><strong>${t.buyer_name}</strong></td>
-                    <td data-label="Created" style="font-size:12px">${new Date(t.created_at).toLocaleDateString()}</td>
-                    <td data-label="Expires" style="font-size:12px">${new Date(t.expires_at).toLocaleString()}</td>
+                    <td data-label="Expires" style="font-size:11px">${new Date(t.expires_at).toLocaleString()}</td>
                     <td data-label="Status"><span class="badge" style="background:${statusColor}20;color:${statusColor};font-size:11px">${status}</span></td>
-                    <td data-label="Action" style="display:flex;gap:6px;align-items:center">
-                      ${status === 'active' ? `<button class="btn btn-sm btn-ghost" title="Copy link" onclick="navigator.clipboard.writeText('${link}');toast('Link copied! 📋')"><i data-lucide="copy" style="width:14px;height:14px"></i></button>` : ''}
-                      ${status === 'active' ? `<button class="btn btn-sm btn-ghost" style="color:var(--red)" title="Revoke" onclick="revokeInstAdminToken('${t.id}')"><i data-lucide="x-circle" style="width:14px;height:14px"></i></button>` : ''}
+                    <td data-label="Action" style="display:flex;gap:4px;align-items:center">
+                      ${status === 'active' ? `<button class="btn btn-sm btn-ghost" title="Copy link" onclick="navigator.clipboard.writeText('${link}');toast('Copied! 📋')"><i data-lucide="copy" style="width:12px;height:12px"></i></button>` : ''}
+                      ${status !== 'active' ? `<button class="btn btn-sm btn-success" title="Renew" onclick="openRenewTokenModal('${t.id}', '${t.buyer_name.replace(/'/g,"\\'")}')"><i data-lucide="refresh-cw" style="width:12px;height:12px"></i></button>` : ''}
+                      ${status === 'active' ? `<button class="btn btn-sm btn-ghost" style="color:var(--orange)" title="Revoke" onclick="revokeInstAdminToken('${t.id}')"><i data-lucide="minus-circle" style="width:12px;height:12px"></i></button>` : ''}
+                      <button class="btn btn-sm btn-ghost" style="color:var(--red)" title="Delete" onclick="deleteInstAdminToken('${t.id}')"><i data-lucide="trash-2" style="width:12px;height:12px"></i></button>
                     </td>
                   </tr>`;
                 }).join('')}</tbody>
               </table></div>
-              ` : `<div style="font-size:13px;color:var(--g400);text-align:center;padding:20px">No teacher links yet. Click "+ New Link" to generate one.</div>`}
+              ` : `<div style="font-size:13px;color:var(--g400);text-align:center;padding:20px">No records.</div>`}
             </div>
           </div>
 
@@ -1918,14 +1925,83 @@ async function submitExam(attemptId, autoSubmit = false){
       }
     }
 
-    async function revokeInstAdminToken(tokenId) {
-      if (!confirm('Revoke this teacher link? They will be immediately signed out.')) return;
-      try {
-        await api(`/lab/my-institution/tokens/${tokenId}`, { method: 'DELETE' });
-        toast('Token revoked');
-        renderInstitutionAdminDash();
-      } catch(e) { toast(e.message, 'err'); }
-    }
+    function toggleAllTokens(checked) {
+  document.querySelectorAll('.token-checkbox').forEach(cb => cb.checked = checked);
+  updateSelectedCount();
+}
+
+function updateSelectedCount() {
+  const selected = document.querySelectorAll('.token-checkbox:checked');
+  const btn = document.getElementById('bulk-delete-btn');
+  const countSpan = document.getElementById('selected-count');
+  if (selected.length > 0) {
+    btn.style.display = 'inline-flex';
+    countSpan.textContent = selected.length;
+  } else {
+    btn.style.display = 'none';
+  }
+}
+
+async function deleteSelectedTokens() {
+  const selected = document.querySelectorAll('.token-checkbox:checked');
+  const ids = Array.from(selected).map(cb => cb.dataset.id);
+  if (!confirm(`Delete ${ids.length} records permanently?`)) return;
+  try {
+    await api('/lab/my-institution/tokens/bulk-delete', { method: 'POST', body: JSON.stringify({ token_ids: ids }) });
+    toast('Dashboard cleaned ✅');
+    renderInstitutionAdminDash();
+  } catch (e) { toast(e.message, 'err'); }
+}
+
+async function deleteInstAdminToken(tokenId) {
+  if (!confirm('Remove this record?')) return;
+  try {
+    await api(`/lab/my-institution/tokens/${tokenId}`, { method: 'DELETE' });
+    toast('Record removed');
+    renderInstitutionAdminDash(); 
+  } catch(e) { renderInstitutionAdminDash(); }
+}
+
+function openRenewTokenModal(tokenId, teacherName) {
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal" style="max-width:400px;padding:28px;">
+      <h3 style="font-size:17px;font-weight:800;color:var(--navy);margin-bottom:12px">🔄 Renew Link</h3>
+      <p style="font-size:13px;color:var(--g600);margin-bottom:18px">Teacher: <strong>${teacherName}</strong></p>
+      <div class="form-group">
+        <label class="form-label">New Duration</label>
+        <select class="input" id="renew-duration">
+          <option value="1">1 hour</option><option value="3">3 hours</option><option value="8" selected>Full day</option><option value="168">1 week</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:16px">
+        <button class="btn btn-primary btn-full" onclick="submitTokenRenewal('${tokenId}')">Renew Access</button>
+        <button class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+async function submitTokenRenewal(tokenId) {
+  const hours = parseInt(document.getElementById('renew-duration').value);
+  try {
+    await api(`/lab/my-institution/tokens/${tokenId}/renew`, { method: 'PATCH', body: JSON.stringify({ hours }) });
+    toast('Link renewed! ✅');
+    document.querySelector('.modal-overlay').remove();
+    renderInstitutionAdminDash();
+  } catch(e) { toast(e.message, 'err'); }
+}
+
+async function revokeInstAdminToken(tokenId) {
+  // We keep this but update to call the status check correctly
+  try {
+    const hours = -24; // Force expiry immediately
+    await api(`/lab/my-institution/tokens/${tokenId}/renew`, { method: 'PATCH', body: JSON.stringify({ hours }) });
+    toast('Access Revoked');
+    renderInstitutionAdminDash();
+  } catch(e) { toast(e.message, 'err'); }
+}
 
     async function openTutorLabDirect(){
   // Only allow lab access if tutor has at least one upcoming scheduled session
@@ -2883,4 +2959,50 @@ async function deleteSelectedQuestions() {
     btn.disabled = false;
     onQuestionCheckChange();
   }
+}
+// Add these to component or global scope
+async function deleteInstAdminToken(tokenId) {
+  if (!confirm('Permanently remove this teacher record from your dashboard?')) return;
+  try {
+    await api(`/lab/my-institution/tokens/${tokenId}`, { method: 'DELETE' });
+    toast('Record removed ✅');
+    renderInstitutionAdminDash(); // Refresh
+  } catch(e) { toast(e.message, 'err'); }
+}
+
+function openRenewTokenModal(tokenId, teacherName) {
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal" style="max-width:400px;padding:28px;">
+      <h3 style="font-size:17px;font-weight:800;color:var(--navy);margin-bottom:12px">🔄 Renew Access</h3>
+      <p style="font-size:13px;color:var(--g600);margin-bottom:18px">Teacher: <strong>${teacherName}</strong></p>
+      <div class="form-group">
+        <label class="form-label">New Duration</label>
+        <select class="input" id="renew-duration">
+          <option value="1">1 hour</option>
+          <option value="3">3 hours</option>
+          <option value="8" selected>Full day (8 hours)</option>
+          <option value="168">1 week</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:16px">
+        <button class="btn btn-primary btn-full" onclick="submitTokenRenewal('${tokenId}')">Renew Link</button>
+        <button class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+async function submitTokenRenewal(tokenId) {
+  const hours = parseInt(document.getElementById('renew-duration').value);
+  try {
+    await api(`/lab/my-institution/tokens/${tokenId}/renew`, {
+      method: 'PATCH',
+      body: JSON.stringify({ hours })
+    });
+    toast('Link renewed! Device lock reset. ✅');
+    document.querySelector('.modal-overlay').remove();
+    renderInstitutionAdminDash();
+  } catch(e) { toast(e.message, 'err'); }
 }
