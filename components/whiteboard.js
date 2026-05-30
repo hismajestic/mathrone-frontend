@@ -107,7 +107,7 @@
 
         <div class="tool-sep" style="width:1px; height:28px; background:rgba(255,255,255,0.2); margin:0 4px;"></div>
         <button class="wb-btn active" id="tool-pencil" onclick="setSTEMTool('pencil')" title="Freehand Draw"><i data-lucide="pen" style="width:14px;height:14px"></i> Draw</button>
-        <button class="wb-btn" id="tool-select" onclick="setSTEMTool('select')" title="Select & Move"><i data-lucide="mouse-pointer-2" style="width:14px;height:14px"></i> Select</button>
+        <button class="wb-btn" id="tool-select" onclick="setSTEMTool('select')" title="Select & Move — drag to box-select multiple"><i data-lucide="mouse-pointer-2" style="width:14px;height:14px"></i> Select</button>
         <button class="wb-btn" id="tool-text" onclick="addSTEMText()" title="Add Text"><i data-lucide="type" style="width:14px;height:14px"></i> Text</button>
         <button class="wb-btn" id="tool-eraser" onclick="setSTEMTool('eraser')" title="Eraser"><i data-lucide="eraser" style="width:14px;height:14px"></i> Erase</button>
         <button class="wb-btn" id="tool-line" onclick="startLineMode()" title="Draw straight line"><i data-lucide="minus" style="width:14px;height:14px;transform:rotate(-45deg)"></i> Line</button>
@@ -326,7 +326,7 @@
 
       <!-- STATUS BAR -->
       <div id="wb-status" style="background:#0D1B40; color:rgba(255,255,255,0.5); padding:3px 14px; font-size:10px; display:flex; gap:16px; flex-shrink:0; border-top:1px solid rgba(255,255,255,0.08);">
-        <span>✏️ Click to draw · Select to move/resize · Delete key to remove</span>
+        <span>✏️ Draw · Select: drag to multi-select · <kbd style="background:rgba(255,255,255,0.15);padding:1px 5px;border-radius:3px;font-size:9px;">Ctrl+A</kbd> all · <kbd style="background:rgba(255,255,255,0.15);padding:1px 5px;border-radius:3px;font-size:9px;">Ctrl+C</kbd> copy · <kbd style="background:rgba(255,255,255,0.15);padding:1px 5px;border-radius:3px;font-size:9px;">Ctrl+V</kbd> paste · <kbd style="background:rgba(255,255,255,0.15);padding:1px 5px;border-radius:3px;font-size:9px;">Ctrl+D</kbd> duplicate · <kbd style="background:rgba(255,255,255,0.15);padding:1px 5px;border-radius:3px;font-size:9px;">Del</kbd> delete · <kbd style="background:rgba(255,255,255,0.15);padding:1px 5px;border-radius:3px;font-size:9px;">↑↓←→</kbd> nudge</span>
         <span id="wb-obj-count" style="margin-left:auto;">Objects: 0</span>
         <span id="wb-zoom-label">Zoom: 100%</span>
       </div>
@@ -596,7 +596,17 @@ async function initWhiteboardSync(sessionId) {
   // Fix: Force a minimum width of 1600px so mobile students can scroll and see tutor's full desktop drawings
   const boardWidth = Math.max(window.innerWidth, 1600);
   const boardHeight = Math.max(window.innerHeight - usedHeight, 1000);
-  const canvas = new fabric.Canvas('wb-canvas-el', { width: boardWidth, height: boardHeight, isDrawingMode: true });
+ const canvas = new fabric.Canvas('wb-canvas-el', {
+    width: boardWidth,
+    height: boardHeight,
+    isDrawingMode: true,
+    selectionColor: 'rgba(26,95,255,0.1)',
+    selectionBorderColor: '#1A5FFF',
+    selectionLineWidth: 1.5,
+    selectionDashArray: [6, 3],
+    perPixelTargetFind: false,   // click anywhere on bounding box to select
+    targetFindTolerance: 10,     // 10px tolerance around objects for easier clicking
+  });
   window.wbInstance = canvas;
 
   // Recalculate after first paint — use a slight delay to ensure CSS transitions finished
@@ -845,18 +855,187 @@ window.prevWBPage = async () => {
   canvas.on('object:added', updateCount);
   canvas.on('object:removed', updateCount);
 
-  // --- KEYBOARD SHORTCUTS ---
-  window.addEventListener('keydown', (e) => {
-    if ((e.key === 'Delete' || e.key === 'Backspace') && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
-      canvas.getActiveObjects().forEach(obj => {
-        canvas.remove(obj);
-        if (channel) channel.send({ type: 'broadcast', event: 'del', payload: { id: obj.id } });
-      });
-      canvas.discardActiveObject().renderAll();
+  // Floating action bar — appears when objects are selected
+  const _getOrCreateSelBar = () => {
+    let bar = document.getElementById('wb-sel-bar');
+    if (!bar) {
+      bar = document.createElement('div');
+      bar.id = 'wb-sel-bar';
+      bar.style.cssText = 'display:none;position:fixed;bottom:40px;left:50%;transform:translateX(-50%);background:#0D1B40;border:1px solid rgba(26,95,255,0.5);border-radius:10px;padding:6px 10px;display:none;align-items:center;gap:6px;z-index:9998;box-shadow:0 4px 20px rgba(0,0,0,0.5);white-space:nowrap;';
+      bar.innerHTML = `
+        <span id="wb-sel-label" style="color:rgba(255,255,255,0.6);font-size:11px;font-weight:700;margin-right:4px;">0 selected</span>
+        <button onclick="window.copySelected()" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:11px;font-weight:700;">⎘ Copy</button>
+        <button onclick="window.duplicateSelected()" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:11px;font-weight:700;">⧉ Duplicate</button>
+        <button onclick="window.deleteSelected()" style="background:rgba(239,68,68,0.25);color:#fca5a5;border:1px solid rgba(239,68,68,0.4);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:11px;font-weight:800;">🗑 Delete</button>
+        <button onclick="window.wbInstance?.discardActiveObject();window.wbInstance?.renderAll();" style="background:none;color:rgba(255,255,255,0.4);border:none;cursor:pointer;font-size:14px;padding:2px 4px;" title="Dismiss">✕</button>
+      `;
+      document.body.appendChild(bar);
     }
-    if (e.ctrlKey && e.key === 'z') undoWB();
-    if (e.ctrlKey && e.key === 'c') copySelected();
-    if (e.ctrlKey && e.key === 'a') { setSTEMTool('select'); canvas.discardActiveObject(); const sel = new fabric.ActiveSelection(canvas.getObjects(), {canvas}); canvas.setActiveObject(sel); canvas.renderAll(); }
+    return bar;
+  };
+
+  const _showSelBar = (count) => {
+    const bar = _getOrCreateSelBar();
+    bar.style.display = 'flex';
+    const lbl = document.getElementById('wb-sel-label');
+    if (lbl) lbl.textContent = `${count} object${count !== 1 ? 's' : ''} selected`;
+  };
+
+  const _hideSelBar = () => {
+    const bar = document.getElementById('wb-sel-bar');
+    if (bar) bar.style.display = 'none';
+  };
+
+  canvas.on('selection:created',  (e) => _showSelBar(canvas.getActiveObjects().length));
+  canvas.on('selection:updated',  (e) => _showSelBar(canvas.getActiveObjects().length));
+  canvas.on('selection:cleared',  ()  => _hideSelBar());
+
+  // expose deleteSelected globally so bar button and Delete key both use same path
+  window.deleteSelected = () => {
+    const c = window.wbInstance;
+    if (!c) return;
+    const objs = c.getActiveObjects();
+    if (!objs.length) return;
+    objs.forEach(obj => {
+      c.remove(obj);
+      if (window._wbChannel) try { window._wbChannel.send({ type: 'broadcast', event: 'del', payload: { id: obj.id } }); } catch(e) {}
+    });
+    c.discardActiveObject().renderAll();
+    _hideSelBar();
+    if (window.saveToCloud) window.saveToCloud();
+  };
+
+  window.duplicateSelected = () => {
+    const c = window.wbInstance;
+    if (!c) return;
+    const active = c.getActiveObject();
+    if (!active) return;
+    active.clone(cloned => {
+      cloned.set({ left: active.left + 24, top: active.top + 24 });
+      if (cloned.type === 'activeSelection') {
+        cloned.canvas = c;
+        cloned.forEachObject(obj => { obj.id = 'sh_' + Math.random(); c.add(obj); });
+        cloned.setCoords();
+      } else {
+        cloned.id = 'sh_' + Math.random();
+        c.add(cloned);
+      }
+      c.setActiveObject(cloned).renderAll();
+      if (window.saveToCloud) window.saveToCloud();
+    });
+  };
+
+  // --- KEYBOARD SHORTCUTS ---
+  window._wbClipboard = null; // internal clipboard for copy/paste
+
+  window.addEventListener('keydown', (e) => {
+    const tag = document.activeElement.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
+    // Delete / Backspace — remove all selected objects
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+      if (window.deleteSelected) window.deleteSelected();
+      return;
+    }
+
+    // Ctrl/Cmd + A — select all objects
+    if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+      e.preventDefault();
+      setSTEMTool('select');
+      const all = canvas.getObjects().filter(o => !o.id?.startsWith('lprev'));
+      if (!all.length) return;
+      canvas.discardActiveObject();
+      const sel = new fabric.ActiveSelection(all, { canvas });
+      canvas.setActiveObject(sel).renderAll();
+      return;
+    }
+
+    // Ctrl/Cmd + C — copy selection (supports multi-select)
+    if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+      e.preventDefault();
+      const active = canvas.getActiveObject();
+      if (!active) return;
+      active.clone(cloned => { window._wbClipboard = cloned; });
+      toast('Copied ✓', 'info');
+      return;
+    }
+
+    // Ctrl/Cmd + V — paste clipboard
+    if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+      e.preventDefault();
+      if (!window._wbClipboard) return;
+      window._wbClipboard.clone(cloned => {
+        canvas.discardActiveObject();
+        cloned.set({ left: (cloned.left || 0) + 20, top: (cloned.top || 0) + 20, evented: true });
+        if (cloned.type === 'activeSelection') {
+          cloned.canvas = canvas;
+          cloned.forEachObject(obj => { obj.id = 'sh_' + Math.random(); canvas.add(obj); });
+          cloned.setCoords();
+        } else {
+          cloned.id = 'sh_' + Math.random();
+          canvas.add(cloned);
+        }
+        window._wbClipboard.set({ left: (window._wbClipboard.left || 0) + 20, top: (window._wbClipboard.top || 0) + 20 });
+        canvas.setActiveObject(cloned).renderAll();
+        if (window.saveToCloud) window.saveToCloud();
+      });
+      return;
+    }
+
+    // Ctrl/Cmd + D — duplicate in place
+    if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+      e.preventDefault();
+      const active = canvas.getActiveObject();
+      if (!active) return;
+      active.clone(cloned => {
+        cloned.set({ left: active.left + 24, top: active.top + 24 });
+        if (cloned.type === 'activeSelection') {
+          cloned.canvas = canvas;
+          cloned.forEachObject(obj => { obj.id = 'sh_' + Math.random(); canvas.add(obj); });
+          cloned.setCoords();
+        } else {
+          cloned.id = 'sh_' + Math.random();
+          canvas.add(cloned);
+        }
+        canvas.setActiveObject(cloned).renderAll();
+        if (window.saveToCloud) window.saveToCloud();
+      });
+      return;
+    }
+
+    // Ctrl/Cmd + Z — undo
+    if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+      e.preventDefault();
+      undoWB();
+      return;
+    }
+
+    // Escape — deselect
+    if (e.key === 'Escape') {
+      canvas.discardActiveObject().renderAll();
+      return;
+    }
+
+    // Arrow keys — nudge selected objects (hold Shift for 10px, default 2px)
+    const arrows = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+    if (arrows[e.key]) {
+      const active = canvas.getActiveObject();
+      if (!active) return;
+      e.preventDefault();
+      const step = e.shiftKey ? 10 : 2;
+      const [dx, dy] = arrows[e.key];
+      active.set({ left: active.left + dx * step, top: active.top + dy * step });
+      active.setCoords();
+      canvas.renderAll();
+      if (window._wbChannel) {
+        try {
+          window._wbChannel.send({ type: 'broadcast', event: 'obj-update', payload: {
+            id: active.id, left: Math.round(active.left), top: Math.round(active.top),
+            scaleX: active.scaleX, scaleY: active.scaleY, angle: active.angle
+          }});
+        } catch(err) {}
+      }
+    }
   });
 
   // --- GLOBAL CANVAS ACTIONS ---
@@ -872,11 +1051,10 @@ window.copySelected = () => {
   const canvas = window.wbInstance;
   if (!canvas) return;
   const active = canvas.getActiveObject();
-  if (!active) return;
+  if (!active) { toast('Select objects first', 'err'); return; }
   active.clone(cloned => {
-    cloned.set({ left: active.left + 20, top: active.top + 20, id: 'sh_' + Math.random() });
-    canvas.add(cloned);
-    canvas.setActiveObject(cloned).renderAll();
+    window._wbClipboard = cloned;
+    toast('Copied ✓ — Ctrl+V to paste', 'info');
   });
 };
 
@@ -1534,28 +1712,221 @@ window.clearWB = () => {
 window.setSTEMTool = (tool) => {
   const canvas = window.wbInstance;
   if (!canvas) return;
+
   window._activeWBTool = tool;
   canvas.isDrawingMode = (tool === 'pencil' || tool === 'eraser');
-  canvas.selection = (tool === 'select');
-  
-  let dot = document.getElementById('laser-dot');
-  if (dot) dot.style.display = 'none'; 
+  canvas.selection     = (tool === 'select');
 
-  canvas.defaultCursor = (tool === 'laser') ? 'none' : 'default';
-  
+  // In select mode: every object must be clickable and draggable
+  if (tool === 'select') {
+    canvas.defaultCursor = 'default';
+    canvas.hoverCursor   = 'move';
+    canvas.forEachObject(o => {
+      o.selectable = true;
+      o.evented    = true;
+      o.lockMovementX = false;
+      o.lockMovementY = false;
+    });
+  } else {
+    canvas.hoverCursor = 'crosshair';
+    // objects not interactable while drawing/erasing/laser
+    canvas.forEachObject(o => {
+      o.selectable = false;
+      o.evented    = false;
+    });
+  }
+
+  let dot = document.getElementById('laser-dot');
+  if (dot) dot.style.display = 'none';
+  canvas.defaultCursor = (tool === 'laser') ? 'none' : (tool === 'select') ? 'default' : 'crosshair';
+
   if (tool === 'eraser') {
     canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
     canvas.freeDrawingBrush.color = '#fff';
     canvas.freeDrawingBrush.width = 24;
-  } else {
+  } else if (tool !== 'select') {
     canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
     canvas.freeDrawingBrush.color = document.getElementById('wb-color')?.value || '#1A5FFF';
     canvas.freeDrawingBrush.width = parseInt(document.getElementById('wb-width')?.value || '2');
   }
+
   document.querySelectorAll('.wb-btn').forEach(b => b.classList.remove('active'));
   const btn = document.getElementById('tool-' + tool);
   if (btn) btn.classList.add('active');
 };
+
+// ── LASSO SELECTION ENGINE ───────────────────────────────────────────────────
+function _startLassoMode(canvas) {
+  _stopLassoMode(canvas); // safety: clear any prior listeners
+
+  const upperCanvas = canvas.upperCanvasEl;
+  let drawing = false;
+  let points  = [];
+
+  // Translucent SVG overlay drawn on top of fabric
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:50;';
+  const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+  polyline.setAttribute('fill', 'rgba(26,95,255,0.08)');
+  polyline.setAttribute('stroke', '#1A5FFF');
+  polyline.setAttribute('stroke-width', '1.5');
+  polyline.setAttribute('stroke-dasharray', '5,3');
+  polyline.setAttribute('stroke-linejoin', 'round');
+  svg.appendChild(polyline);
+
+  const gridBox = document.getElementById('grid-box');
+  if (gridBox) { gridBox.style.position = 'relative'; gridBox.appendChild(svg); }
+  window._lassoOverlay = svg;
+
+  const getPos = (e) => {
+    const rect = upperCanvas.getBoundingClientRect();
+    const zoom = canvas.getZoom();
+    const vpt  = canvas.viewportTransform;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return {
+      x: (clientX - rect.left) / zoom - vpt[4] / zoom,
+      y: (clientY - rect.top)  / zoom - vpt[5] / zoom,
+      rawX: clientX - rect.left,
+      rawY: clientY - rect.top
+    };
+  };
+
+  // point-in-polygon test (ray casting)
+  const pointInPolygon = (px, py, poly) => {
+    let inside = false;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+      const xi = poly[i].x, yi = poly[i].y;
+      const xj = poly[j].x, yj = poly[j].y;
+      const intersect = ((yi > py) !== (yj > py)) && (px < (xj - xi) * (py - yi) / (yj - yi) + xi);
+      if (intersect) inside = !inside;
+    }
+    return inside;
+  };
+
+  // check if an object's bounding box centre falls inside the lasso polygon
+  const objectInsideLasso = (obj, poly) => {
+    const bound = obj.getBoundingRect(true);
+    const cx = bound.left + bound.width  / 2;
+    const cy = bound.top  + bound.height / 2;
+    // also accept if any corner is inside
+    const corners = [
+      { x: bound.left,               y: bound.top },
+      { x: bound.left + bound.width, y: bound.top },
+      { x: bound.left + bound.width, y: bound.top + bound.height },
+      { x: bound.left,               y: bound.top + bound.height },
+      { x: cx, y: cy }
+    ];
+    return corners.some(pt => pointInPolygon(pt.x, pt.y, poly));
+  };
+
+  const onDown = (e) => {
+    if (window._activeWBTool !== 'lasso') return;
+    drawing = true;
+    points  = [];
+    const p = getPos(e);
+    points.push({ x: p.x, y: p.y });
+    polyline.setAttribute('points', `${p.rawX},${p.rawY}`);
+    e.preventDefault();
+  };
+
+  const onMove = (e) => {
+    if (!drawing || window._activeWBTool !== 'lasso') return;
+    const p = getPos(e);
+    points.push({ x: p.x, y: p.y });
+    // update svg polyline using raw (screen) coords
+    const rawPts = points.map((_, i) => {
+      const ri = getPos.cache?.[i] || _;
+      return `${ri.rawX ?? p.rawX},${ri.rawY ?? p.rawY}`;
+    });
+    // simpler: just track raw separately
+    polyline.setAttribute('points', polyline.getAttribute('points') + ` ${p.rawX},${p.rawY}`);
+    e.preventDefault();
+  };
+
+  const onUp = (e) => {
+    if (!drawing || window._activeWBTool !== 'lasso') return;
+    drawing = false;
+
+    // close the polygon visually
+    if (points.length > 2) {
+      const first = points[0];
+      polyline.setAttribute('points', polyline.getAttribute('points') + ` ${polyline.getAttribute('points').split(' ')[0]}`);
+    }
+
+    // find all objects whose centre/corners are inside the lasso
+    const hits = canvas.getObjects().filter(obj => {
+      if (obj.id?.startsWith('lprev')) return false;
+      return objectInsideLasso(obj, points);
+    });
+
+    // clear lasso drawing after short pause
+    setTimeout(() => {
+      polyline.setAttribute('points', '');
+    }, 300);
+
+    if (hits.length === 0) {
+      toast('No objects inside the lasso', 'info');
+      return;
+    }
+
+    // restore selectability only for hit objects so the user can move/delete them
+    hits.forEach(o => { o.selectable = true; o.evented = true; });
+
+    canvas.discardActiveObject();
+    if (hits.length === 1) {
+      canvas.setActiveObject(hits[0]);
+    } else {
+      const sel = new fabric.ActiveSelection(hits, { canvas });
+      canvas.setActiveObject(sel);
+    }
+    canvas.renderAll();
+
+    toast(`${hits.length} object${hits.length > 1 ? 's' : ''} selected — move, delete, or Ctrl+C`, 'info');
+
+    // auto-switch to select tool so the user can immediately drag the selection
+    setSTEMTool('select');
+    // keep the just-selected objects active after tool switch
+    if (hits.length === 1) {
+      canvas.setActiveObject(hits[0]);
+    } else {
+      const sel2 = new fabric.ActiveSelection(hits, { canvas });
+      canvas.setActiveObject(sel2);
+    }
+    canvas.renderAll();
+  };
+
+  upperCanvas.addEventListener('mousedown',  onDown, { passive: false });
+  upperCanvas.addEventListener('mousemove',  onMove, { passive: false });
+  upperCanvas.addEventListener('mouseup',    onUp);
+  upperCanvas.addEventListener('touchstart', onDown, { passive: false });
+  upperCanvas.addEventListener('touchmove',  onMove, { passive: false });
+  upperCanvas.addEventListener('touchend',   onUp);
+
+  // store refs so _stopLassoMode can remove them
+  canvas._lassoHandlers = { onDown, onMove, onUp };
+}
+
+function _stopLassoMode(canvas) {
+  if (!canvas) return;
+  const uc = canvas.upperCanvasEl;
+  if (canvas._lassoHandlers) {
+    const { onDown, onMove, onUp } = canvas._lassoHandlers;
+    uc.removeEventListener('mousedown',  onDown);
+    uc.removeEventListener('mousemove',  onMove);
+    uc.removeEventListener('mouseup',    onUp);
+    uc.removeEventListener('touchstart', onDown);
+    uc.removeEventListener('touchmove',  onMove);
+    uc.removeEventListener('touchend',   onUp);
+    canvas._lassoHandlers = null;
+  }
+  if (window._lassoOverlay) {
+    window._lassoOverlay.remove();
+    window._lassoOverlay = null;
+  }
+  // restore all objects to be selectable
+  canvas.forEachObject(o => { o.selectable = true; o.evented = true; });
+}
 
 window.addSTEMText = () => {
   const canvas = window.wbInstance;
@@ -3383,12 +3754,22 @@ window.exitMajesticLab = function exitMajesticLab() {
 
   // 3. Smart routing based on user state
   const routeUser = () => {
+    // If entered via a token link (public-lab), always go to landing — not the dashboard.
+    // This prevents a logged-in institution_admin who shared a link from having the
+    // teacher (or themselves testing) land on the admin dashboard on exit.
+    const enteredViaToken = !!(State.data?.labToken || localStorage.getItem('tc_lab_token'));
+    localStorage.removeItem('tc_lab_token'); // clean up token after exit
+
+    if (enteredViaToken) {
+      navigate('landing');
+      return;
+    }
     if (State.user && localStorage.getItem('tc_access')) {
-      // Reload their active component (dashboard, sessions, etc.)
-      const targetPage = (State.page && State.page !== 'public-lab') ? State.page : 'dashboard';
+      // Came from inside the app (e.g. Sessions page) — return them there
+      const targetPage = (State.page && State.page !== 'public-lab') ? State.page : 'sessions';
       navigate(targetPage, State.tab);
     } else {
-      navigate('landing'); // Guests go back to the home page securely
+      navigate('landing');
     }
   };
 
