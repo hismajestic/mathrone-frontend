@@ -3749,7 +3749,7 @@ window.toggleMenu = function() {
 };
 async function renderPublicLab(token) {
   localStorage.setItem('tc_lab_token', token);
-  State.data.labToken = token; // Persist in active state
+  State.data.labToken = token;
   const isHost = !!(State.user && ['tutor', 'teacher', 'admin', 'institution_admin'].includes(State.user.role));
   
   let effectiveSessionId = token;
@@ -3775,25 +3775,31 @@ async function renderPublicLab(token) {
     window._labInstitutionId = check.institution_id || null;
     window._isLabHost = check.is_host === true; 
     
-    // Safely assign the session ID inside the scope where 'check' exists
-    const hashSession = window.location.hash ? window.location.hash.replace('#', '') : null;
-    effectiveSessionId = hashSession || check.session_id || token;
+    const hSession = window.location.hash ? window.location.hash.replace('#', '') : null;
+    effectiveSessionId = hSession || check.session_id || token;
 
-    if (check.institution_id) {
-      const fp = localStorage.getItem('ml_device_id');
-      if (fp) {
-        const pingFn = () => fetch(API_URL + `/lab/tokens/${token}/ping`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ device_fingerprint: fp, institution_id: check.institution_id })
-        }).catch(() => {});
-        pingFn();
-        window._labPingInterval = setInterval(pingFn, 3 * 60 * 1000);
-      }
-    }
   } else {
     window._isLabHost = true;
-    const hashSession = window.location.hash ? window.location.hash.replace('#', '') : null;
-    if (hashSession) effectiveSessionId = hashSession;
+    const hSessionHost = window.location.hash ? window.location.hash.replace('#', '') : null;
+    if (hSessionHost) effectiveSessionId = hSessionHost;
+  }
+
+  // --- LIVE SEAT TRACKING ---
+  const instId = window._labInstitutionId;
+  const labToken = token || State.data.labToken;
+  if (instId && labToken) {
+    const fp = localStorage.getItem('ml_device_id') || ('dev_' + Math.random().toString(36).slice(2));
+    localStorage.setItem('ml_device_id', fp);
+    
+    const pingFn = () => fetch(API_URL + `/lab/tokens/${labToken}/ping`, {
+      method: 'POST', 
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ device_fingerprint: fp, institution_id: instId })
+    }).catch(() => {});
+    
+    pingFn();
+    if(window._labPingInterval) clearInterval(window._labPingInterval);
+    window._labPingInterval = setInterval(pingFn, 60 * 1000);
   }
 
   updatePageSEO({
@@ -3805,7 +3811,6 @@ async function renderPublicLab(token) {
   renderWhiteboard(effectiveSessionId);
   window._currentLabSessionId = effectiveSessionId;
 }
-  
 function openGenerateLabLinkModal() {
   document.querySelectorAll('.modal-overlay.lab-modal').forEach(m => m.remove());
   const overlay = document.createElement('div');

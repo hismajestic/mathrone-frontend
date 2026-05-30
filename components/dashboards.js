@@ -1833,6 +1833,23 @@ async function submitExam(attemptId, autoSubmit = false){
 
         if (typeof lucide !== 'undefined') lucide.createIcons();
 
+        // Auto-refresh stats every 30 seconds while on this page
+        if(window._instDashTimer) clearInterval(window._instDashTimer);
+        window._instDashTimer = setInterval(async () => {
+          if(State.page === 'dashboard' && State.user?.role === 'institution_admin') {
+            try {
+              const fresh = await api('/lab/my-institution');
+              const numEl = document.querySelector('.stat-num'); // The seats card
+              if(numEl) numEl.textContent = `${fresh.active_sessions}/${fresh.licenses}`;
+              
+              const bar = document.querySelector('[style*="transition:width .3s"]');
+              if(bar) bar.style.width = `${Math.min(100, Math.round(fresh.active_sessions/fresh.licenses*100))}%`;
+            } catch(e) {}
+          } else {
+            clearInterval(window._instDashTimer);
+          }
+        }, 30000);
+
       } catch(e) {
         const msg = e.message.includes('not linked') 
           ? `🔒 ${e.message}` 
