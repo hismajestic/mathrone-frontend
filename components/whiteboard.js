@@ -1,14 +1,12 @@
 ﻿window._doRenderWhiteboard = async function renderWhiteboard(sessionId) {
   updatePageSEO({ title: "STEM Majestic Lab", description: "Visual STEM learning board.", url: `/whiteboard/${sessionId}`, noindex: true });
   
-  function isMajesticHost() {
-    const role = String(State.user?.role || '').toLowerCase();
-    const hostRoles = ['tutor', 'teacher', 'admin', 'institution_admin', 'moderator', 'host'];
-    return hostRoles.includes(role) || window._isLabHost === true;
-  }
-
-  // Set host status immediately before any rendering
-  window._isLabHost = isMajesticHost();
+  // Robust host privilege check
+  const isHost = !!(
+    (State.user && ['tutor', 'teacher', 'admin', 'institution_admin'].includes(State.user.role)) ||
+    window._isLabHost === true
+  );
+  window._isLabHost = isHost; // Sync global
 
   if (!window.fabric) {
       document.getElementById('app').innerHTML = '<div class="loader-center" style="flex-direction:column; gap:10px;"><div class="spinner"></div><div style="color:var(--navy);font-weight:700;">Loading Majestic Lab...</div></div>';
@@ -45,7 +43,7 @@
               <button class="btn btn-sm" onclick="toggleShapesPanel()" style="background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:12px; flex-shrink:0; white-space:nowrap; display:flex; align-items:center; gap:6px;"><i data-lucide="shapes" style="width:14px;height:14px"></i> Shapes</button>
               <button class="btn btn-sm" onclick="toggleResourceDrawer()" style="background:#F5A623; color:#1a1a1a; font-weight:800; font-size:12px; flex-shrink:0; white-space:nowrap; display:flex; align-items:center; gap:6px;"><i data-lucide="flask-conical" style="width:14px;height:14px"></i> Labs and Sims</button>
               
-              ${(State.user && State.user.role || window._isLabHost) ? `
+              ${((State.user && (['tutor','teacher','admin','institution_admin'].includes(State.user.role))) || window._isLabHost) ? `
                 <button class="btn btn-sm" onclick="toggleLabVideo()" id="lab-video-btn" style="background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:12px; flex-shrink:0; white-space:nowrap; display:flex; align-items:center; gap:6px;" title="Start video call inside the lab"><i data-lucide="video" style="width:14px;height:14px"></i> Video</button>
                 <button class="btn btn-sm" onclick="toggleScreenShare()" id="share-screen-btn" style="background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:12px; display:none; flex-shrink:0; white-space:nowrap; align-items:center; gap:6px;" title="Share your screen with the student"><i data-lucide="monitor-up" style="width:14px;height:14px"></i> Share</button>
               ` : `
@@ -98,12 +96,14 @@
           <button class="wb-btn" onclick="prevWBPage()" title="Previous Page" style="min-width:30px; padding:4px;">◀</button>
           <span id="page-num-display" style="color:#fff; font-weight:bold; font-size:12px; min-width:40px; text-align:center;">1 / 1</span>
           <button class="wb-btn" onclick="nextWBPage()" title="Next Page" style="min-width:30px; padding:4px;">▶</button>
-          <button class="wb-btn host-only" onclick="addWBPage()" style="background:#10B981; color:white; font-weight:bold;">+ Page</button>
-        </div>
-        <button class="wb-btn host-only" onclick="downloadLabAsPDF()" style="background:#1A5FFF; color:white; font-weight:bold;">💾 Save PDF</button>
-        <button class="wb-btn host-only" id="studio-rec-btn" onclick="toggleStudioRecording()" style="background:rgba(239,68,68,0.2);color:#fca5a5;border:1px solid rgba(239,68,68,0.4);font-weight:bold;margin-right:4px;">🔴 Record</button>
+          ${isHost ? `<button class="wb-btn" onclick="addWBPage()" style="background:#10B981; color:white; font-weight:bold;">+ Page</button>` : ''}
+      </div>
+      ${isHost ? `
+        <button class="wb-btn" onclick="downloadLabAsPDF()" style="background:#1A5FFF; color:white; font-weight:bold;">💾 Save PDF</button>
+        <button class="wb-btn" id="studio-rec-btn" onclick="window.toggleStudioRecording()" style="background:rgba(239,68,68,0.2);color:#fca5a5;border:1px solid rgba(239,68,68,0.4);font-weight:bold;margin-right:4px;">🔴 Record</button>
         <span id="studio-rec-timer" style="color:#fca5a5;font-size:11px;font-weight:700;display:none;margin-right:10px;"></span>
-        <button class="wb-btn host-only" id="oct-theme-btn" onclick="toggleOCTTheme()" title="Switch between Studio (black) and Normal theme" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.25);font-weight:bold;margin-right:4px;">🎨 Studio Mode</button>
+        <button class="wb-btn" id="oct-theme-btn" onclick="window.toggleOCTTheme()" title="Switch between Studio (black) and Normal theme" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.25);font-weight:bold;margin-right:4px;">🎨 Studio Mode</button>
+      ` : ''}
 
         <div class="tool-sep" style="width:1px; height:28px; background:rgba(255,255,255,0.2); margin:0 4px;"></div>
         <button class="wb-btn active" id="tool-pencil" onclick="setSTEMTool('pencil')" title="Freehand Draw"><i data-lucide="pen" style="width:14px;height:14px"></i> Draw</button>
@@ -114,9 +114,11 @@
         <button class="wb-btn" id="tool-laser" onclick="setSTEMTool('laser')" title="Laser Pointer"><i data-lucide="target" style="width:14px;height:14px"></i> Laser</button>
         <button class="wb-btn host-only" onclick="document.getElementById('wb-bg-upload').click()" title="Upload Worksheet/Image"><i data-lucide="image-plus" style="width:14px;height:14px"></i> Upload</button>
         <input type="file" id="wb-bg-upload" accept="image/*" style="display:none" onchange="uploadWBBackground(this)">
-        <button class="wb-btn host-only" id="tool-present" onclick="handlePresentDocButton()" title="Present PDF, PowerPoint or Word document" style="background:rgba(245,166,35,0.25);color:#F5A623;border:1px solid rgba(245,166,35,0.4);"><i data-lucide="presentation" style="width:14px;height:14px"></i> Present Doc</button>
-        <button class="wb-btn host-only" id="wb-doc-download-btn" onclick="downloadPresentationAsPDF()" style="display:none;background:rgba(56,189,248,0.15);color:#38bdf8;border:1px solid rgba(56,189,248,0.4);"><i data-lucide="download" style="width:14px;height:14px"></i> Download Doc</button>
-        <input type="file" id="wb-doc-upload" accept=".pdf,.ppt,.pptx,.doc,.docx" style="display:none" onchange="openPresentationDoc(this)">
+        ${isHost ? `
+          <button class="wb-btn" id="tool-present" onclick="handlePresentDocButton()" title="Present PDF, PowerPoint or Word document" style="background:rgba(245,166,35,0.25);color:#F5A623;border:1px solid rgba(245,166,35,0.4);"><i data-lucide="presentation" style="width:14px;height:14px"></i> Present Doc</button>
+          <button class="wb-btn" id="wb-doc-download-btn" onclick="downloadPresentationAsPDF()" style="display:none;background:rgba(56,189,248,0.15);color:#38bdf8;border:1px solid rgba(56,189,248,0.4);"><i data-lucide="download" style="width:14px;height:14px"></i> Download Doc</button>
+          <input type="file" id="wb-doc-upload" accept=".pdf,.ppt,.pptx,.doc,.docx" style="display:none" onchange="openPresentationDoc(this)">
+        ` : ''}
 
         <div class="tool-sep" style="width:1px; height:28px; background:rgba(255,255,255,0.2); margin:0 4px;"></div>
 
@@ -331,49 +333,6 @@
     </div>
   `;
   render(html);
-  // --- BUSINESS PROTECTION: HOST vs GUEST ---
-  const updateHostControls = () => {
-    const role = String(State.user?.role || '').toLowerCase();
-    const hostRoles = ['tutor', 'teacher', 'admin', 'institution_admin', 'moderator', 'host'];
-    const isHost = hostRoles.includes(role) || window._isLabHost;
-    window._isLabHost = isHost;
-
-    const hostButtons = document.querySelectorAll('.host-only');
-    const mainToolbar = document.getElementById('wb-toolbar-el');
-    if (isHost) {
-      if (mainToolbar) mainToolbar.style.display = 'flex';
-      hostButtons.forEach(el => {
-        el.style.setProperty('display', 'inline-flex', 'important');
-        el.style.visibility = 'visible';
-        el.style.opacity = '1';
-      });
-      console.log("Majestic Lab: Host tools enabled ✅");
-    } else {
-      if (mainToolbar) mainToolbar.style.display = 'none';
-      hostButtons.forEach(el => {
-        el.style.setProperty('display', 'none', 'important');
-      });
-      // Prevent Guests from deleting Host objects
-      try {
-        const c = window.wbInstance;
-        if (c) {
-          c.on('object:selected', (e) => {
-            if (e.target && e.target.id && !e.target.id.startsWith('guest_')) {
-              c.discardActiveObject();
-              toast("Viewing Mode: You cannot modify Business Owner assets.", "info");
-            }
-          });
-        }
-      } catch(e) {}
-      // Context menu protection
-      document.addEventListener('contextmenu', e => e.preventDefault());
-    }
-  };
-
-  setTimeout(updateHostControls, 300);
-  setTimeout(updateHostControls, 1200);
-  window.addEventListener('load', updateHostControls);
-  window.addEventListener('statechange', updateHostControls);
   // --- IP PROTECTION ---
   document.addEventListener('contextmenu', e => { if(document.getElementById('wb-canvas-el')) e.preventDefault(); });
   document.addEventListener('keydown', e => {
@@ -710,39 +669,46 @@ canvas.on('path:created', triggerCloudSave);
     } catch(e) {}
   };
 
-  // --- MULTI-PAGE NOTEBOOK LOGIC (Cloud Integrated) ---
-  window._wbNotebook = [canvas.toJSON(['id'])]; 
-  window._wbCurrentPage = 0;
+  // --- GLOBAL MAJESTIC LAB STATE ---
+window._wbNotebook = [{}]; 
+window._wbCurrentPage = 0;
 
-  window.addWBPage = async () => {
-    await window.saveToCloud();
-    window._wbNotebook[window._wbCurrentPage] = canvas.toJSON(['id']);
-    window._wbNotebook.push({}); 
-    window._wbCurrentPage = window._wbNotebook.length - 1;
-    canvas.clear();
-    updatePageUI();
-    if(channel) channel.send({ type: 'broadcast', event: 'page-change', payload: { page: window._wbCurrentPage, total: window._wbNotebook.length, json: {} } });
-  };
+window.updatePageUI = () => {
+  const el = document.getElementById('page-num-display');
+  if(el) el.textContent = `${window._wbCurrentPage + 1} / ${window._wbNotebook.length}`;
+};
 
-  window.nextWBPage = async () => {
-    if (window._wbCurrentPage < window._wbNotebook.length - 1) {
-      await window.saveToCloud();
-      window._wbNotebook[window._wbCurrentPage] = canvas.toJSON(['id']);
-      window._wbCurrentPage++;
-      canvas.loadFromJSON(window._wbNotebook[window._wbCurrentPage], () => { canvas.renderAll(); updatePageUI(); });
-      if(channel) channel.send({ type: 'broadcast', event: 'page-change', payload: { page: window._wbCurrentPage, total: window._wbNotebook.length, json: window._wbNotebook[window._wbCurrentPage] } });
-    }
-  };
+window.addWBPage = async () => {
+  const canvas = window.wbInstance;
+  if(!canvas) return;
+  if(window.saveToCloud) await window.saveToCloud();
+  window._wbNotebook[window._wbCurrentPage] = canvas.toJSON(['id']);
+  window._wbNotebook.push({}); 
+  window._wbCurrentPage = window._wbNotebook.length - 1;
+  canvas.clear();
+  window.updatePageUI();
+  if(window._wbChannel) window._wbChannel.send({ type: 'broadcast', event: 'page-change', payload: { page: window._wbCurrentPage, total: window._wbNotebook.length, json: {} } });
+};
 
-  window.prevWBPage = async () => {
-    if (window._wbCurrentPage > 0) {
-      await window.saveToCloud();
-      window._wbNotebook[window._wbCurrentPage] = canvas.toJSON(['id']);
-      window._wbCurrentPage--;
-      canvas.loadFromJSON(window._wbNotebook[window._wbCurrentPage], () => { canvas.renderAll(); updatePageUI(); });
-      if(channel) channel.send({ type: 'broadcast', event: 'page-change', payload: { page: window._wbCurrentPage, total: window._wbNotebook.length, json: window._wbNotebook[window._wbCurrentPage] } });
-    }
-  };
+window.nextWBPage = async () => {
+  const canvas = window.wbInstance;
+  if(!canvas || window._wbCurrentPage >= window._wbNotebook.length - 1) return;
+  if(window.saveToCloud) await window.saveToCloud();
+  window._wbNotebook[window._wbCurrentPage] = canvas.toJSON(['id']);
+  window._wbCurrentPage++;
+  canvas.loadFromJSON(window._wbNotebook[window._wbCurrentPage], () => { canvas.renderAll(); window.updatePageUI(); });
+  if(window._wbChannel) window._wbChannel.send({ type: 'broadcast', event: 'page-change', payload: { page: window._wbCurrentPage, total: window._wbNotebook.length, json: window._wbNotebook[window._wbCurrentPage] } });
+};
+
+window.prevWBPage = async () => {
+  const canvas = window.wbInstance;
+  if(!canvas || window._wbCurrentPage <= 0) return;
+  if(window.saveToCloud) await window.saveToCloud();
+  window._wbNotebook[window._wbCurrentPage] = canvas.toJSON(['id']);
+  window._wbCurrentPage--;
+  canvas.loadFromJSON(window._wbNotebook[window._wbCurrentPage], () => { canvas.renderAll(); window.updatePageUI(); });
+  if(window._wbChannel) window._wbChannel.send({ type: 'broadcast', event: 'page-change', payload: { page: window._wbCurrentPage, total: window._wbNotebook.length, json: window._wbNotebook[window._wbCurrentPage] } });
+};
 
   window.loadFromCloud(); // Initial Load
 
@@ -753,68 +719,60 @@ canvas.on('path:created', triggerCloudSave);
 
   // --- PDF EXPORT LOGIC ---
   // --- PROFESSIONAL BUSINESS EXPORT (B2B & B2C Protected) ---
-  window.downloadLabAsPDF = async () => {
-    if (!window.jspdf) {
-      toast("Loading professional PDF engine...", "info");
-      try { await ensureJsPDF(); } catch(e) { toast("Engine failed.", "err"); return; }
-    }
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF('l', 'px', [canvas.width, canvas.height]);
-    const logoUrl = "https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png";
-    const bizName = window._wbInstitutionName || "Independent Tutor Pro";
+ window.downloadLabAsPDF = async () => {
+  const canvas = window.wbInstance;
+  if(!canvas) return;
+  if (!window.jspdf) {
+    toast("Loading professional PDF engine...", "info");
+    try { await ensureJsPDF(); } catch(e) { toast("Engine failed.", "err"); return; }
+  }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('l', 'px', [canvas.width, canvas.height]);
+  const bizName = window._wbInstitutionName || "Independent Tutor Pro";
 
-    toast("Generating Licensed Document... ⏳");
+  toast("Generating Licensed Document... ⏳");
 
-    for (let i = 0; i < window._wbNotebook.length; i++) {
-      if (i > 0) doc.addPage([canvas.width, canvas.height], 'l');
-      
-      const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = canvas.width; tempCanvas.height = canvas.height;
-      const ctx = tempCanvas.getContext('2d');
-      
-      // 1. Draw Background & Whiteboard Content
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0,0, canvas.width, canvas.height);
-      const dataUrl = canvas.toDataURL({ format: 'png', quality: 1 });
-      const imgContent = await new Promise(res => { const img = new Image(); img.onload = () => res(img); img.src = dataUrl; });
-      ctx.drawImage(imgContent, 0, 0);
-
-      // 2. SECURITY WATERMARK (Prevents unauthorized copying of Business logic)
-      ctx.save();
-      ctx.globalAlpha = 0.04;
-      ctx.font = "bold 100px Arial";
-      ctx.fillStyle = "#0D1B40";
-      ctx.textAlign = "center";
-      ctx.translate(canvas.width/2, canvas.height/2);
-      ctx.rotate(-Math.PI / 4);
-      ctx.fillText("MATHRONE MAJESTIC LAB", 0, 0);
-      ctx.restore();
-
-      // 3. BUSINESS BRANDING BAR (Header)
-      ctx.fillStyle = "#0D1B40";
-      ctx.fillRect(0, 0, canvas.width, 50);
-      ctx.font = "bold 16px Arial";
-      ctx.fillStyle = "#FFFFFF";
-      ctx.textAlign = "left";
-      ctx.fillText(`PRO SESSION: ${bizName.toUpperCase()}`, 30, 32);
-
-      // 4. MATHRONE QUALITY STAMP (Footer)
-      ctx.fillStyle = "#F1F5F9";
-      ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
-      ctx.font = "italic 11px Arial";
-      ctx.fillStyle = "#64748B";
-      ctx.textAlign = "center";
-      ctx.fillText("Licensed to " + bizName + " | Powered by Mathrone Academy (mathroneacademy.com)", canvas.width/2, canvas.height - 15);
-      
-      ctx.textAlign = "right";
-      ctx.fillText(`Page ${i+1} of ${window._wbNotebook.length}`, canvas.width - 30, canvas.height - 15);
-
-      doc.addImage(tempCanvas.toDataURL('image/jpeg', 0.8), 'JPEG', 0, 0, canvas.width, canvas.height);
-    }
+  for (let i = 0; i < window._wbNotebook.length; i++) {
+    if (i > 0) doc.addPage([canvas.width, canvas.height], 'l');
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width; tempCanvas.height = canvas.height;
+    const ctx = tempCanvas.getContext('2d');
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0,0, canvas.width, canvas.height);
     
-    doc.save(`${bizName.replace(/\s/g,'_')}_Lab_Notes.pdf`);
-    toast("Licensed PDF Exported ", "ok");
-  };
+    // Use the stored JSON or current canvas for the data
+    const pageData = (i === window._wbCurrentPage) ? canvas.toJSON(['id']) : window._wbNotebook[i];
+    
+    // We need to render the JSON to the temp canvas
+    // For simplicity, we use the current live canvas if it's the current page
+    const dataUrl = (i === window._wbCurrentPage) ? canvas.toDataURL({ format: 'png', quality: 1 }) : null;
+    
+    if (dataUrl) {
+       const imgContent = await new Promise(res => { const img = new Image(); img.onload = () => res(img); img.src = dataUrl; });
+       ctx.drawImage(imgContent, 0, 0);
+    } else {
+       // Just a placeholder for background pages if they haven't been visited yet
+       ctx.fillStyle = "#eee"; ctx.fillText("Page Content", 50, 50);
+    }
+
+    ctx.save();
+    ctx.globalAlpha = 0.04; ctx.font = "bold 100px Arial"; ctx.fillStyle = "#0D1B40"; ctx.textAlign = "center";
+    ctx.translate(canvas.width/2, canvas.height/2); ctx.rotate(-Math.PI / 4); ctx.fillText("MATHRONE MAJESTIC LAB", 0, 0);
+    ctx.restore();
+
+    ctx.fillStyle = "#0D1B40"; ctx.fillRect(0, 0, canvas.width, 50);
+    ctx.font = "bold 16px Arial"; ctx.fillStyle = "#FFFFFF"; ctx.textAlign = "left";
+    ctx.fillText(`PRO SESSION: ${bizName.toUpperCase()}`, 30, 32);
+
+    ctx.fillStyle = "#F1F5F9"; ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
+    ctx.font = "italic 11px Arial"; ctx.fillStyle = "#64748B"; ctx.textAlign = "center";
+    ctx.fillText("Licensed to " + bizName + " | Powered by Mathrone Academy", canvas.width/2, canvas.height - 15);
+
+    doc.addImage(tempCanvas.toDataURL('image/jpeg', 0.8), 'JPEG', 0, 0, canvas.width, canvas.height);
+  }
+  doc.save(`${bizName.replace(/\s/g,'_')}_Lab_Notes.pdf`);
+  toast("Licensed PDF Exported", "ok");
+};
   window.addEventListener('resize', () => {
     if (window.wbInstance) {
       const hEl = document.getElementById('wb-header');
@@ -901,33 +859,37 @@ canvas.on('path:created', triggerCloudSave);
     if (e.ctrlKey && e.key === 'a') { setSTEMTool('select'); canvas.discardActiveObject(); const sel = new fabric.ActiveSelection(canvas.getObjects(), {canvas}); canvas.setActiveObject(sel); canvas.renderAll(); }
   });
 
-  // --- UNDO ---
-  window.undoWB = () => {
-    const objs = canvas.getObjects();
-    if (objs.length) canvas.remove(objs[objs.length - 1]);
-    canvas.renderAll();
-  };
+  // --- GLOBAL CANVAS ACTIONS ---
+window.undoWB = () => {
+  const canvas = window.wbInstance;
+  if (!canvas) return;
+  const objs = canvas.getObjects().filter(o => !o.id || !o.id.startsWith('lprev'));
+  if (objs.length) canvas.remove(objs[objs.length - 1]);
+  canvas.renderAll();
+};
 
-  // --- COPY ---
-  window.copySelected = () => {
-    const active = canvas.getActiveObject();
-    if (!active) return;
-    active.clone(cloned => {
-      cloned.set({ left: active.left + 20, top: active.top + 20, id: 'sh_' + Math.random() });
-      canvas.add(cloned);
-      canvas.setActiveObject(cloned).renderAll();
-    });
-  };
+window.copySelected = () => {
+  const canvas = window.wbInstance;
+  if (!canvas) return;
+  const active = canvas.getActiveObject();
+  if (!active) return;
+  active.clone(cloned => {
+    cloned.set({ left: active.left + 20, top: active.top + 20, id: 'sh_' + Math.random() });
+    canvas.add(cloned);
+    canvas.setActiveObject(cloned).renderAll();
+  });
+};
 
-  // --- CLEAR ---
-  window.clearWB = () => {
-    if (confirm('Clear the entire board?')) { 
-        canvas.clear(); 
-        canvas.renderAll(); 
-        if (channel) channel.send({ type: 'broadcast', event: 'clear', payload: {} });
-        window.saveToCloud();
-    }
-  };
+window.clearWB = () => {
+  const canvas = window.wbInstance;
+  if (!canvas) return;
+  if (confirm('Clear the entire board?')) { 
+    canvas.clear(); 
+    canvas.renderAll(); 
+    if (window._wbChannel) window._wbChannel.send({ type: 'broadcast', event: 'clear', payload: {} });
+    if (window.saveToCloud) window.saveToCloud();
+  }
+};
 
   // --- GRADUATED RULER ---
   window.addGraduatedRuler = () => {
@@ -1568,98 +1530,85 @@ canvas.on('path:created', triggerCloudSave);
     document.getElementById('wb-status').textContent = '✏️ Done.';
   };
 
-  // --- TOOL CONTROL ---
-  window.setSTEMTool = (tool) => {
-    window._activeWBTool = tool;
-    canvas.isDrawingMode = (tool === 'pencil');
-    canvas.selection = (tool === 'select');
-    
-    // Laser Pointer Visibility Logic
-    let dot = document.getElementById('laser-dot');
-    if (!dot) {
-      dot = document.createElement('div');
-      dot.id = 'laser-dot';
-      document.getElementById('canvas-container').appendChild(dot);
-    }
-    dot.style.display = 'none'; 
+  // --- GLOBAL TOOL & STYLE HANDLERS ---
+window.setSTEMTool = (tool) => {
+  const canvas = window.wbInstance;
+  if (!canvas) return;
+  window._activeWBTool = tool;
+  canvas.isDrawingMode = (tool === 'pencil' || tool === 'eraser');
+  canvas.selection = (tool === 'select');
+  
+  let dot = document.getElementById('laser-dot');
+  if (dot) dot.style.display = 'none'; 
 
-    if (tool === 'laser') {
-      canvas.defaultCursor = 'none';
-    } else {
-      canvas.defaultCursor = 'default';
-    }
-    
-    if (tool === 'eraser') {
-      canvas.isDrawingMode = true;
-      canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
-      canvas.freeDrawingBrush.color = '#fff';
-      canvas.freeDrawingBrush.width = 24;
-    } else {
-      canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
-      canvas.freeDrawingBrush.color = document.getElementById('wb-color')?.value || '#1A5FFF';
-      canvas.freeDrawingBrush.width = parseInt(document.getElementById('wb-width')?.value || '2');
-    }
-    document.querySelectorAll('.wb-btn').forEach(b => b.classList.remove('active'));
-    if (document.getElementById('tool-' + tool)) document.getElementById('tool-' + tool).classList.add('active');
-  };
-
-  // --- Background Image Upload ---
-  window.uploadWBBackground = (input) => {
-    const file = input.files[0];
-    if(!file) return;
-    const reader = new FileReader();
-    reader.onload = (f) => {
-      const data = f.target.result;
-      fabric.Image.fromURL(data, (img) => {
-        // Scale to fit canvas
-        img.scaleToWidth(canvas.width * 0.8);
-        canvas.add(img);
-        canvas.centerObject(img);
-        canvas.renderAll();
-        // Sync to students
-        if(channel) channel.send({ type: 'broadcast', event: 'draw', payload: img.toObject(['id']) });
-      });
-    };
-    reader.readAsDataURL(file);
-  };
-  window.addSTEMText = () => {
-    setSTEMTool('select');
-    const t = new fabric.IText('Type here...', { left: 300, top: 300, fontSize: 24, fontFamily: 'DM Sans', fill: document.getElementById('wb-color').value, id: 'txt_' + Math.random() });
-    canvas.add(t); canvas.setActiveObject(t).renderAll();
-  };
-
-  window.setWBColor = (hex) => {
-    // Update the color picker input to match
-    const picker = document.getElementById('wb-color');
-    if (picker) picker.value = hex;
-    // Apply to brush immediately
-    canvas.freeDrawingBrush.color = hex;
-    // Highlight the active swatch
-    document.querySelectorAll('[onclick^="setWBColor"]').forEach(btn => {
-      btn.style.border = btn.getAttribute('onclick').includes(hex)
-        ? '2px solid #fff'
-        : '2px solid rgba(255,255,255,0.3)';
-      btn.style.transform = btn.getAttribute('onclick').includes(hex) ? 'scale(1.25)' : 'scale(1)';
-    });
-    // Also apply to any selected objects
-    const active = canvas.getActiveObjects();
-    if (active.length) {
-      active.forEach(o => o.set({ stroke: hex }));
-      canvas.renderAll();
-    }
-  };
-
-  window.updateSTEMStyle = () => {
-    const color = document.getElementById('wb-color')?.value || '#1A5FFF';
-    canvas.freeDrawingBrush.color = color;
+  canvas.defaultCursor = (tool === 'laser') ? 'none' : 'default';
+  
+  if (tool === 'eraser') {
+    canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
+    canvas.freeDrawingBrush.color = '#fff';
+    canvas.freeDrawingBrush.width = 24;
+  } else {
+    canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
+    canvas.freeDrawingBrush.color = document.getElementById('wb-color')?.value || '#1A5FFF';
     canvas.freeDrawingBrush.width = parseInt(document.getElementById('wb-width')?.value || '2');
-    const active = canvas.getActiveObjects();
-    if (active.length) {
-      const fill = document.getElementById('wb-fill')?.value || 'transparent';
-      active.forEach(o => { o.set({ stroke: color, fill: fill === 'transparent' ? 'transparent' : fill }); });
-      canvas.renderAll();
-    }
-  };
+  }
+  document.querySelectorAll('.wb-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('tool-' + tool);
+  if (btn) btn.classList.add('active');
+};
+
+window.addSTEMText = () => {
+  const canvas = window.wbInstance;
+  if (!canvas) return;
+  window.setSTEMTool('select');
+  const color = document.getElementById('wb-color')?.value || '#1A5FFF';
+  const t = new fabric.IText('Type here...', { 
+    left: 100, top: 100, fontSize: 24, fontFamily: 'DM Sans', fill: color, id: 'txt_' + Math.random() 
+  });
+  canvas.add(t);
+  canvas.setActiveObject(t).renderAll();
+};
+
+window.setWBColor = (hex) => {
+  const canvas = window.wbInstance;
+  if (!canvas) return;
+  const picker = document.getElementById('wb-color');
+  if (picker) picker.value = hex;
+  if (canvas.freeDrawingBrush) canvas.freeDrawingBrush.color = hex;
+  
+  document.querySelectorAll('[onclick^="setWBColor"]').forEach(btn => {
+    btn.style.border = btn.getAttribute('onclick').includes(hex) ? '2px solid #fff' : '2px solid rgba(255,255,255,0.3)';
+  });
+
+  const active = canvas.getActiveObjects();
+  if (active.length) {
+    active.forEach(o => { if(o.set) o.set({ stroke: hex }); });
+    canvas.renderAll();
+  }
+};
+
+window.updateSTEMStyle = () => {
+  const canvas = window.wbInstance;
+  if (!canvas || !canvas.freeDrawingBrush) return;
+  const color = document.getElementById('wb-color')?.value || '#1A5FFF';
+  const width = parseInt(document.getElementById('wb-width')?.value || '2');
+  const fill = document.getElementById('wb-fill')?.value || 'transparent';
+  
+  canvas.freeDrawingBrush.color = color;
+  canvas.freeDrawingBrush.width = width;
+  
+  const active = canvas.getActiveObjects();
+  if (active.length) {
+    active.forEach(o => { 
+      o.set({ 
+        stroke: color, 
+        strokeWidth: width,
+        fill: fill === 'transparent' ? 'transparent' : fill 
+      }); 
+    });
+    canvas.renderAll();
+  }
+};
 
   // --- SHAPES (Full Comprehensive Set) ---
   window.addSTEMShape = (type) => {
@@ -3120,7 +3069,7 @@ let _studioChunks   = [];
 let _studioTimerInterval = null;
 let _studioSeconds  = 0;
 
-async function toggleStudioRecording() {
+window.toggleStudioRecording = async function toggleStudioRecording() {
   if (_studioRecorder && _studioRecorder.state === 'recording') {
     stopStudioRecording();
   } else {
@@ -3271,6 +3220,32 @@ function stopStudioRecording() {
     toast('⏹ Stopping recording...', 'info');
   }
 }
+
+// ── Upload Worksheet/Background Image ────────────────────────────────────────
+window.uploadWBBackground = function uploadWBBackground(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = '';
+  const canvas = window.wbInstance;
+  if (!canvas) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    fabric.Image.fromURL(e.target.result, (img) => {
+      img.set({
+        left: 0, top: 0,
+        scaleX: canvas.width / img.width,
+        scaleY: canvas.height / img.height,
+        selectable: true,
+        id: 'bg_' + Math.random()
+      });
+      canvas.add(img);
+      canvas.sendToBack(img);
+      canvas.renderAll();
+      toast('Image uploaded to board ✓', 'info');
+    });
+  };
+  reader.readAsDataURL(file);
+};
 
 // ── OCT Studio Theme Toggle ──────────────────────────────────────────────────
 window._octThemeActive = false;

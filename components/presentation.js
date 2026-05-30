@@ -1,6 +1,14 @@
 // ── Document Presentation Functions ─────────────────────────────────────────
 // These were missing from whiteboard.js — loaded separately via index.html
-
+window.handlePresentDocButton = function handlePresentDocButton() {
+  if (window._docSlides && window._docSlides.length && !window._docHidden) {
+    closePresentationMode();
+  } else if (window._docSlides && window._docSlides.length && window._docHidden) {
+    showPresentationMode();
+  } else {
+    document.getElementById('wb-doc-upload')?.click();
+  }
+};
 window._docHidden = window._docHidden || false;
 
 async function openPresentationDoc(input) {

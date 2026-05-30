@@ -2178,8 +2178,8 @@
       max-height: 100% !important;
     }
 
-/* ── Majestic Lab: host-only controls hidden for students ── */
-.host-only { display: none; }
+/* ── Majestic Lab: host-only controls ── */
+.host-only { display: inline-flex; }
 
 /* Majestic Lab: Encourage Landscape Mode on Mobile */
 #rotate-device-overlay {

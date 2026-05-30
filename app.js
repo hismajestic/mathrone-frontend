@@ -369,7 +369,7 @@ function _get(id) { return _dataRegistry[id]; }
   
   // Professional Touch: Re-init icons and math for every new page
   if (window.lucide) window.lucide.createIcons();
-  if (window.MathJax) MathJax.typesetPromise();
+  if (window.MathJax && typeof MathJax.typesetPromise === 'function') MathJax.typesetPromise().catch(()=>{});
   
   if (window.lucide) {
     window.lucide.createIcons();
@@ -3908,7 +3908,8 @@ async function validateGuestLabToken(token) {
       name: data.buyer_name, 
       institution_id: data.institution_id, 
       institution_name: data.institution_name || '', 
-      session_id: data.session_id || null 
+      session_id: data.session_id || null,
+      is_host: data.is_host === true
     };
   } catch(e) {
     return { valid: false, reason: 'Network error. Please check your internet and try again.' };
