@@ -379,12 +379,12 @@
     </div>
     <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center">
       <div class="htag"> Majestic Learning. Royal Results.</div>
-      <h1 class="htitle">Your Learning. Your Rules. <span>Your Throne.</span></h1>
-      <p class="hsub">Whether you're a student catching up, a professional levelling up, or a teacher delivering world-class lessons — Mathrone Academy has everything you need. Expert tutors, video courses, AI Tutor, Majestic Lab, and a full learning store.</p>
+      <h1 class="htitle">Master Any Skill. <span>Rule Your Future.</span></h1>
+<p class="hsub">From primary school excellence to high-income digital skills. Mathrone Academy is your complete ecosystem for expert-led video courses, 1-on-1 private tutoring, AI-Tutor and professional STEM tools.</p>
       <div class="hbtns">
         <a href="/register" class="btn-hero-o" onclick="navigate('register', null, event)" style="background:#0e172b; border-color:var(--gold); text-decoration:none;"> Start Learning</a>
         <a href="/register" class="btn-hero-o" onclick="navigate('register', 'tutor', event)" style="text-decoration:none;">Become a Tutor</a>
-        <a href="/shop" class="btn-hero-o" onclick="navigate('shop', null, event)" style="background:var(--gold); color:#1a1a1a; border-color:var(--gold); text-decoration:none;">🛒 Learning Store</a>
+        <a href="/shop" class="btn-hero-o" onclick="navigate('shop', null, event)" style="background:var(--gold); color:#1a1a1a; border-color:var(--gold); text-decoration:none;">Learning Store</a>
         <a href="/news" class="btn-hero-o" onclick="navigate('news', null, event)" style="background:#0e172b; border-color:#1e3a8a; text-decoration:none;">Read Updates</a>
         <a href="/majestic-lab" class="btn-hero-o" onclick="navigate('majestic-lab', null, event)" style="background:linear-gradient(135deg,#1e3a8a,#7c3aed);border-color:#7c3aed;text-decoration:none;display:inline-flex;align-items:center;gap:7px;font-weight:800"><i data-lucide="flask-conical" style="width:16px;height:16px"></i> Majestic Lab</a>
       </div>
@@ -469,8 +469,8 @@
  <!-- TUTORS SLIDER -->
   <div class="lsection" style="overflow:hidden">
     <div style="max-width:1100px;margin:0 auto">
-      <h2 class="stitle">Meet Our Tutors</h2>
-      <p class="ssub">Qualified, passionate educators ready to help your child succeed</p>
+      <h2 class="stitle">Expert Instructors & Tutors</h2>
+<p class="ssub">Vetted professionals ready to help you pass exams or master new career skills</p>
       <div style="overflow:hidden;position:relative" id="tutors-slider-wrap">
         <div id="tutors-slider" style="display:flex;gap:20px;animation:slideLeft 20s linear infinite;width:max-content">
           <div style="display:flex;gap:20px">
@@ -1469,7 +1469,7 @@ setTimeout(async () => {
     <p class="pp-p">We use your information for the following purposes:</p>
     <ul class="pp-ul">
       <li>To create and manage your account on the platform.</li>
-      <li>To match students with suitable tutors based on preferences and availability.</li>
+      <li>To match learners of all ages with suitable instructors, courses, and educational tools based on their specific goals.</li>
       <li>To schedule, manage, and track tutoring sessions.</li>
       <li>To generate progress reports shared with parents and administrators.</li>
       <li>To process payments and maintain billing records.</li>
@@ -1496,7 +1496,7 @@ setTimeout(async () => {
     </ul>
 
     <h2 class="pp-h2">5. Children's Privacy</h2>
-    <p class="pp-p">Mathrone Academy serves students of all ages including minors. We take extra care to protect the privacy of children on our platform. Parental consent is required during student registration for users under 18. Parents may request access to, correction of, or deletion of their child's data at any time by contacting us.</p>
+    <p class="pp-p">While Mathrone Academy serves adult learners and professionals, we also provide services to minors. For users under the age of 18, we collect parent/guardian contact information during the registration process to ensure safety and oversight of the learning progress.</p>
 
     <h2 class="pp-h2">6. Advertising & Cookies</h2>
     <p class="pp-p">Mathrone Academy uses <strong>Google AdSense</strong> to serve advertisements on our platform. To ensure you see relevant ads, we follow these practices:</p>
@@ -1605,7 +1605,7 @@ setTimeout(async () => {
       <div>
         <div style="font-size:11px;font-weight:700;color:var(--blue);letter-spacing:0.08em;margin-bottom:12px">OUR MISSION</div>
         <h2 class="about-h2">Majestic Learning.<br/>Royal Results.</h2>
-        <p class="about-p">Mathrone Academy was founded with a single purpose to make high-quality, personalised education accessible to every student in Rwanda and beyond.</p>
+        <p class="about-p">Mathrone Academy is an all-in-one educational ecosystem. We bridge the gap between traditional schooling and modern career demands by providing a platform where anyone—from a P1 student to a corporate professional—can find the exact lesson, tutor, or tool they need to succeed.</p>
 <div style="display:flex; gap:16px; margin:24px 0; padding:20px; background:#fff; border-radius:12px; border:1px solid var(--g100); flex-wrap:wrap;">
   <div style="flex:1; min-width:80px; text-align:center;"><div id="about-stat-tutors" style="font-size:22px; font-weight:800; color:var(--blue)">0</div><div style="font-size:10px; color:var(--g400); text-transform:uppercase;">Tutors</div></div>
   <div style="flex:1; min-width:80px; text-align:center;"><div id="about-stat-students" style="font-size:22px; font-weight:800; color:var(--blue)">0</div><div style="font-size:10px; color:var(--g400); text-transform:uppercase;">Students</div></div>

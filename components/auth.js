@@ -285,8 +285,11 @@ function selectStudentCategory(id){
     subInput.previousElementSibling.textContent = id === 'academic' ? 'Subjects Needed' : 'Skills You Want to Learn'
   }
 
-  // keep location visibility in sync with session mode
-  toggleStudentLocation()
+  // Show parent info ONLY for Academic category
+  const pWrap = document.getElementById('parent-info-wrap');
+  if(pWrap) pWrap.style.display = (id === 'academic') ? 'grid' : 'none';
+
+  toggleStudentLocation();
 }
     function renderRegForm(role) {
       const el = document.getElementById('reg-form')
@@ -295,12 +298,12 @@ function selectStudentCategory(id){
         el.innerHTML = `
       <div id="reg-err" class="form-error" style="margin-bottom:12px;display:none"></div>
       <div class="grid-2">
-        <div class="form-group"><label class="form-label">Full Name *</label><input class="input" id="r-name" placeholder="John Smith"/></div>
+        <div class="form-group"><label class="form-label">Full Name *</label><input class="input" id="r-name" placeholder="Kamali James"/></div>
         <div class="form-group"><label class="form-label">Email *</label><input class="input" id="r-email" type="email" placeholder="you@example.com"/></div>
       </div>
       <div class="grid-2">
         <div class="form-group"><label class="form-label">Password *</label><input class="input" id="r-pw" type="password" placeholder="Min 6 chars"/></div>
-        <div class="form-group"><label class="form-label">Phone</label><input class="input" id="r-phone" placeholder="+250 789 123 456"/></div>
+        <div class="form-group"><label class="form-label">Phone Number *</label><input class="input" id="r-phone" placeholder="+250 789 123 456"/></div>
       </div>
       
       <div class="form-group">
@@ -336,10 +339,11 @@ function selectStudentCategory(id){
         <div style="font-size:11px;color:var(--g400);margin-top:4px">Required for home visits so tutor knows where to come</div>
       </div>
       <div class="form-group"><label class="form-label">Subjects Needed (comma separated)</label><input class="input" id="r-subjects" placeholder="Math, Physics, Chemistry"/></div>
-      <div class="grid-2">
-  <div class="form-group"><label class="form-label">Parent Name</label><input class="input" id="r-parent" placeholder="Parent / Guardian name"/></div>
-  <div class="form-group"><label class="form-label">Parent Phone</label><input class="input" id="r-parent-phone" placeholder="+250 789 123 456"/></div>
-</div>
+      <div class="grid-2" id="parent-info-wrap" style="display:none; background:var(--sky); padding:12px; border-radius:10px; margin-bottom:16px;">
+        <div style="grid-column: 1/-1; font-size:11px; font-weight:800; color:var(--blue); margin-bottom:8px; text-transform:uppercase;">Parent / Guardian Info (For Minors)</div>
+        <div class="form-group"><label class="form-label">Parent Name</label><input class="input" id="r-parent" placeholder="Full name"/></div>
+        <div class="form-group"><label class="form-label">Parent Phone</label><input class="input" id="r-parent-phone" placeholder="+250..."/></div>
+      </div>
       <button class="btn btn-primary btn-full" style="margin-top:8px" id="reg-btn" onclick="doRegister()">Create Student Account →</button>`
       
     // Build student category grid
@@ -360,7 +364,7 @@ function selectStudentCategory(id){
         el.innerHTML = `
       <div id="reg-err" class="form-error" style="margin-bottom:12px;display:none"></div>
       <div class="grid-2">
-        <div class="form-group"><label class="form-label">Full Name *</label><input class="input" id="r-name" placeholder="Jane Doe"/></div>
+        <div class="form-group"><label class="form-label">Full Name *</label><input class="input" id="r-name" placeholder="Kamali jean"/></div>
         <div class="form-group"><label class="form-label">Email *</label><input class="input" id="r-email" type="email" placeholder="you@example.com"/></div>
       </div>
       <div class="grid-2">
