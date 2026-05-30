@@ -961,7 +961,7 @@ async function renderForum(activeCategory = null){
               <span style="font-size:11px;color:var(--g400)">${fmtShort(p.created_at)}</span>
             </div>
             <div style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:6px">${p.title}</div>
-            <div style="font-size:13px;color:var(--g600);line-height:1.6">${p.content.slice(0,150)}${p.content.length>150?'...':''}</div>
+<div style="font-size:13px;color:var(--g600);line-height:1.6">${linkifyForumContent(p)}</div>
             <div style="display:flex;align-items:center;gap:16px;margin-top:10px">
               <span style="font-size:12px;color:var(--g400)">by <strong>${p.profiles?.full_name||'Unknown'}</strong> • ${p.profiles?.role||''}</span>
           
@@ -1067,7 +1067,7 @@ async function openPost(postId){
             <button class="btn btn-ghost btn-sm" style="margin-left:auto"aria-label="Like post"  onclick="likePost('${post.id}')">❤️ ${post.likes||0}</button>
             ${State.user.role==='admin'?`<button class="btn btn-ghost btn-sm" onclick="pinPost('${post.id}')">📌 ${post.is_pinned?'Unpin':'Pin'}</button>`:''}
           </div>
-          <p style="font-size:14px;color:var(--g600);line-height:1.8;margin-bottom:20px">${post.content}</p>
+          <p style="font-size:14px;color:var(--g600);line-height:1.8;margin-bottom:20px">${linkifyForumContent(post)}</p>
           <div style="border-top:1px solid var(--g100);padding-top:16px">
             <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:12px">💬 Comments (${comments.length})</div>
             <div style="display:flex;flex-direction:column;gap:10px;max-height:280px;overflow-y:auto;margin-bottom:16px">
@@ -1315,6 +1315,17 @@ function fmtShort(dt) {
           }
         })
         .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages'
+        }, function(payload) {
+          // If the message is for me, refresh count
+          if(payload.new.sender_id !== userId) {
+            loadUnreadCount();
+            if (State.page === 'messages') setTimeout(renderMessages, 300);
+          }
+        })
+        .on('postgres_changes', {
           event: 'UPDATE',
           schema: 'public',
           table: 'sessions',
@@ -1377,28 +1388,41 @@ function fmtShort(dt) {
       async function loadUnreadCount() {
         if (!State.user || !getToken()) return; 
         try {
-          const notifs = await api('/notifications/?unread_only=true')
-          const count = (notifs || []).length
-          State.data.unreadCount = count
-          // Inject badge into DOM after sidebar renders
+          // Fetch both counts in parallel
+          const [notifRes, msgRes] = await Promise.all([
+            api('/notifications/?unread_only=true'),
+            api('/messages/unread-count')
+          ]);
+
+          const notifCount = (notifRes || []).length;
+          const msgCount = msgRes.count || 0;
+
+          // Inject badges into DOM
           setTimeout(() => {
-            const btns = document.querySelectorAll('.sidebar-item')
+            const btns = document.querySelectorAll('.sidebar-item');
             btns.forEach(btn => {
+              // 1. Update Notifications Badge
               if (btn.textContent.includes('Notifications')) {
-                const old = btn.querySelector('.notif-badge')
-                if (old) old.remove()
-                if (count > 0) {
-                  const badge = document.createElement('span')
-                  badge.className = 'notif-badge'
-                  badge.style.cssText = 'margin-left:auto;background:#ef4444;color:#fff;border-radius:999px;font-size:11px;font-weight:700;padding:1px 7px;min-width:20px;text-align:center'
-                  badge.textContent = count
-                  btn.appendChild(badge)
-                }
+                _updateSidebarBadge(btn, notifCount);
               }
-            })
-          }, 100)
-        } catch (e) {
-          State.data.unreadCount = 0
+              // 2. Update Messages Badge
+              if (btn.textContent.includes('Messages')) {
+                _updateSidebarBadge(btn, msgCount);
+              }
+            });
+          }, 100);
+        } catch (e) { console.error(e); }
+      }
+
+      function _updateSidebarBadge(btnEl, count) {
+        const old = btnEl.querySelector('.notif-badge');
+        if (old) old.remove();
+        if (count > 0) {
+          const badge = document.createElement('span');
+          badge.className = 'notif-badge';
+          badge.style.cssText = 'margin-left:auto;background:#ef4444;color:#fff;border-radius:999px;font-size:10px;font-weight:800;padding:1px 6px;min-width:18px;text-align:center;line-height:1.4;border:1.5px solid var(--navy);';
+          badge.textContent = count > 99 ? '99+' : count;
+          btnEl.appendChild(badge);
         }
       }
     
@@ -2353,6 +2377,8 @@ async function deleteSelectedMsgs(){
     `))
         // Scroll to bottom
         setTimeout(() => { const a = document.getElementById('msgs-area'); if (a) a.scrollTop = a.scrollHeight }, 100)
+          // Refresh unread count because opening the chat marks messages as read
+        setTimeout(loadUnreadCount, 500);
         // Render math formulas
     setTimeout(() => { if(window.MathJax) MathJax.typesetPromise() }, 300)
       } catch (e) { toast(e.message, 'err') }

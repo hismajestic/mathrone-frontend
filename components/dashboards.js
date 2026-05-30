@@ -1,3 +1,21 @@
+function linkifyForumContent(post) {
+  const content = post.content || "";
+  // Check if author is admin
+  const isAdmin = post.profiles?.role === 'admin';
+
+  if (isAdmin) {
+    // Regex to find URLs starting with http://, https://, or www.
+    const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/g;
+    return content.replace(urlRegex, (url) => {
+      let href = url;
+      if (!href.startsWith('http')) href = 'https://' + href;
+      return `<a href="${href}" target="_blank" rel="noopener noreferrer" style="color:var(--blue); text-decoration:underline; font-weight:600;">${url}</a>`;
+    });
+  }
+  // Return plain text for non-admins
+  return content;
+}
+
 var FORUM_CATEGORIES = [
   { id: 'general',   icon: '<i data-lucide="message-square" style="width:16px;height:16px"></i>', label: 'General Discussion' },
   { id: 'study',     icon: '<i data-lucide="book-open" style="width:16px;height:16px"></i>', label: 'Study Tips' },
@@ -329,7 +347,7 @@ async function renderQuiz(){
     .ai-msg{display:flex;gap:12px;align-items:flex-start;animation:fadeUp .3s ease;max-width:85%}
     .ai-msg.user{flex-direction:row-reverse;margin-left:auto}
     .ai-msg.assistant{margin-right:auto}
-    .ai-bubble{padding:14px 18px;border-radius:18px;font-size:14px;line-height:1.7;word-wrap:break-word}
+    .card div, .modal-body p { word-break: break-word; overflow-wrap: break-word; }
     .ai-msg.assistant .ai-bubble{background:#fff;border:1px solid var(--g100);color:var(--navy);border-radius:6px 18px 18px 18px;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
     .ai-msg.user .ai-bubble{background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;border-radius:18px 6px 18px 18px;box-shadow:0 2px 8px rgba(124,58,237,0.25)}
     .ai-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;margin-top:2px}
