@@ -1186,13 +1186,28 @@ async function openNewsPost(slugOrId){
           try{ await ensureMathJax(); await MathJax.typesetPromise([body]) }catch(e){}
         }
 
-        // 3. Trigger AdSense to load the ads we just injected
+// 3. Trigger AdSense to load the ads we just injected
         try {
           const adSlots = body.querySelectorAll('.adsbygoogle');
           adSlots.forEach(() => {
             (window.adsbygoogle = window.adsbygoogle || []).push({});
           });
         } catch (e) { console.error("AdSense trigger failed", e); }
+
+        // 4. Remove vignette marker divs — invisible to readers, vignette fires from <head> script
+        body.querySelectorAll('[data-monetag-type="vignette"]').forEach(el => el.remove());
+
+        // 5. Fire Monetag In-Page Push — inject the script next to each ad slot div
+        try {
+          body.querySelectorAll('[data-monetag-zone]').forEach(slot => {
+            if (slot.dataset.loaded) return;
+            slot.dataset.loaded = '1';
+            const s = document.createElement('script');
+            s.dataset.zone = slot.dataset.monetagZone;
+            s.src = 'https://nap5k.com/tag.min.js';
+            slot.after(s);
+          });
+        } catch(e) { console.error('Monetag inpage failed', e); }
       }
     }, 200)
     const articleUrl = 'https://mathroneacademy.com/news/' + ((p.category === 'news' || !p.category) ? 'education' : p.category) + '/' + articleSlug;
@@ -1522,11 +1537,26 @@ async function openNewsModalAsync(postId = null){
   }
 }
 function insertAdPlaceholder() {
+  // In-Page Push Banner (Monetag zone 11128395)
   const editor = document.getElementById('news-editor')
   if (!editor) return
   editor.focus()
-  const adHtml = '<table width="100%" style="background:#FFF8ED;border:2px dashed #F5A623;border-radius:8px;margin:16px 0" data-ad-placeholder="true"><tr><td style="padding:14px;text-align:center;font-size:13px;font-weight:700;color:#b45309">📢 AD PLACEMENT — Ad will appear here</td></tr></table><p><br></p>'
+  const adHtml = '<div data-monetag-zone="11128395" data-monetag-type="inpage" style="margin:24px 0;text-align:center;min-height:10px" contenteditable="false"></div><p><br></p>'
   document.execCommand('insertHTML', false, adHtml)
+  toast('In-Page Push ad slot inserted ✅')
+}
+
+function insertVignetteAd() {
+  // Vignette Banner (Monetag zone 11128298) — fires once on next page interaction
+  const editor = document.getElementById('news-editor')
+  if (!editor) return
+  editor.focus()
+  // Vignette is a global trigger script, not a div-based slot.
+  // We insert a visible marker so you can see it in the editor,
+  // but the actual ad fires from the global script in <head>.
+  const adHtml = '<div data-monetag-type="vignette" contenteditable="false" style="display:none"></div><p><br></p>'
+  document.execCommand('insertHTML', false, adHtml)
+  toast('Vignette ad trigger inserted ✅')
 }
 
 function toggleNewsEditorFullscreen(){
@@ -2455,7 +2485,7 @@ async function openNewsModal(postId = null){
                 <button type="button" onclick="insertNewsEmbed()" title="Embed YouTube or iframe" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;gap:4px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"/><path d="m10 15 5-3-5-3z"/></svg> Embed</button>
                 <button type="button" onclick="insertNewsTable()" title="Insert table" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;gap:4px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/></svg> Table</button>
                 <button type="button" onclick="insertNewsFormula()" title="Insert math formula (LaTeX)" style="border:1px solid #7c3aed;background:#f5f3ff;padding:4px 10px;border-radius:4px;cursor:pointer;font-weight:600;color:#7c3aed;display:inline-flex;align-items:center;gap:4px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="12" x="2" y="6" rx="2"/><path d="m7 12 2 2 6-6"/><path d="M17 10h.01"/><path d="M17 14h.01"/></svg> Formula</button>
-                <button type="button" onclick="insertAdPlaceholder()" style="border:1px solid #F5A623;background:#FFF8ED;padding:4px 10px;border-radius:4px;cursor:pointer;font-weight:600;color:#b45309;display:inline-flex;align-items:center;gap:4px"><i data-lucide="megaphone" style="width:14px;height:14px"></i> Ad</button>
+                <button type="button" onclick="insertAdPlaceholder()" title="Insert In-Page Push Ad" style="border:1px solid #F5A623;background:#FFF8ED;padding:4px 10px;border-radius:4px;cursor:pointer;font-weight:600;color:#b45309;display:inline-flex;align-items:center;gap:4px"><i data-lucide="megaphone" style="width:14px;height:14px"></i> Ad</button><button type="button" onclick="insertVignetteAd()" title="Insert Vignette Ad trigger" style="border:1px solid #1A5FFF;background:#EEF3FF;padding:4px 10px;border-radius:4px;cursor:pointer;font-weight:600;color:#1A5FFF;display:inline-flex;align-items:center;gap:4px"><i data-lucide="layout" style="width:14px;height:14px"></i> Vignette</button>
 <button type="button" onclick="insertWhatsAppCTA()" style="border:1px solid #25D366;background:#f0fdf4;padding:4px 10px;border-radius:4px;cursor:pointer;font-weight:600;color:#15803d;display:inline-flex;align-items:center;gap:4px" title="Insert WhatsApp Invite"><i data-lucide="message-circle" style="width:14px;height:14px"></i> WhatsApp</button>
                 <input type="file" id="news-img-upload" accept="image/*" style="display:none" onchange="insertNewsImage(this)"/>
                 <input type="color" onchange="document.execCommand('foreColor',false,this.value)" title="Text color" style="border:1px solid var(--g200);border-radius:4px;width:32px;height:28px;cursor:pointer;padding:2px"/>
