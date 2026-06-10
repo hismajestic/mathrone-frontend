@@ -1595,15 +1595,19 @@ async function renderAdminCourses() {
     render(dashWrap('admin-courses', `
     <div class="page-header">
       <div><h1 class="page-title" style="display:flex;align-items:center;gap:8px"><i data-lucide="library" style="width:28px;height:28px;color:var(--blue)"></i> Courses Manager</h1><p class="page-subtitle">${courses.length} courses • ${orders.length} orders${pendingOrders ? ' • ' + pendingOrders + ' pending' : ''}</p></div>
-      ${tab === 'courses' ? `<button class="btn btn-primary" onclick="openAddCourseModal()">+ Add Course</button>` : ''}
+      ${tab === 'courses' ? `<button class="btn btn-primary" onclick="openAddCourseModal()">+ Add Course</button>` : tab === 'analytics' ? `<button class="btn btn-ghost btn-sm" onclick="State.tab='analytics';renderAdminCourses()"><i data-lucide="refresh-cw" style="width:14px;height:14px;margin-right:4px;vertical-align:-2px"></i>Refresh</button>` : ''}
     </div>
     <div class="tabs" style="margin-bottom:24px">
       <button class="tab-btn ${tab === 'courses' ? 'active' : ''}" onclick="State.tab='courses';renderAdminCourses()">Courses (${courses.length})</button>
       <button class="tab-btn ${tab === 'orders' ? 'active' : ''}" onclick="State.tab='orders';renderAdminCourses()">
         Orders (${orders.length})${pendingOrders ? ` <span style="background:#ef4444;color:#fff;border-radius:999px;font-size:11px;padding:1px 6px;margin-left:4px">${pendingOrders}</span>` : ''}
       </button>
+      <button class="tab-btn ${tab === 'analytics' ? 'active' : ''}" onclick="State.tab='analytics';renderAdminCourses()">
+        <i data-lucide="bar-chart-2" style="width:15px;height:15px;margin-right:4px;vertical-align:-2px"></i>Analytics
+      </button>
     </div>
 
+    ${tab === 'analytics' ? `<div id="course-analytics-panel"><div class="loader-center"><div class="spinner"></div></div></div>` : ''}
     ${tab === 'courses' ? `
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
       ${courses.map(c => `
@@ -1667,6 +1671,166 @@ async function renderAdminCourses() {
     </div>`}
     <div id="modal-root"></div>
     `))
+  // ── Load course analytics asynchronously ─────────────────────────────────
+  if ((State.tab || 'courses') === 'analytics') {
+    setTimeout(async () => {
+      try {
+        const analytics = await api('/courses/admin/analytics')
+        const panel = document.getElementById('course-analytics-panel')
+        if (!panel) return
+
+        const totalEnrolled  = analytics.reduce((a, c) => a + c.enrolled_count, 0)
+        const totalRevenue   = analytics.reduce((a, c) => a + (c.revenue_rwf || 0), 0)
+        const totalHours     = analytics.reduce((a, c) => a + (c.total_time_hours || 0), 0)
+        const avgCompletion  = analytics.length
+          ? Math.round(analytics.reduce((a, c) => a + c.completion_rate, 0) / analytics.length)
+          : 0
+
+        // Bar chart helper — pure CSS bars, no dependencies
+        const maxEnroll = Math.max(...analytics.map(c => c.enrolled_count), 1)
+        const barChart  = analytics.slice(0, 8).map(c => {
+          const pct = Math.round((c.enrolled_count / maxEnroll) * 100)
+          const color = c.price > 0 ? '#3b82f6' : '#10b981'
+          return `
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <div style="width:140px;min-width:100px;font-size:11px;color:var(--g600);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.title}</div>
+            <div style="flex:1;background:var(--g100);border-radius:4px;height:20px;overflow:hidden;position:relative">
+              <div style="width:${pct}%;height:100%;background:${color};border-radius:4px;transition:width 0.6s ease;display:flex;align-items:center;justify-content:flex-end;padding-right:6px">
+                ${pct > 15 ? `<span style="font-size:10px;font-weight:700;color:#fff">${c.enrolled_count}</span>` : ''}
+              </div>
+              ${pct <= 15 ? `<span style="position:absolute;left:${pct}% + 6px;top:3px;font-size:10px;font-weight:700;color:var(--navy);margin-left:${pct}%;padding-left:4px">${c.enrolled_count}</span>` : ''}
+            </div>
+            <div style="width:44px;text-align:right;font-size:10px;font-weight:700;color:${c.price > 0 ? 'var(--blue)' : 'var(--green)'}">${c.price > 0 ? 'PAID' : 'FREE'}</div>
+          </div>`
+        }).join('')
+
+        // Completion donut — SVG
+        const donutSize = 80
+        const r = 32, cx = 40, cy = 40
+        const circ = 2 * Math.PI * r
+        const dash = (avgCompletion / 100) * circ
+        const donut = `<svg width="${donutSize}" height="${donutSize}" viewBox="0 0 80 80" style="transform:rotate(-90deg)">
+          <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--g100)" stroke-width="10"/>
+          <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#3b82f6" stroke-width="10"
+            stroke-dasharray="${dash} ${circ - dash}" stroke-linecap="round"/>
+        </svg>`
+
+        panel.innerHTML = `
+        <!-- Summary KPI strip -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-bottom:24px">
+          <div class="card" style="padding:18px;display:flex;align-items:center;gap:12px">
+            <div class="stat-icon" style="background:#EEF2FF;color:var(--blue);flex-shrink:0"><i data-lucide="users"></i></div>
+            <div><div class="stat-num" style="font-size:22px">${totalEnrolled}</div><div class="stat-label">Total Enrollments</div></div>
+          </div>
+          <div class="card" style="padding:18px;display:flex;align-items:center;gap:12px">
+            <div class="stat-icon" style="background:#F0FDF4;color:var(--green);flex-shrink:0"><i data-lucide="banknote"></i></div>
+            <div><div class="stat-num" style="font-size:22px">RWF ${Number(totalRevenue).toLocaleString()}</div><div class="stat-label">Course Revenue</div></div>
+          </div>
+          <div class="card" style="padding:18px;display:flex;align-items:center;gap:12px">
+            <div class="stat-icon" style="background:#FFF7ED;color:var(--orange);flex-shrink:0"><i data-lucide="clock"></i></div>
+            <div><div class="stat-num" style="font-size:22px">${totalHours.toFixed(0)}h</div><div class="stat-label">Total Learning Hours</div></div>
+          </div>
+          <div class="card" style="padding:18px;display:flex;align-items:center;gap:12px">
+            <div style="position:relative;flex-shrink:0">
+              ${donut}
+              <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--blue);transform:rotate(0deg)">${avgCompletion}%</div>
+            </div>
+            <div><div class="stat-num" style="font-size:22px">${avgCompletion}%</div><div class="stat-label">Avg Completion</div></div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:24px;flex-wrap:wrap">
+          <!-- Enrollments bar chart -->
+          <div class="card" style="padding:20px">
+            <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:4px;display:flex;align-items:center;gap:6px">
+              <i data-lucide="bar-chart-2" style="width:16px;height:16px;color:var(--blue)"></i> Enrollments by Course
+            </div>
+            <div style="font-size:11px;color:var(--g400);margin-bottom:14px">Top 8 · <span style="color:var(--blue)">■</span> Paid &nbsp;<span style="color:var(--green)">■</span> Free</div>
+            ${barChart || '<div style="color:var(--g400);font-size:13px">No data yet</div>'}
+          </div>
+
+          <!-- Per-course completion rates -->
+          <div class="card" style="padding:20px">
+            <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:4px;display:flex;align-items:center;gap:6px">
+              <i data-lucide="check-circle" style="width:16px;height:16px;color:var(--green)"></i> Completion Rates
+            </div>
+            <div style="font-size:11px;color:var(--g400);margin-bottom:14px">% of enrolled students who finished</div>
+            ${analytics.slice(0, 8).map(c => {
+              const clr = c.completion_rate >= 70 ? '#10b981' : c.completion_rate >= 40 ? '#f59e0b' : '#ef4444'
+              return `
+              <div style="margin-bottom:10px">
+                <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">
+                  <span style="color:var(--g600);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px">${c.title}</span>
+                  <span style="font-weight:700;color:${clr}">${c.completion_rate}%</span>
+                </div>
+                <div style="height:6px;background:var(--g100);border-radius:3px;overflow:hidden">
+                  <div style="width:${c.completion_rate}%;height:100%;background:${clr};border-radius:3px;transition:width 0.6s ease"></div>
+                </div>
+              </div>`
+            }).join('')}
+          </div>
+        </div>
+
+        <!-- Detailed table -->
+        <div class="card" style="padding:20px">
+          <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:6px">
+            <i data-lucide="table" style="width:16px;height:16px;color:var(--blue)"></i> Per-Course Breakdown
+          </div>
+          <div class="table-wrap" style="overflow-x:auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>Course</th>
+                  <th>Subject</th>
+                  <th>Level</th>
+                  <th>Price</th>
+                  <th style="text-align:center">Enrolled</th>
+                  <th style="text-align:center">Completion</th>
+                  <th style="text-align:center">Avg Time</th>
+                  <th style="text-align:center">Revenue</th>
+                  <th style="text-align:center">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${analytics.map(c => `
+                <tr>
+                  <td>
+                    <div style="font-weight:700;color:var(--navy);font-size:13px">${c.title}</div>
+                    ${c.curriculum ? `<span style="background:#eff6ff;color:#1d4ed8;font-size:9px;font-weight:700;padding:1px 5px;border-radius:999px">${c.curriculum}</span>` : ''}
+                  </td>
+                  <td style="font-size:12px;color:var(--g600)">${c.subject || '—'}</td>
+                  <td style="font-size:12px">${c.level || '—'}</td>
+                  <td style="font-weight:700;color:${c.price > 0 ? 'var(--navy)' : 'var(--green)'}">${c.price > 0 ? 'RWF ' + Number(c.price).toLocaleString() : 'FREE'}</td>
+                  <td style="text-align:center">
+                    <span style="background:#EEF2FF;color:var(--blue);font-weight:800;font-size:13px;padding:3px 10px;border-radius:999px">${c.enrolled_count}</span>
+                  </td>
+                  <td style="text-align:center">
+                    <div style="display:flex;align-items:center;justify-content:center;gap:6px">
+                      <div style="width:48px;height:5px;background:var(--g100);border-radius:3px;overflow:hidden">
+                        <div style="width:${c.completion_rate}%;height:100%;background:${c.completion_rate >= 70 ? '#10b981' : c.completion_rate >= 40 ? '#f59e0b' : '#ef4444'};border-radius:3px"></div>
+                      </div>
+                      <span style="font-size:12px;font-weight:700;color:${c.completion_rate >= 70 ? '#10b981' : c.completion_rate >= 40 ? '#f59e0b' : '#ef4444'}">${c.completion_rate}%</span>
+                    </div>
+                  </td>
+                  <td style="text-align:center;font-size:12px;color:var(--g600)">${c.avg_time_mins > 0 ? c.avg_time_mins + ' min' : '—'}</td>
+                  <td style="text-align:center;font-weight:700;color:var(--green)">${c.revenue_rwf > 0 ? 'RWF ' + Number(c.revenue_rwf).toLocaleString() : '—'}</td>
+                  <td style="text-align:center">
+                    <span style="background:${c.is_published ? '#dcfce7' : '#fee2e2'};color:${c.is_published ? '#065f46' : '#991b1b'};font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px">${c.is_published ? '✅ Live' : '⏸ Draft'}</span>
+                  </td>
+                </tr>`).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>`
+
+        if (window.lucide) lucide.createIcons()
+      } catch(e) {
+        const panel = document.getElementById('course-analytics-panel')
+        if (panel) panel.innerHTML = `<div class="alert-warn">Could not load analytics: ${e.message}</div>`
+      }
+    }, 100)
+  }
+
   } catch(e) { toast(e.message, 'err') }
 }
 
