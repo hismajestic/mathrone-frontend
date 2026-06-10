@@ -1276,7 +1276,26 @@ function openLessonPlayer(lessonId) {
   const l = window._currentLessons?.find(x => x.id === lessonId);
   if (!l) { toast('Lesson not found', 'err'); return; }
   const courseId = l.course_id;
+
+  // --- ANALYTICS START ---
+  let startTime = Date.now();
+  if(window._analyticsTimer) clearInterval(window._analyticsTimer);
   
+  // Send a heartbeat every 30 seconds to the backend
+  window._analyticsTimer = setInterval(() => {
+      const secondsWatched = Math.floor((Date.now() - startTime) / 1000);
+      if (State.user) {
+          fetch(API_URL + '/courses/analytics/heartbeat', {
+              method: 'POST',
+              headers: { 
+                  'Content-Type': 'application/json',
+                  'Authorization': 'Bearer ' + getToken() 
+              },
+              body: JSON.stringify({ lesson_id: lessonId, seconds: 30 })
+          }).catch(() => {});
+      }
+  }, 30000);
+  // --- ANALYTICS END ---
   let videoHtml = '';
   if (l.video_url) {
     const ytMatch = l.video_url.match(/(?:embed\/|v=|youtu\.be\/)([\w-]{11})/);

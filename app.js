@@ -5316,3 +5316,199 @@ function initAdSenseCookies() {
 }
 
 setTimeout(initAdSenseCookies, 3000);
+// ── ACCESSIBILITY CONTROLLER ──
+var AccState = {
+    fontSize: 100, textSpacing: 0, lineHeight: 1.5,
+    invert: false, grayscale: false, bigCursor: false,
+    readingGuide: false, underline: false, noAnim: false, highlight: false
+};
+
+function _accIcon(name, size) {
+    return `<i data-lucide="${name}" style="width:${size||16}px;height:${size||16}px;flex-shrink:0"></i>`;
+}
+
+function toggleAccPanel() {
+    const existing = document.getElementById('acc-panel');
+    if (existing) { existing.remove(); return; }
+
+    const panel = document.createElement('div');
+    panel.id = 'acc-panel';
+    panel.setAttribute('role', 'dialog');
+    panel.setAttribute('aria-label', 'Accessibility Options');
+    panel.setAttribute('aria-modal', 'true');
+    panel.innerHTML = `
+    <div class="acc-panel-inner">
+        <div class="acc-panel-header">
+            <span style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;color:var(--navy)">
+                ${_accIcon('accessibility',18)} Accessibility
+            </span>
+            <button type="button" class="acc-close-btn" onclick="document.getElementById('acc-panel').remove()" aria-label="Close accessibility panel">
+                ${_accIcon('x',16)}
+            </button>
+        </div>
+
+        <div class="acc-section-label">Text Size</div>
+        <div class="acc-row">
+            <button type="button" class="acc-btn" onclick="adjustAcc('fontSize',-10)" aria-label="Decrease text size">
+                ${_accIcon('a-large-small',16)} Smaller
+            </button>
+            <span class="acc-value" id="acc-font-val">${AccState.fontSize}%</span>
+            <button type="button" class="acc-btn" onclick="adjustAcc('fontSize',10)" aria-label="Increase text size">
+                ${_accIcon('zoom-in',16)} Larger
+            </button>
+        </div>
+
+        <div class="acc-section-label">Letter Spacing</div>
+        <div class="acc-row">
+            <button type="button" class="acc-btn" onclick="adjustAcc('textSpacing',-1)" aria-label="Decrease letter spacing">
+                ${_accIcon('minus',16)} Less
+            </button>
+            <span class="acc-value" id="acc-spacing-val">${AccState.textSpacing}px</span>
+            <button type="button" class="acc-btn" onclick="adjustAcc('textSpacing',1)" aria-label="Increase letter spacing">
+                ${_accIcon('plus',16)} More
+            </button>
+        </div>
+
+        <div class="acc-section-label">Line Height</div>
+        <div class="acc-row">
+            <button type="button" class="acc-btn" onclick="adjustAcc('lineHeight',-0.25)" aria-label="Decrease line height">
+                ${_accIcon('minimize-2',16)} Tighter
+            </button>
+            <span class="acc-value" id="acc-lh-val">${AccState.lineHeight}</span>
+            <button type="button" class="acc-btn" onclick="adjustAcc('lineHeight',0.25)" aria-label="Increase line height">
+                ${_accIcon('maximize-2',16)} Looser
+            </button>
+        </div>
+
+        <div class="acc-section-label">Visual Aids</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+            <button type="button" class="acc-toggle-btn" id="acc-t-invert" onclick="toggleAcc('invert')" aria-pressed="${AccState.invert}">
+                ${_accIcon('contrast',16)} Invert Colors
+            </button>
+            <button type="button" class="acc-toggle-btn" id="acc-t-grayscale" onclick="toggleAcc('grayscale')" aria-pressed="${AccState.grayscale}">
+                ${_accIcon('droplets',16)} Grayscale
+            </button>
+            <button type="button" class="acc-toggle-btn" id="acc-t-highlight" onclick="toggleAcc('highlight')" aria-pressed="${AccState.highlight}">
+                ${_accIcon('highlighter',16)} Highlight Links
+            </button>
+            <button type="button" class="acc-toggle-btn" id="acc-t-underline" onclick="toggleAcc('underline')" aria-pressed="${AccState.underline}">
+                ${_accIcon('underline',16)} Underline Links
+            </button>
+            <button type="button" class="acc-toggle-btn" id="acc-t-cursor" onclick="toggleAcc('bigCursor')" aria-pressed="${AccState.bigCursor}">
+                ${_accIcon('mouse-pointer-2',16)} Big Cursor
+            </button>
+            <button type="button" class="acc-toggle-btn" id="acc-t-guide" onclick="toggleAcc('readingGuide')" aria-pressed="${AccState.readingGuide}">
+                ${_accIcon('ruler',16)} Reading Guide
+            </button>
+            <button type="button" class="acc-toggle-btn" id="acc-t-anim" onclick="toggleAcc('noAnim')" aria-pressed="${AccState.noAnim}">
+                ${_accIcon('zap-off',16)} Reduce Motion
+            </button>
+        </div>
+
+        <button type="button" class="acc-reset-btn" onclick="resetAcc()" style="margin-top:12px">
+            ${_accIcon('rotate-ccw',14)} Reset All
+        </button>
+    </div>`;
+
+    document.body.appendChild(panel);
+    if (window.lucide) window.lucide.createIcons();
+    _syncAccPanel();
+    const firstFocusable = panel.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    if (firstFocusable) firstFocusable.focus();
+}
+
+function _syncAccPanel() {
+    const fv = document.getElementById('acc-font-val');
+    const sv = document.getElementById('acc-spacing-val');
+    const lv = document.getElementById('acc-lh-val');
+    if (fv) fv.textContent = AccState.fontSize + '%';
+    if (sv) sv.textContent = AccState.textSpacing + 'px';
+    if (lv) lv.textContent = AccState.lineHeight;
+    const toggleMap = { invert:'acc-t-invert', grayscale:'acc-t-grayscale', highlight:'acc-t-highlight', underline:'acc-t-underline', bigCursor:'acc-t-cursor', readingGuide:'acc-t-guide', noAnim:'acc-t-anim' };
+    Object.entries(toggleMap).forEach(([prop, id]) => {
+        const btn = document.getElementById(id);
+        if (!btn) return;
+        btn.setAttribute('aria-pressed', String(AccState[prop]));
+        btn.classList.toggle('acc-toggle-on', !!AccState[prop]);
+    });
+}
+
+function adjustAcc(prop, delta) {
+    if (prop === 'fontSize') {
+        AccState.fontSize = Math.max(70, Math.min(200, AccState.fontSize + delta));
+    } else if (prop === 'textSpacing') {
+        AccState.textSpacing = Math.max(-2, Math.min(10, AccState.textSpacing + delta));
+    } else if (prop === 'lineHeight') {
+        AccState.lineHeight = Math.max(1, Math.min(3, Math.round((AccState.lineHeight + delta) * 100) / 100));
+    }
+    applyAcc();
+    _syncAccPanel();
+}
+
+function toggleAcc(prop) {
+    AccState[prop] = !AccState[prop];
+    applyAcc();
+    _syncAccPanel();
+}
+
+function resetAcc() {
+    AccState = { fontSize: 100, textSpacing: 0, lineHeight: 1.5, invert: false, grayscale: false, bigCursor: false, readingGuide: false, underline: false, noAnim: false, highlight: false };
+    applyAcc();
+    _syncAccPanel();
+}
+
+function applyAcc() {
+    const b = document.body;
+    const scale = AccState.fontSize / 100;
+    document.documentElement.style.fontSize = (16 * scale) + 'px';
+    document.documentElement.style.setProperty('--acc-scale', scale);
+    b.style.letterSpacing = AccState.textSpacing + 'px';
+    b.style.lineHeight = AccState.lineHeight;
+    b.classList.toggle('acc-invert', AccState.invert);
+    b.classList.toggle('acc-grayscale', AccState.grayscale);
+    b.classList.toggle('acc-big-cursor', AccState.bigCursor);
+    b.classList.toggle('acc-underline-links', AccState.underline);
+    b.classList.toggle('acc-highlight-links', AccState.highlight);
+    b.classList.toggle('acc-no-animations', AccState.noAnim);
+    const guide = document.getElementById('acc-reading-guide') || (() => {
+        const g = document.createElement('div'); g.id = 'acc-reading-guide';
+        document.body.appendChild(g); return g;
+    })();
+    guide.style.display = AccState.readingGuide ? 'block' : 'none';
+}
+
+document.addEventListener('mousemove', (e) => {
+    const guide = document.getElementById('acc-reading-guide');
+    if (guide && AccState.readingGuide) guide.style.top = e.clientY + 'px';
+});
+
+// Close panel when clicking outside or pressing Escape
+document.addEventListener('click', (e) => {
+    const panel = document.getElementById('acc-panel');
+    const btn = document.getElementById('acc-widget-btn');
+    if (panel && !panel.contains(e.target) && btn && !btn.contains(e.target)) {
+        panel.remove();
+        btn.focus();
+    }
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const panel = document.getElementById('acc-panel');
+        if (panel) {
+            panel.remove();
+            document.getElementById('acc-widget-btn')?.focus();
+        }
+    }
+});
+
+// Inject the floating button
+window.addEventListener('DOMContentLoaded', () => {
+    const btn = document.createElement('button');
+    btn.id = 'acc-widget-btn';
+    btn.className = 'acc-widget-btn';
+    btn.setAttribute('aria-label', 'Open accessibility options');
+    btn.setAttribute('title', 'Accessibility');
+    btn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="16" cy="4" r="1"/><path d="m18 19 1-7-5.87.94"/><path d="m5 8 3-3 5 3-2 3"/><path d="m4.24 14.5 3.5 3.5L9 21"/><path d="m9.4 11.3 2.6 2.2L15 21"/></svg>';
+    btn.onclick = toggleAccPanel;
+    document.body.appendChild(btn);
+});
