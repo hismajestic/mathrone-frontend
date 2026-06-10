@@ -1525,18 +1525,15 @@ async function openNewsModalAsync(postId = null){
   }
 }
 function insertAdPlaceholder() {
-  const editor = document.getElementById('news-editor');
-  if (!editor) return;
-  editor.focus();
-  // We use a specific data-attribute for the MultiTag
-  const adHtml = `
-    <div data-monetag-multitag="248399" contenteditable="false" 
-         style="margin:24px 0; padding:20px; border:2px dashed #7c3aed; background:#f5f3ff; border-radius:12px; text-align:center; color:#7c3aed; font-size:13px; font-weight:800; font-family:sans-serif;">
-      ✨ MAJESTIC MULTITAG AD SLOT (Zone: 248399)
-    </div><p><br></p>`;
-  document.execCommand('insertHTML', false, adHtml);
-  toast('MultiTag ad slot inserted ✅');
+  // In-Page Push Banner (Monetag zone 11128395)
+  const editor = document.getElementById('news-editor')
+  if (!editor) return
+  editor.focus()
+  const adHtml = '<div data-monetag-zone="11128395" data-monetag-type="inpage" style="margin:24px 0;text-align:center;min-height:10px" contenteditable="false"></div><p><br></p>'
+  document.execCommand('insertHTML', false, adHtml)
+  toast('In-Page Push ad slot inserted ✅')
 }
+
 function insertVignetteAd() {
   const editor = document.getElementById('news-editor')
   if (!editor) return
@@ -1550,7 +1547,6 @@ function insertVignetteAd() {
   document.execCommand('insertHTML', false, adHtml)
   toast('Vignette ad trigger inserted ✅')
 }
-
 function toggleNewsEditorFullscreen(){
   const modal = document.querySelector('#modal-root .modal')
   const btn = document.getElementById('news-fs-btn')
@@ -3369,39 +3365,35 @@ function _triggerMonetagAds() {
   const body = document.querySelector('.news-article-body');
   if (!body) return;
 
-  // 1. Look for the MultiTag marker
-  const marker = body.querySelector('[data-monetag-multitag="248399"]');
-  
-  if (marker) {
-    // Clear the placeholder box and text for the public reader
-    marker.innerHTML = ''; 
-    marker.style.cssText = 'margin:30px 0; min-height:280px; display:block; text-align:center; position:relative; z-index:1;'; 
+  // 1. Handle In-Page Push (The visible banner)
+  const inPageMarker = body.querySelector('[data-monetag-zone="11128395"]');
+  if (inPageMarker) {
+     // If we are in the public view, remove the "Ad" text/styling if any exists
+     inPageMarker.textContent = ''; 
+     inPageMarker.style.border = 'none';
+     inPageMarker.style.background = 'none';
 
-    // 2. CRITICAL: Remove previous script tags from the document head/body
-    // This allows the browser to re-execute the script
-    document.querySelectorAll('script[src*="quge5.com"]').forEach(old => old.remove());
-
-    // 3. CRITICAL: Clear the global JavaScript variables that Monetag creates
-    // This tricks the script into thinking it is loading for the first time
-    window.monetag = undefined;
-    window.zZoneParams = undefined;
-
-    // 4. Create and inject the fresh script
-    const s = document.createElement('script');
-    
-    // We use a query string to force a unique request
-    s.src = "https://quge5.com/88/tag.min.js" + "?v=" + Date.now();
-    
-    s.dataset.zone = "248399";
-    s.async = true;
-    s.setAttribute('data-cfasync', 'false');
-
-    // Inject directly into the marker so the ad knows where to render
-    marker.appendChild(s);
-    
-    console.log("Majestic Ad Engine: MultiTag re-initialized.");
+     if (!window._monetagInPageLoaded) {
+       const s = document.createElement('script');
+       s.dataset.zone = '11128395';
+       s.src = 'https://nap5k.com/tag.min.js';
+       document.head.appendChild(s);
+       window._monetagInPageLoaded = true;
+     }
   }
 
-  // 5. Clean up any left-over hidden vignette markers from the database
-  body.querySelectorAll('[data-monetag-type="vignette"]').forEach(el => el.remove());
+  // 2. Handle Vignette (The full-screen ad)
+  const vignetteMarker = body.querySelector('[data-monetag-type="vignette"]');
+  if (vignetteMarker) {
+    // CRITICAL: Remove the marker from the DOM immediately so users never see the blue box
+    vignetteMarker.remove(); 
+
+    if (!window._monetagVignetteLoaded) {
+      const s = document.createElement('script');
+      s.dataset.zone = '11128298';
+      s.src = 'https://n6wxm.com/vignette.min.js';
+      document.head.appendChild(s);
+      window._monetagVignetteLoaded = true;
+    }
+  }
 }
