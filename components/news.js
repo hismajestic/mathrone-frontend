@@ -1194,20 +1194,8 @@ async function openNewsPost(slugOrId){
           });
         } catch (e) { console.error("AdSense trigger failed", e); }
 
-        // 4. Remove vignette marker divs — invisible to readers, vignette fires from <head> script
-        body.querySelectorAll('[data-monetag-type="vignette"]').forEach(el => el.remove());
-
-        // 5. Fire Monetag In-Page Push — inject the script next to each ad slot div
-        try {
-          body.querySelectorAll('[data-monetag-zone]').forEach(slot => {
-            if (slot.dataset.loaded) return;
-            slot.dataset.loaded = '1';
-            const s = document.createElement('script');
-            s.dataset.zone = slot.dataset.monetagZone;
-            s.src = 'https://nap5k.com/tag.min.js';
-            slot.after(s);
-          });
-        } catch(e) { console.error('Monetag inpage failed', e); }
+        // Trigger Monetag logic only for this article
+       _triggerMonetagAds();
       }
     }, 200)
     const articleUrl = 'https://mathroneacademy.com/news/' + ((p.category === 'news' || !p.category) ? 'education' : p.category) + '/' + articleSlug;
@@ -1537,24 +1525,28 @@ async function openNewsModalAsync(postId = null){
   }
 }
 function insertAdPlaceholder() {
-  // In-Page Push Banner (Monetag zone 11128395)
-  const editor = document.getElementById('news-editor')
-  if (!editor) return
-  editor.focus()
-  const adHtml = '<div data-monetag-zone="11128395" data-monetag-type="inpage" style="margin:24px 0;text-align:center;min-height:10px" contenteditable="false"></div><p><br></p>'
-  document.execCommand('insertHTML', false, adHtml)
-  toast('In-Page Push ad slot inserted ✅')
+  const editor = document.getElementById('news-editor');
+  if (!editor) return;
+  editor.focus();
+  // We use a specific data-attribute for the MultiTag
+  const adHtml = `
+    <div data-monetag-multitag="248399" contenteditable="false" 
+         style="margin:24px 0; padding:20px; border:2px dashed #7c3aed; background:#f5f3ff; border-radius:12px; text-align:center; color:#7c3aed; font-size:13px; font-weight:800; font-family:sans-serif;">
+      ✨ MAJESTIC MULTITAG AD SLOT (Zone: 248399)
+    </div><p><br></p>`;
+  document.execCommand('insertHTML', false, adHtml);
+  toast('MultiTag ad slot inserted ✅');
 }
-
 function insertVignetteAd() {
-  // Vignette Banner (Monetag zone 11128298) — fires once on next page interaction
   const editor = document.getElementById('news-editor')
   if (!editor) return
   editor.focus()
-  // Vignette is a global trigger script, not a div-based slot.
-  // We insert a visible marker so you can see it in the editor,
-  // but the actual ad fires from the global script in <head>.
-  const adHtml = '<div data-monetag-type="vignette" contenteditable="false" style="display:none"></div><p><br></p>'
+  // This HTML is styled to be visible ONLY in the editor
+  const adHtml = `
+    <div data-monetag-type="vignette" contenteditable="false" 
+         style="margin:20px 0; padding:15px; border:1px dashed #1A5FFF; background:#f0f7ff; border-radius:10px; text-align:center; color:#1A5FFF; font-size:12px; font-weight:700; font-family:sans-serif;">
+      🎯 VIGNETTE AD TRIGGER — fires on next page interaction
+    </div><p><br></p>`
   document.execCommand('insertHTML', false, adHtml)
   toast('Vignette ad trigger inserted ✅')
 }
@@ -3371,4 +3363,45 @@ function renderInFeedAd() {
       <p style="font-size:13px; opacity:0.8; margin-bottom:15px;">Get 1-on-1 help with Math, Science, and more. Online or at Home.</p>
       <span style="background:#F5C842; color:var(--navy); padding:8px 16px; border-radius:6px; font-size:12px; font-weight:800;">Get Started →</span>
     </div>`;
+}
+// Helper to dynamically load Monetag scripts only when needed
+function _triggerMonetagAds() {
+  const body = document.querySelector('.news-article-body');
+  if (!body) return;
+
+  // 1. Look for the MultiTag marker
+  const marker = body.querySelector('[data-monetag-multitag="248399"]');
+  
+  if (marker) {
+    // Clear the placeholder box and text for the public reader
+    marker.innerHTML = ''; 
+    marker.style.cssText = 'margin:30px 0; min-height:280px; display:block; text-align:center; position:relative; z-index:1;'; 
+
+    // 2. CRITICAL: Remove previous script tags from the document head/body
+    // This allows the browser to re-execute the script
+    document.querySelectorAll('script[src*="quge5.com"]').forEach(old => old.remove());
+
+    // 3. CRITICAL: Clear the global JavaScript variables that Monetag creates
+    // This tricks the script into thinking it is loading for the first time
+    window.monetag = undefined;
+    window.zZoneParams = undefined;
+
+    // 4. Create and inject the fresh script
+    const s = document.createElement('script');
+    
+    // We use a query string to force a unique request
+    s.src = "https://quge5.com/88/tag.min.js" + "?v=" + Date.now();
+    
+    s.dataset.zone = "248399";
+    s.async = true;
+    s.setAttribute('data-cfasync', 'false');
+
+    // Inject directly into the marker so the ad knows where to render
+    marker.appendChild(s);
+    
+    console.log("Majestic Ad Engine: MultiTag re-initialized.");
+  }
+
+  // 5. Clean up any left-over hidden vignette markers from the database
+  body.querySelectorAll('[data-monetag-type="vignette"]').forEach(el => el.remove());
 }
