@@ -2414,8 +2414,44 @@ button:focus-visible, a:focus-visible, [role="button"]:focus-visible {
 }
 body.acc-highlight-links a { background: #fef08a !important; color: #000 !important; padding: 0 2px; border-radius: 2px; }
 @media (max-width: 480px) {
-    #acc-panel { right: 8px; bottom: 72px; width: calc(100vw - 16px); }
-    .acc-widget-btn { bottom: 14px; right: 14px; }
+    /* Widget button — tucked into corner, above mobile nav bars */
+    .acc-widget-btn { bottom: 16px; right: 16px; width: 44px; height: 44px; }
+
+    /* Panel becomes a bottom sheet that slides up from the widget */
+    #acc-panel {
+        position: fixed;
+        left: 0; right: 0; bottom: 0;
+        width: 100%;
+        max-width: 100%;
+        border-radius: 20px 20px 0 0;
+        border-bottom: none;
+        max-height: 82vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        box-shadow: 0 -8px 40px rgba(13,27,64,.18);
+        animation: accSlideUp .25s ease;
+    }
+
+    /* Drag handle visual cue */
+    .acc-panel-inner::before {
+        content: '';
+        display: block;
+        width: 36px; height: 4px;
+        background: var(--g200);
+        border-radius: 2px;
+        margin: 0 auto 14px;
+    }
+
+    /* Slightly larger tap targets on mobile */
+    .acc-btn { padding: 10px 8px; font-size: 13px; }
+    .acc-toggle-btn { padding: 12px 14px; font-size: 14px; }
+    .acc-reset-btn { padding: 12px; font-size: 14px; }
+    .acc-value { padding: 8px 4px; font-size: 14px; }
+}
+
+@keyframes accSlideUp {
+    from { transform: translateY(100%); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
 }
 
 /* Accessibility font scaling — scales all px-based text proportionally */
