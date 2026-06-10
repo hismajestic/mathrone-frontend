@@ -1866,7 +1866,15 @@ ${s.mode !== 'home' ? `<button class="btn btn-ghost btn-sm" onclick="openStandal
     // ════════════════════════════════════════════════════════════
     // TUTOR SEARCH
     // ════════════════════════════════════════════════════════════
-    async function requestTutor(tutorId) {
+    function requestTutor(tutorId) {
+      const student = State.user?.student || {}
+      const name = State.user?.full_name || 'Student'
+      const subject = (student.subjects_needed || [])[0] || ''
+      const msg = encodeURIComponent(`Hello Mathrone Academy! My name is ${name} and I would like to request a tutor.\n\nSubject: ${subject}\nLevel: ${student.school_level || ''}\nMode: ${student.preferred_mode || 'online'}\nLocation: ${student.home_location || ''}\n\nPlease help me get assigned to a tutor.`)
+      window.open(`https://wa.me/250786684285?text=${msg}`, '_blank')
+    }
+
+    async function _unused_requestTutor(tutorId) {
       const me = State.user
       const student = me.student || {}
 
@@ -2772,7 +2780,7 @@ async function deleteStudent(id, name){
               <tr>
     <td><div style="display:flex;align-items:center;gap:10px">${avi(t.profiles?.full_name || 'T', 34)}<div><div style="font-weight:600">${t.profiles?.full_name || '—'}</div><div style="font-size:11px;color:var(--g400)">${t.profiles?.email || ''}</div></div></div></td>
     <td style="font-size:12px;font-weight:600;color:var(--navy)">📍 ${t.location || '—'}</td>
-    <td style="font-size:13px">${t.profiles?.phone || '<span style="color:var(--g400)">—</span>'}</td>
+    <td style="font-size:13px">${t.profiles?.phone?`<a href="https://wa.me/${t.profiles.phone.replace(/[^0-9]/g,'')}" target="_blank" style="color:var(--green);text-decoration:none">📱 ${t.profiles.phone}</a>`:'<span style="color:var(--g400)">—</span>'}</td>
             <td>${(t.subjects || []).slice(0, 2).map(sub => `<span class="badge badge-blue" style="margin-right:4px">${sub}</span>`).join('')}</td>
             <td>${statusBadge(t.status)}</td>
             <td><span class="stars">${stars(t.rating)}</span> ${(t.rating || 0).toFixed(1)}</td>
@@ -3077,7 +3085,7 @@ async function saveTutorStatus(tutorId){
       ${unassigned.length ? `
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Student</th><th>Category</th><th>Level</th><th>Subjects</th><th>Mode</th><th>Parent</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Student</th><th>Phone</th><th>Category</th><th>Level</th><th>Subjects</th><th>Mode</th><th>Parent</th><th>Actions</th></tr></thead>
           <tbody>
             ${unassigned.map(s=>`<tr>
               <td>
@@ -3089,18 +3097,19 @@ async function saveTutorStatus(tutorId){
                   </div>
                 </div>
               </td>
-              <td><span style="font-size:12px">${CATEGORIES.find(c=>c.id===(s.category||'academic'))?.icon||'📚'} ${CATEGORIES.find(c=>c.id===(s.category||'academic'))?.label||'Academic'}</span></td>
+              <td style="font-size:12px;font-weight:600">${s.profiles?.phone?`<a href="https://wa.me/${s.profiles.phone.replace(/[^0-9]/g,'')}" target="_blank" style="color:var(--green);text-decoration:none">📱 ${s.profiles.phone}</a>`:'<span style="color:var(--g400)">—</span>'}</td>
+              <td><span style="font-size:12px">${CATEGORIES.find(c=>c.id===(s.category||'academic'))?.icon||'<i data-lucide="book-open" style="width:14px;height:14px"></i>'} ${CATEGORIES.find(c=>c.id===(s.category||'academic'))?.label||'Academic'}</span></td>
               <td>${s.school_level||'—'}</td>
               <td>${(s.subjects_needed||[]).slice(0,2).map(sub=>`<span class="badge badge-blue" style="margin-right:3px">${sub}</span>`).join('')||'—'}</td>
               <td>${s.preferred_mode||'—'}</td>
               <td>
                 <div style="font-size:13px;font-weight:600">${s.parent_name||'—'}</div>
-                <div style="font-size:11px;color:var(--g400)">${s.parent_phone||'No phone'}</div>
+                <div style="font-size:11px">${s.parent_phone?`<a href="https://wa.me/${s.parent_phone.replace(/[^0-9]/g,'')}" target="_blank" style="color:var(--green);text-decoration:none">📱 ${s.parent_phone}</a>`:'<span style="color:var(--g400)">No phone</span>'}</div>
               </td>
               <td>
                 <div style="display:flex;gap:6px;flex-wrap:wrap">
                   <button class="btn btn-primary btn-sm" onclick="openAssignModal('${s.id}','${(s.profiles?.full_name||'').replace(/'/g,"\\'")}',${JSON.stringify(approved).replace(/"/g,'&quot;')},${JSON.stringify(s).replace(/"/g,'&quot;')})">Assign Tutor</button>
-                  <button class="btn btn-ghost btn-sm" onclick="generateReport('${s.id}','${(s.profiles?.full_name||'').replace(/'/g,"\\'")}')">📊 Report</button>
+                  <button class="btn btn-ghost btn-sm" onclick="generateReport('${s.id}','${(s.profiles?.full_name||'').replace(/'/g,"\\'")}')"><i data-lucide="bar-chart-2" style="width:14px;height:14px"></i> Report</button>
                   <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteStudent('${s.id}','${(s.profiles?.full_name||'').replace(/'/g,"\\'")}')"><i data-lucide="trash-2" style="width:16px;height:16px"></i></button>
                 </div>
               </td>
@@ -3109,7 +3118,7 @@ async function saveTutorStatus(tutorId){
         </table>
       </div>` : `
       <div class="card" style="padding:24px;text-align:center;color:var(--g400)">
-        <div style="font-size:32px;margin-bottom:8px">🎉</div>
+        <div style="margin-bottom:8px"><i data-lucide="check-circle" style="width:32px;height:32px"></i></div>
         <div>All students are assigned!</div>
       </div>`}
     </div>
@@ -3143,7 +3152,7 @@ async function saveTutorStatus(tutorId){
               <td>${s.preferred_mode||'—'}</td>
               <td>
                 <div style="font-size:13px;font-weight:600">${s.parent_name||'—'}</div>
-                <div style="font-size:11px;color:var(--g400)">${s.parent_phone||'No phone'}</div>
+                <div style="font-size:11px">${s.parent_phone?`<a href="https://wa.me/${s.parent_phone.replace(/[^0-9]/g,'')}" target="_blank" style="color:var(--green);text-decoration:none">📱 ${s.parent_phone}</a>`:'<span style="color:var(--g400)">No phone</span>'}</div>
               </td>
               <td><span style="font-weight:600;color:var(--green)">✅ ${tutorName}</span></td>
               <td>

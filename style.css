@@ -338,9 +338,10 @@
     }
 
     .btn-sm {
-      padding: 7px 2px;
-      font-size: 14px;
-      border-radius: 8px
+      padding: 6px 10px;
+      font-size: 12px;
+      border-radius: 8px;
+      white-space: nowrap;
     }
 
     .btn-lg {
@@ -616,6 +617,8 @@
       flex: 1;
       margin-left: 252px;
       padding: 32px 28px 60px;
+      min-width: 0;
+      overflow-x: hidden;
     }
 
     @media (max-width: 900px) {
@@ -749,10 +752,12 @@
       border-radius: var(--r);
       box-shadow: var(--sh);
       -webkit-overflow-scrolling: touch;
+      max-width: 100%;
     }
 
     table {
       width: 100%;
+      min-width: 900px;
       border-collapse: collapse;
       background: #fff;
       border-radius: var(--r);
@@ -1707,8 +1712,8 @@
   }
 
   /* Tables */
-  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  table { min-width: 600px; }
+  .table-wrap { overflow-x: auto !important; -webkit-overflow-scrolling: touch; max-width: 100%; }
+  table { min-width: 900px !important; }
 
   /* Grids */
   .grid-2 { grid-template-columns: 1fr !important; }
@@ -1761,22 +1766,8 @@
   @media (max-width: 768px) {
   .mobile-topbar { display: flex !important; }
 }
-/* Convert tables to cards on mobile */
-  .table-wrap table, .table-wrap thead, .table-wrap tbody, .table-wrap th, .table-wrap td, .table-wrap tr { 
-    display: block; 
-  }
-  .table-wrap thead tr { 
-    position: absolute; top: -9999px; left: -9999px; 
-  }
-  .table-wrap tr { 
-    border: 1px solid var(--g100); margin-bottom: 10px; border-radius: 8px; padding: 8px; background: #fff;
-  }
-  .table-wrap td { 
-    border: none; border-bottom: 1px solid var(--g50); position: relative; padding-left: 45% !important; text-align: right; word-break: break-word; 
-  }
-  .table-wrap td:before { 
-    position: absolute; left: 12px; top: 10px; width: 40%; padding-right: 10px; white-space: normal; content: attr(data-label); font-weight: bold; color: var(--navy); text-align: left;
-  }
+  .table-wrap { overflow-x: auto !important; -webkit-overflow-scrolling: touch; max-width: 100%; }
+  table { min-width: 900px !important; }
 }
 
 /* Overlay for sidebar on mobile */
@@ -1969,6 +1960,8 @@
   -webkit-overflow-scrolling: touch;
   position: relative;
   border: 1px solid var(--g100);
+  display: block;
+  width: 100%;
 }
 /* Fix for Product Detail Grid */
 .prod-detail-container {

@@ -447,6 +447,7 @@ function selectStudentCategory(id){
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
       if (!emailRegex.test(email)) { showErr(err, 'Please enter a valid email address (e.g. name@example.com)'); return }
       if (pw.length < 6) { showErr(err, 'Password must be at least 6 characters'); return }
+      if (!phone) { showErr(err, 'Phone number is required'); return }
 
       if (role === 'tutor') {
         if (!phone) { showErr(err, 'Phone number is required for tutors'); return }
