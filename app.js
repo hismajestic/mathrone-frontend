@@ -1866,12 +1866,14 @@ ${s.mode !== 'home' ? `<button class="btn btn-ghost btn-sm" onclick="openStandal
     // ════════════════════════════════════════════════════════════
     // TUTOR SEARCH
     // ════════════════════════════════════════════════════════════
-    function requestTutor(tutorId) {
+    function requestTutor(tutorId, tutorName) {
       const student = State.user?.student || {}
       const name = State.user?.full_name || 'Student'
       const subject = (student.subjects_needed || [])[0] || ''
-      const msg = encodeURIComponent(`Hello Mathrone Academy! My name is ${name} and I would like to request a tutor.\n\nSubject: ${subject}\nLevel: ${student.school_level || ''}\nMode: ${student.preferred_mode || 'online'}\nLocation: ${student.home_location || ''}\n\nPlease help me get assigned to a tutor.`)
-      window.open(`https://wa.me/250786684285?text=${msg}`, '_blank')
+      const body = tutorName
+        ? `Hello Mathrone Academy! My name is ${name} and I would like to request ${tutorName}.\n\nSubject: ${subject}\nLevel: ${student.school_level || ''}\nMode: ${student.preferred_mode || 'online'}\nLocation: ${student.home_location || ''}\n\nPlease help me get assigned to this tutor.`
+        : `Hello Mathrone Academy! My name is ${name} and I would like to request a tutor.\n\nSubject: ${subject}\nLevel: ${student.school_level || ''}\nMode: ${student.preferred_mode || 'online'}\nLocation: ${student.home_location || ''}\n\nPlease help me get assigned to a tutor.`
+      window.open(`https://wa.me/250786684285?text=${encodeURIComponent(body)}`, '_blank')
     }
 
     async function _unused_requestTutor(tutorId) {
@@ -1998,7 +2000,7 @@ ${s.mode !== 'home' ? `<button class="btn btn-ghost btn-sm" onclick="openStandal
                 <button class="btn btn-success btn-sm" style="flex:1" onclick="openBookingModal('${t.id}', '${(t.subjects[0]||'General')}', '${(t.profiles?.full_name || '').replace(/'/g, "\\'")}')">📅 Book Now</button>
                 <button class="btn btn-ghost btn-sm" onclick="openMessageModal('${t.profile_id}','${(t.profiles?.full_name || '').replace(/'/g, "\\'")}')">💬 Chat</button>
               </div>` :
-            `<button class="btn btn-primary btn-full" onclick="requestTutor('${t.id}')">Request to Study with ${t.profiles?.full_name?.split(' ')[0]}</button>`}
+            `<button class="btn btn-primary btn-full" onclick="requestTutor('${t.id}','${(t.profiles?.full_name||'').replace(/'/g,"\\'")}')">Request to Study with ${t.profiles?.full_name?.split(' ')[0]}</button>`}
         </div>
       </div>`).join('')}
     </div>` : `<div class="empty-state"><div class="empty-icon" style="color:var(--g400)"><i data-lucide="search" style="width:48px;height:48px;stroke-width:1.5"></i></div><div class="empty-title">No tutors found</div><div class="empty-sub">Try adjusting your filters or <a onclick="State.data.searchParams={};renderTutorSearch()" style="color:var(--blue);cursor:pointer">clear all</a></div></div>`}
@@ -2024,7 +2026,7 @@ ${s.mode !== 'home' ? `<button class="btn btn-ghost btn-sm" onclick="openStandal
             <button class="btn btn-success" style="flex:1" onclick="document.querySelector('.modal-overlay').remove();openBookingModal('${t.id}','${(t.subjects?.[0]||'General')}','${(t.profiles?.full_name||'').replace(/'/g,"\\'")}')">📅 Book a Session</button>
             <button class="btn btn-ghost" onclick="document.querySelector('.modal-overlay').remove();openMessageModal('${t.profile_id}','${(t.profiles?.full_name||'').replace(/'/g,"\\'")}')">💬 Chat</button>
            </div>`
-        : `<button class="btn btn-primary btn-full" onclick="document.querySelector('.modal-overlay').remove();requestTutor('${t.id}')">Request to Study with ${t.profiles?.full_name?.split(' ')[0]}</button>`
+        : `<button class="btn btn-primary btn-full" onclick="document.querySelector('.modal-overlay').remove();requestTutor('${t.id}','${(t.profiles?.full_name||'').replace(/'/g,"\\'")}')">Request to Study with ${t.profiles?.full_name?.split(' ')[0]}</button>`
 
       document.getElementById('modal-root').innerHTML = `
       <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
