@@ -999,6 +999,25 @@ async function openNewsPost(slugOrId){
       .news-article-body a{color:var(--blue);text-decoration:underline}
       .news-article-body strong{font-weight:700}
       .news-article-body img{max-width:100%;height:auto;border-radius:12px;margin:16px 0;display:block;position:static !important;z-index:auto !important}
+      /* MOBILE TABLE FIX */
+      .news-article-body table { 
+        display: block !important; 
+        width: 100% !important; 
+        overflow-x: auto !important; 
+        -webkit-overflow-scrolling: touch; 
+        border-collapse: collapse; 
+        margin: 20px 0;
+      }
+      @media (max-width: 768px) {
+        .news-article-body table {
+          table-layout: auto !important; /* Overrides the 'fixed' layout that causes cutting */
+        }
+        .news-article-body table td, .news-article-body table th {
+          min-width: 120px; /* Forces cells to be wide enough to scroll */
+          word-break: normal !important;
+          white-space: nowrap; /* Keeps content on one line so it forces a horizontal scroll */
+        }
+      }
       .news-article-body table{display:block;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin:24px 0;border-collapse:collapse;scrollbar-width:thin}
       .news-article-body table th, .news-article-body table td{padding:12px;border:1px solid var(--g200);min-width:120px;word-break:normal}
       @media(max-width:768px){ .news-article-body table{table-layout:auto !important} }
@@ -1702,7 +1721,7 @@ function applyNewsTable(){
   }
   const hRow = `<tr>${Array.from({length:cols},(_,i)=>mkCell('th',i)).join('')}</tr>`
   const bRows = Array.from({length:rows-1},()=>`<tr>${Array.from({length:cols},()=>mkCell('td',0)).join('')}</tr>`).join('')
-  const html = `<table style="border-collapse:collapse;width:100%;margin:16px 0;table-layout:fixed"><thead>${hRow}</thead><tbody>${bRows}</tbody></table><p><br></p>`
+  const html = `<table style="border-collapse:collapse;width:100%;margin:16px 0;"><thead>${hRow}</thead><tbody>${bRows}</tbody></table><p><br></p>`
   // (tabIndex added dynamically by _tblInit)
   editor.focus()
   document.execCommand('insertHTML', false, html)
