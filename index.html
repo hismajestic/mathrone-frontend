@@ -427,7 +427,17 @@ async function ensureMathJax() {
   if (!window._mjPromise) {
     window._mjPromise = new Promise((res) => {
       window.MathJax = {
-        tex: { inlineMath: [['\\(','\\)']], displayMath: [['$$','$$']] },
+        tex: {
+          inlineMath: [['\\(','\\)'], ['$','$']],
+          displayMath: [['$$','$$'], ['\\[','\\]']],
+          processEscapes: true,
+          processEnvironments: true
+        },
+        options: {
+          skipHtmlTags: ['script','noscript','style','textarea','pre','code'],
+          ignoreHtmlClass: 'tex2jax_ignore',
+          processHtmlClass: 'math-formula'
+        },
         startup: { typeset: false, pageReady: () => { res(); return MathJax.startup.defaultPageReady(); } }
       };
       loadScript('https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js');

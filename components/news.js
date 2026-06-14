@@ -2363,7 +2363,7 @@ async function pasteLatexArticle() {
     <div style="background:#fff;border-radius:14px;padding:28px;width:680px;max-width:96vw;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,0.3)">
       <div style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:6px">📄 Paste LaTeX Article</div>
       <div style="font-size:12px;color:var(--g400);margin-bottom:4px">Paste your full article below. Use <code style='background:#f1f5f9;padding:1px 5px;border-radius:3px'>\\( ... \\)</code> for inline math and <code style='background:#f1f5f9;padding:1px 5px;border-radius:3px'>$$ ... $$</code> for display (block) math. Plain text paragraphs are kept as-is.</div>
-      <div style="font-size:11px;color:#7c3aed;background:#f5f3ff;border-radius:6px;padding:8px 12px;margin-bottom:14px">💡 Tip: Write normally, wrap only the math parts in LaTeX delimiters. Example:<br><em>The quadratic formula is \\( x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a} \\) which gives us two roots.</em></div>
+      <div style="font-size:11px;color:#7c3aed;background:#f5f3ff;border-radius:6px;padding:8px 12px;margin-bottom:14px">💡 Paste any format — plain text, Word-style article, or HTML. Math using <code>$...$</code>, <code>$$...$$</code>, or <code>\\( ... \\)</code> renders automatically. Bullet points (•), numbered lists, and headings (3.1 Title) are all converted correctly.</div>
       <textarea id="latex-article-input" rows="12" placeholder="Paste your article with LaTeX formulas here..." style="width:100%;border:1px solid var(--g200);border-radius:6px;padding:10px;font-family:monospace;font-size:13px;resize:vertical;outline:none;margin-bottom:14px;box-sizing:border-box"></textarea>
       <div style="display:flex;gap:10px;justify-content:flex-end">
         <button onclick="document.getElementById('latex-paste-modal').remove()" class="btn btn-ghost">Cancel</button>
@@ -2389,67 +2389,297 @@ async function applyLatexArticle() {
   try {
     await ensureMathJax()
 
-    // Split the raw text into segments: plain text and LaTeX blocks
-    // Supports: $$ ... $$ (display), \[ ... \] (display), \( ... \) (inline), $ ... $ (inline)
-    const segments = []
-    const pattern = /(\$\$[\s\S]+?\$\$|\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)|\$[^$\n]+?\$)/g
-    let last = 0
-    let m
-    while ((m = pattern.exec(raw)) !== null) {
-      if (m.index > last) segments.push({ type: 'text', content: raw.slice(last, m.index) })
-      segments.push({ type: 'math', content: m[0] })
-      last = m.index + m[0].length
-    }
-    if (last < raw.length) segments.push({ type: 'text', content: raw.slice(last) })
+    // ── STEP 1: Convert plain-text structure to clean HTML ──────────────────
+    // Handles plain text, bullet lists (•), numbered lists, headings (3.1 / ##)
+    // while preserving any real HTML tags already present in the input.
+    function plainToHTML(text) {
+      const lines = text.split('\n')
+      let html = ''
+      let listType = ''  // 'ul' or 'ol'
 
-    // Build HTML for the whole article
-    let articleHTML = ''
-    for (const seg of segments) {
-      if (seg.type === 'text') {
-        // Convert newlines to paragraphs
-        const paras = seg.content.split(/\n{2,}/)
-        for (const para of paras) {
-          const line = para.trim()
-          if (!line) continue
-          // Convert single newlines within paragraph to <br>
-          articleHTML += `<p>${line.replace(/\n/g, '<br>')}</p>`
+      function closelist() {
+        if (listType) { html += `</${listType}>`; listType = '' }
+      }
+
+      function isMathOnly(str) {
+        return /^(\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\))$/.test(str)
+      }
+
+      function hasMath(str) {
+        return /\\\[[\s\S]+?\\\]|\\\([\s\S]*?\\\)/.test(str)
+      }
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i]
+        const trimmed = line.trim()
+
+        // Empty line — close any open list
+        if (!trimmed) {
+          closelist()
+          continue
         }
-      } else {
-        // Render the math segment via MathJax
-        const isDisplay = seg.content.startsWith('$$') || seg.content.startsWith('\\[')
+
+        // Already an HTML tag — pass straight through
+        if (/^<[a-zA-Z\/]/.test(trimmed)) {
+          closelist()
+          html += trimmed
+          continue
+        }
+
+        // Pure math line — never wrap in list or p, pass raw so renderMathInHTML handles it
+        if (isMathOnly(trimmed)) {
+          closelist()
+          html += trimmed
+          continue
+        }
+
+        // Section heading: ## or ### or ####
+        if (/^#{1,4}\s/.test(trimmed)) {
+          closelist()
+          const level = trimmed.match(/^(#{1,4})/)[1].length
+          const tag = ['h2','h3','h4','h4'][level - 1]
+          html += `<${tag}>${trimmed.replace(/^#{1,4}\s+/, '')}</${tag}>`
+          continue
+        }
+
+        // Numbered section heading like "3.1. Title" or "3.1 Title"
+        if (/^\d+\.\d+\.?\s+\S/.test(trimmed)) {
+          closelist()
+          html += `<h2>${trimmed}</h2>`
+          continue
+        }
+
+        // Bullet point (•, -, *)
+        if (/^[•\-\*]\s/.test(trimmed)) {
+          if (listType !== 'ul') { closelist(); html += '<ul>'; listType = 'ul' }
+          html += `<li>${trimmed.replace(/^[•\-\*]\s+/, '')}</li>`
+          continue
+        }
+
+        // Numbered list item — BUT only if it looks like prose content, not a section number
+        // Key fix: if the line is short AND the next non-empty line is a math-only line,
+        // treat this as a list item and absorb the math into the same <li>
+        if (/^\d+\.\s/.test(trimmed) && !/^\d+\.\d/.test(trimmed)) {
+          const content = trimmed.replace(/^\d+\.\s+/, '')
+
+          // Look ahead — if next non-empty line is pure math, absorb it into this <li>
+          let mathAppend = ''
+          let skip = 0
+          for (let j = i + 1; j < lines.length; j++) {
+            const next = lines[j].trim()
+            if (!next) { skip = j - i; break }
+            if (isMathOnly(next)) {
+              mathAppend = next
+              skip = j - i
+              break
+            }
+            break
+          }
+
+          if (listType !== 'ol') { closelist(); html += '<ol>'; listType = 'ol' }
+          html += `<li>${content}${mathAppend ? ' ' + mathAppend : ''}</li>`
+          if (skip) i += skip
+          continue
+        }
+
+        closelist()
+
+        // Bold label lines like "Growth vs. Decay:" or "Where:"
+        if (/^[A-Z][^.!?\\$]{0,80}:$/.test(trimmed)) {
+          html += `<p><strong>${trimmed}</strong></p>`
+          continue
+        }
+
+        // Regular paragraph — may contain inline math, that's fine
+        html += `<p>${trimmed}</p>`
+      }
+
+      closelist()
+      return html
+    }
+
+    // ── PRE-PROCESS: Normalise all math delimiters to \(...\) and \[...\] ───
+    // This runs BEFORE structuring or rendering.
+    // Converts $...$ → \(...\) and $$...$$ → \[...\]
+    // We do $$ first (longer match wins), then single $.
+    // Uses a state-machine approach instead of regex to handle nested braces correctly.
+    function normaliseMathDelimiters(text) {
+      let result = ''
+      let i = 0
+      while (i < text.length) {
+        // Check for \[...\] — display math
+        if (text[i] === '\\' && text[i+1] === '[') {
+          // Find matching \] by scanning, not indexOf (indexOf finds wrong \] across blocks)
+          let j = i + 2, depth = 0, end = -1
+          while (j < text.length - 1) {
+            if (text[j] === '{') depth++
+            else if (text[j] === '}') depth--
+            else if (text[j] === '\\' && text[j+1] === ']' && depth === 0) { end = j; break }
+            j++
+          }
+          if (end === -1) { result += text[i++]; continue }
+          const inner = text.slice(i + 2, end)
+          // Check context: is this \[...\] alone on its line?
+          const lineStart = text.lastIndexOf('\n', i - 1) + 1
+          const lineEnd = text.indexOf('\n', end + 2)
+          const beforeMath = text.slice(lineStart, i).trim()
+          const afterMath = text.slice(end + 2, lineEnd === -1 ? text.length : lineEnd).trim()
+          const isAlone = beforeMath === '' && afterMath === ''
+          result += isAlone ? `\\[${inner}\\]` : `\\(${inner}\\)`
+          i = end + 2
+          continue
+        }
+        // Check for \(...\) — inline math, pass straight through
+        if (text[i] === '\\' && text[i+1] === '(') {
+          // Find matching \) by scanning with brace depth
+          let j = i + 2, depth = 0, end = -1
+          while (j < text.length - 1) {
+            if (text[j] === '{') depth++
+            else if (text[j] === '}') depth--
+            else if (text[j] === '\\' && text[j+1] === ')' && depth === 0) { end = j; break }
+            j++
+          }
+          if (end === -1) { result += text[i++]; continue }
+          const inner = text.slice(i + 2, end)
+          result += `\\(${inner}\\)`
+          i = end + 2
+          continue
+        }
+        // Check for $$
+        if (text[i] === '$' && text[i+1] === '$') {
+          // Find matching $$ by scanning with brace depth
+          let j = i + 2, depth = 0, end = -1
+          while (j < text.length - 1) {
+            if (text[j] === '{') depth++
+            else if (text[j] === '}') depth--
+            else if (text[j] === '$' && text[j+1] === '$' && depth === 0) { end = j; break }
+            j++
+          }
+          if (end === -1) { result += text[i++]; continue }
+          const inner = text.slice(i + 2, end)
+          // Check if $$ is alone on its line or surrounded by text
+          const lineStart = text.lastIndexOf('\n', i - 1) + 1
+          const lineEnd = text.indexOf('\n', end + 2)
+          const fullLine = text.slice(lineStart, lineEnd === -1 ? text.length : lineEnd)
+          const withoutMath = fullLine.replace(/\$\$[\s\S]*?\$\$/, '').trim()
+          const isAlone = withoutMath === '' || withoutMath === '•' || withoutMath === '-' || withoutMath === '*'
+          result += isAlone ? `\\[${inner}\\]` : `\\(${inner}\\)`
+          i = end + 2
+          continue
+        }
+        // Check for single $
+        if (text[i] === '$') {
+          // Find closing $ — must be on same line, skip if next char is space
+          if (text[i+1] === ' ' || text[i+1] === '\n' || text[i+1] === undefined) {
+            result += text[i++]; continue
+          }
+          let j = i + 1
+          let depth = 0
+          let found = false
+          while (j < text.length && text[j] !== '\n') {
+            if (text[j] === '{') depth++
+            else if (text[j] === '}') depth--
+            else if (text[j] === '$' && depth === 0) {
+              const inner = text.slice(i + 1, j)
+              result += `\\(${inner}\\)`
+              i = j + 1
+              found = true
+              break
+            }
+            j++
+          }
+          if (!found) { result += text[i++] }
+          continue
+        }
+        result += text[i++]
+      }
+      return result
+    }
+
+    // ── STEP 2: Render all math inside an HTML string ───────────────────────
+    // Only needs to handle \(...\) and \[...\] now — no $ variants.
+    const mathPattern = /(\\\[[\s\S]+?\\\]|\\\([\s\S]*?\\\))/g
+
+    async function renderMathInHTML(htmlStr) {
+      // Collect all math tokens and their positions
+      const tokens = []
+      let m
+      mathPattern.lastIndex = 0
+      while ((m = mathPattern.exec(htmlStr)) !== null) {
+        // Skip if inside an HTML tag attribute
+        const before = htmlStr.slice(0, m.index)
+        const openTags = (before.match(/</g) || []).length
+        const closeTags = (before.match(/>/g) || []).length
+        if (openTags > closeTags) continue // inside a tag, skip
+        tokens.push({ index: m.index, length: m[0].length, raw: m[0] })
+      }
+
+      if (!tokens.length) return htmlStr
+
+      // Render all tokens via MathJax in one batch using a staging container
+      const stage = document.createElement('div')
+      stage.style.cssText = 'position:absolute;visibility:hidden;top:-9999px;left:-9999px'
+
+      // Decide display vs inline per token based on context, not just delimiter
+      // $$...$$ is display ONLY if it sits on its own line (nothing but whitespace around it)
+      const tokenModes = tokens.map(t => {
+        if (t.raw.startsWith('\\(')) return 'inline'
+        if (t.raw.startsWith('\\[')) return 'display'
+        // $$ — check what surrounds it in the full HTML string
+        // Strip HTML tags when checking — a <p> before $$ still means "alone"
+        const before = htmlStr.slice(0, t.index).split('\n').pop().replace(/<[^>]+>/g, '').trim()
+        const after  = htmlStr.slice(t.index + t.length).split('\n')[0].replace(/<[^>]+>/g, '').trim()
+        const aloneOnLine = before === '' && after === ''
+        // Also treat it as display if the only surrounding content is closing/opening p tags
+        const surroundedByTags = /^<\/?(p|div|li|h[1-6])[^>]*>$/.test(htmlStr.slice(0, t.index).trim().split('\n').pop().trim()) 
+        return (aloneOnLine || surroundedByTags) ? 'display' : 'inline'
+      })
+
+      const placeholders = tokens.map((t, i) => {
+        const el = document.createElement(tokenModes[i] === 'display' ? 'div' : 'span')
+        el.id = `_mjph_${i}`
+        el.textContent = t.raw
+        stage.appendChild(el)
+        return el
+      })
+      document.body.appendChild(stage)
+      try { await MathJax.typesetPromise([stage]) } catch(e) {}
+
+      // Build replacement map
+      const rendered = {}
+      placeholders.forEach((el, i) => {
+        const t = tokens[i]
+        const isDisplay = tokenModes[i] === 'display'
         const tag = isDisplay ? 'div' : 'span'
         const style = isDisplay
-          ? 'display:block;text-align:center;margin:16px 0;overflow-x:auto'
-          : 'display:inline-block;vertical-align:middle'
+          ? 'display:block;text-align:center;margin:20px 0;overflow-x:auto;background:#f8fafc;border-radius:8px;padding:16px 12px;border:1px solid #e2e8f0'
+          : 'display:inline-block;vertical-align:middle;line-height:1'
+        const safeLatex = t.raw.replace(/"/g, '&quot;')
+        rendered[i] = `<${tag} class="math-formula" data-latex="${safeLatex}" style="${style}" contenteditable="false">${el.innerHTML}</${tag}>`
+      })
+      document.body.removeChild(stage)
 
-        const stage = document.createElement('div')
-        stage.style.cssText = 'position:absolute;visibility:hidden;top:-9999px'
-        stage.innerHTML = seg.content
-        document.body.appendChild(stage)
-        try {
-          await MathJax.typesetPromise([stage])
-          const safeLatex = seg.content.replace(/"/g, '&quot;')
-          articleHTML += `<${tag} class="math-formula" data-latex="${safeLatex}" style="${style}" contenteditable="false">${stage.innerHTML}</${tag}>`
-        } catch (e) {
-          // If rendering fails, keep raw text
-          articleHTML += `<span style="color:#ef4444;font-family:monospace">${seg.content}</span>`
-        } finally {
-          document.body.removeChild(stage)
-        }
+      // Replace tokens in reverse order so indexes stay valid
+      let result = htmlStr
+      for (let i = tokens.length - 1; i >= 0; i--) {
+        const t = tokens[i]
+        result = result.slice(0, t.index) + rendered[i] + result.slice(t.index + t.length)
       }
+      return result
     }
 
-    // Insert at saved cursor position
-    editor.focus()
-    if (window._formulaRange) {
-      const sel2 = window.getSelection()
-      if (sel2) { sel2.removeAllRanges(); sel2.addRange(window._formulaRange) }
-      window._formulaRange = null
-    }
-    document.execCommand('insertHTML', false, articleHTML)
+    // ── STEP 3: Detect input type and process ───────────────────────────────
+    const normalised = normaliseMathDelimiters(raw)
+    const isHTML = /^\s*<[a-zA-Z]/.test(normalised.trim())
+    const structuredHTML = isHTML ? normalised : plainToHTML(normalised)
+    const finalHTML = await renderMathInHTML(structuredHTML)
+
+    // ── STEP 4: Insert into editor ──────────────────────────────────────────
+    editor.innerHTML = finalHTML
     document.getElementById('latex-paste-modal')?.remove()
     toast('Article rendered and inserted! ✅')
     updateNewsWordCount?.()
+
   } catch (e) {
     toast('Failed to render article: ' + e.message, 'err')
   }
