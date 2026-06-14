@@ -2270,6 +2270,10 @@ function updateMetaDescCount(){
 }
 
 async function insertNewsFormula(){
+  // Save cursor BEFORE awaiting anything (await yields focus)
+  const sel = window.getSelection()
+  window._formulaRange = (sel && sel.rangeCount) ? sel.getRangeAt(0).cloneRange() : null
+
   await ensureMathJax()
 
   const modal = document.createElement('div')
@@ -2328,6 +2332,107 @@ async function previewFormula(){
   }
 }
 
+// ── Paste full LaTeX article and render all formulas inline ───────────────
+async function pasteLatexArticle() {
+  const modal = document.createElement('div')
+  modal.id = 'latex-paste-modal'
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:99999;display:flex;align-items:center;justify-content:center'
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:14px;padding:28px;width:680px;max-width:96vw;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,0.3)">
+      <div style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:6px">📄 Paste LaTeX Article</div>
+      <div style="font-size:12px;color:var(--g400);margin-bottom:4px">Paste your full article below. Use <code style='background:#f1f5f9;padding:1px 5px;border-radius:3px'>\\( ... \\)</code> for inline math and <code style='background:#f1f5f9;padding:1px 5px;border-radius:3px'>$$ ... $$</code> for display (block) math. Plain text paragraphs are kept as-is.</div>
+      <div style="font-size:11px;color:#7c3aed;background:#f5f3ff;border-radius:6px;padding:8px 12px;margin-bottom:14px">💡 Tip: Write normally, wrap only the math parts in LaTeX delimiters. Example:<br><em>The quadratic formula is \\( x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a} \\) which gives us two roots.</em></div>
+      <textarea id="latex-article-input" rows="12" placeholder="Paste your article with LaTeX formulas here..." style="width:100%;border:1px solid var(--g200);border-radius:6px;padding:10px;font-family:monospace;font-size:13px;resize:vertical;outline:none;margin-bottom:14px;box-sizing:border-box"></textarea>
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button onclick="document.getElementById('latex-paste-modal').remove()" class="btn btn-ghost">Cancel</button>
+        <button onclick="applyLatexArticle()" class="btn btn-primary">✅ Render & Insert</button>
+      </div>
+    </div>`
+  document.body.appendChild(modal)
+  // Save cursor before modal steals focus
+  const sel = window.getSelection()
+  window._formulaRange = (sel && sel.rangeCount) ? sel.getRangeAt(0).cloneRange() : null
+  setTimeout(() => document.getElementById('latex-article-input')?.focus(), 50)
+}
+
+async function applyLatexArticle() {
+  const raw = document.getElementById('latex-article-input')?.value
+  if (!raw || !raw.trim()) { toast('Please paste some content first', 'err'); return }
+
+  const editor = document.getElementById('news-editor')
+  if (!editor) { toast('Editor not found', 'err'); return }
+
+  toast('Rendering formulas...', 'info')
+
+  try {
+    await ensureMathJax()
+
+    // Split the raw text into segments: plain text and LaTeX blocks
+    // Supports: $$ ... $$ (display), \[ ... \] (display), \( ... \) (inline), $ ... $ (inline)
+    const segments = []
+    const pattern = /(\$\$[\s\S]+?\$\$|\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)|\$[^$\n]+?\$)/g
+    let last = 0
+    let m
+    while ((m = pattern.exec(raw)) !== null) {
+      if (m.index > last) segments.push({ type: 'text', content: raw.slice(last, m.index) })
+      segments.push({ type: 'math', content: m[0] })
+      last = m.index + m[0].length
+    }
+    if (last < raw.length) segments.push({ type: 'text', content: raw.slice(last) })
+
+    // Build HTML for the whole article
+    let articleHTML = ''
+    for (const seg of segments) {
+      if (seg.type === 'text') {
+        // Convert newlines to paragraphs
+        const paras = seg.content.split(/\n{2,}/)
+        for (const para of paras) {
+          const line = para.trim()
+          if (!line) continue
+          // Convert single newlines within paragraph to <br>
+          articleHTML += `<p>${line.replace(/\n/g, '<br>')}</p>`
+        }
+      } else {
+        // Render the math segment via MathJax
+        const isDisplay = seg.content.startsWith('$$') || seg.content.startsWith('\\[')
+        const tag = isDisplay ? 'div' : 'span'
+        const style = isDisplay
+          ? 'display:block;text-align:center;margin:16px 0;overflow-x:auto'
+          : 'display:inline-block;vertical-align:middle'
+
+        const stage = document.createElement('div')
+        stage.style.cssText = 'position:absolute;visibility:hidden;top:-9999px'
+        stage.innerHTML = seg.content
+        document.body.appendChild(stage)
+        try {
+          await MathJax.typesetPromise([stage])
+          const safeLatex = seg.content.replace(/"/g, '&quot;')
+          articleHTML += `<${tag} class="math-formula" data-latex="${safeLatex}" style="${style}" contenteditable="false">${stage.innerHTML}</${tag}>`
+        } catch (e) {
+          // If rendering fails, keep raw text
+          articleHTML += `<span style="color:#ef4444;font-family:monospace">${seg.content}</span>`
+        } finally {
+          document.body.removeChild(stage)
+        }
+      }
+    }
+
+    // Insert at saved cursor position
+    editor.focus()
+    if (window._formulaRange) {
+      const sel2 = window.getSelection()
+      if (sel2) { sel2.removeAllRanges(); sel2.addRange(window._formulaRange) }
+      window._formulaRange = null
+    }
+    document.execCommand('insertHTML', false, articleHTML)
+    document.getElementById('latex-paste-modal')?.remove()
+    toast('Article rendered and inserted! ✅')
+    updateNewsWordCount?.()
+  } catch (e) {
+    toast('Failed to render article: ' + e.message, 'err')
+  }
+}
+
 async function applyNewsFormula(){
   const input = document.getElementById('formula-input')?.value?.trim()
   if(!input){ toast('Please enter a formula','err'); return }
@@ -2359,6 +2464,15 @@ async function applyNewsFormula(){
     const html = `<${tag} class="math-formula" data-latex="${safeLatex}" style="${style}" contenteditable="false">${rendered}</${tag}>${isDisplay ? '<p><br></p>' : '\u200b'}`
 
     editor.focus()
+    // Restore the saved caret position so formula goes where the cursor was
+    if (window._formulaRange) {
+      const sel2 = window.getSelection()
+      if (sel2) {
+        sel2.removeAllRanges()
+        sel2.addRange(window._formulaRange)
+      }
+      window._formulaRange = null
+    }
     document.execCommand('insertHTML', false, html)
     document.getElementById('formula-modal')?.remove()
     toast('Formula inserted! ✅')
@@ -2473,6 +2587,7 @@ async function openNewsModal(postId = null){
                 <button type="button" onclick="insertNewsEmbed()" title="Embed YouTube or iframe" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;gap:4px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"/><path d="m10 15 5-3-5-3z"/></svg> Embed</button>
                 <button type="button" onclick="insertNewsTable()" title="Insert table" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;gap:4px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/></svg> Table</button>
                 <button type="button" onclick="insertNewsFormula()" title="Insert math formula (LaTeX)" style="border:1px solid #7c3aed;background:#f5f3ff;padding:4px 10px;border-radius:4px;cursor:pointer;font-weight:600;color:#7c3aed;display:inline-flex;align-items:center;gap:4px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="12" x="2" y="6" rx="2"/><path d="m7 12 2 2 6-6"/><path d="M17 10h.01"/><path d="M17 14h.01"/></svg> Formula</button>
+                <button type="button" onclick="pasteLatexArticle()" title="Paste full article with LaTeX formulas" style="border:1px solid #0891b2;background:#ecfeff;padding:4px 10px;border-radius:4px;cursor:pointer;font-weight:600;color:#0891b2;display:inline-flex;align-items:center;gap:4px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6l3 3v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M9 13h6"/><path d="M9 17h4"/><path d="M14 2v4h4"/></svg> LaTeX Article</button>
                 <button type="button" onclick="insertAdPlaceholder()" title="Insert In-Page Push Ad" style="border:1px solid #F5A623;background:#FFF8ED;padding:4px 10px;border-radius:4px;cursor:pointer;font-weight:600;color:#b45309;display:inline-flex;align-items:center;gap:4px"><i data-lucide="megaphone" style="width:14px;height:14px"></i> Ad</button><button type="button" onclick="insertVignetteAd()" title="Insert Vignette Ad trigger" style="border:1px solid #1A5FFF;background:#EEF3FF;padding:4px 10px;border-radius:4px;cursor:pointer;font-weight:600;color:#1A5FFF;display:inline-flex;align-items:center;gap:4px"><i data-lucide="layout" style="width:14px;height:14px"></i> Vignette</button>
 <button type="button" onclick="insertWhatsAppCTA()" style="border:1px solid #25D366;background:#f0fdf4;padding:4px 10px;border-radius:4px;cursor:pointer;font-weight:600;color:#15803d;display:inline-flex;align-items:center;gap:4px" title="Insert WhatsApp Invite"><i data-lucide="message-circle" style="width:14px;height:14px"></i> WhatsApp</button>
                 <input type="file" id="news-img-upload" accept="image/*" style="display:none" onchange="insertNewsImage(this)"/>
