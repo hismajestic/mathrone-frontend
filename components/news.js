@@ -998,7 +998,10 @@ async function openNewsPost(slugOrId){
       .news-article-body li{margin-bottom:6px;line-height:1.7;font-size:15px;color:var(--g600)}
       .news-article-body a{color:var(--blue);text-decoration:underline}
       .news-article-body strong{font-weight:700}
-      .news-article-body img{max-width:100%;border-radius:12px;margin:16px 0;display:block;position:static !important;z-index:auto !important}
+      .news-article-body img{max-width:100%;height:auto;border-radius:12px;margin:16px 0;display:block;position:static !important;z-index:auto !important}
+      .news-article-body table{display:block;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin:24px 0;border-collapse:collapse;scrollbar-width:thin}
+      .news-article-body table th, .news-article-body table td{padding:12px;border:1px solid var(--g200);min-width:120px;word-break:normal}
+      @media(max-width:768px){ .news-article-body table{table-layout:auto !important} }
       .news-article-body .math-formula{max-width:100%;overflow-x:auto;padding:2px 0}
       .news-article-body .math-formula[style*="block"]{background:#f8fafc;border-radius:8px;padding:16px;margin:20px 0;border:1px solid var(--g100)}
       
