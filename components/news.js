@@ -999,28 +999,13 @@ async function openNewsPost(slugOrId){
       .news-article-body a{color:var(--blue);text-decoration:underline}
       .news-article-body strong{font-weight:700}
       .news-article-body img{max-width:100%;height:auto;border-radius:12px;margin:16px 0;display:block;position:static !important;z-index:auto !important}
-      /* MOBILE TABLE FIX */
-      .news-article-body table { 
-        display: block !important; 
-        width: 100% !important; 
-        overflow-x: auto !important; 
-        -webkit-overflow-scrolling: touch; 
-        border-collapse: collapse; 
-        margin: 20px 0;
-      }
-      @media (max-width: 768px) {
-        .news-article-body table {
-          table-layout: auto !important; /* Overrides the 'fixed' layout that causes cutting */
-        }
-        .news-article-body table td, .news-article-body table th {
-          min-width: 120px; /* Forces cells to be wide enough to scroll */
-          word-break: normal !important;
-          white-space: nowrap; /* Keeps content on one line so it forces a horizontal scroll */
-        }
-      }
-      .news-article-body table{display:block;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin:24px 0;border-collapse:collapse;scrollbar-width:thin}
-      .news-article-body table th, .news-article-body table td{padding:12px;border:1px solid var(--g200);min-width:120px;word-break:normal}
-      @media(max-width:768px){ .news-article-body table{table-layout:auto !important} }
+      /* TABLE — scroll wrapper handles overflow, table stays as table */
+      .news-article-body .table-scroll{display:block;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin:24px 0;border-radius:8px;border:1px solid var(--g200)}
+      .news-article-body table{width:100%;border-collapse:collapse;table-layout:auto;min-width:500px}
+      .news-article-body table th{padding:12px 16px;background:var(--g50);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--g400);border-bottom:2px solid var(--g200);text-align:left;white-space:nowrap}
+      .news-article-body table td{padding:12px 16px;border-bottom:1px solid var(--g100);font-size:14px;color:var(--g600);line-height:1.5;vertical-align:top}
+      .news-article-body table tr:last-child td{border-bottom:none}
+      .news-article-body table tr:hover td{background:#f8fafc}
       .news-article-body .math-formula{max-width:100%;overflow-x:auto;padding:2px 0}
       .news-article-body .math-formula[style*="block"]{background:#f8fafc;border-radius:8px;padding:16px;margin:20px 0;border:1px solid var(--g100)}
       
@@ -1117,8 +1102,8 @@ async function openNewsPost(slugOrId){
               Telegram
             </a>
             <!-- Copy Link -->
-            <button onclick="navigator.clipboard.writeText('https://mathroneacademy.com/news/' + ((p.category === 'news' || !p.category) ? 'education' : p.category) + '/' + (p.slug || p.id)).then(()=>toast('Link copied! 🔗'))" style="display:inline-flex;align-items:center;gap:6px;background:var(--g100);color:var(--navy);border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            <button onclick=\"(function(){var url='https://mathroneacademy.com/news/${(p.category === 'news' || !p.category) ? 'education' : p.category}/${p.slug || p.id}';if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(function(){toast('Link copied! 🔗')}).catch(function(){var i=document.createElement('input');i.value=url;document.body.appendChild(i);i.select();document.execCommand('copy');document.body.removeChild(i);toast('Link copied! 🔗')})}else{var i=document.createElement('input');i.value=url;document.body.appendChild(i);i.select();document.execCommand('copy');document.body.removeChild(i);toast('Link copied! 🔗')}})()\" style=\"display:inline-flex;align-items:center;gap:6px;background:var(--g100);color:var(--navy);border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600\">
+              <svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71\"/><path d=\"M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71\"/></svg>
               Copy Link
             </button>
           </div>
@@ -1203,6 +1188,14 @@ async function openNewsPost(slugOrId){
 
         // 2. Render any math formulas in the article body
         if(body.querySelector('.math-formula, mjx-container, .MathJax')){
+          // Wrap every table in a scroll container so mobile can scroll horizontally
+          body.querySelectorAll('table').forEach(t => {
+            if (t.parentElement?.classList.contains('table-scroll')) return
+            const wrap = document.createElement('div')
+            wrap.className = 'table-scroll'
+            t.parentNode.insertBefore(wrap, t)
+            wrap.appendChild(t)
+          })
           try{ await ensureMathJax(); await MathJax.typesetPromise([body]) }catch(e){}
         } else if(body.textContent.includes('\\(') || body.textContent.includes('$$')){
           try{ await ensureMathJax(); await MathJax.typesetPromise([body]) }catch(e){}
@@ -2405,8 +2398,64 @@ async function applyLatexArticle() {
         return /^(\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\))$/.test(str)
       }
 
-      function hasMath(str) {
-        return /\\\[[\s\S]+?\\\]|\\\([\s\S]*?\\\)/.test(str)
+      function parseTableBlock(startIndex) {
+        const rows = []
+        let i = startIndex
+
+        function parseTableRow(line) {
+          const raw = line.trim()
+          if (!raw) return null
+
+          let cells = null
+          if (raw.includes('|')) {
+            cells = raw.replace(/^\||\|$/g, '').split('|').map(c => c.trim())
+          } else if (raw.includes('\t')) {
+            cells = raw.split('\t').map(c => c.trim())
+          } else if (/ {2,}/.test(raw)) {
+            cells = raw.split(/ {2,}/).map(c => c.trim())
+          }
+
+          if (!cells || cells.length < 2) return null
+          return { raw, cells }
+        }
+
+        function isMarkdownSeparator(cells) {
+          return cells.every(cell => /^:?-{2,}:?$/.test(cell.trim()))
+        }
+
+        while (i < lines.length) {
+          const parsed = parseTableRow(lines[i])
+          if (!parsed) break
+          rows.push(parsed)
+          i++
+        }
+
+        if (rows.length < 2) return { html: '', end: startIndex }
+
+        const hasSeparator = isMarkdownSeparator(rows[1].cells)
+        const sameColumnCount = rows.every(r => r.cells.length === rows[0].cells.length)
+        if (!hasSeparator && !sameColumnCount) return { html: '', end: startIndex }
+
+        const headerCells = hasSeparator || rows.length >= 3 ? rows[0].cells : null
+        const bodyRows = hasSeparator ? rows.slice(2) : (headerCells ? rows.slice(1) : rows)
+
+        let tableHtml = '<div class="table-scroll" style="display:block;width:100%;overflow-x:auto;margin:16px 0">'
+        tableHtml += '<table style="width:100%;border-collapse:collapse;min-width:500px">'
+
+        if (headerCells) {
+          tableHtml += '<thead><tr>' + headerCells.map(c => `<th style="padding:10px 12px;border:1px solid #d1d5db;background:#f8fafc;text-align:left">${c || '&nbsp;'}</th>`).join('') + '</tr></thead>'
+        }
+
+        const bodyHtml = bodyRows.map(row => {
+          return `<tr>${row.cells.map(c => `<td style="padding:10px 12px;border:1px solid #d1d5db;vertical-align:top">${c || '&nbsp;'}</td>`).join('')}</tr>`
+        }).join('')
+
+        if (bodyHtml) {
+          tableHtml += '<tbody>' + bodyHtml + '</tbody>'
+        }
+
+        tableHtml += '</table></div>'
+        return { html: tableHtml, end: i - 1 }
       }
 
       for (let i = 0; i < lines.length; i++) {
@@ -2419,8 +2468,19 @@ async function applyLatexArticle() {
           continue
         }
 
+        // Preserve table blocks from pipe/tab/whitespace-delimited pasted content
+        if (i + 1 < lines.length) {
+          const tableResult = parseTableBlock(i)
+          if (tableResult.html) {
+            closelist()
+            html += tableResult.html
+            i = tableResult.end
+            continue
+          }
+        }
+
         // Already an HTML tag — pass straight through
-        if (/^<[a-zA-Z\/]/.test(trimmed)) {
+        if (/^<(table|thead|tbody|tfoot|tr|th|td|caption|colgroup|col|p|h[1-6]|ul|ol|li|div|span|blockquote|pre|code|hr|br|img|section|article|header|footer|figure|figcaption|style|script|a)(\s|>|\/>)*/i.test(trimmed)) {
           closelist()
           html += trimmed
           continue
@@ -2457,12 +2517,8 @@ async function applyLatexArticle() {
         }
 
         // Numbered list item — BUT only if it looks like prose content, not a section number
-        // Key fix: if the line is short AND the next non-empty line is a math-only line,
-        // treat this as a list item and absorb the math into the same <li>
         if (/^\d+\.\s/.test(trimmed) && !/^\d+\.\d/.test(trimmed)) {
           const content = trimmed.replace(/^\d+\.\s+/, '')
-
-          // Look ahead — if next non-empty line is pure math, absorb it into this <li>
           let mathAppend = ''
           let skip = 0
           for (let j = i + 1; j < lines.length; j++) {
@@ -2529,6 +2585,30 @@ async function applyLatexArticle() {
           i = end + 2
           continue
         }
+        // Check for ( ... ) with spaces — common AI-written format, treat as inline math
+        // Matches "( formula )" where content looks like LaTeX (contains \, ^, _, {, })
+        if (text[i] === '(' && text[i+1] === ' ') {
+          let j = i + 2, depth = 0, end = -1
+          while (j < text.length - 1) {
+            if (text[j] === '{') depth++
+            else if (text[j] === '}') depth--
+            else if (text[j] === ' ' && text[j+1] === ')' && depth === 0) { end = j; break }
+            j++
+          }
+          // Only treat as math if the content contains LaTeX-like characters
+          if (end !== -1) {
+            const inner = text.slice(i + 2, end)
+            const looksLikeMath = /[\\^_{}]/.test(inner) || /\d+/.test(inner)
+            if (looksLikeMath) {
+              result += `\\(${inner}\\)`
+              i = end + 2
+              continue
+            }
+          }
+          result += text[i++]
+          continue
+        }
+
         // Check for \(...\) — inline math, pass straight through
         if (text[i] === '\\' && text[i+1] === '(') {
           // Find matching \) by scanning with brace depth
@@ -2593,7 +2673,18 @@ async function applyLatexArticle() {
         }
         result += text[i++]
       }
-      return result
+
+      function wrapBareLaTeX(input) {
+        return input.split('\n').map(line => {
+          if (/\$|\\\(|\\\[/.test(line)) return line
+          return line.replace(/(^|\s|\(|\[|\{|>)([A-Za-z0-9\-+*/^_=\\{}]+\\[A-Za-z]+[A-Za-z0-9\-+*/^_=\\{}()\[\]{}.,]*)/g, (match, prefix, formula) => {
+            if (/^\\\(|^\\\[/.test(formula)) return match
+            return prefix + `\\(${formula.trim()}\\)`
+          })
+        }).join('\n')
+      }
+
+      return wrapBareLaTeX(result)
     }
 
     // ── STEP 2: Render all math inside an HTML string ───────────────────────
@@ -3693,20 +3784,32 @@ function insertWhatsAppCTA() {
   editor.focus();
 
   const ctaHtml = `
-    <div style="display:flex; align-items:center; justify-content:center; gap:12px; padding:10px 16px; background:#f0fdf4; border:1px solid #25d366; border-radius:12px; margin:20px 0; flex-wrap:wrap; font-family:'DM Sans', sans-serif;" contenteditable="false">
-      <span style="font-size:13px; font-weight:800; color:#166534; display:flex; align-items:center; gap:6px;">
-        <i data-lucide="bell-ring" style="width:16px; height:16px; color:#25d366"></i> Stay Updated:
-      </span>
-      
-      <a href="https://whatsapp.com/channel/0029Vb6tCI2EFeXi8jhfjM2E" target="_blank" 
-         style="background:#25d366; color:#fff; text-decoration:none; padding:6px 14px; border-radius:8px; font-size:12px; font-weight:700; display:inline-flex; align-items:center; gap:6px; transition:opacity 0.2s;">
-         <i data-lucide="external-link" style="width:14px; height:14px"></i> Follow Channel
-      </a>
-      
-      <a href="https://chat.whatsapp.com/IYb1bEphQJJ9g9V2KdvQui" target="_blank" 
-         style="background:#fff; color:#166534; border:1.5px solid #25d366; text-decoration:none; padding:5px 13px; border-radius:8px; font-size:12px; font-weight:700; display:inline-flex; align-items:center; gap:6px;">
-         <i data-lucide="users" style="width:14px; height:14px"></i> Join Discussion Group
-      </a>
+    <div style="padding:16px; background:#f8faff; border:1px solid #e2e8f0; border-radius:14px; margin:24px 0; font-family:'DM Sans', sans-serif;" contenteditable="false">
+      <div style="font-size:13px; font-weight:800; color:var(--navy); margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+        <i data-lucide="bell-ring" style="width:15px; height:15px; color:#25d366"></i> Stay Connected with Mathrone Academy
+      </div>
+      <div style="display:flex; flex-wrap:wrap; gap:8px;">
+        <a href="https://whatsapp.com/channel/0029Vb6tCI2EFeXi8jhfjM2E" target="_blank"
+           style="background:#25d366; color:#fff; text-decoration:none; padding:7px 13px; border-radius:8px; font-size:12px; font-weight:700; display:inline-flex; align-items:center; gap:6px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          WA Channel
+        </a>
+        <a href="https://chat.whatsapp.com/IYb1bEphQJJ9g9V2KdvQui" target="_blank"
+           style="background:#fff; color:#166534; border:1.5px solid #25d366; text-decoration:none; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:700; display:inline-flex; align-items:center; gap:6px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          WA Group
+        </a>
+        <a href="https://t.me/mathroneacademy" target="_blank"
+           style="background:#2AABEE; color:#fff; text-decoration:none; padding:7px 13px; border-radius:8px; font-size:12px; font-weight:700; display:inline-flex; align-items:center; gap:6px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+          TG Channel
+        </a>
+        <a href="https://t.me/+mFvkEkTtmExlZGU8" target="_blank"
+           style="background:#fff; color:#0088cc; border:1.5px solid #2AABEE; text-decoration:none; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:700; display:inline-flex; align-items:center; gap:6px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+          TG Group
+        </a>
+      </div>
     </div>
     <p><br></p>`;
 
