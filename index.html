@@ -425,22 +425,52 @@ async function ensureFabric() {
 async function ensureMathJax() {
   if (window.MathJax && window.MathJax.typesetPromise) return;
   if (!window._mjPromise) {
-    window._mjPromise = new Promise((res) => {
+    window._mjPromise = new Promise((res, rej) => {
+      const timeout = setTimeout(() => {
+        console.warn('MathJax initialization timed out')
+        res() // Resolve anyway to not block UI
+      }, 10000)
+      
       window.MathJax = {
         tex: {
           inlineMath: [['\\(','\\)'], ['$','$']],
           displayMath: [['$$','$$'], ['\\[','\\]']],
           processEscapes: true,
-          processEnvironments: true
+          processEnvironments: true,
+          processRefs: true,
+          packages: {'[+]': ['mathtools', 'cancel']} // Support \boxed, \cancel, etc.
         },
         options: {
-          skipHtmlTags: ['script','noscript','style','textarea','pre','code'],
-          ignoreHtmlClass: 'tex2jax_ignore',
-          processHtmlClass: 'math-formula'
+          skipHtmlTags: ['script','noscript','style','textarea','pre','code','aside'],
+          ignoreHtmlClass: 'tex2jax_ignore|no-math',
+          processHtmlClass: 'math-formula|tex2jax_process'
         },
-        startup: { typeset: false, pageReady: () => { res(); return MathJax.startup.defaultPageReady(); } }
+        startup: { 
+          typeset: false, 
+          pageReady: () => { 
+            clearTimeout(timeout)
+            console.log('✓ MathJax ready (with \\boxed, \\cancel support)')
+            res()
+            return MathJax.startup.defaultPageReady()
+          } 
+        }
       };
-      loadScript('https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js');
+      
+      // Load MathJax with error handling - use full version with extensions
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-svg.min.js'
+      script.async = true
+      script.onerror = () => {
+        clearTimeout(timeout)
+        console.error('Failed to load MathJax from CDN, trying fallback')
+        // Try fallback CDN
+        const fallbackScript = document.createElement('script')
+        fallbackScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js'
+        fallbackScript.async = true
+        fallbackScript.onerror = () => rej(new Error('All MathJax CDNs unavailable'))
+        document.head.appendChild(fallbackScript)
+      }
+      document.head.appendChild(script)
     });
   }
   return window._mjPromise;

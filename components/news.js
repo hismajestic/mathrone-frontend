@@ -2559,127 +2559,155 @@ async function applyLatexArticle() {
     // Converts $...$ → \(...\) and $$...$$ → \[...\]
     // We do $$ first (longer match wins), then single $.
     // Uses a state-machine approach instead of regex to handle nested braces correctly.
+    function decodeHTMLEntities(text) {
+      const map = {
+        '&lt;': '<', '&gt;': '>', '&amp;': '&', '&quot;': '"', '&#39;': "'",
+        '&nbsp;': ' ', '&times;': '×', '&div;': '÷', '&plus;': '+', '&minus;': '−',
+        '&radic;': '√', '&infin;': '∞', '&sum;': '∑', '&prod;': '∏', 
+        '&int;': '∫', '&ne;': '≠', '&le;': '≤', '&ge;': '≥', '&approx;': '≈',
+        '&plusmn;': '±'
+      }
+      let result = text
+      for (const [entity, char] of Object.entries(map)) {
+        result = result.split(entity).join(char)
+      }
+      // Handle numeric entities like &#60;
+      result = result.replace(/&#(\d+);/g, (match, code) => String.fromCharCode(parseInt(code, 10)))
+      return result
+    }
+
     function normaliseMathDelimiters(text) {
+      // CRITICAL: Decode HTML entities first so we can parse properly
+      let working = decodeHTMLEntities(text)
       let result = ''
       let i = 0
-      while (i < text.length) {
-        // Check for \[...\] — display math
-        if (text[i] === '\\' && text[i+1] === '[') {
-          // Find matching \] by scanning, not indexOf (indexOf finds wrong \] across blocks)
+      
+      // Helper to check if a position is inside an HTML tag (improved)
+      function isInsideTag(str, pos) {
+        const before = str.slice(0, pos)
+        const openTags = (before.match(/<(?!\/)/g) || []).length
+        const closeTags = (before.match(/<\//g) || []).length
+        return openTags > closeTags
+      }
+      
+      while (i < working.length) {
+        // Check for \[...\] — display math (most specific)
+        if (working[i] === '\\' && working[i+1] === '[') {
+          if (isInsideTag(working, i)) { result += working[i++]; continue }
+          
           let j = i + 2, depth = 0, end = -1
-          while (j < text.length - 1) {
-            if (text[j] === '{') depth++
-            else if (text[j] === '}') depth--
-            else if (text[j] === '\\' && text[j+1] === ']' && depth === 0) { end = j; break }
+          while (j < working.length - 1) {
+            if (working[j] === '{') depth++
+            else if (working[j] === '}') depth--
+            else if (working[j] === '\\' && working[j+1] === ']' && depth === 0) { end = j; break }
             j++
           }
-          if (end === -1) { result += text[i++]; continue }
-          const inner = text.slice(i + 2, end)
-          // Check context: is this \[...\] alone on its line?
-          const lineStart = text.lastIndexOf('\n', i - 1) + 1
-          const lineEnd = text.indexOf('\n', end + 2)
-          const beforeMath = text.slice(lineStart, i).trim()
-          const afterMath = text.slice(end + 2, lineEnd === -1 ? text.length : lineEnd).trim()
-          const isAlone = beforeMath === '' && afterMath === ''
-          result += isAlone ? `\\[${inner}\\]` : `\\(${inner}\\)`
+          if (end === -1) { result += working[i++]; continue }
+          const inner = working.slice(i + 2, end)
+          result += `\\[${inner}\\]`
           i = end + 2
           continue
         }
-        // Check for ( ... ) with spaces — common AI-written format, treat as inline math
-        // Matches "( formula )" where content looks like LaTeX (contains \, ^, _, {, })
-        if (text[i] === '(' && text[i+1] === ' ') {
+        
+        // Check for \(...\) — inline math
+        if (working[i] === '\\' && working[i+1] === '(') {
+          if (isInsideTag(working, i)) { result += working[i++]; continue }
+          
           let j = i + 2, depth = 0, end = -1
-          while (j < text.length - 1) {
-            if (text[j] === '{') depth++
-            else if (text[j] === '}') depth--
-            else if (text[j] === ' ' && text[j+1] === ')' && depth === 0) { end = j; break }
+          while (j < working.length - 1) {
+            if (working[j] === '{') depth++
+            else if (working[j] === '}') depth--
+            else if (working[j] === '\\' && working[j+1] === ')' && depth === 0) { end = j; break }
             j++
           }
-          // Only treat as math if the content contains LaTeX-like characters
-          if (end !== -1) {
-            const inner = text.slice(i + 2, end)
-            const looksLikeMath = /[\\^_{}]/.test(inner) || /\d+/.test(inner)
-            if (looksLikeMath) {
-              result += `\\(${inner}\\)`
-              i = end + 2
-              continue
-            }
-          }
-          result += text[i++]
-          continue
-        }
-
-        // Check for \(...\) — inline math, pass straight through
-        if (text[i] === '\\' && text[i+1] === '(') {
-          // Find matching \) by scanning with brace depth
-          let j = i + 2, depth = 0, end = -1
-          while (j < text.length - 1) {
-            if (text[j] === '{') depth++
-            else if (text[j] === '}') depth--
-            else if (text[j] === '\\' && text[j+1] === ')' && depth === 0) { end = j; break }
-            j++
-          }
-          if (end === -1) { result += text[i++]; continue }
-          const inner = text.slice(i + 2, end)
+          if (end === -1) { result += working[i++]; continue }
+          const inner = working.slice(i + 2, end)
           result += `\\(${inner}\\)`
           i = end + 2
           continue
         }
-        // Check for $$
-        if (text[i] === '$' && text[i+1] === '$') {
-          // Find matching $$ by scanning with brace depth
+        
+        // Check for $$ — display math (if alone on line)
+        if (working[i] === '$' && working[i+1] === '$') {
+          if (isInsideTag(working, i)) { result += working[i++]; continue }
+          
           let j = i + 2, depth = 0, end = -1
-          while (j < text.length - 1) {
-            if (text[j] === '{') depth++
-            else if (text[j] === '}') depth--
-            else if (text[j] === '$' && text[j+1] === '$' && depth === 0) { end = j; break }
+          while (j < working.length - 1) {
+            if (working[j] === '{') depth++
+            else if (working[j] === '}') depth--
+            else if (working[j] === '$' && working[j+1] === '$' && depth === 0) { end = j; break }
             j++
           }
-          if (end === -1) { result += text[i++]; continue }
-          const inner = text.slice(i + 2, end)
-          // Check if $$ is alone on its line or surrounded by text
-          const lineStart = text.lastIndexOf('\n', i - 1) + 1
-          const lineEnd = text.indexOf('\n', end + 2)
-          const fullLine = text.slice(lineStart, lineEnd === -1 ? text.length : lineEnd)
+          if (end === -1) { result += working[i++]; continue }
+          const inner = working.slice(i + 2, end)
+          
+          const lineStart = working.lastIndexOf('\n', i - 1) + 1
+          const lineEnd = working.indexOf('\n', end + 2)
+          const fullLine = working.slice(lineStart, lineEnd === -1 ? working.length : lineEnd)
           const withoutMath = fullLine.replace(/\$\$[\s\S]*?\$\$/, '').trim()
-          const isAlone = withoutMath === '' || withoutMath === '•' || withoutMath === '-' || withoutMath === '*'
+          const isAlone = withoutMath === '' || /^[-•*#]$/.test(withoutMath)
+          
           result += isAlone ? `\\[${inner}\\]` : `\\(${inner}\\)`
           i = end + 2
           continue
         }
-        // Check for single $
-        if (text[i] === '$') {
-          // Find closing $ — must be on same line, skip if next char is space
-          if (text[i+1] === ' ' || text[i+1] === '\n' || text[i+1] === undefined) {
-            result += text[i++]; continue
+        
+        // Check for single $ — with strict validation
+        if (working[i] === '$') {
+          const nextChar = working[i + 1]
+          if (nextChar === ' ' || nextChar === '\n' || nextChar === undefined) {
+            result += working[i++]; continue
           }
-          let j = i + 1
-          let depth = 0
-          let found = false
-          while (j < text.length && text[j] !== '\n') {
-            if (text[j] === '{') depth++
-            else if (text[j] === '}') depth--
-            else if (text[j] === '$' && depth === 0) {
-              const inner = text.slice(i + 1, j)
-              result += `\\(${inner}\\)`
-              i = j + 1
-              found = true
-              break
+          
+          if (isInsideTag(working, i)) { result += working[i++]; continue }
+          
+          let j = i + 1, depth = 0, found = false
+          while (j < working.length && working[j] !== '\n') {
+            if (working[j] === '{') depth++
+            else if (working[j] === '}') depth--
+            else if (working[j] === '$' && depth === 0) {
+              const inner = working.slice(i + 1, j)
+              const hasMath = /[0-9a-zA-Z_{}()\[\]<>+=\-*/^\\]|[×÷±∑∏∫√∞≈≠≤≥]/.test(inner)
+              const notCurrency = !/^\s*[A-Z]{1,3}\s*$/.test(inner)
+              
+              if (hasMath && notCurrency && inner.length > 0 && inner.length < 300) {
+                result += `\\(${inner}\\)`
+                i = j + 1
+                found = true
+                break
+              }
             }
             j++
           }
-          if (!found) { result += text[i++] }
+          if (!found) { result += working[i++] }
           continue
         }
-        result += text[i++]
+        
+        result += working[i++]
       }
 
+      // Enhanced bare LaTeX detection
       function wrapBareLaTeX(input) {
         return input.split('\n').map(line => {
+          // Skip lines that already have math delimiters
           if (/\$|\\\(|\\\[/.test(line)) return line
-          return line.replace(/(^|\s|\(|\[|\{|>)([A-Za-z0-9\-+*/^_=\\{}]+\\[A-Za-z]+[A-Za-z0-9\-+*/^_=\\{}()\[\]{}.,]*)/g, (match, prefix, formula) => {
-            if (/^\\\(|^\\\[/.test(formula)) return match
-            return prefix + `\\(${formula.trim()}\\)`
+          
+          // Skip HTML lines
+          if (/<[a-z]/i.test(line.trim())) return line
+          
+          // Match complex LaTeX commands: \frac{...}{...}, \sqrt[3]{...}, \sin, \cos, etc.
+          return line.replace(/(^|\s)([\\a-zA-Z]+(?:\[[^\]]*\])?(?:\{[^}]*\})+)/g, (match, prefix, formula) => {
+            // Skip if already wrapped or is HTML
+            if (/^\\\(|^\\\[/.test(formula) || /<|>/.test(formula)) return match
+            
+            // Only wrap actual LaTeX commands (contains backslash and braces)
+            const hasBackslash = formula.includes('\\')
+            const hasBraces = formula.includes('{')
+            
+            if (hasBackslash && hasBraces) {
+              return prefix + `\\(${formula.trim()}\\)`
+            }
+            return match
           })
         }).join('\n')
       }
@@ -2692,6 +2720,14 @@ async function applyLatexArticle() {
     const mathPattern = /(\\\[[\s\S]+?\\\]|\\\([\s\S]*?\\\))/g
 
     async function renderMathInHTML(htmlStr) {
+      // CRITICAL: Ensure MathJax is loaded before attempting any rendering
+      try {
+        await ensureMathJax()
+      } catch (e) {
+        console.error('Failed to load MathJax:', e)
+        // Continue anyway - formulas will at least show their source
+      }
+
       // Collect all math tokens and their positions
       const tokens = []
       let m
@@ -2709,46 +2745,98 @@ async function applyLatexArticle() {
 
       // Render all tokens via MathJax in one batch using a staging container
       const stage = document.createElement('div')
-      stage.style.cssText = 'position:absolute;visibility:hidden;top:-9999px;left:-9999px'
+      stage.style.cssText = 'position:absolute;visibility:hidden;top:-9999px;left:-9999px;width:100%;height:auto'
+      stage.id = '_latex_stage_' + Math.random().toString(36).substr(2, 9)
 
-      // Decide display vs inline per token based on context, not just delimiter
-      // $$...$$ is display ONLY if it sits on its own line (nothing but whitespace around it)
+      // Decide display vs inline per token based on context
       const tokenModes = tokens.map(t => {
         if (t.raw.startsWith('\\(')) return 'inline'
         if (t.raw.startsWith('\\[')) return 'display'
         // $$ — check what surrounds it in the full HTML string
-        // Strip HTML tags when checking — a <p> before $$ still means "alone"
         const before = htmlStr.slice(0, t.index).split('\n').pop().replace(/<[^>]+>/g, '').trim()
         const after  = htmlStr.slice(t.index + t.length).split('\n')[0].replace(/<[^>]+>/g, '').trim()
         const aloneOnLine = before === '' && after === ''
-        // Also treat it as display if the only surrounding content is closing/opening p tags
-        const surroundedByTags = /^<\/?(p|div|li|h[1-6])[^>]*>$/.test(htmlStr.slice(0, t.index).trim().split('\n').pop().trim()) 
-        return (aloneOnLine || surroundedByTags) ? 'display' : 'inline'
+        return (aloneOnLine) ? 'display' : 'inline'
       })
 
       const placeholders = tokens.map((t, i) => {
         const el = document.createElement(tokenModes[i] === 'display' ? 'div' : 'span')
         el.id = `_mjph_${i}`
+        el.className = 'math-formula'
         el.textContent = t.raw
         stage.appendChild(el)
         return el
       })
       document.body.appendChild(stage)
-      try { await MathJax.typesetPromise([stage]) } catch(e) {}
+      
+      // Render with enhanced error handling and retry logic
+      let renderSuccess = 0
+      let renderFailed = 0
+      let retryCount = 0
+      const maxRetries = 2
+      
+      async function attemptRender() {
+        try {
+          if (window.MathJax && window.MathJax.typesetPromise) {
+            await MathJax.typesetPromise([stage])
+            // Check if actually rendered
+            const hasRendered = stage.innerHTML.includes('mjx-container') || stage.innerHTML.includes('MathJax')
+            if (hasRendered) {
+              renderSuccess = tokens.length
+              console.log(`✓ Successfully rendered ${tokens.length} formula(s) on attempt ${retryCount + 1}`)
+              return true
+            } else if (retryCount < maxRetries) {
+              console.log(`Retry rendering (attempt ${retryCount + 2})...`)
+              retryCount++
+              return attemptRender()
+            }
+          } else {
+            console.warn('MathJax not available for rendering')
+          }
+        } catch (e) {
+          console.error('MathJax rendering error:', e)
+          if (retryCount < maxRetries) {
+            console.log(`Retrying after error (attempt ${retryCount + 2})...`)
+            retryCount++
+            await new Promise(r => setTimeout(r, 500)) // Small delay before retry
+            return attemptRender()
+          }
+        }
+        renderFailed = tokens.length
+        return false
+      }
+      
+      await attemptRender()
 
-      // Build replacement map
+      // Build replacement map with error handling for each formula
       const rendered = {}
       placeholders.forEach((el, i) => {
         const t = tokens[i]
         const isDisplay = tokenModes[i] === 'display'
         const tag = isDisplay ? 'div' : 'span'
         const style = isDisplay
-          ? 'display:block;text-align:center;margin:20px 0;overflow-x:auto;background:#f8fafc;border-radius:8px;padding:16px 12px;border:1px solid #e2e8f0'
-          : 'display:inline-block;vertical-align:middle;line-height:1'
+          ? 'display:block;text-align:center;margin:20px 0;overflow-x:auto;background:#f8fafc;border-radius:8px;padding:16px 12px;border:1px solid #e2e8f0;min-height:40px;line-height:1.5'
+          : 'display:inline-block;vertical-align:middle;line-height:1;margin:0 2px'
         const safeLatex = t.raw.replace(/"/g, '&quot;')
-        rendered[i] = `<${tag} class="math-formula" data-latex="${safeLatex}" style="${style}" contenteditable="false">${el.innerHTML}</${tag}>`
+        
+        // Check if rendering succeeded
+        const rendered_html = el.innerHTML
+        const hasRendered = rendered_html.includes('mjx-container') || rendered_html.includes('MathJax') || rendered_html.includes('<svg')
+        
+        if (!hasRendered && renderFailed > 0) {
+          // Fallback: show in code format
+          rendered[i] = `<${tag} class="math-formula math-fallback" data-latex="${safeLatex}" style="${style};font-family:monospace;white-space:pre-wrap;word-break:break-word;color:#666;background:#fffacd;border:1px dashed #999" contenteditable="false" title="Formula (rendering unavailable)"><code style="color:#666">${t.raw}</code></${tag}>`
+        } else {
+          rendered[i] = `<${tag} class="math-formula" data-latex="${safeLatex}" style="${style}" contenteditable="false" title="Click to edit formula">${rendered_html}</${tag}>`
+        }
       })
-      document.body.removeChild(stage)
+      
+      // Clean up stage
+      try {
+        document.body.removeChild(stage)
+      } catch (e) {
+        console.warn('Failed to remove staging container:', e)
+      }
 
       // Replace tokens in reverse order so indexes stay valid
       let result = htmlStr
@@ -2756,6 +2844,10 @@ async function applyLatexArticle() {
         const t = tokens[i]
         result = result.slice(0, t.index) + rendered[i] + result.slice(t.index + t.length)
       }
+      
+      // Store stats for display
+      window._lastFormulaStats = { success: renderSuccess, failed: renderFailed, total: tokens.length }
+      
       return result
     }
 
@@ -2767,8 +2859,26 @@ async function applyLatexArticle() {
 
     // ── STEP 4: Insert into editor ──────────────────────────────────────────
     editor.innerHTML = finalHTML
+    
+    // CRITICAL: Re-typeset the editor content to ensure all formulas render
+    // This catches any formulas that might have been missed in the first pass
+    try {
+      await new Promise(r => setTimeout(r, 100)) // Small delay for DOM to settle
+      await MathJax.typesetPromise([editor])
+      console.log('✓ Re-typeset editor content - all formulas should be visible')
+    } catch (e) {
+      console.warn('Re-typeset pass failed (formulas may still render):', e)
+    }
+    
     document.getElementById('latex-paste-modal')?.remove()
-    toast('Article rendered and inserted! ✅')
+    
+    // Show stats about formulas detected
+    const stats = window._lastFormulaStats || { total: 0 }
+    let message = 'Article rendered and inserted!'
+    if (stats.total > 0) {
+      message += ` (${stats.total} formula${stats.total !== 1 ? 's' : ''} detected${stats.failed > 0 ? `, ${stats.failed} unavailable` : ''})`
+    }
+    toast(message + ' ✅')
     updateNewsWordCount?.()
 
   } catch (e) {
