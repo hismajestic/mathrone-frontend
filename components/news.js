@@ -858,9 +858,13 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
             <div class="pn-grid-3">
               ${posts.map((p, index) => {
                 const card = newsCard(p, false);
-                // Inject an ad card after the 3rd and 7th article
-                if (index === 2 || index === 6) {
-                  return card + renderInFeedAd();
+                // Row 1 (Index 2): Large Leaderboard
+                if (index === 2) {
+                  return card + `<div id="ad-list-row-1" class="ad-provider-card" style="grid-column:1/-1; margin:10px 0; display:flex; justify-content:center; overflow:hidden; min-height:0;"></div>`;
+                }
+                // Every 2 Rows (Index 8, 14, etc): Native Banner
+                if (index > 2 && (index - 2) % 6 === 0) {
+                  return card + `<div id="ad-list-native-${index}" class="ad-provider-card" style="grid-column:1/-1; margin:10px 0;"></div>`;
                 }
                 return card;
               }).join('')}
@@ -901,6 +905,9 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
       </div>
     </div>
     <div id="modal-root"></div>`
+    // Load Listing Banners
+loadAdsterraAd('ad-list-row-1', '898446df1649f7a75ae78316b2f39fb9', 728, 90);
+document.querySelectorAll('[id^="ad-list-native-"]').forEach(el => loadAdsterraNative(el.id));
 
     // Trigger In-feed Ads to load
     setTimeout(() => {
@@ -1011,7 +1018,7 @@ async function openNewsPost(slugOrId){
       
       .article-layout{display:flex;gap:32px;max-width:100%;margin:0;padding:24px 16px 80px}
       .article-main{flex:1;min-width:0}
-      .article-sidebar{width:300px;flex-shrink:0;position:sticky;top:0;align-self:flex-start;max-height:100vh;overflow-y:auto;border-left:none;position:sticky;top:80px;max-height:calc(100vh - 100px);overflow-y:auto;align-self:flex-start}
+      .article-sidebar{width:300px;flex-shrink:0;border-left:none;position:sticky;top:80px;max-height:calc(100vh - 100px);overflow-x:hidden;overflow-y:auto;align-self:flex-start;min-width:0;box-sizing:border-box;}
       
       .trending-card{background:#fff;border:1px solid var(--g100);border-radius:12px;padding:16px;margin-bottom:16px;cursor:pointer;transition:all 0.2s;box-shadow:none}
       .trending-card:hover{box-shadow:0 4px 12px rgba(0,0,0,0.1);transform:translateY(-2px)}
@@ -1020,7 +1027,10 @@ async function openNewsPost(slugOrId){
       .trending-card .meta{font-size:12px;color:var(--g400)}
       
       .related-articles{margin-top:48px}
-      .related-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+      .related-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+      @media(max-width:1200px){.related-grid{grid-template-columns:repeat(3,1fr)}}
+      @media(max-width:800px){.related-grid{grid-template-columns:repeat(2,1fr)}}
+      @media(max-width:500px){.related-grid{grid-template-columns:1fr}}
       
       @media (max-width: 1024px) {
         .article-layout{flex-direction:column}
@@ -1060,7 +1070,34 @@ async function openNewsPost(slugOrId){
         </div>
 
         <!-- Content (image_url is already inside content, don't show it twice) -->
-       <div class="news-article-body">${(p.content || '')}</div>  
+   <div class="news-article-body">
+  ${(() => {
+    let content = p.content || '';
+    const paragraphs = content.split('</p>');
+    const totalParas = paragraphs.length;
+    
+    // Enable ads for any article with more than 3 paragraphs
+    if (totalParas > 3) {
+      // More aggressive placements: 20%, 40%, 60%, 80%, 95%
+      const positions = [
+        Math.floor(totalParas * 0.20),
+        Math.floor(totalParas * 0.40),
+        Math.floor(totalParas * 0.60),
+        Math.floor(totalParas * 0.80),
+        Math.floor(totalParas * 0.95)
+      ];
+
+      positions.forEach((pos, i) => {
+        if(paragraphs[pos]) {
+          // Added a "Sponsored" label to ensure higher compliance and fill rate
+          paragraphs[pos] += `<div style="margin:30px 0; clear:both;"><div style="font-size:9px; color:#ccc; text-align:center; margin-bottom:4px; letter-spacing:1px;">ADVERTISEMENT</div><div id="ad-native-body-${i}" style="border:none;"></div></div>`;
+        }
+      });
+      return paragraphs.join('</p>');
+    }
+    return content;
+  })()}
+</div> 
 
         <!-- Source link -->
         ${p.source_url ? `
@@ -1119,12 +1156,26 @@ async function openNewsPost(slugOrId){
       </div>
       <div id="modal-root"></div>
 
-      <!-- Sidebar with Trending News -->
-      <div class="article-sidebar">
-        <h3 style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:16px"> Trending News</h3>
+     <!-- Sidebar with Trending News -->
+     <div class="article-sidebar">
+        <!-- Adsterra Sidebar 1 (Top) -->
+        <div id="ad-sidebar-1" style="margin-bottom:20px; display:flex; justify-content:center; overflow:hidden; max-width:100%;"></div>
+        
+        <h3 style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:16px">Trending News</h3>
         <div id="trending-news">
           <div class="loader-center"><div class="spinner"></div></div>
         </div>
+
+        <!-- ad-sidebar-2 is injected dynamically inside trending cards above -->
+
+        <!-- Adsterra Sidebar 3 (Bottom - after Popular Topics widget) -->
+        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px;margin-bottom:16px">
+          <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:10px">Popular Topics</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            ${['Scholarships','Rwanda','A-Level','STEM','Study Abroad','REB','University','Mastercard'].map(t=>`<button onclick="navigate('news');setTimeout(()=>renderPublicNews(null,'${t}'),300)" style="padding:4px 10px;border:1px solid #e5e7eb;border-radius:20px;font-size:12px;background:#fff;cursor:pointer;color:#6b6b80">${t}</button>`).join('')}
+          </div>
+        </div>
+        <div id="ad-sidebar-3" style="margin-top:8px; display:flex; justify-content:center; min-height:0;"></div>
       </div>
     </div>
 
@@ -1209,8 +1260,10 @@ async function openNewsPost(slugOrId){
           });
         } catch (e) { console.error("AdSense trigger failed", e); }
 
-        // Trigger Monetag logic only for this article
-       _triggerMonetagAds();
+        // Trigger Monetag & Adsterra
+_triggerMonetagAds();
+loadAdsterraNative('ad-native-mid-article');
+loadAdsterraAd('ad-article-sidebar', '1043131856f72dc8238a0d29e1dcab9e', 300, 250);
       }
     }, 200)
     const articleUrl = 'https://mathroneacademy.com/news/' + ((p.category === 'news' || !p.category) ? 'education' : p.category) + '/' + articleSlug;
@@ -1326,17 +1379,23 @@ document.head.appendChild(breadcrumbSchema)
     const related = relatedResult.status === 'fulfilled' ? relatedResult.value : []
     const relatedEl = document.getElementById('related-articles-content')
     if(relatedEl && related.length){
-      relatedEl.innerHTML = `
-        ${related.map(r => `
-          <div class="card" style="padding:0;overflow:hidden;cursor:pointer" onclick="openNewsPost('${r.id}')">
-            ${r.image_url ? `<img src="${r.image_url}" alt="${r.title||'Related article'}" loading="lazy" decoding="async" style="width:100%;height:140px;object-fit:cover"/>` : `
-            <div style="width:100%;height:100px;background:linear-gradient(135deg,#e5e7eb,#d1d5db);display:flex;align-items:center;justify-content:center;font-size:32px">📰</div>`}
+      relatedEl.innerHTML = related.map((r, index) => {
+        const img = r.image_url
+          ? `<img src="${r.image_url}" alt="${r.title||'Related article'}" loading="lazy" decoding="async" style="width:100%;height:160px;object-fit:cover;display:block;"/>`
+          : `<div style="width:100%;height:160px;background:linear-gradient(135deg,#e5e7eb,#d1d5db);display:flex;align-items:center;justify-content:center;font-size:32px">📰</div>`;
+        const card = `
+          <div style="background:#fff;border:1px solid var(--g100);border-radius:12px;overflow:hidden;cursor:pointer;transition:box-shadow 0.2s,transform 0.2s" onclick="openNewsPost('${r.id}')" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)';this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='';this.style.transform=''">
+            ${img}
             <div style="padding:12px">
               <div style="font-size:14px;font-weight:600;color:var(--navy);line-height:1.4;margin-bottom:8px">${r.title}</div>
               <div style="font-size:12px;color:var(--g400)">${fmtShort(r.created_at)} • ${r.views_count || 0} views</div>
             </div>
-          </div>
-        `).join('')}`
+          </div>`;
+        if (index === 1 || index === 3) {
+          return card + `<div id="ad-native-rel-${index}" style="grid-column:1/-1;margin:4px 0;"></div>`;
+        }
+        return card;
+      }).join('');
     } else if(relatedEl) {
       relatedEl.innerHTML = '<p style="color:var(--g400);font-style:italic">No related articles found</p>'
     }
@@ -1344,19 +1403,40 @@ document.head.appendChild(breadcrumbSchema)
     console.log('Failed to load related articles:', e)
     document.getElementById('related-articles-content').innerHTML = '<p style="color:var(--g400);font-style:italic">Failed to load related articles</p>'
   }
+// Load all Body Ads (only if the placeholder exists)
+for(let i=0; i<5; i++) {
+    if(document.getElementById(`ad-native-body-${i}`)) {
+        loadAdsterraNative(`ad-native-body-${i}`);
+    }
+}
 
+// Load Related Ads
+loadAdsterraNative('ad-native-rel-1');
+loadAdsterraNative('ad-native-rel-3');
+
+// Load Sidebar Ads
+loadAdsterraAd('ad-sidebar-1', '1043131856f72dc8238a0d29e1dcab9e', 300, 250);
+loadAdsterraAd('ad-sidebar-3', '1043131856f72dc8238a0d29e1dcab9e', 300, 250);
 // Load trending news for sidebar (using popular recent news)
   try{
     const trending = trendingResult.status === 'fulfilled' ? trendingResult.value : []
     const trendingEl = document.getElementById('trending-news')
     if(trendingEl && trending.length){
-      trendingEl.innerHTML = trending.map(t => `
-        <div class="trending-card" onclick="openNewsPost('${t.id}')">
-          ${t.image_url ? `<img src="${t.image_url}" alt="${t.title}" loading="lazy" decoding="async"/>` : `<div style="width:100%;height:120px;background:linear-gradient(135deg,#e5e7eb,#d1d5db);display:flex;align-items:center;justify-content:center;font-size:32px">📰</div>`}
-          <div class="title">${t.title}</div>
-          <div class="meta">${fmtShort(t.created_at)} • ${t.views_count || 0} views</div>
-        </div>
-      `).join('')
+      trendingEl.innerHTML = trending.map((t, idx) => {
+        const card = `
+          <div class="trending-card" onclick="openNewsPost('${t.id}')">
+            ${t.image_url ? `<img src="${t.image_url}" alt="${t.title}" loading="lazy" decoding="async"/>` : `<div style="width:100%;height:120px;background:linear-gradient(135deg,#e5e7eb,#d1d5db);display:flex;align-items:center;justify-content:center;font-size:32px">📰</div>`}
+            <div class="title">${t.title}</div>
+            <div class="meta">${fmtShort(t.created_at)} • ${t.views_count || 0} views</div>
+          </div>`;
+        // Inject ad-sidebar-2 after the 2nd trending card (index 1)
+        if (idx === 1) {
+          return card + `<div id="ad-sidebar-2-inner" style="margin:12px 0;display:flex;justify-content:center;overflow:hidden;max-width:100%;"></div>`;
+        }
+        return card;
+      }).join('');
+      // Load the mid-trending native ad
+      loadAdsterraNative('ad-sidebar-2-inner');
     } else if(trendingEl) {
       trendingEl.innerHTML = '<p style="color:var(--g400);font-style:italic;text-align:center">No trending news</p>'
     }
@@ -3927,7 +4007,7 @@ function insertWhatsAppCTA() {
   
   // Refresh Lucide icons so the newly inserted icons appear immediately
   if (window.lucide) window.lucide.createIcons();
-  toast('WhatsApp CTA inserted! ✅');
+toast('WhatsApp CTA inserted! ✅');
 }
 function renderInFeedAd() {
   // If AdSense is approved, return the code we had before.
