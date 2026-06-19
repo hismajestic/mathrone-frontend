@@ -4000,7 +4000,7 @@ function _triggerMonetagAds() {
   const body = document.querySelector('.news-article-body');
   if (!body) return;
 
-  // 1. In-Page Push Script
+  // 1. In-Page Push Script (Standard Banners)
   if (!window._monetagInPageLoaded) {
     const s = document.createElement('script');
     s.dataset.zone = '11128395';
@@ -4009,28 +4009,28 @@ function _triggerMonetagAds() {
     window._monetagInPageLoaded = true;
   }
 
-  // 2. Vignette (Full-screen) - Auto-trigger on every article view
-  const oldScript = document.getElementById('monetag-vignette-script');
-  if (oldScript) oldScript.remove(); 
+  // 2. Vignette (Full-screen Interstitial)
+  // We remove and re-add this on every article open to force the script to re-evaluate for the new content
+  const oldVig = document.getElementById('monetag-vignette-script');
+  if (oldVig) oldVig.remove(); 
 
-  const s = document.createElement('script');
-  s.id = 'monetag-vignette-script';
-  s.dataset.zone = '11128298';
-  s.src = 'https://n6wxm.com/vignette.min.js';
-  document.head.appendChild(s);
+  const sVig = document.createElement('script');
+  sVig.id = 'monetag-vignette-script';
+  sVig.dataset.zone = '11128298';
+  sVig.src = 'https://n6wxm.com/vignette.min.js';
+  document.head.appendChild(sVig);
 
-  // Clean up any legacy manual markers if they exist in old posts
-  body.querySelectorAll('.vignette-helper, [data-monetag-type="vignette"]').forEach(el => el.remove());
-}
-
-  // 3. Popunder: REMOVED to protect brand reputation (No more click-anywhere ads)
-  
-  // 4. Smart Push: Only loads if user hasn't seen it this session
+  // 3. Smart Push (Browser Notifications)
+  // Re-triggering the check to ensure the subscription prompt appears if they haven't subscribed
   if (!window._monetagPushLoaded) {
-    const s = document.createElement('script');
-    s.src = 'https://5gvci.com/act/files/tag.min.js?z=11170550';
-    s.dataset.cfasync = 'false';
-    s.async = true;
-    document.head.appendChild(s);
+    const sPush = document.createElement('script');
+    sPush.src = 'https://5gvci.com/act/files/tag.min.js?z=11170550';
+    sPush.dataset.cfasync = 'false';
+    sPush.async = true;
+    document.head.appendChild(sPush);
     window._monetagPushLoaded = true;
   }
+
+  // Cleanup helper markers
+  body.querySelectorAll('.vignette-helper, [data-monetag-type="vignette"]').forEach(el => el.remove());
+}
