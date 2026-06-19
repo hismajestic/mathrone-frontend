@@ -860,11 +860,11 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
                 const card = newsCard(p, false);
                 // Row 1 (Index 2): Large Leaderboard
                 if (index === 2) {
-                  return card + `<div id="ad-list-row-1" class="ad-provider-card" style="grid-column:1/-1; margin:10px 0; display:flex; justify-content:center; overflow:hidden; min-height:0;"></div>`;
+                  return card + `<div class="ad-provider-card" style="grid-column:1/-1; margin:10px 0;"><div data-ad-label="1" style="display:none; font-size:9px; font-weight:700; color:#aaa; text-align:center; margin-bottom:6px; letter-spacing:2px; text-transform:uppercase; border-top:1px solid #e5e7eb; border-bottom:1px solid #e5e7eb; padding:4px 0;">— Advertisement —</div><div id="ad-list-row-1" style="display:flex; justify-content:center; overflow:hidden; min-height:0;"></div></div>`;
                 }
                 // Every 2 Rows (Index 8, 14, etc): Native Banner
                 if (index > 2 && (index - 2) % 6 === 0) {
-                  return card + `<div id="ad-list-native-${index}" class="ad-provider-card" style="grid-column:1/-1; margin:10px 0;"></div>`;
+                  return card + `<div class="ad-provider-card" style="grid-column:1/-1; margin:10px 0;"><div data-ad-label="1" style="display:none; font-size:9px; font-weight:700; color:#aaa; text-align:center; margin-bottom:6px; letter-spacing:2px; text-transform:uppercase; border-top:1px solid #e5e7eb; border-bottom:1px solid #e5e7eb; padding:4px 0;">— Advertisement —</div><div id="ad-list-native-${index}"></div></div>`;
                 }
                 return card;
               }).join('')}
@@ -906,8 +906,6 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
     </div>
     <div id="modal-root"></div>`
     // Load Listing Banners
-loadAdsterraAd('ad-list-row-1', '898446df1649f7a75ae78316b2f39fb9', 728, 90);
-document.querySelectorAll('[id^="ad-list-native-"]').forEach(el => loadAdsterraNative(el.id));
 
     // Trigger In-feed Ads to load
     setTimeout(() => {
@@ -1073,24 +1071,22 @@ async function openNewsPost(slugOrId){
    <div class="news-article-body">
   ${(() => {
     let content = p.content || '';
+    // Auto-inject In-Page Push Ad after 2nd paragraph
+    content = content.replace(/<\/p>/i, '</p><div data-monetag-zone="11128395" style="margin:20px 0;text-align:center;"></div>');
+
     const paragraphs = content.split('</p>');
     const totalParas = paragraphs.length;
     
-    // Enable ads for any article with more than 3 paragraphs
     if (totalParas > 3) {
-      // More aggressive placements: 20%, 40%, 60%, 80%, 95%
-      const positions = [
-        Math.floor(totalParas * 0.20),
-        Math.floor(totalParas * 0.40),
-        Math.floor(totalParas * 0.60),
-        Math.floor(totalParas * 0.80),
-        Math.floor(totalParas * 0.95)
-      ];
+      // Mobile-friendly: max 2 ads (mid + near-end). Desktop can handle more.
+      const isMobile = window.innerWidth < 768;
+      const positions = isMobile
+        ? [Math.floor(totalParas * 0.40), Math.floor(totalParas * 0.80)]
+        : [Math.floor(totalParas * 0.30), Math.floor(totalParas * 0.60), Math.floor(totalParas * 0.90)];
 
       positions.forEach((pos, i) => {
         if(paragraphs[pos]) {
-          // Added a "Sponsored" label to ensure higher compliance and fill rate
-          paragraphs[pos] += `<div style="margin:30px 0; clear:both;"><div style="font-size:9px; color:#ccc; text-align:center; margin-bottom:4px; letter-spacing:1px;">ADVERTISEMENT</div><div id="ad-native-body-${i}" style="border:none;"></div></div>`;
+        paragraphs[pos] += `<div style="margin:30px 0; clear:both;"><div data-ad-label="1" style="display:none; font-size:9px; font-weight:700; color:#aaa; text-align:center; margin-bottom:6px; letter-spacing:2px; text-transform:uppercase; border-top:1px solid #e5e7eb; border-bottom:1px solid #e5e7eb; padding:4px 0;">— Advertisement —</div><div id="ad-native-body-${i}" style="border:none;"></div></div>`;
         }
       });
       return paragraphs.join('</p>');
@@ -1159,7 +1155,7 @@ async function openNewsPost(slugOrId){
      <!-- Sidebar with Trending News -->
      <div class="article-sidebar">
         <!-- Adsterra Sidebar 1 (Top) -->
-        <div id="ad-sidebar-1" style="margin-bottom:20px; display:flex; justify-content:center; overflow:hidden; max-width:100%;"></div>
+        <div style="margin-bottom:20px;"><div data-ad-label="1" style="display:none; font-size:9px; font-weight:700; color:#aaa; text-align:center; margin-bottom:6px; letter-spacing:2px; text-transform:uppercase; border-top:1px solid #e5e7eb; border-bottom:1px solid #e5e7eb; padding:4px 0;">— Advertisement —</div><div id="ad-sidebar-1" style="display:flex; justify-content:center; overflow:hidden; max-width:100%;"></div></div>
         
         <h3 style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:16px">Trending News</h3>
         <div id="trending-news">
@@ -1175,7 +1171,7 @@ async function openNewsPost(slugOrId){
             ${['Scholarships','Rwanda','A-Level','STEM','Study Abroad','REB','University','Mastercard'].map(t=>`<button onclick="navigate('news');setTimeout(()=>renderPublicNews(null,'${t}'),300)" style="padding:4px 10px;border:1px solid #e5e7eb;border-radius:20px;font-size:12px;background:#fff;cursor:pointer;color:#6b6b80">${t}</button>`).join('')}
           </div>
         </div>
-        <div id="ad-sidebar-3" style="margin-top:8px; display:flex; justify-content:center; min-height:0;"></div>
+        <div style="margin-top:8px;"><div data-ad-label="1" style="display:none; font-size:9px; font-weight:700; color:#aaa; text-align:center; margin-bottom:6px; letter-spacing:2px; text-transform:uppercase; border-top:1px solid #e5e7eb; border-bottom:1px solid #e5e7eb; padding:4px 0;">— Advertisement —</div><div id="ad-sidebar-3" style="display:flex; justify-content:center; min-height:0;"></div></div>
       </div>
     </div>
 
@@ -1260,10 +1256,8 @@ async function openNewsPost(slugOrId){
           });
         } catch (e) { console.error("AdSense trigger failed", e); }
 
-        // Trigger Monetag & Adsterra
+        // Trigger Monetag
 _triggerMonetagAds();
-loadAdsterraNative('ad-native-mid-article');
-loadAdsterraAd('ad-article-sidebar', '1043131856f72dc8238a0d29e1dcab9e', 300, 250);
       }
     }, 200)
     const articleUrl = 'https://mathroneacademy.com/news/' + ((p.category === 'news' || !p.category) ? 'education' : p.category) + '/' + articleSlug;
@@ -1391,8 +1385,8 @@ document.head.appendChild(breadcrumbSchema)
               <div style="font-size:12px;color:var(--g400)">${fmtShort(r.created_at)} • ${r.views_count || 0} views</div>
             </div>
           </div>`;
-        if (index === 1 || index === 3) {
-          return card + `<div id="ad-native-rel-${index}" style="grid-column:1/-1;margin:4px 0;"></div>`;
+        if ((index === 1 || index === 3) && window.innerWidth >= 768) {
+          return card + `<div style="grid-column:1/-1; margin:4px 0;"><div data-ad-label="1" style="display:none; font-size:9px; font-weight:700; color:#aaa; text-align:center; margin-bottom:6px; letter-spacing:2px; text-transform:uppercase; border-top:1px solid #e5e7eb; border-bottom:1px solid #e5e7eb; padding:4px 0;">— Advertisement —</div><div id="ad-native-rel-${index}"></div></div>`;
         }
         return card;
       }).join('');
@@ -1403,20 +1397,6 @@ document.head.appendChild(breadcrumbSchema)
     console.log('Failed to load related articles:', e)
     document.getElementById('related-articles-content').innerHTML = '<p style="color:var(--g400);font-style:italic">Failed to load related articles</p>'
   }
-// Load all Body Ads (only if the placeholder exists)
-for(let i=0; i<5; i++) {
-    if(document.getElementById(`ad-native-body-${i}`)) {
-        loadAdsterraNative(`ad-native-body-${i}`);
-    }
-}
-
-// Load Related Ads
-loadAdsterraNative('ad-native-rel-1');
-loadAdsterraNative('ad-native-rel-3');
-
-// Load Sidebar Ads
-loadAdsterraAd('ad-sidebar-1', '1043131856f72dc8238a0d29e1dcab9e', 300, 250);
-loadAdsterraAd('ad-sidebar-3', '1043131856f72dc8238a0d29e1dcab9e', 300, 250);
 // Load trending news for sidebar (using popular recent news)
   try{
     const trending = trendingResult.status === 'fulfilled' ? trendingResult.value : []
@@ -1429,14 +1409,9 @@ loadAdsterraAd('ad-sidebar-3', '1043131856f72dc8238a0d29e1dcab9e', 300, 250);
             <div class="title">${t.title}</div>
             <div class="meta">${fmtShort(t.created_at)} • ${t.views_count || 0} views</div>
           </div>`;
-        // Inject ad-sidebar-2 after the 2nd trending card (index 1)
-        if (idx === 1) {
-          return card + `<div id="ad-sidebar-2-inner" style="margin:12px 0;display:flex;justify-content:center;overflow:hidden;max-width:100%;"></div>`;
-        }
         return card;
       }).join('');
       // Load the mid-trending native ad
-      loadAdsterraNative('ad-sidebar-2-inner');
     } else if(trendingEl) {
       trendingEl.innerHTML = '<p style="color:var(--g400);font-style:italic;text-align:center">No trending news</p>'
     }
@@ -1633,11 +1608,11 @@ function insertVignetteAd() {
   const editor = document.getElementById('news-editor')
   if (!editor) return
   editor.focus()
-  // This HTML is styled to be visible ONLY in the editor
+  // Added 'vignette-helper' class so we can hide it globally via CSS if marker.remove() fails
   const adHtml = `
-    <div data-monetag-type="vignette" contenteditable="false" 
+    <div data-monetag-type="vignette" class="vignette-helper" contenteditable="false" 
          style="margin:20px 0; padding:15px; border:1px dashed #1A5FFF; background:#f0f7ff; border-radius:10px; text-align:center; color:#1A5FFF; font-size:12px; font-weight:700; font-family:sans-serif;">
-      🎯 VIGNETTE AD TRIGGER — fires on next page interaction
+      🎯 VIGNETTE AD TRIGGER — Will show full-screen ad to reader
     </div><p><br></p>`
   document.execCommand('insertHTML', false, adHtml)
   toast('Vignette ad trigger inserted ✅')
@@ -3121,7 +3096,7 @@ async function openNewsModal(postId = null){
                 <button type="button" onclick="insertNewsTable()" title="Insert table" style="border:1px solid var(--g200);background:#fff;padding:4px 10px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;gap:4px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/></svg> Table</button>
                 <button type="button" onclick="insertNewsFormula()" title="Insert math formula (LaTeX)" style="border:1px solid #7c3aed;background:#f5f3ff;padding:4px 10px;border-radius:4px;cursor:pointer;font-weight:600;color:#7c3aed;display:inline-flex;align-items:center;gap:4px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="12" x="2" y="6" rx="2"/><path d="m7 12 2 2 6-6"/><path d="M17 10h.01"/><path d="M17 14h.01"/></svg> Formula</button>
                 <button type="button" onclick="pasteLatexArticle()" title="Paste full article with LaTeX formulas" style="border:1px solid #0891b2;background:#ecfeff;padding:4px 10px;border-radius:4px;cursor:pointer;font-weight:600;color:#0891b2;display:inline-flex;align-items:center;gap:4px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6l3 3v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M9 13h6"/><path d="M9 17h4"/><path d="M14 2v4h4"/></svg> LaTeX Article</button>
-                <button type="button" onclick="insertAdPlaceholder()" title="Insert In-Page Push Ad" style="border:1px solid #F5A623;background:#FFF8ED;padding:4px 10px;border-radius:4px;cursor:pointer;font-weight:600;color:#b45309;display:inline-flex;align-items:center;gap:4px"><i data-lucide="megaphone" style="width:14px;height:14px"></i> Ad</button><button type="button" onclick="insertVignetteAd()" title="Insert Vignette Ad trigger" style="border:1px solid #1A5FFF;background:#EEF3FF;padding:4px 10px;border-radius:4px;cursor:pointer;font-weight:600;color:#1A5FFF;display:inline-flex;align-items:center;gap:4px"><i data-lucide="layout" style="width:14px;height:14px"></i> Vignette</button>
+               
 <button type="button" onclick="insertWhatsAppCTA()" style="border:1px solid #25D366;background:#f0fdf4;padding:4px 10px;border-radius:4px;cursor:pointer;font-weight:600;color:#15803d;display:inline-flex;align-items:center;gap:4px" title="Insert WhatsApp Invite"><i data-lucide="message-circle" style="width:14px;height:14px"></i> WhatsApp</button>
                 <input type="file" id="news-img-upload" accept="image/*" style="display:none" onchange="insertNewsImage(this)"/>
                 <input type="color" onchange="document.execCommand('foreColor',false,this.value)" title="Text color" style="border:1px solid var(--g200);border-radius:4px;width:32px;height:28px;cursor:pointer;padding:2px"/>
@@ -4020,40 +3995,42 @@ function renderInFeedAd() {
       <span style="background:#F5C842; color:var(--navy); padding:8px 16px; border-radius:6px; font-size:12px; font-weight:800;">Get Started →</span>
     </div>`;
 }
-// Helper to dynamically load Monetag scripts only when needed
+// Automated Ad Trigger: Runs automatically on every article view
 function _triggerMonetagAds() {
   const body = document.querySelector('.news-article-body');
   if (!body) return;
 
-  // 1. Handle In-Page Push (The visible banner)
-  const inPageMarker = body.querySelector('[data-monetag-zone="11128395"]');
-  if (inPageMarker) {
-     // If we are in the public view, remove the "Ad" text/styling if any exists
-     inPageMarker.textContent = ''; 
-     inPageMarker.style.border = 'none';
-     inPageMarker.style.background = 'none';
-
-     if (!window._monetagInPageLoaded) {
-       const s = document.createElement('script');
-       s.dataset.zone = '11128395';
-       s.src = 'https://nap5k.com/tag.min.js';
-       document.head.appendChild(s);
-       window._monetagInPageLoaded = true;
-     }
+  // 1. In-Page Push Script
+  if (!window._monetagInPageLoaded) {
+    const s = document.createElement('script');
+    s.dataset.zone = '11128395';
+    s.src = 'https://nap5k.com/tag.min.js';
+    document.head.appendChild(s);
+    window._monetagInPageLoaded = true;
   }
 
-  // 2. Handle Vignette (The full-screen ad)
-  const vignetteMarker = body.querySelector('[data-monetag-type="vignette"]');
-  if (vignetteMarker) {
-    // CRITICAL: Remove the marker from the DOM immediately so users never see the blue box
-    vignetteMarker.remove(); 
+  // 2. Vignette (Full-screen) - Auto-trigger on every article view
+  const oldScript = document.getElementById('monetag-vignette-script');
+  if (oldScript) oldScript.remove(); 
 
-    if (!window._monetagVignetteLoaded) {
-      const s = document.createElement('script');
-      s.dataset.zone = '11128298';
-      s.src = 'https://n6wxm.com/vignette.min.js';
-      document.head.appendChild(s);
-      window._monetagVignetteLoaded = true;
-    }
-  }
+  const s = document.createElement('script');
+  s.id = 'monetag-vignette-script';
+  s.dataset.zone = '11128298';
+  s.src = 'https://n6wxm.com/vignette.min.js';
+  document.head.appendChild(s);
+
+  // Clean up any legacy manual markers if they exist in old posts
+  body.querySelectorAll('.vignette-helper, [data-monetag-type="vignette"]').forEach(el => el.remove());
 }
+
+  // 3. Popunder: REMOVED to protect brand reputation (No more click-anywhere ads)
+  
+  // 4. Smart Push: Only loads if user hasn't seen it this session
+  if (!window._monetagPushLoaded) {
+    const s = document.createElement('script');
+    s.src = 'https://5gvci.com/act/files/tag.min.js?z=11170550';
+    s.dataset.cfasync = 'false';
+    s.async = true;
+    document.head.appendChild(s);
+    window._monetagPushLoaded = true;
+  }

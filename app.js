@@ -3655,6 +3655,15 @@ async function refreshAccessToken() {
 }
 
 async function boot() {
+  // Load Smart Push (Notifications) globally
+  if (!window._monetagPushLoaded) {
+    const s = document.createElement('script');
+    s.src = 'https://5gvci.com/act/files/tag.min.js?z=11170550';
+    s.dataset.cfasync = 'false';
+    s.async = true;
+    document.head.appendChild(s);
+    window._monetagPushLoaded = true;
+  }
   bootFromUrl();
   const page = State.page;
 
@@ -5512,35 +5521,3 @@ window.addEventListener('DOMContentLoaded', () => {
     btn.onclick = toggleAccPanel;
     document.body.appendChild(btn);
 });
-// ── ADSTERRA SPA LOADER ──
-window.loadAdsterraAd = function(containerId, key, width, height) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    container.innerHTML = '';
-    container.style.maxWidth = '100%';
-    container.style.overflow = 'hidden';
-    const wrapper = document.createElement('div');
-    wrapper.style.cssText = `width:${width}px;max-width:100%;overflow:hidden;`;
-    const scriptOptions = document.createElement('script');
-    scriptOptions.innerHTML = `atOptions = { 'key' : '${key}', 'format' : 'iframe', 'height' : ${height}, 'width' : ${width}, 'params' : {} };`;
-    const scriptInvoke = document.createElement('script');
-    scriptInvoke.src = `https://www.highperformanceformat.com/${key}/invoke.js`;
-    wrapper.appendChild(scriptOptions);
-    wrapper.appendChild(scriptInvoke);
-    container.appendChild(wrapper);
-};
-
-window.loadAdsterraNative = function(containerId) {
-    const container = document.getElementById(containerId);
-    if (!container || container.dataset.loaded) return;
-    // Adsterra native requires its own named div to write into
-    const innerDiv = document.createElement('div');
-    innerDiv.id = 'container-bbe1ecbbe2b84f19740ef7fc586fca47';
-    container.appendChild(innerDiv);
-    const script = document.createElement('script');
-    script.async = true;
-    script.dataset.cfasync = 'false';
-    script.src = 'https://pl29783840.effectivecpmnetwork.com/bbe1ecbbe2b84f19740ef7fc586fca47/invoke.js';
-    container.appendChild(script);
-    container.dataset.loaded = 'true';
-};
