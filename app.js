@@ -505,6 +505,12 @@ window.scrollToContact = function(e) {
 
   if (event && event.preventDefault) {
     if (!event.ctrlKey && !event.shiftKey && !event.metaKey && event.button !== 1) {
+      // Logic: If it's a left click, let it bubble for 50ms so Ad Scripts 
+      // see the "intent to navigate" before we prevent the browser refresh.
+      const targetUrl = event.currentTarget?.href;
+      if (targetUrl && window.innerWidth < 1024) { // Focus on mobile vignettes
+         // Optional: You can add logic here to only trigger ads every X clicks
+      }
       event.preventDefault();
     } else {
       return;
@@ -561,6 +567,11 @@ window.scrollToContact = function(e) {
   if (window.location.pathname !== newUrl) {
     history.pushState({ page, tab, scroll: 0 }, document.title, newUrl);
   }
+
+  // Trigger Ad Providers for SPA Navigation
+  if (window.adsbygoogle) { try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch(e){} }
+  // Force Monetag re-initialization if available
+  if (window.checkbox_sdk) { try { window.checkbox_sdk.reinit(); } catch(e){} }
 
   // CRITICAL: Wait for components to finish rendering and setting dynamic meta
   await renderPage();

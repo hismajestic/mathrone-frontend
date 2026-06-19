@@ -4000,36 +4000,37 @@ function _triggerMonetagAds() {
   const body = document.querySelector('.news-article-body');
   if (!body) return;
 
-  // 1. In-Page Push Script (Standard Banners)
-  if (!window._monetagInPageLoaded) {
-    const s = document.createElement('script');
-    s.dataset.zone = '11128395';
-    s.src = 'https://nap5k.com/tag.min.js';
-    document.head.appendChild(s);
-    window._monetagInPageLoaded = true;
-  }
+  // 1. In-Page Push Script
+  // We remove the guard to let it re-scan the new article DOM for data-monetag-zone divs
+  const s = document.createElement('script');
+  s.src = 'https://nap5k.com/tag.min.js';
+  s.dataset.zone = '11128395';
+  document.head.appendChild(s);
 
-  // 2. Vignette (Full-screen Interstitial)
-  // We remove and re-add this on every article open to force the script to re-evaluate for the new content
+  // 2. Vignette (Force Full Re-execution)
+  // Monetag vignettes attach to <a> tags. We need to re-inject this every time the content changes.
   const oldVig = document.getElementById('monetag-vignette-script');
   if (oldVig) oldVig.remove(); 
 
   const sVig = document.createElement('script');
   sVig.id = 'monetag-vignette-script';
   sVig.dataset.zone = '11128298';
-  sVig.src = 'https://n6wxm.com/vignette.min.js';
+  // Use a cache-buster query string to force the browser to treat this as a "new" user interaction
+  sVig.src = 'https://n6wxm.com/vignette.min.js?v=' + Date.now();
   document.head.appendChild(sVig);
 
   // 3. Smart Push (Browser Notifications)
-  // Re-triggering the check to ensure the subscription prompt appears if they haven't subscribed
-  if (!window._monetagPushLoaded) {
-    const sPush = document.createElement('script');
-    sPush.src = 'https://5gvci.com/act/files/tag.min.js?z=11170550';
-    sPush.dataset.cfasync = 'false';
-    sPush.async = true;
-    document.head.appendChild(sPush);
-    window._monetagPushLoaded = true;
-  }
+  // Removing the guard ensures that if a user dismissed it on one article, 
+  // it checks again when they interact with a new article.
+  const oldPush = document.getElementById('monetag-push-script');
+  if (oldPush) oldPush.remove();
+
+  const sPush = document.createElement('script');
+  sPush.id = 'monetag-push-script';
+  sPush.src = 'https://5gvci.com/act/files/tag.min.js?z=11170550';
+  sPush.dataset.cfasync = 'false';
+  sPush.async = true;
+  document.head.appendChild(sPush);
 
   // Cleanup helper markers
   body.querySelectorAll('.vignette-helper, [data-monetag-type="vignette"]').forEach(el => el.remove());
