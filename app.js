@@ -7,17 +7,31 @@
 : '/api/v1'
 
 function setPageMeta(title, description, imageUrl, canonicalUrl) {
-  document.title = title
-  const desc = document.querySelector('meta[name="description"]')
-  if (desc) desc.setAttribute('content', description)
-  const ogTitle = document.querySelector('meta[property="og:title"]')
-  if (ogTitle) ogTitle.setAttribute('content', title)
-  const ogDesc = document.querySelector('meta[property="og:description"]')
-  if (ogDesc) ogDesc.setAttribute('content', description)
-  const ogImg = document.querySelector('meta[property="og:image"]')
-  if (ogImg && imageUrl) ogImg.setAttribute('content', imageUrl)
-  const canonical = document.querySelector('link[rel="canonical"]')
-  if (canonical && canonicalUrl) canonical.setAttribute('href', canonicalUrl)
+  document.title = title;
+  const cleanDesc = description.replace(/\s+/g, ' ').trim();
+  
+  const update = (selector, attr, val) => {
+    const el = document.querySelector(selector);
+    if (el) el.setAttribute(attr, val);
+  };
+
+  // Standard Meta
+  update('meta[name="description"]', 'content', cleanDesc);
+  
+  // Open Graph (Facebook/WhatsApp/LinkedIn)
+  update('meta[property="og:title"]', 'content', title);
+  update('meta[property="og:description"]', 'content', cleanDesc);
+  update('meta[property="og:url"]', 'content', canonicalUrl);
+  if (imageUrl) update('meta[property="og:image"]', 'content', imageUrl);
+
+  // Twitter
+  update('meta[name="twitter:title"]', 'content', title);
+  update('meta[name="twitter:description"]', 'content', cleanDesc);
+  if (imageUrl) update('meta[name="twitter:image"]', 'content', imageUrl);
+
+  // Canonical
+  const canonical = document.querySelector('link[rel="canonical"]');
+  if (canonical && canonicalUrl) canonical.setAttribute('href', canonicalUrl);
 }
 
 // NEW: Client-side Supabase connection for Whiteboard
@@ -540,14 +554,15 @@ window.scrollToContact = function(e) {
   let newUrl = urlMap[page];
   if (!newUrl) {
     if (page.startsWith('news-article/')) {
-      const slug = page.replace('news-article/', '');
-      const cat = window._currentArticleCategory || 'education';
-      // If _currentArticleCategory hasn't been set yet for this slug,
-      // read it from the card's href which is already correct
-      const cardLink = document.querySelector(`a[href*="/news/"][href$="/${slug}"]`);
-      const hrefCat = cardLink ? cardLink.getAttribute('href').split('/')[2] : null;
-      newUrl = `/news/${hrefCat || cat}/${slug}`;
-    }
+  const slug = page.replace('news-article/', '');
+  // Ensure we use the category if known, otherwise default to education
+  let cat = window._currentArticleCategory;
+  if (!cat || cat === 'news') cat = 'education';
+  
+  const cardLink = document.querySelector(`a[href*="/news/"][href$="/${slug}"]`);
+  const hrefCat = cardLink ? cardLink.getAttribute('href').split('/')[2] : null;
+  newUrl = `/news/${hrefCat || cat || 'education'}/${slug}`;
+}
     else if (page.startsWith('shop-product-')) newUrl = '/shop/' + page.replace('shop-product-', '');
     else if (page.startsWith('course-')) {
       const content = page.replace('course-', '');

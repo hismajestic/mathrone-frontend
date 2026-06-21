@@ -1,8 +1,7 @@
 // Mathrone Academy — Service Worker
 // ── HOW TO BUST THE CACHE ON NEW DEPLOY ─────────────────────────────────
 
-// BUMPED TO v25
-const CACHE = 'mathrone-v69'; // Bump this number every time you deploy
+const CACHE = 'mathrone-seo-fix-v1'; // Bump this number every time you deploy
 
 self.addEventListener('message', (event) => {
   if (event.data === 'SKIP_WAITING') {

@@ -4,7 +4,7 @@ export async function onRequest(context) {
   const userAgent = request.headers.get('user-agent') || '';
 
   // Check if the visitor is a social media bot (WhatsApp, Twitter, Facebook, Google)
-  const isBot = /whatsapp|telegram|twitterbot|facebookexternalhit|linkedinbot|slackbot|discordbot|googlebot|crawler|spider/i.test(userAgent);
+  const isBot = /googlebot|bingbot|yandex|duckduckbot|slurp|baiduspider|whatsapp|telegram|twitterbot|facebookexternalhit|linkedinbot|slackbot|discordbot|crawler|spider|bot/i.test(userAgent);
 
   // If it's a real human, just load the normal website (index.html)
   if (!isBot) {

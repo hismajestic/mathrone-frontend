@@ -793,7 +793,7 @@ async function renderCourseDetail(slugParam) {
 
     // ── SEO: Enhanced Course Meta & Schema ──
     const BASE = 'https://mathroneacademy.com';
-    const courseUrl = `${BASE}/course/${c.slug || c.id}`;
+    const courseUrl = `${BASE}/course/${(c.curriculum || 'general').toLowerCase()}/${c.slug || c.id}`;
     const courseDesc = (c.description || `Master ${c.title} with expert-led video lessons at Mathrone Academy. Aligned with Rwanda curriculum for ${c.level || 'all levels'}.`).slice(0, 160);
     
     // Set standard and social meta tags

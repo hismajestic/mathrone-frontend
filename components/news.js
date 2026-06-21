@@ -336,8 +336,8 @@ const excerpt = (p.description && p.description.trim() !== '')
   ? p.description.slice(0, 140) 
   : p.content.replace(/<[^>]*>/g,'').replace(/\s+/g, ' ').trim().slice(0, 110) + '...';
   const imgColor = {news:'blue',scholarship:'gold',career:'red',abroad:'navy',resources:'purple'}
-  const catFolder = (p.category === 'news' || !p.category) ? 'education' : p.category;
-  const articleUrl = p.slug ? `/news/${catFolder}/${p.slug}` : `/news/${catFolder}/${p.id}`;
+const catFolder = (p.category && p.category !== 'news') ? p.category : 'education';
+const articleUrl = `/news/${catFolder}/${p.slug || p.id}`;
 return `
   <a href="${articleUrl}" class="pn-ncard" style="text-decoration: none; color: inherit; display: flex; flex-direction: column; border: 1px solid var(--g100); background:#fff;" onclick="navigate('news-article/${p.slug || p.id}', null, event)">
    <div style="position:relative; width:100%; aspect-ratio: 16/10; flex-shrink:0; overflow:hidden;">
@@ -978,9 +978,14 @@ async function openNewsPost(slugOrId){
     window._currentArticleCategory = p.category || 'education';
     
     // SEO CRITICAL: Set metadata IMMEDIATELY before rendering HTML
-    const articleDesc = (p.description && p.description.trim() !== '') 
-      ? p.description.trim() 
-      : (p.content || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160);
+    // Robust description cleaning: prioritize description field, then content
+let rawDesc = p.description || p.content || '';
+let cleanText = rawDesc
+  .replace(/<[^>]*>/g, ' ') // Strip HTML tags
+  .replace(/\s+/g, ' ')     // Collapse multiple spaces/newlines
+  .trim();
+
+const articleDesc = cleanText.length > 160 ? cleanText.slice(0, 157) + '...' : cleanText;
 
     setPageMeta(
       p.title + ' | Mathrone Academy Rwanda',

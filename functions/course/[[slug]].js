@@ -20,6 +20,16 @@ export async function onRequest(context) {
     if (!res.ok) throw new Error('Course not found');
     const course = await res.json();
 
+    // --- SEO REDIRECT LOGIC: enforce one canonical URL per course ---
+    const correctCat  = (course.curriculum || 'general').toLowerCase();
+    const correctSlug = course.slug || course.id;
+    const urlObj      = new URL(request.url);
+    const pathParts   = urlObj.pathname.split('/').filter(Boolean); // ['course','cat','slug'] or ['course','slug']
+    if (pathParts.length === 2 || (pathParts.length === 3 && (pathParts[1] !== correctCat || pathParts[2] !== correctSlug))) {
+      return Response.redirect(`https://mathroneacademy.com/course/${correctCat}/${correctSlug}${urlObj.search}`, 301);
+    }
+    // ------------------------------------------------------------------
+
     const title = `Course: ${course.title} - Enrolling Now in Rwanda`;
     const image = course.image_url || 'https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png';
     const url = `https://mathroneacademy.com/course/${category}/${courseSlug}`;

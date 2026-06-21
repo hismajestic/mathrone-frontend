@@ -26,22 +26,32 @@ export async function onRequest(context) {
     if (!article || article.detail) return context.next()
 
     // --- SEO REDIRECT LOGIC ---
-    const correctCat = (article.category === 'news' || !article.category) ? 'education' : article.category;
-    const pathParts = new URL(request.url).pathname.split('/'); 
-    const urlCat = pathParts[2]; // gets 'education' or 'scholarship' from /news/category/slug
+ const correctCat = (article.category && article.category !== 'news') ? article.category : 'education';
+const correctSlug = article.slug || article.id;
+const urlObj = new URL(request.url);
+const pathParts = urlObj.pathname.split('/').filter(Boolean); // ['news', 'cat', 'slug'] or ['news', 'slug']
 
-    if (urlCat !== correctCat) {
-      return Response.redirect(`${BASE}/news/${correctCat}/${slugOrId}`, 301);
-    }
+// If the URL is just /news/slug (length 2), the category is wrong, or it was reached by ID instead of slug
+if (pathParts.length === 2 || (pathParts.length === 3 && (pathParts[1] !== correctCat || pathParts[2] !== correctSlug))) {
+  return Response.redirect(`${BASE}/news/${correctCat}/${correctSlug}${urlObj.search}`, 301);
+}
     // --------------------------
 
     const title       = esc(article.title || 'Mathrone Academy News')
     const slug        = article.slug || article.id
     const url         = `${BASE}/news/${(article.category === 'news' || !article.category) ? 'education' : article.category}/${slug}`
     const image       = article.image_url || `${BASE}/og-banner.jpg`
-    const plainText   = (article.content || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
-    const trimmed = plainText.length > 155 ? plainText.slice(0, plainText.lastIndexOf(' ', 155)) + '…' : plainText
-    const description = esc(trimmed)
+    // If a dedicated SEO description exists, use it. Otherwise, clean the content.
+const rawForMeta = (article.description && article.description.length > 10) 
+  ? article.description 
+  : article.content;
+
+const plainText = (rawForMeta || '')
+  .replace(/<[^>]*>/g, ' ')
+  .replace(/\s+/g, ' ')
+  .trim();
+
+const description = esc(plainText.length > 160 ? plainText.slice(0, 157) + '...' : plainText);
     const fullTitle   = esc(title + ' | Mathrone Academy Rwanda')
     const published   = article.created_at ? new Date(article.created_at).toISOString() : ''
     const modified    = article.updated_at ? new Date(article.updated_at).toISOString() : published
