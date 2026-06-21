@@ -1238,28 +1238,22 @@ const articleDesc = cleanText.length > 160 ? cleanText.slice(0, 157) + '...' : c
           }
         });
 
-        // 2. Render any math formulas in the article body
+        // 2. Wrap every table in a scroll container so mobile can scroll horizontally
+        //    (must run for every article, not just ones with math formulas)
+        body.querySelectorAll('table').forEach(t => {
+          if (t.parentElement?.classList.contains('table-scroll')) return
+          const wrap = document.createElement('div')
+          wrap.className = 'table-scroll'
+          t.parentNode.insertBefore(wrap, t)
+          wrap.appendChild(t)
+        })
+
+        // 3. Render any math formulas in the article body
         if(body.querySelector('.math-formula, mjx-container, .MathJax')){
-          // Wrap every table in a scroll container so mobile can scroll horizontally
-          body.querySelectorAll('table').forEach(t => {
-            if (t.parentElement?.classList.contains('table-scroll')) return
-            const wrap = document.createElement('div')
-            wrap.className = 'table-scroll'
-            t.parentNode.insertBefore(wrap, t)
-            wrap.appendChild(t)
-          })
           try{ await ensureMathJax(); await MathJax.typesetPromise([body]) }catch(e){}
         } else if(body.textContent.includes('\\(') || body.textContent.includes('$$')){
           try{ await ensureMathJax(); await MathJax.typesetPromise([body]) }catch(e){}
         }
-
-// 3. Trigger AdSense to load the ads we just injected
-        try {
-          const adSlots = body.querySelectorAll('.adsbygoogle');
-          adSlots.forEach(() => {
-            (window.adsbygoogle = window.adsbygoogle || []).push({});
-          });
-        } catch (e) { console.error("AdSense trigger failed", e); }
 
         // Trigger Monetag
 _triggerMonetagAds();
