@@ -1676,33 +1676,64 @@
 
 /* ── MATHJAX & LATEX OPTIMIZATION ── */
 
-/* Wrap block/display math ($$ or \[) */
+/* Block/display math wrapper ($$ or \[ or \begin{...}) */
 .math-block-wrap {
     width: 100%;
-    margin: 25px 0;
-    padding: 20px;
-    background: #fdfdfd;
+    margin: 24px 0;
+    padding: 18px 16px;
+    background: #f8fafc;
     border-radius: 8px;
-    border: 1px solid #f1f1f1;
-    overflow-x: auto !important; /* Allow horizontal swiping of long formulas */
+    border: 1px solid #e8eef6;
+    overflow-x: auto;
     overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
     text-align: center;
+    box-sizing: border-box;
 }
 
-/* Forces MathJax SVG to stay within its container on mobile */
+/* Inline math wrapper */
+.math-inline-wrap {
+    display: inline;
+    padding: 0 1px;
+    vertical-align: baseline;
+}
+
+/* MathJax display containers — allow scroll on overflow */
 mjx-container[display="true"] {
     display: block !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
     max-width: 100% !important;
     overflow-x: auto !important;
     overflow-y: hidden !important;
-    padding: 10px 0;
+    -webkit-overflow-scrolling: touch;
 }
 
-/* Inline math ($ or \() styling */
-.math-inline-wrap {
+/* Let MathJax SVGs render at their natural width; the parent scrolls */
+mjx-container > svg {
+    max-width: none !important;
     display: inline-block;
-    padding: 0 2px;
+    vertical-align: middle;
+}
+
+/* ── ARTICLE BODY MATH ── */
+/* Block math in article */
+.news-article-body .math-block-wrap,
+.news-article-body mjx-container[display="true"] {
+    display: block;
+    overflow-x: auto !important;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+}
+
+.news-article-body mjx-container > svg,
+.news-article-body .math-block-wrap mjx-container > svg {
+    max-width: none !important;
+}
+
+/* Inline math stays inline */
+.news-article-body mjx-container:not([display="true"]) {
+    display: inline !important;
     vertical-align: middle;
 }
 
@@ -2572,3 +2603,22 @@ body.acc-highlight-links a { background: #fef08a !important; color: #000 !import
 
 /* Accessibility font scaling — scales all px-based text proportionally */
 body { zoom: var(--acc-scale, 1); }
+/* Styling for diverse article blocks */
+.news-article-body pre {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 1.2rem;
+    border-radius: 8px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    margin: 20px 0;
+    overflow-x: auto;
+    border: 1px solid #333;
+}
+
+.news-article-body .news-callout {
+    box-shadow: 0 4px 12px rgba(26, 95, 255, 0.05);
+}
+
+/* Math rendering in article body is handled by the
+   .news-article-body mjx-container rules above */

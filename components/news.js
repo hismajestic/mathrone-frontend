@@ -1016,8 +1016,13 @@ const articleDesc = cleanText.length > 160 ? cleanText.slice(0, 157) + '...' : c
       .news-article-body table td{padding:12px 16px;border-bottom:1px solid var(--g100);font-size:14px;color:var(--g600);line-height:1.5;vertical-align:top}
       .news-article-body table tr:last-child td{border-bottom:none}
       .news-article-body table tr:hover td{background:#f8fafc}
-      .news-article-body .math-formula{max-width:100%;overflow-x:auto;padding:2px 0}
+      .news-article-body .math-formula{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:2px 0}
       .news-article-body .math-formula[style*="block"]{background:#f8fafc;border-radius:8px;padding:16px;margin:20px 0;border:1px solid var(--g100)}
+      .news-article-body .math-scroll{display:block;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin:20px 0;padding:16px 8px;background:#f8fafc;border-radius:8px;border:1px solid var(--g100)}
+      .news-article-body .math-scroll mjx-container{display:block;text-align:center}
+      .news-article-body mjx-container{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+      .news-article-body mjx-container[display="true"]{display:block;text-align:center;margin:4px 0}
+      .news-article-body mjx-container svg{max-width:100%;height:auto}
       
       .article-layout{display:flex;gap:32px;max-width:100%;margin:0;padding:24px 16px 80px}
       .article-main{flex:1;min-width:0}
@@ -1072,32 +1077,8 @@ const articleDesc = cleanText.length > 160 ? cleanText.slice(0, 157) + '...' : c
           </div>
         </div>
 
-        <!-- Content (image_url is already inside content, don't show it twice) -->
-   <div class="news-article-body">
-  ${(() => {
-    let content = p.content || '';
-    // Auto-inject In-Page Push Ad after 2nd paragraph
-    content = content.replace(/<\/p>/i, '</p><div data-monetag-zone="11128395" style="margin:20px 0;text-align:center;"></div>');
-
-    const paragraphs = content.split('</p>');
-    const totalParas = paragraphs.length;
-    
-    if (totalParas > 3) {
-      // Mobile-friendly: max 2 ads (mid + near-end). Desktop can handle more.
-      const isMobile = window.innerWidth < 768;
-      const positions = isMobile
-        ? [Math.floor(totalParas * 0.40), Math.floor(totalParas * 0.80)]
-        : [Math.floor(totalParas * 0.30), Math.floor(totalParas * 0.60), Math.floor(totalParas * 0.90)];
-
-      positions.forEach((pos, i) => {
-        if(paragraphs[pos]) {
-        paragraphs[pos] += `<div style="margin:30px 0; clear:both;"><div data-ad-label="1" style="display:none; font-size:9px; font-weight:700; color:#aaa; text-align:center; margin-bottom:6px; letter-spacing:2px; text-transform:uppercase; border-top:1px solid #e5e7eb; border-bottom:1px solid #e5e7eb; padding:4px 0;">— Advertisement —</div><div id="ad-native-body-${i}" style="border:none;"></div></div>`;
-        }
-      });
-      return paragraphs.join('</p>');
-    }
-    return content;
-  })()}
+        <!-- Content injected safely after render to protect LaTeX braces -->
+   <div class="news-article-body" id="article-body-content">
 </div> 
 
         <!-- Source link -->
@@ -1194,6 +1175,32 @@ const articleDesc = cleanText.length > 160 ? cleanText.slice(0, 157) + '...' : c
     setTimeout(async ()=>{
       const body = document.querySelector('.news-article-body')
       if(body) {
+
+        // 0. Safely inject article content — done here (not via template literal)
+        //    to prevent the HTML parser from corrupting LaTeX braces like \boxed{} and \{1,2,3\}
+        //    during the initial render() call.
+        (() => {
+          let content = p.content || '';
+          // Auto-inject In-Page Push Ad after 2nd paragraph
+          content = content.replace(/<\/p>/i, '</p><div data-monetag-zone="11128395" style="margin:20px 0;text-align:center;"></div>');
+          const paragraphs = content.split('</p>');
+          const totalParas = paragraphs.length;
+          if (totalParas > 3) {
+            const isMobile = window.innerWidth < 768;
+            const positions = isMobile
+              ? [Math.floor(totalParas * 0.40), Math.floor(totalParas * 0.80)]
+              : [Math.floor(totalParas * 0.30), Math.floor(totalParas * 0.60), Math.floor(totalParas * 0.90)];
+            positions.forEach((pos, i) => {
+              if(paragraphs[pos]) {
+                paragraphs[pos] += `<div style="margin:30px 0; clear:both;"><div data-ad-label="1" style="display:none; font-size:9px; font-weight:700; color:#aaa; text-align:center; margin-bottom:6px; letter-spacing:2px; text-transform:uppercase; border-top:1px solid #e5e7eb; border-bottom:1px solid #e5e7eb; padding:4px 0;">— Advertisement —</div><div id="ad-native-body-${i}" style="border:none;"></div></div>`;
+              }
+            });
+            body.innerHTML = paragraphs.join('</p>');
+          } else {
+            body.innerHTML = content;
+          }
+        })();
+
         // 1. Upgrade all YouTube iframes to Custom Click-to-Play Facades
         const iframes = body.querySelectorAll('iframe');
         iframes.forEach(iframe => {
@@ -1248,11 +1255,49 @@ const articleDesc = cleanText.length > 160 ? cleanText.slice(0, 157) + '...' : c
           wrap.appendChild(t)
         })
 
-        // 3. Render any math formulas in the article body
-        if(body.querySelector('.math-formula, mjx-container, .MathJax')){
-          try{ await ensureMathJax(); await MathJax.typesetPromise([body]) }catch(e){}
-        } else if(body.textContent.includes('\\(') || body.textContent.includes('$$')){
-          try{ await ensureMathJax(); await MathJax.typesetPromise([body]) }catch(e){}
+        // 3. Render math formulas in the article body
+        // CRITICAL: MathJax config uses processHtmlClass:'math-render-area'
+        // so we must add that class to the body element before calling typesetPromise.
+        const bodyHtml = body.innerHTML;
+        const hasLatex = bodyHtml.includes('\\(')
+          || bodyHtml.includes('\\[')
+          || bodyHtml.includes('$$')
+          || bodyHtml.includes('math-formula')
+          || bodyHtml.includes('math-block-wrap')
+          || bodyHtml.includes('math-inline-wrap')
+          || /\$[^\s$]/.test(bodyHtml);
+
+        if (hasLatex) {
+          try {
+            body.classList.add('math-render-area');
+            // ── Sanitize LaTeX before rendering ──────────────────────────
+            // Fix 1: \(\boxed{...}\) → $$\boxed{...}$$
+            // Fix 2: nested \( inside already-open \( → strip inner delimiter
+            // Fix 3: \(\begin{pmatrix}...\end{pmatrix}\) → $$...$$
+            // Fix 4: \(\frac{...}{...}\) containing \text{} or \boxed → $$...$$
+            _sanitizeLatexInDom(body);
+            await ensureMathJax();
+            await MathJax.typesetPromise([body]);
+          } catch(e) { console.error('MathJax render error:', e); }
+          // Wrap every display-math mjx-container in a scroll div for mobile
+          body.querySelectorAll('mjx-container[display="true"]').forEach(mjx => {
+            if (mjx.parentElement?.classList.contains('math-scroll')) return;
+            const wrap = document.createElement('div');
+            wrap.className = 'math-scroll';
+            mjx.parentNode.insertBefore(wrap, mjx);
+            wrap.appendChild(mjx);
+          });
+          // Also wrap any .math-formula block elements
+          body.querySelectorAll('.math-formula').forEach(el => {
+            if (el.parentElement?.classList.contains('math-scroll')) return;
+            const isBlock = el.style.display === 'block' || el.tagName === 'DIV';
+            if (isBlock) {
+              const wrap = document.createElement('div');
+              wrap.className = 'math-scroll';
+              el.parentNode.insertBefore(wrap, el);
+              wrap.appendChild(el);
+            }
+          });
         }
 
         // Trigger Monetag
@@ -2395,6 +2440,7 @@ async function previewFormula(){
   preview.innerHTML = input
   try{
     await ensureMathJax()
+    _sanitizeLatexInDom(preview);
     await MathJax.typesetPromise([preview])
   }catch(e){
     preview.innerHTML = `<span style="color:var(--red);font-size:12px">Preview error: ${e.message}</span>`
@@ -2435,15 +2481,138 @@ async function applyLatexArticle() {
   try {
     await ensureMathJax();
     let content = raw;
+
     const mathTokens = [];
 
-    // --- PHASE 1: TOKENIZE MATH (Protect LaTeX) ---
-    const mathRegex = /(\$\$[\s\S]+?\$\$|\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)|(?:\$[^$\n\s][^$\n]+?\$)|\\begin\{([a-z]*\*?)\}[\s\S]+?\\end\{\2\})/g;
-    content = content.replace(mathRegex, (match) => {
-      const id = `__MATH_TOKEN_${mathTokens.length}__`;
-      mathTokens.push(match);
-      return id;
-    });
+    // --- PHASE 1: TOKENIZE MATH (single-pass scanner) ---
+    // We scan left-to-right, detecting the start of any math region and consuming
+    // it completely — including any nested \begin{}/\end{} environments or braces.
+    // This correctly handles:
+    //   \( ... \begin{pmatrix} ... \end{pmatrix} ... \)  (env inside inline math)
+    //   \boxed{ \begin{pmatrix} ... \end{pmatrix} }      (env inside boxed)
+    //   $$ ... $$  \[ ... \]  \( ... \)  $ ... $         (all standard delimiters)
+
+    // Helper: consume a balanced \begin{name}...\end{name} block starting at pos i in str.
+    // Returns the index just past the closing \end{name}, or -1 if not found.
+    function consumeEnv(str, i) {
+      const nameMatch = str.slice(i).match(/^\\begin\{([a-zA-Z*]+)\}/);
+      if (!nameMatch) return -1;
+      const name = nameMatch[1];
+      const openTag = `\\begin{${name}}`;
+      const closeTag = `\\end{${name}}`;
+      let depth = 1;
+      let j = i + openTag.length;
+      while (j < str.length && depth > 0) {
+        if (str.startsWith(openTag, j)) { depth++; j += openTag.length; }
+        else if (str.startsWith(closeTag, j)) { depth--; j += closeTag.length; }
+        else j++;
+      }
+      return depth === 0 ? j : -1;
+    }
+
+    // Helper: consume everything up to the closing delimiter (closeA or closeB),
+    // handling nested \begin{}/\end{} and balanced braces inside.
+    function consumeUntilClose(str, i, closeA, closeB = null) {
+      while (i < str.length) {
+        if (str.startsWith(closeA, i)) return i + closeA.length;
+        if (closeB && str.startsWith(closeB, i)) return i + closeB.length;
+        // Skip nested environments so their \end{} doesn't confuse us
+        if (str.startsWith('\\begin{', i)) {
+          const end = consumeEnv(str, i);
+          if (end > i) { i = end; continue; }
+        }
+        i++;
+      }
+      return -1; // unclosed
+    }
+
+    // Helper: consume a brace-balanced {...} block starting at str[i] (i points at '{')
+    function consumeBraces(str, i) {
+      if (str[i] !== '{') return -1;
+      let depth = 1, j = i + 1;
+      while (j < str.length && depth > 0) {
+        if (str[j] === '{') depth++;
+        else if (str[j] === '}') depth--;
+        else if (str.startsWith('\\begin{', j)) {
+          const end = consumeEnv(str, j);
+          if (end > j) { j = end; continue; }
+        }
+        j++;
+      }
+      return depth === 0 ? j : -1;
+    }
+
+    // Main scan
+    {
+      let out = '';
+      let i = 0;
+      while (i < content.length) {
+        let matched = false;
+
+        // $$ ... $$
+        if (content.startsWith('$$', i)) {
+          const end = content.indexOf('$$', i + 2);
+          if (end !== -1) {
+            const id = `__MATH_TOKEN_${mathTokens.length}__`;
+            mathTokens.push(content.slice(i, end + 2));
+            out += id; i = end + 2; matched = true;
+          }
+        }
+        // \[ ... \]
+        else if (content.startsWith('\\[', i)) {
+          const end = consumeUntilClose(content, i + 2, '\\]');
+          if (end !== -1) {
+            const id = `__MATH_TOKEN_${mathTokens.length}__`;
+            mathTokens.push(content.slice(i, end));
+            out += id; i = end; matched = true;
+          }
+        }
+        // \( ... \)  — handles newlines and nested envs inside
+        else if (content.startsWith('\\(', i)) {
+          const end = consumeUntilClose(content, i + 2, '\\)');
+          if (end !== -1) {
+            const id = `__MATH_TOKEN_${mathTokens.length}__`;
+            mathTokens.push(content.slice(i, end));
+            out += id; i = end; matched = true;
+          }
+        }
+        // \begin{name} ... \end{name}  (standalone, outside any delimiter)
+        else if (content.startsWith('\\begin{', i)) {
+          const end = consumeEnv(content, i);
+          if (end !== -1) {
+            const id = `__MATH_TOKEN_${mathTokens.length}__`;
+            mathTokens.push(content.slice(i, end));
+            out += id; i = end; matched = true;
+          }
+        }
+        // \boxed{ ... }  (bare, outside any delimiter — wrap in $$ ... $$)
+        else if (content.startsWith('\\boxed{', i)) {
+          const end = consumeBraces(content, i + 6); // i+6 points at '{'
+          if (end !== -1) {
+            const raw = content.slice(i, end);
+            const id = `__MATH_TOKEN_${mathTokens.length}__`;
+            mathTokens.push(`$$${raw}$$`);
+            out += id; i = end; matched = true;
+          }
+        }
+        // $ ... $  (single dollar, not $$ )
+        else if (content[i] === '$' && !content.startsWith('$$', i)) {
+          const start = i + 1;
+          // must not start with space
+          if (start < content.length && content[start] !== ' ') {
+            const end = content.indexOf('$', start);
+            if (end !== -1 && !content.startsWith('$$', end)) {
+              const id = `__MATH_TOKEN_${mathTokens.length}__`;
+              mathTokens.push(content.slice(i, end + 1));
+              out += id; i = end + 1; matched = true;
+            }
+          }
+        }
+
+        if (!matched) { out += content[i]; i++; }
+      }
+      content = out;
+    }
 
     // --- PHASE 2: INTERNAL LINKING & STRUCTURE ---
     function processStructure(text) {
@@ -2494,8 +2663,8 @@ async function applyLatexArticle() {
           html += `<h${level}>${cleanText}</h${level}>`;
         }
         // Detect Lists
-        else if (/^[•\-\*\d]/.test(trimmedBlock)) {
-          const isOrdered = /^\d/.test(trimmedBlock);
+        else if (/^[•\-\*]/.test(trimmedBlock) || /^\d+[\.\)]\s/.test(trimmedBlock)) {
+          const isOrdered = /^\d+[\.\)]\s/.test(trimmedBlock);
           const tag = isOrdered ? 'ol' : 'ul';
           html += `<${tag}>`;
           trimmedBlock.split('\n').forEach(li => {
@@ -2516,22 +2685,72 @@ async function applyLatexArticle() {
     let finalHtml = processStructure(content);
 
     // --- PHASE 3: DETOKENIZE MATH ---
-    mathTokens.forEach((val, index) => {
-      const placeholder = `__MATH_TOKEN_${index}__`;
-      let mathHtml = '';
-      if (val.startsWith('$$') || val.startsWith('\\[')) {
-        mathHtml = `<div class="math-block-wrap">${val}</div>`;
-      } else {
-        mathHtml = `<span class="math-inline-wrap">${val}</span>`;
-      }
-      finalHtml = finalHtml.split(placeholder).join(mathHtml);
+    // CRITICAL rules:
+    // 1. Reverse order — nested tokens resolve before their parent containers.
+    // 2. Strip outer delimiters before wrapping — storing $$...$$ inside a div
+    //    causes MathJax to see literal "$$" text and break. We strip them and
+    //    re-wrap with clean delimiters after the HTML element is created.
+    // 3. \begin{pmatrix} nested inside \(...\) parent → inline span not div.
+    const DISPLAY_ENVS = ['align', 'align*', 'equation', 'equation*', 'gather', 'gather*', 'multline', 'pmatrix', 'bmatrix', 'vmatrix', 'matrix', 'cases', 'array'];
+
+    // Build parent lookup: which token contains token i?
+    const parentOf = new Array(mathTokens.length).fill(-1);
+    mathTokens.forEach((val, i) => {
+      mathTokens.forEach((otherVal, j) => {
+        if (i !== j && otherVal.includes(`__MATH_TOKEN_${i}__`)) {
+          parentOf[i] = j;
+        }
+      });
     });
 
+    // Strip outer math delimiters — returns pure LaTeX content only
+    function stripMathDelimiters(val) {
+      const s = val.trim();
+      if (s.startsWith('$$') && s.endsWith('$$')) return s.slice(2, -2).trim();
+      if (s.startsWith('\\[') && s.endsWith('\\]')) return s.slice(2, -2).trim();
+      if (s.startsWith('\\(') && s.endsWith('\\)')) return s.slice(2, -2).trim();
+      return s;
+    }
+
+    for (let index = mathTokens.length - 1; index >= 0; index--) {
+      const val = mathTokens[index];
+      const placeholder = `__MATH_TOKEN_${index}__`;
+      const isDisplayEnv = DISPLAY_ENVS.some(env => val.includes(`\\begin{${env}}`));
+      const parentIdx = parentOf[index];
+      const parentIsInline = parentIdx >= 0 && mathTokens[parentIdx].startsWith('\\(');
+      const pureLatex = stripMathDelimiters(val);
+
+      let mathHtml = '';
+      if (!parentIsInline && (val.startsWith('$$') || val.startsWith('\\[') || isDisplayEnv)) {
+        mathHtml = `<div class="math-block-wrap">$$${pureLatex}$$</div>`;
+      } else {
+        mathHtml = `<span class="math-inline-wrap">\\(${pureLatex}\\)</span>`;
+      }
+      finalHtml = finalHtml.split(placeholder).join(mathHtml);
+    }
+
+    // --- PHASE 4: TAG EVERY MATH WRAPPER WITH ITS RAW LATEX ---
+    // We store raw LaTeX in data-latex on every math wrapper.
+    // submitNews will read data-latex and save that — never the SVG.
     editor.innerHTML = finalHtml;
     editor.classList.add('math-render-area');
 
-    // --- PHASE 4: RENDER ---
+    // Before rendering, stamp data-latex onto every math wrapper
+    // so the save path can recover the raw source.
+    editor.querySelectorAll('.math-block-wrap, .math-inline-wrap').forEach(el => {
+      // The raw LaTeX is the text content before MathJax touches it
+      if (!el.dataset.latex) {
+        el.dataset.latex = el.textContent.trim();
+      }
+    });
+
+    // --- PHASE 5: RENDER FOR EDITOR PREVIEW ---
+   _sanitizeLatexInDom(editor);
     await MathJax.typesetPromise([editor]);
+    // After MathJax renders, re-stamp data-latex on the mjx containers it produced
+    // MathJax replaces the text node but keeps the wrapper div/span intact.
+    // The data-latex we set above survives because it's on our wrapper, not on mjx-container.
+
     document.getElementById('latex-paste-modal')?.remove();
     toast('Article Rendered & Linked ✅');
     updateNewsWordCount?.();
@@ -2570,7 +2789,9 @@ async function applyNewsFormula(){
 
     // Wrap with data-latex for re-editing later
     const safeLatex = input.replace(/"/g,'&quot;')
-    const html = `<${tag} class="math-formula" data-latex="${safeLatex}" style="${style}" contenteditable="false">${rendered}</${tag}>${isDisplay ? '<p><br></p>' : '\u200b'}`
+    // We keep the original LaTeX in a data attribute but ALSO keep it in the HTML 
+    // so the unwrap logic in submitNews can find it.
+    const html = `<${tag} class="math-formula" data-latex="${input}" style="${style}" contenteditable="false">${rendered}</${tag}>${isDisplay ? '<p><br></p>' : '\u200b'}`
 
     editor.focus()
     // Restore the saved caret position so formula goes where the cursor was
@@ -2699,6 +2920,8 @@ async function openNewsModal(postId = null){
                 <button type="button" onclick="pasteLatexArticle()" title="Paste full article with LaTeX formulas" style="border:1px solid #0891b2;background:#ecfeff;padding:4px 10px;border-radius:4px;cursor:pointer;font-weight:600;color:#0891b2;display:inline-flex;align-items:center;gap:4px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6l3 3v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M9 13h6"/><path d="M9 17h4"/><path d="M14 2v4h4"/></svg> LaTeX Article</button>
                
 <button type="button" onclick="insertWhatsAppCTA()" style="border:1px solid #25D366;background:#f0fdf4;padding:4px 10px;border-radius:4px;cursor:pointer;font-weight:600;color:#15803d;display:inline-flex;align-items:center;gap:4px" title="Insert WhatsApp Invite"><i data-lucide="message-circle" style="width:14px;height:14px"></i> WhatsApp</button>
+<button type="button" onclick="insertNewsCallout()" style="border:1px solid #3b82f6;background:#eff6ff;padding:4px 10px;border-radius:4px;cursor:pointer;font-weight:600;color:#1d4ed8;display:inline-flex;align-items:center;gap:4px" title="Info/Fact Box">💡 Callout</button>
+<button type="button" onclick="insertCodeBlock()" style="border:1px solid #374151;background:#f3f4f6;padding:4px 10px;border-radius:4px;cursor:pointer;font-weight:600;color:#374151;display:inline-flex;align-items:center;gap:4px" title="Coding Block">💻 Code</button>
                 <input type="file" id="news-img-upload" accept="image/*" style="display:none" onchange="insertNewsImage(this)"/>
                 <input type="color" onchange="document.execCommand('foreColor',false,this.value)" title="Text color" style="border:1px solid var(--g200);border-radius:4px;width:32px;height:28px;cursor:pointer;padding:2px"/>
                 <input type="color" onchange="document.execCommand('hiliteColor',false,this.value)" title="Highlight color" style="border:1px solid var(--g200);border-radius:4px;width:32px;height:28px;cursor:pointer;padding:2px;background:#ffff00"/>
@@ -2868,15 +3091,6 @@ async function submitNews(postId){
       }
     });
 
-    // SCRUB JUNK
-    let scrubHtml = editor.innerHTML;
-    scrubHtml = scrubHtml.replace(/class="MsoNormal"/g, '')
-                 .replace(/style="mso-[^"]*"/g, '')
-                 .replace(/font-family:[^;"]*;?/g, '')
-                 .replace(/<o:p>.*?<\/o:p>/g, '')
-                 .replace(/<span>\s*<\/span>/g, '');
-    editor.innerHTML = scrubHtml;
-
     // Unwrap image resize wrappers
     editor.querySelectorAll('.img-resize-wrapper').forEach(wrapper=>{
       const img = wrapper.querySelector('img');
@@ -2898,13 +3112,77 @@ async function submitNews(postId){
         el.classList.remove('tbl-sel');
         el.classList.remove('tbl-selected');
     });
+
     editor.querySelectorAll('table').forEach(t => delete t.dataset.tblInit);
   }
 
   // --- Collect Data ---
   const title       = document.getElementById('news-title')?.value?.trim();
   const description = document.getElementById('news-description')?.value?.trim() || null;
-  const content     = editor ? editor.innerHTML.trim() : '';
+  
+  // --- MAJESTIC SAVE FIX ---
+  let finalContent = '';
+  if (editor) {
+    // Create a temporary clone to clean data without flickering the UI
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = editor.innerHTML;
+
+    // 1. Convert ALL math wrappers back to raw LaTeX before saving.
+    //    This covers BOTH pathways:
+    //    - .math-formula  → inserted by applyNewsFormula (single formula tool)
+    //    - .math-block-wrap / .math-inline-wrap → inserted by applyLatexArticle (paste tool)
+    //    We read data-latex which was stamped onto the wrapper before MathJax rendered.
+    //    If data-latex is missing for any reason we fall back to textContent (raw LaTeX
+    //    is always preserved as text inside the wrapper before MathJax typsets it, and
+    //    MathJax keeps the original text node alongside the SVG inside the wrapper).
+    tempDiv.querySelectorAll('.math-formula, .math-block-wrap, .math-inline-wrap').forEach(el => {
+      // Prefer the explicit data-latex stamp
+      let latex = el.dataset.latex || '';
+      if (!latex) {
+        // Fallback: grab any text node children that look like LaTeX
+        // (MathJax keeps the original source text inside a hidden <mjx-assistive-mml>
+        //  or as a plain text node before the SVG)
+        el.childNodes.forEach(node => {
+          if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
+            latex = node.textContent.trim();
+          }
+        });
+        // Last resort: assistive MML title attribute contains the LaTeX
+        if (!latex) {
+          const title = el.querySelector('mjx-container')?.getAttribute('aria-label') || '';
+          // aria-label is human readable, not LaTeX — skip it
+          // Instead grab from the hidden script tag MathJax sometimes leaves
+          const scriptTag = el.querySelector('script[type="math/tex"]');
+          if (scriptTag) latex = scriptTag.textContent.trim();
+        }
+      }
+      if (latex) {
+        // Wrap in correct delimiter if not already wrapped
+        // (data-latex from the paste path already has delimiters like \(...\) or $$...$$)
+        el.replaceWith(document.createTextNode(latex));
+      } else {
+        // Cannot recover — remove the broken SVG rather than saving garbage HTML
+        el.remove();
+      }
+    });
+
+    // 2. Clean up any lingering editor UI elements
+    tempDiv.querySelectorAll('.tbl-minitoolbar, .col-resize-handle, #img-resize-toolbar').forEach(el => el.remove());
+
+    // 3. Scrub Word/Office paste junk — do NOT touch font-family broadly
+    //    as it can corrupt inline styles on legitimate elements.
+    //    Only strip genuine MSO/Office artifacts.
+    let scrubHtml = tempDiv.innerHTML;
+    scrubHtml = scrubHtml
+      .replace(/\s*class="MsoNormal"\s*/g, ' ')
+      .replace(/\s*style="mso-[^"]*"\s*/g, ' ')
+      .replace(/<o:p[^>]*>.*?<\/o:p>/gs, '')
+      .replace(/<span>\s*<\/span>/g, '');
+    tempDiv.innerHTML = scrubHtml;
+
+    finalContent = tempDiv.innerHTML.trim();
+  }
+  const content = finalContent;
   const category    = document.getElementById('news-cat')?.value;
   const tags        = document.getElementById('news-tags')?.value?.trim()?.split(',').map(t=>t.trim()).filter(t=>t) || [];
   const is_featured = document.getElementById('news-featured')?.checked || false;
@@ -3585,6 +3863,95 @@ function insertWhatsAppCTA() {
   if (window.lucide) window.lucide.createIcons();
 toast('WhatsApp CTA inserted! ✅');
 }
+function _sanitizeLatexInDom(container) {
+  // Operate on raw text nodes — avoids HTML entity encoding and tag-boundary
+  // corruption that breaks regex on innerHTML (the root cause of \boxed{} splitting).
+  const walker = document.createTreeWalker(
+    container,
+    NodeFilter.SHOW_TEXT,
+    {
+      acceptNode(node) {
+        const tag = node.parentElement?.tagName?.toLowerCase();
+        if (['script','style','pre','code','textarea'].includes(tag)) {
+          return NodeFilter.FILTER_REJECT;
+        }
+        if (node.parentElement?.closest('mjx-container')) {
+          return NodeFilter.FILTER_REJECT;
+        }
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    }
+  );
+
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+
+  nodes.forEach(node => {
+    let t = node.textContent;
+    if (!t || (!t.includes('\\(') && !t.includes('$$') && !t.includes('\\['))) return;
+
+    // Pass 1: \(\boxed{...}\) and other display-only commands → $$...$$
+    // Uses greedy brace-aware scan: finds matching \) by tracking brace depth
+    t = t.replace(/\\\(([\s\S]*?)\\\)/g, function(match, inner) {
+      const needsDisplay = /\\boxed\b|\\begin\s*\{|\\end\s*\{|\\pmatrix|\\matrix|\\dfrac\b/.test(inner);
+      if (needsDisplay) return '$$' + inner.trim() + '$$';
+      return match;
+    });
+    // Pass 1b: bare \boxed{...} with no delimiters at all → $$\boxed{...}$$
+    // Brace-depth aware so \boxed{\text{a}=\{1,2\}} is caught correctly
+    t = t.replace(/(?<![$(\\])\\boxed(\{)/g, function(match, open, offset) {
+      let depth = 1, i = offset + match.length;
+      while (i < t.length && depth > 0) {
+        if (t[i] === '{') depth++;
+        else if (t[i] === '}') depth--;
+        i++;
+      }
+      const inner = t.slice(offset + match.length - 1, i); // includes outer { }
+      const before = t.slice(0, offset);
+      const after = t.slice(i);
+      // Only wrap if not already inside $$ or \(
+      const alreadyWrapped = /(\$\$[^$]*$|\\\([^)]*$)/.test(before);
+      if (!alreadyWrapped) {
+        t = before + '$$\\boxed' + inner + '$$' + after;
+        return ''; // signal replacement done
+      }
+      return match;
+    });
+
+    // Pass 2: strip stray \( \) delimiters nested inside $$ blocks
+    t = t.replace(/\$\$([\s\S]*?)\$\$/g, function(match, inner) {
+      if (/\\\(|\\\)/.test(inner)) {
+        return '$$' + inner.replace(/\\\(/g, '').replace(/\\\)/g, '') + '$$';
+      }
+      return match;
+    });
+
+    // Pass 3: strip stray \( \) nested inside \( \) (double-open bug)
+    t = t.replace(/\\\(([\s\S]*?)\\\)/g, function(match, inner) {
+      if (/\\\(|\\\)/.test(inner)) {
+        return '\\(' + inner.replace(/\\\(/g, '').replace(/\\\)/g, '') + '\\)';
+      }
+      return match;
+    });
+
+    // Pass 4: collapse $$$$ → $$
+    t = t.replace(/\$\$\$\$/g, '$$');
+
+    // Pass 5: \vec u (missing braces) → \vec{u}
+    t = t.replace(/\\vec\s+([a-zA-Z])/g, '\\vec{$1}');
+    t = t.replace(/\\overrightarrow\s+([a-zA-Z])/g, '\\overrightarrow{$1}');
+
+    if (t !== node.textContent) node.textContent = t;
+  });
+}
+
+function _sanitizeLatex(html) {
+  // Legacy wrapper — kept for safety but no longer called directly.
+  // All sanitization now goes through _sanitizeLatexInDom which works on
+  // raw text nodes and avoids innerHTML entity-encoding corruption.
+  return html;
+}
+
 function renderInFeedAd() {
   // If AdSense is approved, return the code we had before.
   // For now, let's show a "House Ad" to look professional for the Google Reviewer.
@@ -3635,4 +4002,27 @@ function _triggerMonetagAds() {
 
   // Cleanup helper markers
   body.querySelectorAll('.vignette-helper, [data-monetag-type="vignette"]').forEach(el => el.remove());
+}
+function insertNewsCallout() {
+  const editor = document.getElementById('news-editor');
+  if (!editor) return;
+  const html = `
+    <div class="news-callout" style="margin:24px 0; padding:20px; background:#f0f7ff; border-left:5px solid #1A5FFF; border-radius:4px; color:#1e3a8a;" contenteditable="true">
+      <strong style="text-transform:uppercase; font-size:12px; letter-spacing:1px; display:block; margin-bottom:8px;">💡 Key Information / Pedagogy</strong>
+      <p style="margin:0; font-style:italic;">Type your important lesson note, historical fact, or formula explanation here...</p>
+    </div><p><br></p>`;
+  editor.focus();
+  document.execCommand('insertHTML', false, html);
+  if(window.lucide) lucide.createIcons();
+}
+
+function insertCodeBlock() {
+  const editor = document.getElementById('news-editor');
+  const code = prompt("Paste your code snippets here:");
+  if (!code) return;
+  const html = `
+    <pre style="background:#1e1e1e; color:#d4d4d4; padding:16px; border-radius:8px; font-family:monospace; margin:20px 0; overflow-x:auto; line-height:1.4;" contenteditable="false"><code>${code.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</code></pre>
+    <p><br></p>`;
+  editor.focus();
+  document.execCommand('insertHTML', false, html);
 }

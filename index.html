@@ -428,19 +428,19 @@ async function ensureMathJax() {
     window._mjPromise = new Promise((res) => {
       const timeout = setTimeout(() => { res() }, 10000);
       window.MathJax = {
-        loader: { load: ['[tex]/physics', '[tex]/color', '[tex]/mhchem', '[tex]/ams'] },
+        loader: { load: ['[tex]/physics', '[tex]/color', '[tex]/mhchem', '[tex]/ams', '[tex]/mathtools', '[tex]/cancel'] },
         tex: {
-          packages: {'[+]': ['physics', 'color', 'mhchem', 'ams', 'amsmath', 'amsfonts']},
+          packages: {'[+]': ['physics', 'color', 'mhchem', 'ams', 'amsmath', 'amsfonts', 'mathtools', 'cancel']},
           inlineMath: [['\\(', '\\)'], ['$', '$']],
           displayMath: [['\\[', '\\]'], ['$$', '$$']],
           processEscapes: true,
           processEnvironments: true,
-          digits: /^(?:[0-9]+(?:\{,\}[0-9]{3})*(?:\.[0-9]*)?|\.[0-9]+)/,
+          processRefs: true,
         },
         options: {
           enableMenu: false,
+          skipHtmlTags: ['script','noscript','style','textarea','pre','code'],
           ignoreHtmlClass: 'tex2jax_ignore',
-          processHtmlClass: 'math-render-area'
         },
         startup: {
           typeset: false,
@@ -450,10 +450,10 @@ async function ensureMathJax() {
             return MathJax.startup.defaultPageReady();
           }
         },
-        svg: { fontCache: 'global', minScale: 20 }
+        chtml: { fontURL: 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/output/chtml/fonts/woff-v2', scale: 1, minScale: 0.5, matchFontHeight: true }
       };
       const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.min.js';
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.min.js';
       script.async = true;
       document.head.appendChild(script);
     });
