@@ -1602,21 +1602,135 @@
     }
     .msg:hover .msg-del-btn { opacity: 1 !important; }
 
-    .news-rich-content h1{font-size:24px;font-weight:800;color:var(--navy);margin:16px 0 8px}
-.news-rich-content h2{font-size:20px;font-weight:700;color:var(--navy);margin:14px 0 6px}
-.news-rich-content h3{font-size:17px;font-weight:700;color:var(--navy);margin:12px 0 6px}
-.news-rich-content p{margin:0 0 10px;line-height:1.8}
-.news-rich-content ul,.news-rich-content ol{padding-left:20px;margin-bottom:10px}
-.news-rich-content li{margin-bottom:4px;line-height:1.7}
-.news-rich-content a{color:var(--blue);text-decoration:underline}
-.news-rich-content strong{font-weight:700}
-.news-rich-content em{font-style:italic}
+    /* ══════════════════════════════════════════════════════
+   PROFESSIONAL ARTICLE & LATEX STYLING
+   ══════════════════════════════════════════════════════ */
 
-.news-rich-content img { max-width:100%; height:auto; cursor:pointer; border-radius:8px; }
-/* Global Article Table Safety */
-.news-article-body { overflow-wrap: break-word; width: 100%; }
-#news-editor img { max-width:100%; height:auto; cursor:pointer; border-radius:8px; }
-#news-editor img.selected { outline:2px solid var(--blue); }
+/* The main container for both the Editor and the Public View */
+.news-article-body, #news-editor {
+    line-height: 1.8;
+    font-size: 16px;
+    color: #334155;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Headings: Designed for SEO and Readability */
+.news-article-body h2, #news-editor h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--navy);
+    margin: 40px 0 20px;
+    border-bottom: 2px solid var(--g100);
+    padding-bottom: 10px;
+}
+
+.news-article-body h3, #news-editor h3 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--navy);
+    margin: 30px 0 15px;
+}
+
+.news-article-body p, #news-editor p {
+    margin-bottom: 20px;
+}
+
+/* ── PROFESSIONAL TABLES (Mobile Friendly) ── */
+.table-scroll {
+    width: 100%;
+    margin: 32px 0;
+    overflow-x: auto;
+    display: block;
+    -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
+    border-radius: 12px;
+    border: 1px solid var(--g200);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+}
+
+.table-scroll table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px; /* Forces swipe on small screens */
+    background: #fff;
+}
+
+.table-scroll th {
+    background: #f8fafc;
+    color: var(--navy);
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    padding: 14px;
+    border: 1px solid var(--g200);
+}
+
+.table-scroll td {
+    padding: 12px 14px;
+    border: 1px solid var(--g200);
+    font-size: 14px;
+    vertical-align: middle;
+}
+
+/* ── MATHJAX & LATEX OPTIMIZATION ── */
+
+/* Wrap block/display math ($$ or \[) */
+.math-block-wrap {
+    width: 100%;
+    margin: 25px 0;
+    padding: 20px;
+    background: #fdfdfd;
+    border-radius: 8px;
+    border: 1px solid #f1f1f1;
+    overflow-x: auto !important; /* Allow horizontal swiping of long formulas */
+    overflow-y: hidden;
+    text-align: center;
+}
+
+/* Forces MathJax SVG to stay within its container on mobile */
+mjx-container[display="true"] {
+    display: block !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    padding: 10px 0;
+}
+
+/* Inline math ($ or \() styling */
+.math-inline-wrap {
+    display: inline-block;
+    padding: 0 2px;
+    vertical-align: middle;
+}
+
+/* ── IMAGES & MEDIA ── */
+.news-article-body img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 12px;
+    margin: 24px auto;
+    display: block;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+/* Highlights for editor mode */
+#news-editor img.selected {
+    outline: 3px solid var(--blue);
+    outline-offset: 4px;
+}
+
+/* ── LISTS ── */
+.news-article-body ul, .news-article-body ol {
+    margin: 0 0 24px 24px;
+}
+
+.news-article-body li {
+    margin-bottom: 8px;
+    padding-left: 5px;
+}
 
 /* ═══════════════════════════════════════
    MOBILE RESPONSIVE — max-width: 768px

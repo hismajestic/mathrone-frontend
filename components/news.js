@@ -2425,518 +2425,120 @@ async function pasteLatexArticle() {
 }
 
 async function applyLatexArticle() {
-  const raw = document.getElementById('latex-article-input')?.value
-  if (!raw || !raw.trim()) { toast('Please paste some content first', 'err'); return }
+  const raw = document.getElementById('latex-article-input')?.value;
+  if (!raw || !raw.trim()) { toast('Paste content first', 'err'); return; }
+  const editor = document.getElementById('news-editor');
+  if (!editor) return;
 
-  const editor = document.getElementById('news-editor')
-  if (!editor) { toast('Editor not found', 'err'); return }
-
-  toast('Rendering formulas...', 'info')
+  toast('Processing Majestic Article... 🚀', 'info');
 
   try {
-    await ensureMathJax()
+    await ensureMathJax();
+    let content = raw;
+    const mathTokens = [];
 
-    // ── STEP 1: Convert plain-text structure to clean HTML ──────────────────
-    // Handles plain text, bullet lists (•), numbered lists, headings (3.1 / ##)
-    // while preserving any real HTML tags already present in the input.
-    function plainToHTML(text) {
-      const lines = text.split('\n')
-      let html = ''
-      let listType = ''  // 'ul' or 'ol'
+    // --- PHASE 1: TOKENIZE MATH (Protect LaTeX) ---
+    const mathRegex = /(\$\$[\s\S]+?\$\$|\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)|(?:\$[^$\n\s][^$\n]+?\$)|\\begin\{([a-z]*\*?)\}[\s\S]+?\\end\{\2\})/g;
+    content = content.replace(mathRegex, (match) => {
+      const id = `__MATH_TOKEN_${mathTokens.length}__`;
+      mathTokens.push(match);
+      return id;
+    });
 
-      function closelist() {
-        if (listType) { html += `</${listType}>`; listType = '' }
-      }
-
-      function isMathOnly(str) {
-        return /^(\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\))$/.test(str)
-      }
-
-      function parseTableBlock(startIndex) {
-        const rows = []
-        let i = startIndex
-
-        function parseTableRow(line) {
-          const raw = line.trim()
-          if (!raw) return null
-
-          let cells = null
-          if (raw.includes('|')) {
-            cells = raw.replace(/^\||\|$/g, '').split('|').map(c => c.trim())
-          } else if (raw.includes('\t')) {
-            cells = raw.split('\t').map(c => c.trim())
-          } else if (/ {2,}/.test(raw)) {
-            cells = raw.split(/ {2,}/).map(c => c.trim())
-          }
-
-          if (!cells || cells.length < 2) return null
-          return { raw, cells }
-        }
-
-        function isMarkdownSeparator(cells) {
-          return cells.every(cell => /^:?-{2,}:?$/.test(cell.trim()))
-        }
-
-        while (i < lines.length) {
-          const parsed = parseTableRow(lines[i])
-          if (!parsed) break
-          rows.push(parsed)
-          i++
-        }
-
-        if (rows.length < 2) return { html: '', end: startIndex }
-
-        const hasSeparator = isMarkdownSeparator(rows[1].cells)
-        const sameColumnCount = rows.every(r => r.cells.length === rows[0].cells.length)
-        if (!hasSeparator && !sameColumnCount) return { html: '', end: startIndex }
-
-        const headerCells = hasSeparator || rows.length >= 3 ? rows[0].cells : null
-        const bodyRows = hasSeparator ? rows.slice(2) : (headerCells ? rows.slice(1) : rows)
-
-        let tableHtml = '<div class="table-scroll" style="display:block;width:100%;overflow-x:auto;margin:16px 0">'
-        tableHtml += '<table style="width:100%;border-collapse:collapse;min-width:500px">'
-
-        if (headerCells) {
-          tableHtml += '<thead><tr>' + headerCells.map(c => `<th style="padding:10px 12px;border:1px solid #d1d5db;background:#f8fafc;text-align:left">${c || '&nbsp;'}</th>`).join('') + '</tr></thead>'
-        }
-
-        const bodyHtml = bodyRows.map(row => {
-          return `<tr>${row.cells.map(c => `<td style="padding:10px 12px;border:1px solid #d1d5db;vertical-align:top">${c || '&nbsp;'}</td>`).join('')}</tr>`
-        }).join('')
-
-        if (bodyHtml) {
-          tableHtml += '<tbody>' + bodyHtml + '</tbody>'
-        }
-
-        tableHtml += '</table></div>'
-        return { html: tableHtml, end: i - 1 }
-      }
-
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i]
-        const trimmed = line.trim()
-
-        // Empty line — close any open list
-        if (!trimmed) {
-          closelist()
-          continue
-        }
-
-        // Preserve table blocks from pipe/tab/whitespace-delimited pasted content
-        if (i + 1 < lines.length) {
-          const tableResult = parseTableBlock(i)
-          if (tableResult.html) {
-            closelist()
-            html += tableResult.html
-            i = tableResult.end
-            continue
-          }
-        }
-
-        // Already an HTML tag — pass straight through
-        if (/^<(table|thead|tbody|tfoot|tr|th|td|caption|colgroup|col|p|h[1-6]|ul|ol|li|div|span|blockquote|pre|code|hr|br|img|section|article|header|footer|figure|figcaption|style|script|a)(\s|>|\/>)*/i.test(trimmed)) {
-          closelist()
-          html += trimmed
-          continue
-        }
-
-        // Pure math line — never wrap in list or p, pass raw so renderMathInHTML handles it
-        if (isMathOnly(trimmed)) {
-          closelist()
-          html += trimmed
-          continue
-        }
-
-        // Section heading: ## or ### or ####
-        if (/^#{1,4}\s/.test(trimmed)) {
-          closelist()
-          const level = trimmed.match(/^(#{1,4})/)[1].length
-          const tag = ['h2','h3','h4','h4'][level - 1]
-          html += `<${tag}>${trimmed.replace(/^#{1,4}\s+/, '')}</${tag}>`
-          continue
-        }
-
-        // Numbered section heading like "3.1. Title" or "3.1 Title"
-        if (/^\d+\.\d+\.?\s+\S/.test(trimmed)) {
-          closelist()
-          html += `<h2>${trimmed}</h2>`
-          continue
-        }
-
-        // Bullet point (•, -, *)
-        if (/^[•\-\*]\s/.test(trimmed)) {
-          if (listType !== 'ul') { closelist(); html += '<ul>'; listType = 'ul' }
-          html += `<li>${trimmed.replace(/^[•\-\*]\s+/, '')}</li>`
-          continue
-        }
-
-        // Numbered list item — BUT only if it looks like prose content, not a section number
-        if (/^\d+\.\s/.test(trimmed) && !/^\d+\.\d/.test(trimmed)) {
-          const content = trimmed.replace(/^\d+\.\s+/, '')
-          let mathAppend = ''
-          let skip = 0
-          for (let j = i + 1; j < lines.length; j++) {
-            const next = lines[j].trim()
-            if (!next) { skip = j - i; break }
-            if (isMathOnly(next)) {
-              mathAppend = next
-              skip = j - i
-              break
-            }
-            break
-          }
-
-          if (listType !== 'ol') { closelist(); html += '<ol>'; listType = 'ol' }
-          html += `<li>${content}${mathAppend ? ' ' + mathAppend : ''}</li>`
-          if (skip) i += skip
-          continue
-        }
-
-        closelist()
-
-        // Bold label lines like "Growth vs. Decay:" or "Where:"
-        if (/^[A-Z][^.!?\\$]{0,80}:$/.test(trimmed)) {
-          html += `<p><strong>${trimmed}</strong></p>`
-          continue
-        }
-
-        // Regular paragraph — may contain inline math, that's fine
-        html += `<p>${trimmed}</p>`
-      }
-
-      closelist()
-      return html
-    }
-
-    // ── PRE-PROCESS: Normalise all math delimiters to \(...\) and \[...\] ───
-    // This runs BEFORE structuring or rendering.
-    // Converts $...$ → \(...\) and $$...$$ → \[...\]
-    // We do $$ first (longer match wins), then single $.
-    // Uses a state-machine approach instead of regex to handle nested braces correctly.
-    function decodeHTMLEntities(text) {
-      const map = {
-        '&lt;': '<', '&gt;': '>', '&amp;': '&', '&quot;': '"', '&#39;': "'",
-        '&nbsp;': ' ', '&times;': '×', '&div;': '÷', '&plus;': '+', '&minus;': '−',
-        '&radic;': '√', '&infin;': '∞', '&sum;': '∑', '&prod;': '∏', 
-        '&int;': '∫', '&ne;': '≠', '&le;': '≤', '&ge;': '≥', '&approx;': '≈',
-        '&plusmn;': '±'
-      }
-      let result = text
-      for (const [entity, char] of Object.entries(map)) {
-        result = result.split(entity).join(char)
-      }
-      // Handle numeric entities like &#60;
-      result = result.replace(/&#(\d+);/g, (match, code) => String.fromCharCode(parseInt(code, 10)))
-      return result
-    }
-
-    function normaliseMathDelimiters(text) {
-      // CRITICAL: Decode HTML entities first so we can parse properly
-      let working = decodeHTMLEntities(text)
-      let result = ''
-      let i = 0
-      
-      // Helper to check if a position is inside an HTML tag (improved)
-      function isInsideTag(str, pos) {
-        const before = str.slice(0, pos)
-        const openTags = (before.match(/<(?!\/)/g) || []).length
-        const closeTags = (before.match(/<\//g) || []).length
-        return openTags > closeTags
-      }
-      
-      while (i < working.length) {
-        // Check for \[...\] — display math (most specific)
-        if (working[i] === '\\' && working[i+1] === '[') {
-          if (isInsideTag(working, i)) { result += working[i++]; continue }
-          
-          let j = i + 2, depth = 0, end = -1
-          while (j < working.length - 1) {
-            if (working[j] === '{') depth++
-            else if (working[j] === '}') depth--
-            else if (working[j] === '\\' && working[j+1] === ']' && depth === 0) { end = j; break }
-            j++
-          }
-          if (end === -1) { result += working[i++]; continue }
-          const inner = working.slice(i + 2, end)
-          result += `\\[${inner}\\]`
-          i = end + 2
-          continue
-        }
-        
-        // Check for \(...\) — inline math
-        if (working[i] === '\\' && working[i+1] === '(') {
-          if (isInsideTag(working, i)) { result += working[i++]; continue }
-          
-          let j = i + 2, depth = 0, end = -1
-          while (j < working.length - 1) {
-            if (working[j] === '{') depth++
-            else if (working[j] === '}') depth--
-            else if (working[j] === '\\' && working[j+1] === ')' && depth === 0) { end = j; break }
-            j++
-          }
-          if (end === -1) { result += working[i++]; continue }
-          const inner = working.slice(i + 2, end)
-          result += `\\(${inner}\\)`
-          i = end + 2
-          continue
-        }
-        
-        // Check for $$ — display math (if alone on line)
-        if (working[i] === '$' && working[i+1] === '$') {
-          if (isInsideTag(working, i)) { result += working[i++]; continue }
-          
-          let j = i + 2, depth = 0, end = -1
-          while (j < working.length - 1) {
-            if (working[j] === '{') depth++
-            else if (working[j] === '}') depth--
-            else if (working[j] === '$' && working[j+1] === '$' && depth === 0) { end = j; break }
-            j++
-          }
-          if (end === -1) { result += working[i++]; continue }
-          const inner = working.slice(i + 2, end)
-          
-          const lineStart = working.lastIndexOf('\n', i - 1) + 1
-          const lineEnd = working.indexOf('\n', end + 2)
-          const fullLine = working.slice(lineStart, lineEnd === -1 ? working.length : lineEnd)
-          const withoutMath = fullLine.replace(/\$\$[\s\S]*?\$\$/, '').trim()
-          const isAlone = withoutMath === '' || /^[-•*#]$/.test(withoutMath)
-          
-          result += isAlone ? `\\[${inner}\\]` : `\\(${inner}\\)`
-          i = end + 2
-          continue
-        }
-        
-        // Check for single $ — with strict validation
-        if (working[i] === '$') {
-          const nextChar = working[i + 1]
-          if (nextChar === ' ' || nextChar === '\n' || nextChar === undefined) {
-            result += working[i++]; continue
-          }
-          
-          if (isInsideTag(working, i)) { result += working[i++]; continue }
-          
-          let j = i + 1, depth = 0, found = false
-          while (j < working.length && working[j] !== '\n') {
-            if (working[j] === '{') depth++
-            else if (working[j] === '}') depth--
-            else if (working[j] === '$' && depth === 0) {
-              const inner = working.slice(i + 1, j)
-              const hasMath = /[0-9a-zA-Z_{}()\[\]<>+=\-*/^\\]|[×÷±∑∏∫√∞≈≠≤≥]/.test(inner)
-              const notCurrency = !/^\s*[A-Z]{1,3}\s*$/.test(inner)
-              
-              if (hasMath && notCurrency && inner.length > 0 && inner.length < 300) {
-                result += `\\(${inner}\\)`
-                i = j + 1
-                found = true
-                break
-              }
-            }
-            j++
-          }
-          if (!found) { result += working[i++] }
-          continue
-        }
-        
-        result += working[i++]
-      }
-
-      // Enhanced bare LaTeX detection
-      function wrapBareLaTeX(input) {
-        return input.split('\n').map(line => {
-          // Skip lines that already have math delimiters
-          if (/\$|\\\(|\\\[/.test(line)) return line
-          
-          // Skip HTML lines
-          if (/<[a-z]/i.test(line.trim())) return line
-          
-          // Match complex LaTeX commands: \frac{...}{...}, \sqrt[3]{...}, \sin, \cos, etc.
-          return line.replace(/(^|\s)([\\a-zA-Z]+(?:\[[^\]]*\])?(?:\{[^}]*\})+)/g, (match, prefix, formula) => {
-            // Skip if already wrapped or is HTML
-            if (/^\\\(|^\\\[/.test(formula) || /<|>/.test(formula)) return match
-            
-            // Only wrap actual LaTeX commands (contains backslash and braces)
-            const hasBackslash = formula.includes('\\')
-            const hasBraces = formula.includes('{')
-            
-            if (hasBackslash && hasBraces) {
-              return prefix + `\\(${formula.trim()}\\)`
-            }
-            return match
-          })
-        }).join('\n')
-      }
-
-      return wrapBareLaTeX(result)
-    }
-
-    // ── STEP 2: Render all math inside an HTML string ───────────────────────
-    // Only needs to handle \(...\) and \[...\] now — no $ variants.
-    const mathPattern = /(\\\[[\s\S]+?\\\]|\\\([\s\S]*?\\\))/g
-
-    async function renderMathInHTML(htmlStr) {
-      // CRITICAL: Ensure MathJax is loaded before attempting any rendering
-      try {
-        await ensureMathJax()
-      } catch (e) {
-        console.error('Failed to load MathJax:', e)
-        // Continue anyway - formulas will at least show their source
-      }
-
-      // Collect all math tokens and their positions
-      const tokens = []
-      let m
-      mathPattern.lastIndex = 0
-      while ((m = mathPattern.exec(htmlStr)) !== null) {
-        // Skip if inside an HTML tag attribute
-        const before = htmlStr.slice(0, m.index)
-        const openTags = (before.match(/</g) || []).length
-        const closeTags = (before.match(/>/g) || []).length
-        if (openTags > closeTags) continue // inside a tag, skip
-        tokens.push({ index: m.index, length: m[0].length, raw: m[0] })
-      }
-
-      if (!tokens.length) return htmlStr
-
-      // Render all tokens via MathJax in one batch using a staging container
-      const stage = document.createElement('div')
-      stage.style.cssText = 'position:absolute;visibility:hidden;top:-9999px;left:-9999px;width:100%;height:auto'
-      stage.id = '_latex_stage_' + Math.random().toString(36).substr(2, 9)
-
-      // Decide display vs inline per token based on context
-      const tokenModes = tokens.map(t => {
-        if (t.raw.startsWith('\\(')) return 'inline'
-        if (t.raw.startsWith('\\[')) return 'display'
-        // $$ — check what surrounds it in the full HTML string
-        const before = htmlStr.slice(0, t.index).split('\n').pop().replace(/<[^>]+>/g, '').trim()
-        const after  = htmlStr.slice(t.index + t.length).split('\n')[0].replace(/<[^>]+>/g, '').trim()
-        const aloneOnLine = before === '' && after === ''
-        return (aloneOnLine) ? 'display' : 'inline'
-      })
-
-      const placeholders = tokens.map((t, i) => {
-        const el = document.createElement(tokenModes[i] === 'display' ? 'div' : 'span')
-        el.id = `_mjph_${i}`
-        el.className = 'math-formula'
-        el.textContent = t.raw
-        stage.appendChild(el)
-        return el
-      })
-      document.body.appendChild(stage)
-      
-      // Render with enhanced error handling and retry logic
-      let renderSuccess = 0
-      let renderFailed = 0
-      let retryCount = 0
-      const maxRetries = 2
-      
-      async function attemptRender() {
-        try {
-          if (window.MathJax && window.MathJax.typesetPromise) {
-            await MathJax.typesetPromise([stage])
-            // Check if actually rendered
-            const hasRendered = stage.innerHTML.includes('mjx-container') || stage.innerHTML.includes('MathJax')
-            if (hasRendered) {
-              renderSuccess = tokens.length
-              console.log(`✓ Successfully rendered ${tokens.length} formula(s) on attempt ${retryCount + 1}`)
-              return true
-            } else if (retryCount < maxRetries) {
-              console.log(`Retry rendering (attempt ${retryCount + 2})...`)
-              retryCount++
-              return attemptRender()
-            }
+    // --- PHASE 2: INTERNAL LINKING & STRUCTURE ---
+    function processStructure(text) {
+      // 1. Convert Markdown [Text](URL) to SEO-friendly SPA links
+      text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (m, txt, url) => {
+        const isInternal = url.startsWith('/') || url.includes('mathroneacademy.com');
+        if (isInternal) {
+          let route = url.replace(/https?:\/\/mathroneacademy\.com/, '');
+          if (route.includes('/news/')) {
+            route = `news-article/${route.split('/').pop()}`;
+          } else if (route.includes('/shop/')) {
+            route = `shop-product-${route.split('/').pop()}`;
           } else {
-            console.warn('MathJax not available for rendering')
+            route = route.replace(/^\//, '');
           }
-        } catch (e) {
-          console.error('MathJax rendering error:', e)
-          if (retryCount < maxRetries) {
-            console.log(`Retrying after error (attempt ${retryCount + 2})...`)
-            retryCount++
-            await new Promise(r => setTimeout(r, 500)) // Small delay before retry
-            return attemptRender()
-          }
+          return `<a href="${url}" onclick="navigate('${route}', null, event)" class="article-link">${txt}</a>`;
         }
-        renderFailed = tokens.length
-        return false
-      }
-      
-      await attemptRender()
+        return `<a href="${url}" target="_blank" rel="noopener" class="article-link external">${txt}</a>`;
+      });
 
-      // Build replacement map with error handling for each formula
-      const rendered = {}
-      placeholders.forEach((el, i) => {
-        const t = tokens[i]
-        const isDisplay = tokenModes[i] === 'display'
-        const tag = isDisplay ? 'div' : 'span'
-        const style = isDisplay
-          ? 'display:block;text-align:center;margin:20px 0;overflow-x:auto;background:#f8fafc;border-radius:8px;padding:16px 12px;border:1px solid #e2e8f0;min-height:40px;line-height:1.5'
-          : 'display:inline-block;vertical-align:middle;line-height:1;margin:0 2px'
-        const safeLatex = t.raw.replace(/"/g, '&quot;')
-        
-        // Check if rendering succeeded
-        const rendered_html = el.innerHTML
-        const hasRendered = rendered_html.includes('mjx-container') || rendered_html.includes('MathJax') || rendered_html.includes('<svg')
-        
-        if (!hasRendered && renderFailed > 0) {
-          // Fallback: show in code format
-          rendered[i] = `<${tag} class="math-formula math-fallback" data-latex="${safeLatex}" style="${style};font-family:monospace;white-space:pre-wrap;word-break:break-word;color:#666;background:#fffacd;border:1px dashed #999" contenteditable="false" title="Formula (rendering unavailable)"><code style="color:#666">${t.raw}</code></${tag}>`
-        } else {
-          rendered[i] = `<${tag} class="math-formula" data-latex="${safeLatex}" style="${style}" contenteditable="false" title="Click to edit formula">${rendered_html}</${tag}>`
+      // 2. Split into Blocks by Double Newline (Prevents excessive spacing)
+      const blocks = text.split(/\n\s*\n/);
+      let html = '';
+
+      blocks.forEach(block => {
+        const trimmedBlock = block.trim();
+        if (!trimmedBlock) return;
+
+        // Detect Tables
+        if (trimmedBlock.startsWith('|')) {
+          const lines = trimmedBlock.split('\n');
+          html += '<div class="table-scroll"><table class="majestic-table">';
+          lines.forEach((line, index) => {
+            if (line.includes('|-')) return; // Skip Markdown separators
+            const cells = line.split('|').filter(c => c.trim() !== "");
+            if (index === 0) {
+              html += `<thead><tr>${cells.map(c => `<th>${c.trim()}</th>`).join('')}</tr></thead><tbody>`;
+            } else {
+              html += `<tr>${cells.map(c => `<td>${c.trim()}</td>`).join('')}</tr>`;
+            }
+          });
+          html += '</tbody></table></div>';
         }
-      })
-      
-      // Clean up stage
-      try {
-        document.body.removeChild(stage)
-      } catch (e) {
-        console.warn('Failed to remove staging container:', e)
+        // Detect Headings
+        else if (trimmedBlock.startsWith('#')) {
+          const level = (trimmedBlock.match(/^#+/) || ["#"])[0].length + 1;
+          const cleanText = trimmedBlock.replace(/^#+\s*/, '');
+          html += `<h${level}>${cleanText}</h${level}>`;
+        }
+        // Detect Lists
+        else if (/^[•\-\*\d]/.test(trimmedBlock)) {
+          const isOrdered = /^\d/.test(trimmedBlock);
+          const tag = isOrdered ? 'ol' : 'ul';
+          html += `<${tag}>`;
+          trimmedBlock.split('\n').forEach(li => {
+            html += `<li>${li.replace(/^[•\-\*\d\.\s]+/, '')}</li>`;
+          });
+          html += `</${tag}>`;
+        }
+        // Regular Paragraphs (group single newlines into one block)
+        else {
+          const paragraphText = trimmedBlock.replace(/\n/g, ' ');
+          html += `<p>${paragraphText}</p>`;
+        }
+      });
+
+      return html;
+    }
+
+    let finalHtml = processStructure(content);
+
+    // --- PHASE 3: DETOKENIZE MATH ---
+    mathTokens.forEach((val, index) => {
+      const placeholder = `__MATH_TOKEN_${index}__`;
+      let mathHtml = '';
+      if (val.startsWith('$$') || val.startsWith('\\[')) {
+        mathHtml = `<div class="math-block-wrap">${val}</div>`;
+      } else {
+        mathHtml = `<span class="math-inline-wrap">${val}</span>`;
       }
+      finalHtml = finalHtml.split(placeholder).join(mathHtml);
+    });
 
-      // Replace tokens in reverse order so indexes stay valid
-      let result = htmlStr
-      for (let i = tokens.length - 1; i >= 0; i--) {
-        const t = tokens[i]
-        result = result.slice(0, t.index) + rendered[i] + result.slice(t.index + t.length)
-      }
-      
-      // Store stats for display
-      window._lastFormulaStats = { success: renderSuccess, failed: renderFailed, total: tokens.length }
-      
-      return result
-    }
+    editor.innerHTML = finalHtml;
+    editor.classList.add('math-render-area');
 
-    // ── STEP 3: Detect input type and process ───────────────────────────────
-    const normalised = normaliseMathDelimiters(raw)
-    const isHTML = /^\s*<[a-zA-Z]/.test(normalised.trim())
-    const structuredHTML = isHTML ? normalised : plainToHTML(normalised)
-    const finalHTML = await renderMathInHTML(structuredHTML)
-
-    // ── STEP 4: Insert into editor ──────────────────────────────────────────
-    editor.innerHTML = finalHTML
-    
-    // CRITICAL: Re-typeset the editor content to ensure all formulas render
-    // This catches any formulas that might have been missed in the first pass
-    try {
-      await new Promise(r => setTimeout(r, 100)) // Small delay for DOM to settle
-      await MathJax.typesetPromise([editor])
-      console.log('✓ Re-typeset editor content - all formulas should be visible')
-    } catch (e) {
-      console.warn('Re-typeset pass failed (formulas may still render):', e)
-    }
-    
-    document.getElementById('latex-paste-modal')?.remove()
-    
-    // Show stats about formulas detected
-    const stats = window._lastFormulaStats || { total: 0 }
-    let message = 'Article rendered and inserted!'
-    if (stats.total > 0) {
-      message += ` (${stats.total} formula${stats.total !== 1 ? 's' : ''} detected${stats.failed > 0 ? `, ${stats.failed} unavailable` : ''})`
-    }
-    toast(message + ' ✅')
-    updateNewsWordCount?.()
+    // --- PHASE 4: RENDER ---
+    await MathJax.typesetPromise([editor]);
+    document.getElementById('latex-paste-modal')?.remove();
+    toast('Article Rendered & Linked ✅');
+    updateNewsWordCount?.();
 
   } catch (e) {
-    toast('Failed to render article: ' + e.message, 'err')
+    console.error(e);
+    toast('Error parsing article', 'err');
   }
 }
 
