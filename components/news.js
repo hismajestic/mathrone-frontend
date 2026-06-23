@@ -1199,6 +1199,21 @@ const articleDesc = cleanText.length > 160 ? cleanText.slice(0, 157) + '...' : c
           } else {
             body.innerHTML = content;
           }
+
+          // Inject any ld+json schema tags saved inside article content into <head>
+          const schemaMatches = content.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/gi);
+          if (schemaMatches) {
+            schemaMatches.forEach((block, i) => {
+              const existing = document.getElementById('article-custom-schema-' + i);
+              if (existing) existing.remove();
+              const inner = block.replace(/<script type="application\/ld\+json">/i, '').replace(/<\/script>/i, '');
+              const s = document.createElement('script');
+              s.id = 'article-custom-schema-' + i;
+              s.type = 'application/ld+json';
+              s.textContent = inner;
+              document.head.appendChild(s);
+            });
+          }
         })();
 
         // 1. Upgrade all YouTube iframes to Custom Click-to-Play Facades
@@ -1337,6 +1352,18 @@ _triggerMonetagAds();
       if(!document.querySelector('meta[name="keywords"]')) document.head.appendChild(keyMeta);
     }
     document.querySelector('meta[property="og:title"]')?.setAttribute('content', fullTitle)
+
+    // Article-specific OG tags
+    let articleTimeMeta = document.querySelector('meta[property="article:published_time"]');
+    if (!articleTimeMeta) { articleTimeMeta = document.createElement('meta'); articleTimeMeta.setAttribute('property', 'article:published_time'); document.head.appendChild(articleTimeMeta); }
+    articleTimeMeta.setAttribute('content', p.created_at);
+
+    let articleModMeta = document.querySelector('meta[property="article:modified_time"]');
+    if (!articleModMeta) { articleModMeta = document.createElement('meta'); articleModMeta.setAttribute('property', 'article:modified_time'); document.head.appendChild(articleModMeta); }
+    articleModMeta.setAttribute('content', p.updated_at || p.created_at);
+
+    let articleOgType = document.querySelector('meta[property="og:type"]');
+    if (articleOgType) articleOgType.setAttribute('content', 'article');
     document.querySelector('meta[property="og:description"]')?.setAttribute('content', articleDesc)
     document.querySelector('meta[property="og:url"]')?.setAttribute('content', articleUrl)
     document.querySelector('meta[property="og:image"]')?.setAttribute('content', articleImg)
@@ -1378,7 +1405,10 @@ articleSchema.textContent = JSON.stringify({
   "mainEntityOfPage": {
     "@type": "WebPage",
     "@id": 'https://mathroneacademy.com/news/' + ((p.category === 'news' || !p.category) ? 'education' : p.category) + '/' + (p.slug || p.id)
-  }
+  },
+  "wordCount": (p.content || '').replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length,
+  "articleSection": (p.category === 'news' || !p.category) ? 'Education' : p.category.charAt(0).toUpperCase() + p.category.slice(1),
+  "keywords": (p.tags || []).join(', ')
 })
 document.head.appendChild(articleSchema)
 
