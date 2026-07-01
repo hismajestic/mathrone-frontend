@@ -858,13 +858,14 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
             <div class="pn-grid-3">
               ${posts.map((p, index) => {
                 const card = newsCard(p, false);
-                // Row 1 (Index 2): Large Leaderboard
-                if (index === 2) {
-                  return card + `<div class="ad-provider-card" style="grid-column:1/-1; margin:10px 0;"><div data-ad-label="1" style="display:none; font-size:9px; font-weight:700; color:#aaa; text-align:center; margin-bottom:6px; letter-spacing:2px; text-transform:uppercase; border-top:1px solid #e5e7eb; border-bottom:1px solid #e5e7eb; padding:4px 0;">— Advertisement —</div><div id="ad-list-row-1" style="display:flex; justify-content:center; overflow:hidden; min-height:0;"></div></div>`;
+                const cols = window.innerWidth <= 1024 ? 2 : 3;
+                const firstAdIndex = cols - 1;
+                const adSpacing = 6;
+                if (index === firstAdIndex) {
+                  return card + `<div class="ad-provider-card" style="grid-column:1/-1; margin:10px 0;"><div data-monetag-zone="11128395" data-monetag-type="inpage" style="display:flex; align-items:center; justify-content:center;"></div></div>`;
                 }
-                // Every 2 Rows (Index 8, 14, etc): Native Banner
-                if (index > 2 && (index - 2) % 6 === 0) {
-                  return card + `<div class="ad-provider-card" style="grid-column:1/-1; margin:10px 0;"><div data-ad-label="1" style="display:none; font-size:9px; font-weight:700; color:#aaa; text-align:center; margin-bottom:6px; letter-spacing:2px; text-transform:uppercase; border-top:1px solid #e5e7eb; border-bottom:1px solid #e5e7eb; padding:4px 0;">— Advertisement —</div><div id="ad-list-native-${index}"></div></div>`;
+                if (index > firstAdIndex && (index - firstAdIndex) % adSpacing === 0) {
+                  return card + `<div class="ad-provider-card" style="grid-column:1/-1; margin:10px 0;"><div data-monetag-zone="11128395" data-monetag-type="inpage" style="display:flex; align-items:center; justify-content:center;"></div></div>`;
                 }
                 return card;
               }).join('')}
@@ -905,19 +906,9 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
       </div>
     </div>
     <div id="modal-root"></div>`
-    // Load Listing Banners
-
-    // Trigger In-feed Ads to load
     setTimeout(() => {
-      try {
-        const adSlots = document.querySelectorAll('#pn-content .adsbygoogle');
-        adSlots.forEach(slot => {
-          if (!slot.dataset.adStatus) { // Prevent double-loading
-            (window.adsbygoogle = window.adsbygoogle || []).push({});
-          }
-        });
-      } catch (err) { console.error("AdSense Feed trigger failed", err); }
-    }, 500);
+      _triggerMonetagAds();
+    }, 300);
 
   } catch(e) {
     document.getElementById('pn-content').innerHTML = `<div style="text-align:center;padding:60px;color:#8A98B8">Failed to load news. Please try again.</div>`
@@ -1140,24 +1131,22 @@ const articleDesc = cleanText.length > 160 ? cleanText.slice(0, 157) + '...' : c
 
      <!-- Sidebar with Trending News -->
      <div class="article-sidebar">
-        <!-- Adsterra Sidebar 1 (Top) -->
-        <div style="margin-bottom:20px;"><div data-ad-label="1" style="display:none; font-size:9px; font-weight:700; color:#aaa; text-align:center; margin-bottom:6px; letter-spacing:2px; text-transform:uppercase; border-top:1px solid #e5e7eb; border-bottom:1px solid #e5e7eb; padding:4px 0;">— Advertisement —</div><div id="ad-sidebar-1" style="display:flex; justify-content:center; overflow:hidden; max-width:100%;"></div></div>
+        <div style="margin-bottom:20px;"><div data-monetag-zone="11128395" data-monetag-type="inpage" style="display:flex; align-items:center; justify-content:center;"></div></div>
         
         <h3 style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:16px">Trending News</h3>
         <div id="trending-news">
           <div class="loader-center"><div class="spinner"></div></div>
         </div>
 
-        <!-- ad-sidebar-2 is injected dynamically inside trending cards above -->
+        <!-- A secondary promo slot is injected dynamically inside the trending cards above -->
 
-        <!-- Adsterra Sidebar 3 (Bottom - after Popular Topics widget) -->
         <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px;margin-bottom:16px">
           <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:10px">Popular Topics</div>
           <div style="display:flex;flex-wrap:wrap;gap:6px">
             ${['Scholarships','Rwanda','A-Level','STEM','Study Abroad','REB','University','Mastercard'].map(t=>`<button onclick="navigate('news');setTimeout(()=>renderPublicNews(null,'${t}'),300)" style="padding:4px 10px;border:1px solid #e5e7eb;border-radius:20px;font-size:12px;background:#fff;cursor:pointer;color:#6b6b80">${t}</button>`).join('')}
           </div>
         </div>
-        <div style="margin-top:8px;"><div data-ad-label="1" style="display:none; font-size:9px; font-weight:700; color:#aaa; text-align:center; margin-bottom:6px; letter-spacing:2px; text-transform:uppercase; border-top:1px solid #e5e7eb; border-bottom:1px solid #e5e7eb; padding:4px 0;">— Advertisement —</div><div id="ad-sidebar-3" style="display:flex; justify-content:center; min-height:0;"></div></div>
+        <div style="margin-top:8px;"><div data-monetag-zone="11128395" data-monetag-type="inpage" style="display:flex; align-items:center; justify-content:center;"></div></div>
       </div>
     </div>
 
@@ -1181,18 +1170,26 @@ const articleDesc = cleanText.length > 160 ? cleanText.slice(0, 157) + '...' : c
         //    during the initial render() call.
         (() => {
           let content = p.content || '';
-          // Auto-inject In-Page Push Ad after 2nd paragraph
-          content = content.replace(/<\/p>/i, '</p><div data-monetag-zone="11128395" style="margin:20px 0;text-align:center;"></div>');
           const paragraphs = content.split('</p>');
           const totalParas = paragraphs.length;
+          const textOnly = (content.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/gi, ' ').replace(/\s+/g, ' ').trim());
+          const isLongArticle = textOnly.length > 1400 || totalParas > 6;
+          const isMobile = window.innerWidth < 768;
+
           if (totalParas > 3) {
-            const isMobile = window.innerWidth < 768;
-            const positions = isMobile
-              ? [Math.floor(totalParas * 0.40), Math.floor(totalParas * 0.80)]
-              : [Math.floor(totalParas * 0.30), Math.floor(totalParas * 0.60), Math.floor(totalParas * 0.90)];
-            positions.forEach((pos, i) => {
-              if(paragraphs[pos]) {
-                paragraphs[pos] += `<div style="margin:30px 0; clear:both;"><div data-ad-label="1" style="display:none; font-size:9px; font-weight:700; color:#aaa; text-align:center; margin-bottom:6px; letter-spacing:2px; text-transform:uppercase; border-top:1px solid #e5e7eb; border-bottom:1px solid #e5e7eb; padding:4px 0;">— Advertisement —</div><div id="ad-native-body-${i}" style="border:none;"></div></div>`;
+            const positions = isLongArticle
+              ? (isMobile
+                  ? [Math.floor(totalParas * 0.40), Math.floor(totalParas * 0.80)]
+                  : [Math.floor(totalParas * 0.30), Math.floor(totalParas * 0.70)])
+              : (isMobile
+                  ? [Math.floor(totalParas * 0.50)]
+                  : [Math.floor(totalParas * 0.50)]);
+
+            const seen = new Set();
+            positions.forEach((pos) => {
+              if (paragraphs[pos] && !seen.has(pos)) {
+                paragraphs[pos] += `<div style="margin:30px 0; clear:both;"><div data-monetag-zone="11128395" data-monetag-type="inpage" style="margin:24px 0; text-align:center;"></div></div>`;
+                seen.add(pos);
               }
             });
             body.innerHTML = paragraphs.join('</p>');
@@ -1460,7 +1457,7 @@ document.head.appendChild(breadcrumbSchema)
             </div>
           </div>`;
         if ((index === 1 || index === 3) && window.innerWidth >= 768) {
-          return card + `<div style="grid-column:1/-1; margin:4px 0;"><div data-ad-label="1" style="display:none; font-size:9px; font-weight:700; color:#aaa; text-align:center; margin-bottom:6px; letter-spacing:2px; text-transform:uppercase; border-top:1px solid #e5e7eb; border-bottom:1px solid #e5e7eb; padding:4px 0;">— Advertisement —</div><div id="ad-native-rel-${index}"></div></div>`;
+          return card + `<div style="grid-column:1/-1; margin:4px 0;"><div data-monetag-zone="11128395" data-monetag-type="inpage" style="display:flex; align-items:center; justify-content:center;"></div></div>`;
         }
         return card;
       }).join('');
@@ -3995,14 +3992,19 @@ function renderInFeedAd() {
 }
 // Automated Ad Trigger: Runs automatically on every article view
 function _triggerMonetagAds() {
-  const body = document.querySelector('.news-article-body');
+  const body = document.querySelector('.news-article-body') || document.querySelector('#pn-content');
   if (!body) return;
 
   // 1. In-Page Push Script
-  // We remove the guard to let it re-scan the new article DOM for data-monetag-zone divs
+  // Reuse a single tag instance so the DOM scan is not re-triggered repeatedly.
+  const existingInPage = document.getElementById('monetag-inpage-script');
+  if (existingInPage) existingInPage.remove();
+
   const s = document.createElement('script');
+  s.id = 'monetag-inpage-script';
   s.src = 'https://nap5k.com/tag.min.js';
   s.dataset.zone = '11128395';
+  s.async = true;
   document.head.appendChild(s);
 
   // 2. Vignette (Force Full Re-execution)
@@ -4018,17 +4020,8 @@ function _triggerMonetagAds() {
   document.head.appendChild(sVig);
 
   // 3. Smart Push (Browser Notifications)
-  // Removing the guard ensures that if a user dismissed it on one article, 
-  // it checks again when they interact with a new article.
-  const oldPush = document.getElementById('monetag-push-script');
-  if (oldPush) oldPush.remove();
-
-  const sPush = document.createElement('script');
-  sPush.id = 'monetag-push-script';
-  sPush.src = 'https://5gvci.com/act/files/tag.min.js?z=11170550';
-  sPush.dataset.cfasync = 'false';
-  sPush.async = true;
-  document.head.appendChild(sPush);
+  // Only load after the user has interacted and allowed notifications.
+  window.ensureMonetagPushAds?.().catch(() => {});
 
   // Cleanup helper markers
   body.querySelectorAll('.vignette-helper, [data-monetag-type="vignette"]').forEach(el => el.remove());

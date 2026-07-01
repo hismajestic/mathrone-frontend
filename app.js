@@ -450,6 +450,7 @@ window.scrollToContact = function(e) {
 }
  async function renderPage() {
       const p = State.page
+      if (shouldActivateMonetagPushForPage(p)) initMonetagPushOnInteraction();
       if (p === 'landing') { await loadComponent('landing'); return renderLanding() }
       if (p === 'login')   { await loadComponent('auth');    return renderLogin() }
       if (p === 'register'){ await loadComponent('auth');    return renderRegister() }
@@ -3680,18 +3681,67 @@ async function refreshAccessToken() {
   } catch { return false }
 }
 
-async function boot() {
-  // Load Smart Push (Notifications) globally
-  if (!window._monetagPushLoaded) {
-    const s = document.createElement('script');
-    s.src = 'https://5gvci.com/act/files/tag.min.js?z=11170550';
-    s.dataset.cfasync = 'false';
-    s.async = true;
-    document.head.appendChild(s);
-    window._monetagPushLoaded = true;
+window._monetagPushLoaded = false;
+window._monetagPushInitialized = false;
+window._monetagPushLoading = false;
+window._monetagPushRequested = false;
+
+function shouldActivateMonetagPushForPage(page) {
+  return page === 'news' || page.startsWith('news-article/') || page.startsWith('news');
+}
+
+function initMonetagPushOnInteraction() {
+  if (window._monetagPushInitialized) return;
+  window._monetagPushInitialized = true;
+  const activatePush = () => {
+    if (window._monetagPushLoading) return;
+    window._monetagPushLoading = true;
+    ensureMonetagPushAds().catch(() => {});
+  };
+  ['click','pointerdown','keydown','touchstart'].forEach(evt => {
+    window.addEventListener(evt, activatePush, { once: true, passive: true });
+  });
+}
+
+async function ensureMonetagPushAds() {
+  if (window._monetagPushLoaded) return true;
+  if (!('Notification' in window) || !('serviceWorker' in navigator)) return false;
+  if (window.location.protocol === 'http:' && window.location.hostname !== 'localhost') {
+    console.warn('Monetag push ads require HTTPS or localhost.');
+    return false;
   }
+  if (Notification.permission === 'denied') return false;
+  if (Notification.permission === 'default') {
+    if (window._monetagPushRequested) return false;
+    window._monetagPushRequested = true;
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') return false;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  const existing = document.getElementById('monetag-push-script');
+  if (existing) {
+    window._monetagPushLoaded = true;
+    return true;
+  }
+
+  const s = document.createElement('script');
+  s.id = 'monetag-push-script';
+  s.src = 'https://5gvci.com/act/files/tag.min.js?z=11170550';
+  s.dataset.cfasync = 'false';
+  s.async = true;
+  document.head.appendChild(s);
+  window._monetagPushLoaded = true;
+  return true;
+}
+
+async function boot() {
   bootFromUrl();
   const page = State.page;
+  if (shouldActivateMonetagPushForPage(page)) initMonetagPushOnInteraction();
 
   const authRequired = ['dashboard','sessions','messages','profile','notifications','tutors',
     'admin-tutors','admin-students','admin-sessions','admin-payments',
