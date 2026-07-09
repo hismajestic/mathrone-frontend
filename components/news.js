@@ -862,7 +862,13 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
                 const firstAdIndex = cols - 1;
                 const adSpacing = 6;
                 if (index === firstAdIndex) {
-                  return card + `<div class="ad-provider-card" style="grid-column:1/-1; margin:10px 0;"><div data-monetag-zone="11128395" data-monetag-type="inpage" style="display:flex; align-items:center; justify-content:center;"></div></div>`;
+  return card + `
+    <div class="ad-provider-card" style="grid-column:1/-1; margin:20px 0; text-align:center;">
+       <!-- Ezoic Ad Spot -->
+       <div class="ezoicad" data-location="mid_content"></div>
+       <!-- Monetag Ad Spot -->
+       <div data-monetag-zone="11128395" data-monetag-type="inpage"></div>
+    </div>`;
                 }
                 if (index > firstAdIndex && (index - firstAdIndex) % adSpacing === 0) {
                   return card + `<div class="ad-provider-card" style="grid-column:1/-1; margin:10px 0;"><div data-monetag-zone="11128395" data-monetag-type="inpage" style="display:flex; align-items:center; justify-content:center;"></div></div>`;
@@ -1131,7 +1137,11 @@ const articleDesc = cleanText.length > 160 ? cleanText.slice(0, 157) + '...' : c
 
      <!-- Sidebar with Trending News -->
      <div class="article-sidebar">
-        <div style="margin-bottom:20px;"><div data-monetag-zone="11128395" data-monetag-type="inpage" style="display:flex; align-items:center; justify-content:center;"></div></div>
+        <div style="margin-bottom:20px; text-align:center;">
+  <!-- Ezoic Sidebar Ad -->
+  <div class="ezoicad" data-location="sidebar"></div>
+  <div data-monetag-zone="11128395" data-monetag-type="inpage"></div>
+</div>
         
         <h3 style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:16px">Trending News</h3>
         <div id="trending-news">
@@ -3994,6 +4004,15 @@ function renderInFeedAd() {
 function _triggerMonetagAds() {
   const body = document.querySelector('.news-article-body') || document.querySelector('#pn-content');
   if (!body) return;
+
+  // 1. Ezoic Ad Trigger for SPA
+  try {
+    ezstandalone.cmd.push(function() {
+      // This tells Ezoic to find all elements with class "ezoicad" 
+      // and fill them with ads.
+      ezstandalone.showAds(".ezoicad");
+    });
+  } catch (e) { console.error("Ezoic Trigger Error", e); }
 
   // 1. In-Page Push Script
   // Reuse a single tag instance so the DOM scan is not re-triggered repeatedly.
