@@ -1,7 +1,7 @@
 // Mathrone Academy — Service Worker
 // ── HOW TO BUST THE CACHE ON NEW DEPLOY ─────────────────────────────────
 
-const CACHE = 'mathrone-' + '{{BUILD_TIME}}'; // Auto-replaced at build time
+const CACHE = 'mathrone-v5'; // Bump this on every deploy to bust old caches
 
 self.addEventListener('message', (event) => {
   if (event.data === 'SKIP_WAITING') {
