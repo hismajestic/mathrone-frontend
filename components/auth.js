@@ -122,6 +122,12 @@
 
     function showErr(el, msg) { if (el) { el.textContent = msg; el.style.display = 'block' } }
 
+    function isPhoneWithCountryCode(value) {
+      if (!value) return false
+      const normalized = value.trim()
+      return /^\+\d[\d\s-]{6,}$/.test(normalized)
+    }
+
     async function doResendVerification(email) {
       try {
         await api('/auth/resend-verification', { method: 'POST', body: JSON.stringify({ email }) })
@@ -303,7 +309,7 @@ function selectStudentCategory(id){
       </div>
       <div class="grid-2">
         <div class="form-group"><label class="form-label">Password *</label><input class="input" id="r-pw" type="password" placeholder="Min 6 chars"/></div>
-        <div class="form-group"><label class="form-label">Phone Number *</label><input class="input" id="r-phone" placeholder="+250 789 123 456"/></div>
+        <div class="form-group"><label class="form-label">Phone Number * <span style="font-size:11px;color:var(--g400)">Include country code, e.g. +250 789 123 456</span></label><input class="input" id="r-phone" placeholder="+250 789 123 456"/></div>
       </div>
       
       <div class="form-group">
@@ -342,7 +348,7 @@ function selectStudentCategory(id){
       <div class="grid-2" id="parent-info-wrap" style="display:none; background:var(--sky); padding:12px; border-radius:10px; margin-bottom:16px;">
         <div style="grid-column: 1/-1; font-size:11px; font-weight:800; color:var(--blue); margin-bottom:8px; text-transform:uppercase;">Parent / Guardian Info (For Minors)</div>
         <div class="form-group"><label class="form-label">Parent Name</label><input class="input" id="r-parent" placeholder="Full name"/></div>
-        <div class="form-group"><label class="form-label">Parent Phone</label><input class="input" id="r-parent-phone" placeholder="+250..."/></div>
+        <div class="form-group"><label class="form-label">Parent Phone <span style="font-size:11px;color:var(--g400)">Optional but must include country code if entered</span></label><input class="input" id="r-parent-phone" placeholder="+250..."/></div>
       </div>
       <button class="btn btn-primary btn-full" style="margin-top:8px" id="reg-btn" onclick="doRegister()">Create Student Account →</button>`
       
@@ -369,7 +375,7 @@ function selectStudentCategory(id){
       </div>
       <div class="grid-2">
         <div class="form-group"><label class="form-label">Password *</label><input class="input" id="r-pw" type="password" placeholder="Min 6 chars"/></div>
-        <div class="form-group"><label class="form-label">Phone Number *</label><input class="input" id="r-phone" placeholder="+250 789 123 456"/></div>
+        <div class="form-group"><label class="form-label">Phone Number * <span style="font-size:11px;color:var(--g400)">Include country code, e.g. +250 789 123 456</span></label><input class="input" id="r-phone" placeholder="+250 789 123 456"/></div>
       </div>
       <div class="grid-2">
         <div class="form-group"><label class="form-label">Qualification *</label><input class="input" id="r-qual" placeholder="BSc Mathematics, MSc Physics..."/></div>
@@ -442,15 +448,17 @@ function selectStudentCategory(id){
       const email = document.getElementById('r-email')?.value?.trim()
       const pw = document.getElementById('r-pw')?.value
       const phone = document.getElementById('r-phone')?.value?.trim()
+      const parentPhone = document.getElementById('r-parent-phone')?.value?.trim()
       
       if (!name || !email || !pw) { showErr(err, 'Name, email and password are required'); return }
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
       if (!emailRegex.test(email)) { showErr(err, 'Please enter a valid email address (e.g. name@example.com)'); return }
       if (pw.length < 6) { showErr(err, 'Password must be at least 6 characters'); return }
       if (!phone) { showErr(err, 'Phone number is required'); return }
+      if (!isPhoneWithCountryCode(phone)) { showErr(err, 'Phone number must include country code and start with +. Example: +250 789 123 456'); return }
+      if (parentPhone && !isPhoneWithCountryCode(parentPhone)) { showErr(err, 'Parent phone must include country code and start with + if entered. Example: +250 789 123 456'); return }
 
       if (role === 'tutor') {
-        if (!phone) { showErr(err, 'Phone number is required for tutors'); return }
         const cvFile = document.getElementById('r-cv')?.files[0]
         if (!cvFile) { showErr(err, 'Please upload your CV document'); return }
       }
@@ -466,13 +474,13 @@ const sessionMode = document.getElementById('r-mode')?.value
 if (!locationS && sessionMode !== 'online') { showErr(err, 'Please select your district'); btn.disabled = false; btn.textContent = 'Create Student Account →'; return }
           body = {
             full_name: name, email, password: pw,
-            phone: document.getElementById('r-phone')?.value || null,
+            phone: phone || null,
             school_level: level,
             subjects_needed: document.getElementById('r-subjects')?.value?.split(',').map(s => s.trim()).filter(Boolean) || [],
             preferred_mode: document.getElementById('r-mode')?.value || 'online',
             home_location: document.getElementById('r-location-s')?.value || null,
             parent_name: document.getElementById('r-parent')?.value||null,
-            parent_phone: document.getElementById('r-parent-phone')?.value||null ,
+            parent_phone: parentPhone || null,
             category: document.getElementById('r-student-category')?.value || 'academic',}
             path = '/auth/register/student'
             
