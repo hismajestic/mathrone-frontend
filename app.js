@@ -493,7 +493,7 @@ window.scrollToContact = function(e) {
       }
       if (p === 'profile')       return renderProfile()
       if (p === 'notifications') return renderNotifications()
-      if (p === 'tutors')        return renderTutorSearch()
+      if (p === 'tutors')        return renderTutorRequest()
       if (p === 'quiz')          return renderQuiz()
       if (p === 'admin-tutors')  return renderAdminTutors()
       if (p === 'admin-students')return renderAdminStudents()
@@ -1295,7 +1295,7 @@ function updatePageSEO(params) {
 }
 
 function statusBadge(s) {
-  const m = { approved: 'green', pending: 'orange', scheduled: 'blue', completed: 'green', cancelled: 'red', rejected: 'red', applicant: 'gray', under_review: 'orange', written_exam: 'blue', interview: 'blue', paid: 'green', overdue: 'red', in_progress: 'blue', suspended: 'red', tutor: 'blue', student: 'gray', admin: 'purple' }
+  const m = { approved: 'green', pending: 'orange', scheduled: 'blue', completed: 'green', cancelled: 'red', rejected: 'red', assigned: 'green', applicant: 'gray', under_review: 'orange', written_exam: 'blue', interview: 'blue', paid: 'green', overdue: 'red', in_progress: 'blue', suspended: 'red', tutor: 'blue', student: 'gray', admin: 'purple' }
   return `<span class="badge badge-${m[s] || 'gray'}">${s?.replace(/_/g, ' ')}</span>`
 }
 function stars(n) { return '★'.repeat(Math.round(n || 0)) + '☆'.repeat(5 - Math.round(n || 0)) }
@@ -1509,7 +1509,7 @@ function fmtShort(dt) {
       <button class="sidebar-item ${active === 'dashboard' ? 'active' : ''}" onclick="navigate('dashboard')"><i data-lucide="layout-dashboard" class="sidebar-ic" style="width:18px;height:18px"></i>Dashboard</button>
       <span class="sidebar-section">Learning</span>
       <button class="sidebar-item ${active === 'sessions' ? 'active' : ''}" onclick="navigate('sessions')"><i data-lucide="calendar" class="sidebar-ic" style="width:18px;height:18px"></i>My Sessions</button>
-      <button class="sidebar-item ${active === 'tutors' ? 'active' : ''}" onclick="navigate('tutors')"><i data-lucide="search" class="sidebar-ic" style="width:18px;height:18px"></i>Find Tutors</button>
+      <button class="sidebar-item ${active === 'tutors' ? 'active' : ''}" onclick="navigate('tutors')"><i data-lucide="send" class="sidebar-ic" style="width:18px;height:18px"></i>Request a Tutor</button>
       <button class="sidebar-item ${active === 'messages' ? 'active' : ''}" onclick="navigate('messages')"><i data-lucide="message-square" class="sidebar-ic" style="width:18px;height:18px"></i>Messages</button>
       <span class="sidebar-section">Account</span>
       <button class="sidebar-item ${active === 'profile' ? 'active' : ''}" onclick="navigate('profile')"><i data-lucide="user" class="sidebar-ic" style="width:18px;height:18px"></i>Profile</button>
@@ -1893,237 +1893,177 @@ ${s.mode !== 'home' ? `<button class="btn btn-ghost btn-sm" onclick="openStandal
     // ════════════════════════════════════════════════════════════
     // TUTOR SEARCH
     // ════════════════════════════════════════════════════════════
-    function requestTutor(tutorId, tutorName) {
-      const student = State.user?.student || {}
-      const name = State.user?.full_name || 'Student'
-      const subject = (student.subjects_needed || [])[0] || ''
-      const body = tutorName
-        ? `Hello Mathrone Academy! My name is ${name} and I would like to request ${tutorName}.\n\nSubject: ${subject}\nLevel: ${student.school_level || ''}\nMode: ${student.preferred_mode || 'online'}\nLocation: ${student.home_location || ''}\n\nPlease help me get assigned to this tutor.`
-        : `Hello Mathrone Academy! My name is ${name} and I would like to request a tutor.\n\nSubject: ${subject}\nLevel: ${student.school_level || ''}\nMode: ${student.preferred_mode || 'online'}\nLocation: ${student.home_location || ''}\n\nPlease help me get assigned to a tutor.`
-      window.open(`https://wa.me/250786684285?text=${encodeURIComponent(body)}`, '_blank')
-    }
+    async function renderTutorRequest() {
+      render(dashWrap('tutors', `<div class="loader-center"><div class="spinner"></div></div>`))
+      try {
+        const requests = await api('/students/requests')
+        const student = State.user?.student || {}
+        render(dashWrap('tutors', `
+    <div class="page-header"><div><h1 class="page-title">Request a Tutor</h1><p class="page-subtitle">Tell us what you need — our team will find the right tutor for you</p></div></div>
 
-    async function _unused_requestTutor(tutorId) {
-      const me = State.user
-      const student = me.student || {}
-
-      const modalHtml = `
-  <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
-    <div class="modal-box" style="max-width:420px">
-      <h3 style="margin-bottom:16px;color:var(--navy)">📚 Request this Tutor</h3>
-      <div class="form-group">
-        <label class="form-label">Subject</label>
-        <input class="input" id="req-subject" value="${(student.subjects_needed || [])[0] || ''}" placeholder="e.g. Math, Physics"/>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Level</label>
-        <select class="input" id="req-level">
-          <option ${student.school_level === 'Primary' ? 'selected' : ''}>Primary</option>
-          <option ${student.school_level === 'Secondary' ? 'selected' : ''}>Secondary</option>
-          <option ${student.school_level === 'University' ? 'selected' : ''}>University</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Mode</label>
-        <select class="input" id="req-mode" onchange="document.getElementById('req-home-warn').style.display = this.value.includes('home') || this.value === 'blended' ? 'block' : 'none'">
-          <option value="online" ${student.preferred_mode === 'online' ? 'selected' : ''}>Online</option>
-          <option value="home" ${student.preferred_mode === 'home' ? 'selected' : ''}>Home Visit</option>
-          <option value="blended" ${student.preferred_mode === 'blended' ? 'selected' : ''}>Blended (Both)</option>
-        </select>
-        <div id="req-home-warn" style="display:${student.preferred_mode && student.preferred_mode !== 'online' ? 'block' : 'none'}; font-size:11px;color:#92400e;background:#fef3c7;padding:10px;border-radius:6px;margin-top:8px;line-height:1.4">
-          🏠 <strong>Note:</strong> Home visits may include a small transport fee depending on the tutor's distance from your location in <strong>${student.home_location || 'your district'}</strong>.
+    <div class="card" style="padding:24px;margin-bottom:28px">
+      <h3 style="margin-bottom:16px;color:var(--navy)">📋 New Tutor Request</h3>
+      <div class="tr-form-grid">
+        <div class="form-group tr-span-2">
+          <label class="form-label">Subject(s) *</label>
+          <input class="input" id="tr-subjects" value="${(student.subjects_needed||[]).join(', ')}" placeholder="e.g. Mathematics, Physics"/>
+          <div style="font-size:11px;color:var(--g400);margin-top:4px">Separate multiple subjects with commas</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Curriculum *</label>
+          <select class="input" id="tr-curriculum">
+            <option value="">Select curriculum</option>
+            <option>CBC</option><option>Cambridge</option><option>IGCSE</option><option>A-Level</option><option>IB</option><option>AP</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Level *</label>
+          <select class="input" id="tr-level">
+            <option value="">Select level</option>
+            <option ${student.school_level==='Primary'?'selected':''}>Primary</option>
+            <option ${student.school_level==='Secondary'?'selected':''}>Secondary</option>
+            <option ${student.school_level==='University'?'selected':''}>University</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mode *</label>
+          <select class="input" id="tr-mode" onchange="document.getElementById('tr-location-wrap').style.display = this.value==='online' ? 'none':'block'">
+            <option value="online" ${student.preferred_mode==='online'?'selected':''}>Online</option>
+            <option value="home" ${student.preferred_mode==='home'?'selected':''}>Home Visit</option>
+            <option value="blended" ${student.preferred_mode==='blended'?'selected':''}>Blended (Both)</option>
+          </select>
+        </div>
+        <div class="form-group" id="tr-location-wrap" style="display:${student.preferred_mode && student.preferred_mode!=='online' ? 'block':'none'}">
+          <label class="form-label">Home Location</label>
+          <input class="input" id="tr-location" value="${student.home_location||''}" placeholder="e.g. Kacyiru, Kigali"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Max Budget per Session</label>
+          <div class="tr-budget-row">
+            <select class="input tr-currency" id="tr-currency">
+              <option>USD</option><option>RWF</option><option>GBP</option><option>EUR</option>
+            </select>
+            <input class="input tr-budget-input" id="tr-budget" type="number" min="0" placeholder="e.g. 15"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Preferred Time</label>
+          <input class="input" id="tr-time" placeholder="e.g. Weekday evenings, 4-6PM"/>
+        </div>
+        <div class="form-group tr-span-2">
+          <label class="form-label">Preferred Days</label>
+          <div class="tr-days">
+            ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`
+              <label class="tr-day-label">
+                <input type="checkbox" class="tr-day" value="${d}"/>${d}
+              </label>`).join('')}
+          </div>
+        </div>
+        <div class="form-group tr-span-2">
+          <label class="form-label">Additional Notes</label>
+          <textarea class="input" id="tr-notes" rows="3" placeholder="Anything else admin should know..."></textarea>
         </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Notes (optional)</label>
-        <input class="input" id="req-notes" placeholder="Any extra info for admin..."/>
-      </div>
-      <div style="display:flex;gap:10px;margin-top:18px">
-        <button class="btn btn-primary btn-full" onclick="submitTutorRequest('${tutorId}')">Send Request ✅</button>
-        <button class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
-      </div>
+      <button class="btn btn-primary" id="tr-submit-btn" style="margin-top:8px" onclick="submitNewTutorRequest()">Send Request to Admin ✅</button>
     </div>
-  </div>`
 
-      document.getElementById('modal-root').insertAdjacentHTML('beforeend', modalHtml)
+    <h3 style="margin-bottom:12px;color:var(--navy)">My Requests</h3>
+    ${requests.length ? `
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Subject(s)</th><th>Curriculum</th><th>Level</th><th>Mode</th><th>Budget</th><th>Status</th><th>Tutor</th><th>Sent</th><th></th></tr></thead>
+        <tbody>
+          ${requests.map(r=>`<tr>
+            <td>${r.subject||'—'}</td>
+            <td>${r.curriculum||'—'}</td>
+            <td>${r.level||'—'}</td>
+            <td>${r.mode||'—'}</td>
+            <td>${r.max_budget ? (r.currency||'USD')+' '+r.max_budget : '—'}</td>
+            <td>${statusBadge(r.status)}</td>
+            <td>${r.tutors?.profiles?.full_name || '—'}</td>
+            <td style="font-size:12px;color:var(--g400)">${fmtShort(r.created_at)}</td>
+            <td>${r.status === 'pending' ? `<a class="btn btn-ghost btn-sm" href="${whatsappRequestLink(r)}" target="_blank" rel="noopener" style="text-decoration:none;white-space:nowrap">💬 WhatsApp</a>` : ''}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>` : `<div class="empty-state"><div class="empty-icon" style="color:var(--g400)"><i data-lucide="send" style="width:48px;height:48px;stroke-width:1.5"></i></div><div class="empty-title">No requests yet</div><div class="empty-sub">Fill the form above to request your first tutor</div></div>`}
+    <div id="modal-root"></div>
+    `))
+        if (window.lucide) window.lucide.createIcons()
+      } catch (e) { toast(e.message, 'err') }
     }
 
-    async function submitTutorRequest(tutorId) {
-      const subject = document.getElementById('req-subject')?.value?.trim()
-      const level = document.getElementById('req-level')?.value
-      const mode = document.getElementById('req-mode')?.value
-      const notes = document.getElementById('req-notes')?.value?.trim()
+    async function submitNewTutorRequest() {
+      const subjectsRaw = document.getElementById('tr-subjects')?.value?.trim()
+      const curriculum  = document.getElementById('tr-curriculum')?.value
+      const level       = document.getElementById('tr-level')?.value
+      const mode        = document.getElementById('tr-mode')?.value
+      const location    = document.getElementById('tr-location')?.value?.trim()
+      const currency    = document.getElementById('tr-currency')?.value
+      const budgetRaw    = document.getElementById('tr-budget')?.value
+      const time        = document.getElementById('tr-time')?.value?.trim()
+      const notes       = document.getElementById('tr-notes')?.value?.trim()
+      const days        = Array.from(document.querySelectorAll('.tr-day:checked')).map(el => el.value)
 
-      if (!subject) { toast('Please enter a subject', 'err'); return }
+      if (!subjectsRaw) { toast('Please enter at least one subject', 'err'); return }
+      if (!curriculum)  { toast('Please select a curriculum', 'err'); return }
+      if (!level)       { toast('Please select a level', 'err'); return }
+
+      const subjects = subjectsRaw.split(',').map(s => s.trim()).filter(Boolean)
+
+      const payload = {
+        subjects,
+        curriculum,
+        level,
+        mode,
+        max_budget: budgetRaw ? parseFloat(budgetRaw) : null,
+        currency: currency || 'USD',
+        preferred_days: days,
+        preferred_time: time || null,
+        home_location: location || null,
+        notes: notes || null,
+      }
 
       try {
         await api('/students/requests', {
           method: 'POST',
-          body: JSON.stringify({
-            subject: subject,
-            level: level,
-            mode: mode,
-            notes: notes || 'Student requested this tutor specifically'
-          })
+          body: JSON.stringify(payload)
         })
-        document.querySelector('.modal-overlay')?.remove()
-        toast('Request sent! Admin will review and assign. ✅')
+        bustCache('/students')
+        await renderTutorRequest()
+        openRequestSentModal(payload)
       } catch (e) {
         toast(e.message, 'err')
       }
     }
-    async function renderTutorSearch() {
-      render(dashWrap('tutors', `<div class="loader-center"><div class="spinner"></div></div>`))
-      try {
-        const params = State.data.searchParams || {}
-        const q = new URLSearchParams(Object.fromEntries(Object.entries(params).filter(([, v]) => v)))
-        const res = await api(`/tutors/search?${q}`)
-        // Load assigned tutor profile IDs for this student
-        try {
-          const assignments = await api('/students/assignments')
-          State.data.assignedTutorIds = (assignments || []).map(a => a.tutors?.profile_id).filter(Boolean)
-        } catch (e) {
-          State.data.assignedTutorIds = []
-        }
-        const tutors = res.data || []
-        render(dashWrap('tutors', `
-    <div class="page-header"><div><h1 class="page-title">Find a Tutor</h1><p class="page-subtitle">${res.total || 0} tutors available</p></div></div>
-    <div class="card" style="padding:20px;margin-bottom:22px">
-      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
-        <div style="flex:1;min-width:140px"><label class="form-label">Subject</label><input class="input" id="fs-subject" value="${params.subject || ''}" placeholder="Math, Physics..." oninput="if(!this.value.trim()){State.data.searchParams={...State.data.searchParams,subject:''};renderTutorSearch()}"/></div>
-        <div style="flex:1;min-width:120px"><label class="form-label">Level</label>
-          <select class="input" id="fs-level"><option value="">Any level</option><option ${params.level === 'Primary' ? 'selected' : ''}>Primary</option><option ${params.level === 'Secondary' ? 'selected' : ''}>Secondary</option><option ${params.level === 'University' ? 'selected' : ''}>University</option></select></div>
-        <div style="flex:1;min-width:120px"><label class="form-label">Mode</label>
-          <select class="input" id="fs-mode"><option value="">Any mode</option><option value="online" ${params.mode === 'online' ? 'selected' : ''}>Online</option><option value="home" ${params.mode === 'home' ? 'selected' : ''}>Home</option></select></div>
-        <button class="btn btn-primary" onclick="searchTutors()">Search</button>
-        <button class="btn btn-ghost" onclick="State.data.searchParams={};document.getElementById('fs-subject').value='';document.getElementById('fs-level').value='';document.getElementById('fs-mode').value='';renderTutorSearch()">Clear</button>
+
+    function whatsappRequestLink(payload = {}) {
+      const name = State.user?.full_name || 'there'
+      const subjects = Array.isArray(payload.subjects) ? payload.subjects.join(', ') : (payload.subject || '')
+      const budget = payload.max_budget ? `${payload.currency || 'USD'} ${payload.max_budget}` : 'Not specified'
+      const text = `Hello Mathrone Academy! My name is ${name} and I submitted a tutor request.\n\nSubject(s): ${subjects}\nCurriculum: ${payload.curriculum || ''}\nLevel: ${payload.level || ''}\nMode: ${payload.mode || ''}\nBudget: ${budget}\n\nCould you please help me get assigned to a tutor?`
+      return `https://wa.me/250786684285?text=${encodeURIComponent(text)}`
+    }
+
+    function openRequestSentModal(payload) {
+      document.getElementById('modal-root').innerHTML = `
+  <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
+    <div class="modal" style="max-width:420px">
+      <div class="modal-header">
+        <span class="modal-title">Tutor Requested</span>
+        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
+      </div>
+      <div class="modal-body" style="text-align:center">
+        <div style="font-size:44px;margin-bottom:10px">✅</div>
+        <p style="font-size:14px;color:var(--g600);line-height:1.6;margin:0">Your request has been sent to our team. Please wait while we find and assign the right tutor for you — or message us on WhatsApp if you'd like to follow up sooner.</p>
+      </div>
+      <div class="modal-footer" style="flex-direction:column">
+        <a class="btn btn-success btn-full" href="${whatsappRequestLink(payload)}" target="_blank" rel="noopener" style="text-decoration:none">💬 Message Admin on WhatsApp</a>
+        <button class="btn btn-ghost btn-full" onclick="this.closest('.modal-overlay').remove()">Okay, I'll wait</button>
       </div>
     </div>
-    ${tutors.length ? `
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px">
-      ${tutors.map(t => `
-      <div class="tutor-card">
-        <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
-          ${avi(t.profiles?.full_name || 'T', 50)}
-          <div style="min-width:0">
-            <div style="font-weight:700;color:var(--navy);font-size:15px">${maskName(t.profiles?.full_name)}</div>
-            <div style="font-size:12px;color:var(--g400);margin-top:2px">${t.qualification || '—'}</div>
-            <div class="stars" style="margin-top:4px">${stars(t.rating)} <span style="color:var(--g400);font-size:11px">(${t.total_reviews})</span></div>
-          </div>
-        </div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
-          ${(t.subjects || []).slice(0, 3).map(s => `<span class="badge badge-blue">${s}</span>`).join('')}
-        </div>
-        <div style="font-size:12px;color:var(--g600);display:flex;gap:14px;margin-bottom:14px">
-          <span>📚 ${t.experience_years} yrs exp</span>
-          <span>📍 ${t.teaching_modes?.join(', ') || 'Online'}</span>
-        </div>
-        ${t.bio ? `<p style="font-size:12px;color:var(--g600);line-height:1.5;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">${t.bio}</p>
-        ${t.bio.length > 120 ? `<button onclick="openTutorProfileModal(${JSON.stringify(t).replace(/"/g,'&quot;')})" style="background:none;border:none;color:var(--blue);font-size:12px;font-weight:600;cursor:pointer;padding:0;margin-bottom:10px">Read full bio →</button>` : '<div style="margin-bottom:10px"></div>'}` : '<div style="margin-bottom:14px"></div>'}
-        <div style="display:flex; flex-direction:column; gap:8px;">
-          <button class="btn btn-ghost btn-full btn-sm" onclick="openTutorProfileModal(${JSON.stringify(t).replace(/"/g,'&quot;')})">👤 View Full Profile</button>
-          ${(State.data.assignedTutorIds || []).includes(t.profile_id) ?
-            ` <div style="display:flex; gap:6px;">
-                <button class="btn btn-success btn-sm" style="flex:1" onclick="openBookingModal('${t.id}', '${(t.subjects[0]||'General')}', '${(t.profiles?.full_name || '').replace(/'/g, "\\'")}')">📅 Book Now</button>
-                <button class="btn btn-ghost btn-sm" onclick="openMessageModal('${t.profile_id}','${(t.profiles?.full_name || '').replace(/'/g, "\\'")}')">💬 Chat</button>
-              </div>` :
-            `<button class="btn btn-primary btn-full" onclick="requestTutor('${t.id}','${(t.profiles?.full_name||'').replace(/'/g,"\\'")}')">Request to Study with ${t.profiles?.full_name?.split(' ')[0]}</button>`}
-        </div>
-      </div>`).join('')}
-    </div>` : `<div class="empty-state"><div class="empty-icon" style="color:var(--g400)"><i data-lucide="search" style="width:48px;height:48px;stroke-width:1.5"></i></div><div class="empty-title">No tutors found</div><div class="empty-sub">Try adjusting your filters or <a onclick="State.data.searchParams={};renderTutorSearch()" style="color:var(--blue);cursor:pointer">clear all</a></div></div>`}
-    <div id="modal-root"></div>
-    `))
-      } catch (e) { toast(e.message, 'err') }
+  </div>`
     }
-
-    function searchTutors() {
-      State.data.searchParams = {
-        subject: document.getElementById('fs-subject')?.value?.trim(),
-        level: document.getElementById('fs-level')?.value,
-        mode: document.getElementById('fs-mode')?.value,
-      }
-      renderTutorSearch()
-    }
-
-    function openTutorProfileModal(t) {
-      if (typeof t === 'string') t = JSON.parse(t.replace(/&quot;/g, '"'))
-      const isAssigned = (State.data.assignedTutorIds || []).includes(t.profile_id)
-      const actionBtn = isAssigned
-        ? `<div style="display:flex;gap:10px">
-            <button class="btn btn-success" style="flex:1" onclick="document.querySelector('.modal-overlay').remove();openBookingModal('${t.id}','${(t.subjects?.[0]||'General')}','${(t.profiles?.full_name||'').replace(/'/g,"\\'")}')">📅 Book a Session</button>
-            <button class="btn btn-ghost" onclick="document.querySelector('.modal-overlay').remove();openMessageModal('${t.profile_id}','${(t.profiles?.full_name||'').replace(/'/g,"\\'")}')">💬 Chat</button>
-           </div>`
-        : `<button class="btn btn-primary btn-full" onclick="document.querySelector('.modal-overlay').remove();requestTutor('${t.id}','${(t.profiles?.full_name||'').replace(/'/g,"\\'")}')">Request to Study with ${t.profiles?.full_name?.split(' ')[0]}</button>`
-
-      document.getElementById('modal-root').innerHTML = `
-      <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
-        <div class="modal" style="max-width:540px;max-height:90vh;overflow-y:auto">
-          <div class="modal-header" style="position:sticky;top:0;background:#fff;z-index:1">
-            <span class="modal-title">Tutor Profile</span>
-            <button class="modal-close" onclick="document.querySelector('.modal-overlay').remove()">✕</button>
-          </div>
-          <div class="modal-body" style="padding:24px">
-
-            <!-- Header -->
-            <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
-              ${avi(t.profiles?.full_name||'T', 64, t.profiles?.avatar_url||null)}
-              <div>
-                <div style="font-size:20px;font-weight:800;color:var(--navy)">${maskName(t.profiles?.full_name)}</div>
-                <div style="font-size:13px;color:var(--g400);margin-top:3px">${t.qualification||'—'}</div>
-                <div class="stars" style="margin-top:6px">${stars(t.rating)} <span style="font-size:12px;color:var(--g400)">(${t.total_reviews} review${t.total_reviews===1?'':'s'})</span></div>
-              </div>
-            </div>
-
-            <!-- Quick Stats -->
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px">
-              <div style="background:var(--sky);border-radius:10px;padding:12px;text-align:center">
-                <div style="font-size:20px;font-weight:800;color:var(--blue)">${t.experience_years||0}</div>
-                <div style="font-size:11px;color:var(--g400);margin-top:2px">Yrs Experience</div>
-              </div>
-              <div style="background:#f0fdf4;border-radius:10px;padding:12px;text-align:center">
-                <div style="font-size:20px;font-weight:800;color:var(--green)">${t.total_reviews||0}</div>
-                <div style="font-size:11px;color:var(--g400);margin-top:2px">Reviews</div>
-              </div>
-              <div style="background:#fef9c3;border-radius:10px;padding:12px;text-align:center">
-                <div style="font-size:20px;font-weight:800;color:#b45309">${(t.teaching_modes||[]).length||1}</div>
-                <div style="font-size:11px;color:var(--g400);margin-top:2px">Teaching Modes</div>
-              </div>
-            </div>
-
-            <!-- Subjects -->
-            <div style="margin-bottom:18px">
-              <div style="font-size:11px;font-weight:800;color:var(--g400);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Subjects</div>
-              <div style="display:flex;flex-wrap:wrap;gap:6px">
-                ${(t.subjects||[]).map(s=>`<span class="badge badge-blue">${s}</span>`).join('')||'—'}
-              </div>
-            </div>
-
-            <!-- Teaching Modes -->
-            <div style="margin-bottom:18px">
-              <div style="font-size:11px;font-weight:800;color:var(--g400);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Teaching Modes</div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap">
-                ${(t.teaching_modes||['Online']).map(m=>`<span style="background:var(--g50);border:1px solid var(--g100);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:600;color:var(--navy)">📍 ${m}</span>`).join('')}
-              </div>
-            </div>
-
-            <!-- Full Bio -->
-            ${t.bio ? `
-            <div style="margin-bottom:20px">
-              <div style="font-size:11px;font-weight:800;color:var(--g400);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">About</div>
-              <div style="font-size:14px;color:var(--g600);line-height:1.7;background:var(--g50);border-radius:10px;padding:16px;border-left:3px solid var(--blue)">
-                ${t.bio.split(/\n+/).filter(p=>p.trim()).map(p=>`<p style="margin:0 0 10px 0">${p.trim()}</p>`).join('')}
-              </div>
-            </div>` : ''}
-
-          </div>
-          <div class="modal-footer" style="position:sticky;bottom:0;background:#fff;border-top:1px solid var(--g100);padding:16px 24px">
-            ${actionBtn}
-          </div>
-        </div>
-      </div>`
-      if (window.lucide) window.lucide.createIcons()
-    }
-
     function openMessageModal(recipientId, recipientName) {
       document.getElementById('modal-root').innerHTML = `
   <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
@@ -3091,13 +3031,16 @@ async function saveTutorStatus(tutorId){
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Student</th><th>Subject</th><th>Level</th><th>Mode</th><th>Notes</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Student</th><th>Phone</th><th>Subject</th><th>Curriculum</th><th>Level</th><th>Mode</th><th>Budget</th><th>Notes</th><th>Actions</th></tr></thead>
           <tbody>
             ${pending.map(r=>`<tr>
               <td><div style="font-weight:600">${r.students?.profiles?.full_name||'—'}</div><div style="font-size:11px;color:var(--g400)">${r.students?.profiles?.email||''}</div></td>
+              <td style="font-size:12px">${r.students?.profiles?.phone ? `<a href="https://wa.me/${r.students.profiles.phone.replace(/[^0-9]/g,'')}" target="_blank" style="color:var(--green);text-decoration:none">📱 ${r.students.profiles.phone}</a>` : '<span style="color:var(--g400)">—</span>'}</td>
               <td><span class="badge badge-blue">${r.subject||'—'}</span></td>
+              <td>${r.curriculum||'—'}</td>
               <td>${r.level||'—'}</td>
               <td>${r.mode||'—'}</td>
+              <td>${r.max_budget ? (r.currency||'USD')+' '+r.max_budget : '—'}</td>
               <td style="font-size:12px;color:var(--g600)">${r.notes||'—'}</td>
               <td><button class="btn btn-primary btn-sm" onclick="openRequestAssignModal('${r.id}','${r.students?.id}','${(r.students?.profiles?.full_name||'').replace(/'/g,"\\'")}',${JSON.stringify(approved).replace(/"/g,'&quot;')},${JSON.stringify(r).replace(/"/g,'&quot;')})">Assign Tutor</button></td>
             </tr>`).join('')}
@@ -3205,10 +3148,15 @@ async function saveTutorStatus(tutorId){
     async function openRequestAssignModal(requestId, studentId, studentName, approved, request) {
       if (typeof approved === 'string') approved = JSON.parse(approved.replace(/&quot;/g, '"'))
       if (typeof request === 'string') request = JSON.parse(request.replace(/&quot;/g, '"'))
-      const reqSubject  = request?.subject  || '—'
-      const reqMode     = request?.mode     || 'online'
-      const reqLevel    = request?.level    || '—'
-      const reqNotes    = request?.notes    || ''
+      const reqSubject    = request?.subject     || '—'
+      const reqMode       = request?.mode        || 'online'
+      const reqLevel      = request?.level       || '—'
+      const reqNotes      = request?.notes       || ''
+      const reqCurriculum = request?.curriculum  || '—'
+      const reqBudget     = request?.max_budget ? `${request?.currency||'USD'} ${request.max_budget}` : '—'
+      const reqDays       = (request?.preferred_days||[]).length ? request.preferred_days.join(', ') : '—'
+      const reqTime       = request?.preferred_time  || '—'
+      const reqLocation   = request?.home_location   || '—'
       const modalHtml = `
   <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
     <div class="modal" style="max-width:460px">
@@ -3221,9 +3169,14 @@ async function saveTutorStatus(tutorId){
           <div style="font-weight:700;color:var(--navy);margin-bottom:8px">📋 Student's Request</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px">
             <div><span style="color:var(--g400)">Subject:</span> <strong>${reqSubject}</strong></div>
+            <div><span style="color:var(--g400)">Curriculum:</span> <strong>${reqCurriculum}</strong></div>
             <div><span style="color:var(--g400)">Level:</span> <strong>${reqLevel}</strong></div>
             <div><span style="color:var(--g400)">Mode:</span> <strong>${reqMode}</strong></div>
-            <div><span style="color:var(--g400)">Notes:</span> <strong>${reqNotes || '—'}</strong></div>
+            <div><span style="color:var(--g400)">Budget:</span> <strong>${reqBudget}</strong></div>
+            <div><span style="color:var(--g400)">Preferred Time:</span> <strong>${reqTime}</strong></div>
+            <div><span style="color:var(--g400)">Preferred Days:</span> <strong>${reqDays}</strong></div>
+            <div style="grid-column:1/-1"><span style="color:var(--g400)">Location:</span> <strong>${reqLocation}</strong></div>
+            <div style="grid-column:1/-1"><span style="color:var(--g400)">Notes:</span> <strong>${reqNotes || '—'}</strong></div>
           </div>
         </div>
         <div class="form-group">

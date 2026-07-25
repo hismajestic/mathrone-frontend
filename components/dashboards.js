@@ -65,7 +65,7 @@ var FORUM_CATEGORIES = [
         <h1 class="page-title">Good day, ${u.full_name?.split(' ')[0]}! 👋</h1>
         <p class="page-subtitle">Here's your learning overview</p>
       </div>
-      <button class="btn btn-primary" onclick="navigate('tutors')">🔍 Find a Tutor</button>
+      <button class="btn btn-primary" onclick="navigate('tutors')">📋 Request a Tutor</button>
     </div>
 
     <!-- Student Profile Card -->
@@ -132,7 +132,7 @@ var FORUM_CATEGORIES = [
     </div>` : `
     <div class="alert-warn" style="margin-bottom:24px">
       ⚠️ No tutor assigned yet. 
-      <strong style="margin-left:4px;cursor:pointer" onclick="navigate('tutors')">Browse tutors and submit a request →</strong>
+      <strong style="margin-left:4px;cursor:pointer" onclick="navigate('tutors')">Request a tutor →</strong>
     </div>`}
 
     <!-- Recommended Courses -->
