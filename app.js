@@ -1893,6 +1893,13 @@ ${s.mode !== 'home' ? `<button class="btn btn-ghost btn-sm" onclick="openStandal
     // ════════════════════════════════════════════════════════════
     // TUTOR SEARCH
     // ════════════════════════════════════════════════════════════
+    function toggleTutorRequestType() {
+      const isPro = document.querySelector('input[name="tr-category"]:checked')?.value === 'professional'
+      document.getElementById('tr-curriculum-academic-wrap').style.display = isPro ? 'none' : 'block'
+      document.getElementById('tr-level-academic-wrap').style.display = isPro ? 'none' : 'block'
+      document.getElementById('tr-level-pro-wrap').style.display = isPro ? 'block' : 'none'
+    }
+
     async function renderTutorRequest() {
       render(dashWrap('tutors', `<div class="loader-center"><div class="spinner"></div></div>`))
       try {
@@ -1905,24 +1912,42 @@ ${s.mode !== 'home' ? `<button class="btn btn-ghost btn-sm" onclick="openStandal
       <h3 style="margin-bottom:16px;color:var(--navy)">📋 New Tutor Request</h3>
       <div class="tr-form-grid">
         <div class="form-group tr-span-2">
-          <label class="form-label">Subject(s) *</label>
-          <input class="input" id="tr-subjects" value="${(student.subjects_needed||[]).join(', ')}" placeholder="e.g. Mathematics, Physics"/>
-          <div style="font-size:11px;color:var(--g400);margin-top:4px">Separate multiple subjects with commas</div>
+          <label class="form-label">Tutor Type *</label>
+          <div style="display:flex;gap:10px">
+            <label style="display:flex;align-items:center;gap:6px;background:var(--g50);border:1px solid var(--g100);border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer;flex:1">
+              <input type="radio" name="tr-category" value="academic" checked onchange="toggleTutorRequestType()"/> 🎓 Academic
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;background:var(--g50);border:1px solid var(--g100);border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer;flex:1">
+              <input type="radio" name="tr-category" value="professional" onchange="toggleTutorRequestType()"/> 💼 Professional / Skills
+            </label>
+          </div>
         </div>
-        <div class="form-group">
+        <div class="form-group tr-span-2">
+          <label class="form-label">Subject(s) / Skill(s) *</label>
+          <input class="input" id="tr-subjects" value="${(student.subjects_needed||[]).join(', ')}" placeholder="e.g. Mathematics, Physics — or Excel, Public Speaking, Coding"/>
+          <div style="font-size:11px;color:var(--g400);margin-top:4px">Separate multiple subjects/skills with commas</div>
+        </div>
+        <div class="form-group" id="tr-curriculum-academic-wrap">
           <label class="form-label">Curriculum *</label>
-          <select class="input" id="tr-curriculum">
+          <select class="input" id="tr-curriculum-academic">
             <option value="">Select curriculum</option>
             <option>CBC</option><option>Cambridge</option><option>IGCSE</option><option>A-Level</option><option>IB</option><option>AP</option><option>Other</option>
           </select>
         </div>
-        <div class="form-group">
+        <div class="form-group" id="tr-level-academic-wrap">
           <label class="form-label">Level *</label>
-          <select class="input" id="tr-level">
+          <select class="input" id="tr-level-academic">
             <option value="">Select level</option>
             <option ${student.school_level==='Primary'?'selected':''}>Primary</option>
             <option ${student.school_level==='Secondary'?'selected':''}>Secondary</option>
             <option ${student.school_level==='University'?'selected':''}>University</option>
+          </select>
+        </div>
+        <div class="form-group" id="tr-level-pro-wrap" style="display:none">
+          <label class="form-label">Current Level *</label>
+          <select class="input" id="tr-level-pro">
+            <option value="">Select level</option>
+            <option>Beginner</option><option>Intermediate</option><option>Advanced</option>
           </select>
         </div>
         <div class="form-group">
@@ -1971,9 +1996,10 @@ ${s.mode !== 'home' ? `<button class="btn btn-ghost btn-sm" onclick="openStandal
     ${requests.length ? `
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Subject(s)</th><th>Curriculum</th><th>Level</th><th>Mode</th><th>Budget</th><th>Status</th><th>Tutor</th><th>Sent</th><th></th></tr></thead>
+        <thead><tr><th>Type</th><th>Subject(s)</th><th>Curriculum</th><th>Level</th><th>Mode</th><th>Budget</th><th>Status</th><th>Tutor</th><th>Sent</th><th></th></tr></thead>
         <tbody>
           ${requests.map(r=>`<tr>
+            <td>${r.category==='professional' ? '<span class="badge badge-purple">💼 Professional</span>' : '<span class="badge badge-blue">🎓 Academic</span>'}</td>
             <td>${r.subject||'—'}</td>
             <td>${r.curriculum||'—'}</td>
             <td>${r.level||'—'}</td>
@@ -1994,9 +2020,12 @@ ${s.mode !== 'home' ? `<button class="btn btn-ghost btn-sm" onclick="openStandal
     }
 
     async function submitNewTutorRequest() {
+      const category    = document.querySelector('input[name="tr-category"]:checked')?.value || 'academic'
+      const isPro       = category === 'professional'
       const subjectsRaw = document.getElementById('tr-subjects')?.value?.trim()
-      const curriculum  = document.getElementById('tr-curriculum')?.value
-      const level       = document.getElementById('tr-level')?.value
+      const subjects    = subjectsRaw ? subjectsRaw.split(',').map(s => s.trim()).filter(Boolean) : []
+      const curriculum  = isPro ? subjects.join(', ') : document.getElementById('tr-curriculum-academic')?.value
+      const level       = isPro ? document.getElementById('tr-level-pro')?.value : document.getElementById('tr-level-academic')?.value
       const mode        = document.getElementById('tr-mode')?.value
       const location    = document.getElementById('tr-location')?.value?.trim()
       const currency    = document.getElementById('tr-currency')?.value
@@ -2005,13 +2034,12 @@ ${s.mode !== 'home' ? `<button class="btn btn-ghost btn-sm" onclick="openStandal
       const notes       = document.getElementById('tr-notes')?.value?.trim()
       const days        = Array.from(document.querySelectorAll('.tr-day:checked')).map(el => el.value)
 
-      if (!subjectsRaw) { toast('Please enter at least one subject', 'err'); return }
-      if (!curriculum)  { toast('Please select a curriculum', 'err'); return }
+      if (!subjectsRaw) { toast('Please enter at least one subject/skill', 'err'); return }
+      if (!curriculum)  { toast(isPro ? 'Please enter at least one skill above' : 'Please select a curriculum', 'err'); return }
       if (!level)       { toast('Please select a level', 'err'); return }
 
-      const subjects = subjectsRaw.split(',').map(s => s.trim()).filter(Boolean)
-
       const payload = {
+        category,
         subjects,
         curriculum,
         level,
@@ -2714,6 +2742,12 @@ async function deleteStudent(id, name){
       <button class="tab-btn ${tab === 'pipeline' ? 'active' : ''}" onclick="State.tab='pipeline';renderAdminTutors()">Recruitment Pipeline</button>
       <button class="tab-btn ${tab === 'all' ? 'active' : ''}" onclick="State.tab='all';renderAdminTutors()">All Tutors</button>
     </div>
+    ${tab === 'all' ? `
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <button class="btn ${(!State.data.tutorCategoryFilter) ? 'btn-primary' : 'btn-ghost'} btn-sm" onclick="State.data.tutorCategoryFilter=null;renderAdminTutors()">All</button>
+      <button class="btn ${State.data.tutorCategoryFilter==='academic' ? 'btn-primary' : 'btn-ghost'} btn-sm" onclick="State.data.tutorCategoryFilter='academic';renderAdminTutors()">🎓 Academic</button>
+      <button class="btn ${State.data.tutorCategoryFilter==='professional' ? 'btn-primary' : 'btn-ghost'} btn-sm" onclick="State.data.tutorCategoryFilter='professional';renderAdminTutors()">💼 Professional</button>
+    </div>` : ''}
     ${tab === 'pipeline' ? `
     <div class="pipeline">
       ${stages.map(s => {
@@ -2743,10 +2777,11 @@ async function deleteStudent(id, name){
     </div>` : `
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Tutor</th><th>Location</th><th>Phone</th><th>Subjects</th><th>Status</th><th>Rating</th><th>Actions</th></tr></thead>
+        <thead><tr><th>Type</th><th>Tutor</th><th>Location</th><th>Phone</th><th>Subjects</th><th>Status</th><th>Rating</th><th>Actions</th></tr></thead>
         <tbody>
-             ${all.map(t => `
+             ${all.filter(t => !State.data.tutorCategoryFilter || t.category === State.data.tutorCategoryFilter).map(t => `
               <tr>
+    <td>${t.category==='professional' ? '<span class="badge badge-purple">💼 Pro</span>' : '<span class="badge badge-blue">🎓 Academic</span>'}</td>
     <td><div style="display:flex;align-items:center;gap:10px">${avi(t.profiles?.full_name || 'T', 34)}<div><div style="font-weight:600">${t.profiles?.full_name || '—'}</div><div style="font-size:11px;color:var(--g400)">${t.profiles?.email || ''}</div></div></div></td>
     <td style="font-size:12px;font-weight:600;color:var(--navy)">📍 ${t.location || '—'}</td>
     <td style="font-size:13px">${t.profiles?.phone?`<a href="https://wa.me/${t.profiles.phone.replace(/[^0-9]/g,'')}" target="_blank" style="color:var(--green);text-decoration:none">📱 ${t.profiles.phone}</a>`:'<span style="color:var(--g400)">—</span>'}</td>
@@ -3031,9 +3066,10 @@ async function saveTutorStatus(tutorId){
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Student</th><th>Phone</th><th>Subject</th><th>Curriculum</th><th>Level</th><th>Mode</th><th>Budget</th><th>Notes</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Type</th><th>Student</th><th>Phone</th><th>Subject</th><th>Curriculum</th><th>Level</th><th>Mode</th><th>Budget</th><th>Notes</th><th>Actions</th></tr></thead>
           <tbody>
             ${pending.map(r=>`<tr>
+              <td>${r.category==='professional' ? '<span class="badge badge-purple">💼 Pro</span>' : '<span class="badge badge-blue">🎓 Academic</span>'}</td>
               <td><div style="font-weight:600">${r.students?.profiles?.full_name||'—'}</div><div style="font-size:11px;color:var(--g400)">${r.students?.profiles?.email||''}</div></td>
               <td style="font-size:12px">${r.students?.profiles?.phone ? `<a href="https://wa.me/${r.students.profiles.phone.replace(/[^0-9]/g,'')}" target="_blank" style="color:var(--green);text-decoration:none">📱 ${r.students.profiles.phone}</a>` : '<span style="color:var(--g400)">—</span>'}</td>
               <td><span class="badge badge-blue">${r.subject||'—'}</span></td>
@@ -3157,6 +3193,13 @@ async function saveTutorStatus(tutorId){
       const reqDays       = (request?.preferred_days||[]).length ? request.preferred_days.join(', ') : '—'
       const reqTime       = request?.preferred_time  || '—'
       const reqLocation   = request?.home_location   || '—'
+      const reqCategory   = request?.category === 'professional' ? '💼 Professional' : '🎓 Academic'
+      const reqCategoryRaw = request?.category === 'professional' ? 'professional' : 'academic'
+      const sortedApproved = [...approved].sort((a, b) => {
+        const aMatch = a.category === reqCategoryRaw ? 0 : 1
+        const bMatch = b.category === reqCategoryRaw ? 0 : 1
+        return aMatch - bMatch
+      })
       const modalHtml = `
   <div class="modal-overlay" onclick="if(event.target===this)this.remove()">
     <div class="modal" style="max-width:460px">
@@ -3168,6 +3211,7 @@ async function saveTutorStatus(tutorId){
         <div style="background:var(--sky);border-radius:var(--rs);padding:14px;margin-bottom:16px">
           <div style="font-weight:700;color:var(--navy);margin-bottom:8px">📋 Student's Request</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px">
+            <div><span style="color:var(--g400)">Type:</span> <strong>${reqCategory}</strong></div>
             <div><span style="color:var(--g400)">Subject:</span> <strong>${reqSubject}</strong></div>
             <div><span style="color:var(--g400)">Curriculum:</span> <strong>${reqCurriculum}</strong></div>
             <div><span style="color:var(--g400)">Level:</span> <strong>${reqLevel}</strong></div>
@@ -3183,9 +3227,11 @@ async function saveTutorStatus(tutorId){
           <label class="form-label">Select Tutor *</label>
           <select class="input" id="req-tutor-select">
             <option value="">— Choose approved tutor —</option>
-            ${approved.map(t => {
+            ${sortedApproved.map(t => {
               const modes = (t.teaching_modes || []).map(m => m.toUpperCase()).join('/');
-              return `<option value="${t.id}">${t.profiles?.full_name || 'Unknown'} [${modes}] — ${(t.subjects || []).join(', ')}</option>`;
+              const icon = t.category === 'professional' ? '💼' : '🎓';
+              const match = t.category === reqCategoryRaw ? '' : ' (different type)';
+              return `<option value="${t.id}">${icon} ${t.profiles?.full_name || 'Unknown'}${match} [${modes}] — ${(t.subjects || []).join(', ')}</option>`;
             }).join('')}
           </select>
         </div>
