@@ -31,7 +31,7 @@ export async function onRequest(context) {
     // ------------------------------------------------------------------
 
     const title = `Course: ${course.title} - Enrolling Now in Rwanda`;
-    const image = course.image_url || 'https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png';
+    const image = course.image_url || 'https://mathroneacademy.com/storage/assets/mathrone%20logo1.png';
     const url = `https://mathroneacademy.com/course/${category}/${courseSlug}`;
     
     // Clean up the description

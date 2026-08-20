@@ -18,7 +18,7 @@ export async function onRequest(context) {
     const product = await res.json();
 
     const title = `${product.name} | Mathrone Academy Store`;
-    const image = product.image_url || 'https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png';
+    const image = product.image_url || 'https://mathroneacademy.com/storage/assets/mathrone%20logo1.png';
     const url = `https://mathroneacademy.com/shop/${productSlug}`;
     
     // Clean up the description

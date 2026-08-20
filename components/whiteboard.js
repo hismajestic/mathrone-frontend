@@ -30,7 +30,7 @@
           <!-- HEADER -->
           <div id="wb-header" style="background:linear-gradient(90deg,#0D1B40 0%,#1A3060 100%); padding:8px 18px; display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #1A5FFF; flex-shrink:0; position:relative;">
             <div style="display:flex; align-items:center; gap:12px;">
-              <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" style="height:28px; filter:brightness(0) invert(1)"/>
+              <img src="https://mathroneacademy.com/storage/assets/mathrone%20logo1.png" style="height:28px; filter:brightness(0) invert(1)"/>
               <span style="color:#fff; font-weight:900; font-size:15px; letter-spacing:1px;">⚗️ STEM MAJESTIC LAB</span>
               ${window._isLabHost ? '<span style="background:#F5A623;color:#0D1B40;font-size:10px;font-weight:900;padding:2px 8px;border-radius:99px;margin-left:4px;">HOST · MOD</span>' : '<span style="background:#10B981;color:#fff;font-size:10px;font-weight:900;padding:2px 8px;border-radius:99px;margin-left:4px;">STUDENT</span>'}
             </div>

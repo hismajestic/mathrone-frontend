@@ -316,7 +316,7 @@ async function renderShop(category = 'all', search = '') {
   </style>
   <nav class="sn-nav" style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--g100);background:#fff;position:sticky;top:0;z-index:100;gap:8px">
     <button onclick="navigate('landing')" class="sn-brand" style="display:flex;align-items:center;gap:6px;background:none;border:none;cursor:pointer;padding:0">
-      <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" alt="Mathrone Academy logo" loading="lazy" decoding="async" style="height:28px;width:auto"/>
+      <img src="https://mathroneacademy.com/storage/assets/mathrone%20logo1.png" alt="Mathrone Academy logo" loading="lazy" decoding="async" style="height:28px;width:auto"/>
       <span style="font-size:14px;font-weight:800;color:var(--navy);white-space:nowrap">Mathrone</span>
     </button>
     <div style="display:flex;align-items:center;gap:6px">
@@ -461,7 +461,7 @@ async function renderShop(category = 'all', search = '') {
               <div style="display:flex; height:100%; align-items:stretch; gap:0; animation: slideShopProducts 20s linear infinite; width:max-content;">
                  ${(() => {
                     const bImgs = products.filter(p => p.image_url).slice(0,5).map(p => p.image_url);
-                    const safeImgs = bImgs.length ? bImgs : ['https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png'];
+                    const safeImgs = bImgs.length ? bImgs : ['https://mathroneacademy.com/storage/assets/mathrone%20logo1.png'];
                     return [...safeImgs, ...safeImgs, ...safeImgs].map(url => `<div style="height:100%;width:180px;flex-shrink:0;display:flex;align-items:center;justify-content:center;padding:16px;border-right:1px solid rgba(255,255,255,0.08);"><img src="${url}" style="width:100%;height:100%;object-fit:contain;opacity:0.85;" /></div>`).join('');
                  })()}
               </div>
@@ -777,7 +777,7 @@ async function renderShopProduct(productId) {
     <!-- STICKY NAV -->
     <nav style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--g100);background:#fff;position:sticky;top:0;z-index:100;gap:8px;flex-wrap:wrap;">
       <a href="/shop" onclick="navigate('shop', null, event)" style="display:flex;align-items:center;gap:8px;text-decoration:none;flex-shrink:0;">
-        <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" alt="Mathrone Academy logo"loading="lazy" decoding="async" style="height:28px;width:auto"/>
+        <img src="https://mathroneacademy.com/storage/assets/mathrone%20logo1.png" alt="Mathrone Academy logo"loading="lazy" decoding="async" style="height:28px;width:auto"/>
         <span style="font-size:14px;font-weight:700;color:var(--navy)">Mathrone Store</span>
       </a>
       <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">

@@ -308,7 +308,7 @@
 
     <!-- BRAND -->
     <a href="/" class="lbrand" style="text-decoration:none" onclick="navigate('landing', null, event)" style="display:flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer;">
-      <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" alt="Mathrone Academy logo" loading="lazy" decoding="async" style="height:60px;width:60px;object-fit:contain"/>
+      <img src="https://mathroneacademy.com/storage/assets/mathrone%20logo1.png" alt="Mathrone Academy logo" loading="lazy" decoding="async" style="height:60px;width:60px;object-fit:contain"/>
       <span style="font-size:25px;font-weight:700;color:#fff;white-space:nowrap">Mathrone Academy</span>
     </a>
 
@@ -813,7 +813,7 @@ setTimeout(async () => {
   <!-- NAV -->
   <nav class="mlab-nav">
     <button style="display:flex;align-items:center;gap:10px;background:none;border:none;cursor:pointer" onclick="navigate('landing')">
-      <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" alt="Mathrone Academy logo" loading="lazy" decoding="async" style="height:34px;width:auto;filter:brightness(0) invert(1)"/>
+      <img src="https://mathroneacademy.com/storage/assets/mathrone%20logo1.png" alt="Mathrone Academy logo" loading="lazy" decoding="async" style="height:34px;width:auto;filter:brightness(0) invert(1)"/>
       <span style="font-size:17px;font-weight:700;color:#fff">Mathrone Academy</span>
     </button>
     <div style="display:flex;align-items:center;gap:10px">
@@ -1148,7 +1148,7 @@ setTimeout(async () => {
       render(`
   <nav style="display:flex;align-items:center;justify-content:space-between;padding:14px 48px;border-bottom:1px solid var(--g100);background:#fff;position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:10px">
     <button onclick="navigate('landing')" style="display:flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer">
-      <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" alt="Mathrone Academy logo" loading="lazy" decoding="async" style="height:34px;width:auto"/>
+      <img src="https://mathroneacademy.com/storage/assets/mathrone%20logo1.png" alt="Mathrone Academy logo" loading="lazy" decoding="async" style="height:34px;width:auto"/>
       <span style="font-size:16px;font-weight:700;color:var(--navy)">Mathrone Academy</span>
     </button>
     <div style="display:flex;gap:10px">
@@ -1442,7 +1442,7 @@ setTimeout(async () => {
 
   <nav class="pp-nav">
     <button style="display:flex;align-items:center;gap:10px;background:none;border:none;cursor:pointer" onclick="navigate('landing')">
-  <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" alt="Mathrone Academy logo"loading="lazy" decoding="async" style="height:34px;width:auto"/>
+  <img src="https://mathroneacademy.com/storage/assets/mathrone%20logo1.png" alt="Mathrone Academy logo"loading="lazy" decoding="async" style="height:34px;width:auto"/>
   <span style="font-size:17px;font-weight:700;color:var(--navy)">Mathrone Academy</span>
 </button>
     <button class="btn btn-ghost btn-sm" onclick="navigate('landing')">← Back to Home</button>
@@ -1583,7 +1583,7 @@ setTimeout(async () => {
   <!-- NAV -->
   <nav class="about-nav">
     <button style="display:flex;align-items:center;gap:10px;background:none;border:none;cursor:pointer" onclick="navigate('landing')">
-  <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" alt="Mathrone Academy logo" loading="lazy" decoding="async" style="height:34px;width:auto"/>
+  <img src="https://mathroneacademy.com/storage/assets/mathrone%20logo1.png" alt="Mathrone Academy logo" loading="lazy" decoding="async" style="height:34px;width:auto"/>
   <span style="font-size:17px;font-weight:700;color:var(--navy)">Mathrone Academy</span>
 </button>
     <button class="btn btn-ghost btn-sm" onclick="navigate('landing')">← Back to Home</button>

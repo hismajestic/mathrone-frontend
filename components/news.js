@@ -525,7 +525,7 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
   <!-- NAV -->
   <nav class="pn-nav">
     <button class="pn-logo" onclick="navigate('${isLoggedIn ? 'dashboard' : 'landing'}')">
-      <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" alt="Mathrone Academy logo"loading="lazy" decoding="async" style="height:30px;width:auto;filter:brightness(0) invert(1)"/>
+      <img src="https://mathroneacademy.com/storage/assets/mathrone%20logo1.png" alt="Mathrone Academy logo"loading="lazy" decoding="async" style="height:30px;width:auto;filter:brightness(0) invert(1)"/>
       Mathrone <span>Academy</span>
     </button>
     <div class="pn-nav-links">
@@ -665,10 +665,10 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
   }
 
   try{
-    const newsBase = API_URL + '/news/?limit=100&' + (activeCategory ? `category=${activeCategory}&` : '') + (searchQuery ? `search=${encodeURIComponent(searchQuery)}` : '')
+    const newsBase = API_URL + '/news/?limit=30&' + (activeCategory ? `category=${activeCategory}&` : '') + (searchQuery ? `search=${encodeURIComponent(searchQuery)}` : '')
     // Try localStorage stale cache first for instant render, then refresh in background
     const LS_KEY = 'news_cache_v1'
-    const LS_TTL = 5 * 60 * 1000 // 5 minutes
+    const LS_TTL = 60 * 60 * 1000 // 1 hour
     let stale = null
     try {
       const stored = localStorage.getItem(LS_KEY)
@@ -685,17 +685,17 @@ async function renderPublicNews(activeCategory = null, searchQuery = ''){
       featuredPosts = stale.featuredPosts
       popularPosts = stale.popularPosts
       Promise.all([
-        cachedFetch(newsBase, 60000),
-        cachedFetch(API_URL + '/news/?featured=true&limit=6', 120000),
-        cachedFetch(API_URL + '/news/?popular=true&limit=4', 120000)
+        cachedFetch(newsBase, 3600000),
+        cachedFetch(API_URL + '/news/?featured=true&limit=6', 3600000),
+        cachedFetch(API_URL + '/news/?popular=true&limit=4', 3600000)
       ]).then(([a, f, p]) => {
         try { localStorage.setItem(LS_KEY, JSON.stringify({ ts: Date.now(), allPosts: a, featuredPosts: f, popularPosts: p })) } catch(e) {}
       }).catch(() => {})
     } else {
       ;[allPosts, featuredPosts, popularPosts] = await Promise.all([
-        cachedFetch(newsBase, 60000),
-        cachedFetch(API_URL + '/news/?featured=true&limit=6', 120000),
-        cachedFetch(API_URL + '/news/?popular=true&limit=4' + (activeCategory ? `&category=${activeCategory}` : ''), 120000)
+        cachedFetch(newsBase, 3600000),
+        cachedFetch(API_URL + '/news/?featured=true&limit=6', 3600000),
+        cachedFetch(API_URL + '/news/?popular=true&limit=4' + (activeCategory ? `&category=${activeCategory}` : ''), 3600000)
       ])
       if (!activeCategory && !searchQuery) {
         try { localStorage.setItem(LS_KEY, JSON.stringify({ ts: Date.now(), allPosts, featuredPosts, popularPosts })) } catch(e) {}
@@ -1044,7 +1044,7 @@ const articleDesc = cleanText.length > 160 ? cleanText.slice(0, 157) + '...' : c
     </style>
     <nav style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--g100);background:#fff;position:sticky;top:0;z-index:100">
       <button style="display:flex;align-items:center;gap:10px;background:none;border:none;cursor:pointer" onclick="navigate('news')">
-        <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" alt="Mathrone Academy logo" loading="lazy" decoding="async"style="height:34px;width:auto"/>
+        <img src="https://mathroneacademy.com/storage/assets/mathrone%20logo1.png" alt="Mathrone Academy logo" loading="lazy" decoding="async"style="height:34px;width:auto"/>
         <span style="font-size:17px;font-weight:700;color:var(--navy)">Mathrone Academy</span>
       </button>
       <div style="display:flex;gap:10px">

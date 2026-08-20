@@ -364,7 +364,7 @@ async function renderCoursesShop() {
   </style>
   <nav style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--g100);background:#fff;position:sticky;top:0;z-index:100;gap:8px">
     <button onclick="navigate('landing')" style="display:flex;align-items:center;gap:6px;background:none;border:none;cursor:pointer;padding:0;flex-shrink:0;">
-      <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" alt="Mathrone" loading="lazy" style="height:28px;width:auto"/>
+      <img src="https://mathroneacademy.com/storage/assets/mathrone%20logo1.png" alt="Mathrone" loading="lazy" style="height:28px;width:auto"/>
       <span class="c-nav-brand-text" style="font-size:14px;font-weight:800;color:var(--navy)">Mathrone</span>
     </button>
     <div class="courses-nav-buttons">

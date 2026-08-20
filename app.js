@@ -35,7 +35,7 @@ function setPageMeta(title, description, imageUrl, canonicalUrl) {
 }
 
 // NEW: Client-side Supabase connection for Whiteboard
-const SB_URL = "https://hdpkjomganndiiprnpok.supabase.co";
+const SB_URL = window.__SB_URL__ && window.__SB_URL__ !== "__SB_URL__" ? window.__SB_URL__ : "https://hdpkjomganndiiprnpok.supabase.co";
 const SB_KEY = window.__SB_CFG__;
 
 // Define a variable, but don't initialize yet to avoid the crash
@@ -1266,14 +1266,42 @@ function updatePageSEO(params) {
 }
     const ENABLE_SUPABASE_TRANSFORMS = false; // Change to true when on Supabase Pro Plan
 
+    function toDomainAssetUrl(url) {
+      if (!url) return url;
+      if (url.startsWith('/storage/')) return `https://mathroneacademy.com${url}`;
+      if (url.startsWith('https://mathroneacademy.com/storage/')) return url;
+      const match = url.match(/https?:\/\/[^/]+\/storage\/v1\/object\/public\/(.+)$/i);
+      if (!match) return url;
+      const path = decodeURIComponent(match[1]).replace(/\\/g, '/').replace(/\s+/g, '_');
+      return `https://mathroneacademy.com/storage/${path}`;
+    }
+
+    function normalizeAssetUrl(url) {
+      if (!url) return url;
+      return toDomainAssetUrl(url);
+    }
+
     function optImg(url, width = 400) {
       if (!url) return '';
-      if (ENABLE_SUPABASE_TRANSFORMS && url.includes('/storage/v1/object/public/')) {
-        return url.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/') 
-               + `?width=${width}&format=webp&quality=80`;
+      const domainUrl = normalizeAssetUrl(url);
+      if (ENABLE_SUPABASE_TRANSFORMS && domainUrl.includes('/storage/')) {
+        return domainUrl + `?width=${width}&format=webp&quality=80`;
       }
-      return url;
+      return domainUrl;
     }
+
+    function rewritePageAssetUrls() {
+      const nodes = document.querySelectorAll('img[src], source[src], a[href], link[href]');
+      nodes.forEach((node) => {
+        const attr = node.tagName === 'A' ? 'href' : 'src';
+        const value = node.getAttribute(attr);
+        if (!value) return;
+        const normalized = normalizeAssetUrl(value);
+        if (normalized !== value) node.setAttribute(attr, normalized);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', rewritePageAssetUrls);
 
     function maskName(name) {
       if (!name || name === '—' || name === '?') return name;
@@ -1529,7 +1557,7 @@ function fmtShort(dt) {
        <button onclick="closeSidebar()" id="sidebar-close-btn" style="display:none; border:none; color:#fff; font-size:24px; cursor:pointer;">✕</button>
     </div>
     <button class="sidebar-logo" onclick="navigate('dashboard')" style="display:flex;align-items:center;gap:10px">
-  <img src="https://hdpkjomganndiiprnpok.supabase.co/storage/v1/object/public/assets/mathrone%20logo1.png" alt="Mathrone Academy logo"loading="lazy" decoding="async" style="height:32px;width:auto;filter:brightness(0) invert(1)"/>
+  <img src="https://mathroneacademy.com/storage/assets/mathrone%20logo1.png" alt="Mathrone Academy logo"loading="lazy" decoding="async" style="height:32px;width:auto;filter:brightness(0) invert(1)"/>
   Mathrone
 </button>
     ${links}
